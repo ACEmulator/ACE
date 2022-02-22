@@ -303,35 +303,33 @@ namespace ACE.Server.Physics
                     var blockOffset = path.GetCurPosCheckPosBlockOffset();
                     var movement = path.GlobalCurrCenter[0].Center - globSphere.Center - blockOffset;
 
-                    // what is v39 pointing to before this?
-                    var distSq = movement.LengthSquared();
-                    //var diff = -Vector3.Dot(movement, disp);
-                    var diff = movement.Z * disp.Z - movement.Dot2D(disp);
-
-                    if (Math.Abs(distSq) < PhysicsGlobals.EPSILON)
+                    if (Math.Abs(movement.Z) < PhysicsGlobals.EPSILON)
                         return TransitionState.Collided;
 
-                    radsum += PhysicsGlobals.EPSILON;
-                    var t = Math.Sqrt(diff * diff - (disp.LengthSquared() - radsum * radsum) * distSq) + diff;   // solve for t, no division?
-                    if (t > 1)
-                        t = diff * 2 - diff;
-                    var time = diff / distSq;
-                    var timecheck = (1 - time) * transition.SpherePath.WalkInterp;
-                    if (timecheck >= transition.SpherePath.WalkInterp || timecheck < -0.1f)
-                        return TransitionState.Collided;
+                    var timecheck = (Height + globSphere.Radius - disp.Z) / movement.Z;
 
-                    movement *= time;
-                    disp = (disp + movement) / radsum;
+                    var offset = movement * timecheck;
 
-                    if (!transition.SpherePath.IsWalkableAllowable(disp.Z))
+                    var offsetDispSum = offset + disp;
+
+                    if (radsum * radsum < offsetDispSum.Dot2D(offsetDispSum))
                         return TransitionState.OK;
 
-                    var pDist = -Vector3.Dot(disp, globSphere.Center - disp * globSphere.Radius);
-                    var contactPlane = new Plane(disp, pDist);
+                    var t = (1.0f - timecheck) * transition.SpherePath.WalkInterp;
+
+                    if (t >= transition.SpherePath.WalkInterp || t < -0.1f)
+                        return TransitionState.Collided;
+
+                    var pDist = globSphere.Center + offset;
+                    pDist.Z -= globSphere.Radius;
+
+                    var contactPlane = new Plane(Vector3.UnitZ, -Vector3.Dot(Vector3.UnitZ, pDist));
+
                     transition.CollisionInfo.SetContactPlane(contactPlane, true);
                     transition.CollisionInfo.ContactPlaneCellID = transition.SpherePath.CheckPos.ObjCellID;
-                    transition.SpherePath.WalkInterp = timecheck;
-                    transition.SpherePath.AddOffsetToCheckPos(movement, globSphere.Radius);
+                    transition.SpherePath.WalkInterp = t;
+                    transition.SpherePath.AddOffsetToCheckPos(offset, globSphere.Radius);
+
                     return TransitionState.Adjusted;
                 }
             }
@@ -458,8 +456,8 @@ namespace ACE.Server.Physics
             if (radsum * radsum < disp.LengthSquared2D())
             {
                 normal = new Vector3(disp.X, disp.Y, 0);
-                return (checkPos.Radius - PhysicsGlobals.EPSILON + Height * 0.5f >= Math.Abs(Height * 0.5f - disp.Z)
-                    || Math.Abs(disp.Z - _disp.Z) <= PhysicsGlobals.EPSILON);
+                return checkPos.Radius - PhysicsGlobals.EPSILON + Height * 0.5f >= Math.Abs(Height * 0.5f - disp.Z)
+                    || Math.Abs(disp.Z - _disp.Z) <= PhysicsGlobals.EPSILON;
             }
             var normZ = (_disp.Z - disp.Z <= 0.0f) ? 1 : -1;
             normal = new Vector3(0, 0, normZ);
