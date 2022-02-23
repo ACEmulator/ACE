@@ -182,7 +182,7 @@ namespace ACE.Server.WorldObjects
         public virtual void OnGenerate(WorldObject activator)
         {
             if (IsGenerator)
-                Generator_Regeneration();
+                Generator_Generate();
         }
 
         /// <summary>

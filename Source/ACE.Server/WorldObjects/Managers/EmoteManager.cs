@@ -364,7 +364,7 @@ namespace ACE.Server.WorldObjects.Managers
                 case EmoteType.Generate:
 
                     if (WorldObject.IsGenerator)
-                        WorldObject.Generator_Regeneration();
+                        WorldObject.Generator_Generate();
                     break;
 
                 case EmoteType.Give:

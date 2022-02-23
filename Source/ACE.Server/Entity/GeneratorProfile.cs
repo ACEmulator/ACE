@@ -47,31 +47,31 @@ namespace ACE.Server.Entity
         /// </summary>
         public readonly List<DateTime> SpawnQueue = new List<DateTime>();
 
-        /// <summary>
-        /// The list of pending times awaiting slot removal
-        /// </summary>
-        //public readonly Queue<(DateTime time, uint objectGuid)> RemoveQueue = new Queue<(DateTime time, uint objectGuid)>();
-        public readonly LinkedList<RemoveQueueNode> RemoveQueue = new LinkedList<RemoveQueueNode>();
+        ///// <summary>
+        ///// The list of pending times awaiting slot removal
+        ///// </summary>
+        ////public readonly Queue<(DateTime time, uint objectGuid)> RemoveQueue = new Queue<(DateTime time, uint objectGuid)>();
+        //public readonly LinkedList<RemoveQueueNode> RemoveQueue = new LinkedList<RemoveQueueNode>();
 
-        /// <summary>
-        /// A list of objects that have been spawned by this generator and destroyed
-        /// Mapping of object guid => registry node, which provides a bunch of detailed info about the spawn
-        /// </summary>
-        public readonly Dictionary<uint, WorldObjectInfo> Removed = new Dictionary<uint, WorldObjectInfo>();
+        ///// <summary>
+        ///// A list of objects that have been spawned by this generator and destroyed
+        ///// Mapping of object guid => registry node, which provides a bunch of detailed info about the spawn
+        ///// </summary>
+        //public readonly Dictionary<uint, WorldObjectInfo> Removed = new Dictionary<uint, WorldObjectInfo>();
 
         /// <summary>
         /// Returns TRUE if this profile is a placeholder object
         /// Placeholder objects are used for linkable generators,
         /// and are used as a template for the real items contained in the links.
         /// </summary>
-        public bool IsPlaceholder { get => Biota.WeenieClassId == 3666; }
+        public bool IsPlaceholder { get => WeenieClassId == 3666; }
 
         /// <summary>
         /// TRUE if this Profile generated treasure using TreasureGenerator
         /// </summary>
         public bool GeneratedTreasureItem { get; private set; }
 
-        private int? currentCreate { get; set; }
+        //private int? currentCreate { get; set; }
 
         /// <summary>
         /// The total # of active spawned objects + awaiting spawning
@@ -82,11 +82,13 @@ namespace ACE.Server.Entity
             {
                 if (!GeneratedTreasureItem)
                 {
-                    if (currentCreate == null)
-                        //return Spawned.Count + SpawnQueue.Count
-                        currentCreate = Spawned.Keys.Except(Removed.Keys).Count() + SpawnQueue.Count;
+                    //if (currentCreate == null)
+                    //    //return Spawned.Count + SpawnQueue.Count
+                    //    currentCreate = Spawned.Keys.Except(Removed.Keys).Count() + SpawnQueue.Count;
 
-                    return currentCreate.Value;
+                    //return currentCreate.Value;
+
+                    return Spawned.Count + SpawnQueue.Count;
                 }
                 else
                 {
@@ -98,31 +100,46 @@ namespace ACE.Server.Entity
             }
         }
 
+        ///// <summary>
+        ///// Returns the MaxCreate for this generator profile
+        ///// If set to -1 in the database, use MaxCreate from generator
+        ///// </summary>
+        //public int MaxCreate { get => Biota.MaxCreate > -1 ? Biota.MaxCreate : Generator.MaxCreate; }
+
+        /// <summary>
+        /// Returns the InitCreate for this generator profile
+        /// </summary>
+        public int InitCreate { get => Biota.InitCreate; }
+
         /// <summary>
         /// Returns the MaxCreate for this generator profile
-        /// If set to -1 in the database, use MaxCreate from generator
         /// </summary>
-        public int MaxCreate { get => Biota.MaxCreate > -1 ? Biota.MaxCreate : Generator.MaxCreate; }
+        public int MaxCreate { get => Biota.MaxCreate; }
 
         /// <summary>
-        /// Returns TRUE if the initial # of objects have been spawned currently
+        /// Returns the WeenieClassId for this generator profile
         /// </summary>
-        public bool InitObjectsSpawned { get => CurrentCreate >= Biota.InitCreate; }
+        public uint WeenieClassId { get => Biota.WeenieClassId; }
 
-        /// <summary>
-        /// Returns TRUE if the maximum # of objects have been spawned currently
-        /// </summary>
-        public bool MaxObjectsSpawned { get => CurrentCreate >= MaxCreate; }
+        ///// <summary>
+        ///// Returns TRUE if the initial # of objects have been spawned currently
+        ///// </summary>
+        //public bool InitObjectsSpawned { get => CurrentCreate >= Biota.InitCreate; }
 
-        /// <summary>
-        /// Returns TRUE if the maximum # of objects have been spawned for the profile before being exhausted
-        /// </summary>
-        public bool ProfileMaxSpawned { get => Spawned.Count == MaxCreate && RemoveQueue.Count < MaxCreate; }
+        ///// <summary>
+        ///// Returns TRUE if the maximum # of objects have been spawned currently
+        ///// </summary>
+        //public bool MaxObjectsSpawned { get => CurrentCreate >= MaxCreate; }
 
-        /// <summary>
-        /// Returns TRUE if the maximum # of objects have been spawned, killed or picked up, and the profile is now exhausted and timed out
-        /// </summary>
-        public bool ProfileExhausted { get => Spawned.Count == RemoveQueue.Count && Spawned.Count == MaxCreate || Biota.InitCreate == 0; }
+        ///// <summary>
+        ///// Returns TRUE if the maximum # of objects have been spawned for the profile before being exhausted
+        ///// </summary>
+        //public bool ProfileMaxSpawned { get => Spawned.Count == MaxCreate && RemoveQueue.Count < MaxCreate; }
+
+        ///// <summary>
+        ///// Returns TRUE if the maximum # of objects have been spawned, killed or picked up, and the profile is now exhausted and timed out
+        ///// </summary>
+        //public bool ProfileExhausted { get => Spawned.Count == RemoveQueue.Count && Spawned.Count == MaxCreate || Biota.InitCreate == 0; }
 
         /// <summary>
         /// Flag indicates if generator profile is performing the initial spawn (TRUE / default),
@@ -144,6 +161,12 @@ namespace ACE.Server.Entity
             }
         }
 
+        public DateTime NextAvailable { get; set; } = DateTime.UtcNow;
+
+        public bool IsAvailable => DateTime.UtcNow > NextAvailable;
+
+        public bool IsMaxed => MaxCreate != -1 && CurrentCreate >= MaxCreate;
+
         /// <summary>
         /// The generator world object for this profile
         /// </summary>
@@ -162,35 +185,35 @@ namespace ACE.Server.Entity
             Id = profileId;
         }
 
-        /// <summary>
-        /// Called every ~5 seconds for generator<para />
-        /// Processes the RemoveQueue
-        /// </summary>
-        public void Maintenance_HeartBeat()
-        {
-            //while (RemoveQueue.TryPeek(out var result) && result.time <= DateTime.UtcNow)
-            //{
-            //    RemoveQueue.Dequeue();
-            //    FreeSlot(result.objectGuid);
-            //}
+        ///// <summary>
+        ///// Called every ~5 seconds for generator<para />
+        ///// Processes the RemoveQueue
+        ///// </summary>
+        //public void Maintenance_HeartBeat()
+        //{
+        //    //while (RemoveQueue.TryPeek(out var result) && result.time <= DateTime.UtcNow)
+        //    //{
+        //    //    RemoveQueue.Dequeue();
+        //    //    FreeSlot(result.objectGuid);
+        //    //}
 
-            var currentUnixTime = DateTime.UtcNow;
+        //    //var currentUnixTime = DateTime.UtcNow;
 
-            while (RemoveQueue.Count > 0)
-            {
-                var first = RemoveQueue.First.Value;
+        //    //while (RemoveQueue.Count > 0)
+        //    //{
+        //    //    var first = RemoveQueue.First.Value;
 
-                if (first.When <= currentUnixTime)
-                {
-                    RemoveQueue.RemoveFirst();
-                    FreeSlot(first.Guid);
-                }
-                else
-                {
-                    break;
-                }
-            }
-        }
+        //    //    if (first.When <= currentUnixTime)
+        //    //    {
+        //    //        RemoveQueue.RemoveFirst();
+        //    //        FreeSlot(first.Guid);
+        //    //    }
+        //    //    else
+        //    //    {
+        //    //        break;
+        //    //    }
+        //    //}
+        //}
 
         /// <summary>
         /// Called every ~5 seconds for generator based on conditions<para />
@@ -229,16 +252,16 @@ namespace ACE.Server.Entity
                 SpawnQueue.Add(GetSpawnTime());
             }
 
-            InvalidateCurrentCreateCache();
+            //InvalidateCurrentCreateCache();
         }
 
-        /// <summary>
-        /// This should be called anytime SpawnQueue, Spawned, or Removed is updated
-        /// </summary>
-        private void InvalidateCurrentCreateCache()
-        {
-            currentCreate = null;
-        }
+        ///// <summary>
+        ///// This should be called anytime SpawnQueue, Spawned, or Removed is updated
+        ///// </summary>
+        //private void InvalidateCurrentCreateCache()
+        //{
+        //    currentCreate = null;
+        //}
 
         /// <summary>
         /// Spawns generator objects at the correct SpawnTime
@@ -247,7 +270,7 @@ namespace ACE.Server.Entity
         public void ProcessQueue()
         {
             var index = 0;
-            var updates = false;
+            //var updates = false;
 
             while (index < SpawnQueue.Count)
             {
@@ -263,7 +286,9 @@ namespace ACE.Server.Entity
                 //if ((RegenLocationType & RegenLocationType.Treasure) != 0)
                 //    RemoveTreasure();
 
-                if (Spawned.Count < MaxCreate)
+                //if (Spawned.Count < MaxCreate)
+                //if (!IsMaxed)
+                if (MaxCreate == -1 || Spawned.Count < MaxCreate)
                 {
                     var objects = Spawn();
 
@@ -284,11 +309,11 @@ namespace ACE.Server.Entity
                 }
 
                 SpawnQueue.RemoveAt(index);
-                updates = true;
+                //updates = true;
             }
 
-            if (updates)
-                InvalidateCurrentCreateCache();
+            //if (updates)
+            //    InvalidateCurrentCreateCache();
 
             FirstSpawn = false;
         }
@@ -370,7 +395,10 @@ namespace ACE.Server.Entity
                 // If the object failed to spawn, we still destroy it. This cleans up the object and releases the GUID.
                 // This object still may be returned in the spawned collection if FirstSpawn is true. This is to prevent retry spam.
                 if (!success)
+                {
+                    log.Debug($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} {Generator.Name}.Spawn(): failed to spawn {obj.Name} (0x{obj.Guid}:{obj.WeenieClassId}) from profile {LinkId} at {RegenLocationType}{(obj.Location != null ? $"\n Gen LOC: {Generator.Location?.ToLOCString()}\n Obj LOC: {obj.Location.ToLOCString()}" : "")}");
                     obj.Destroy();
+                }
             }
 
             return spawned;
@@ -578,7 +606,7 @@ namespace ACE.Server.Entity
                 inventoryObj.Destroy();
             }
             Spawned.Clear();
-            InvalidateCurrentCreateCache();
+            //InvalidateCurrentCreateCache();
         }
 
 
@@ -619,68 +647,71 @@ namespace ACE.Server.Entity
                 log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.Name}({Generator.WeenieClassId}).GeneratorProfile[{LinkId}].NotifyGenerator: RegenerationType = {eventType.ToString()}, WhenCreate = {whenCreate.ToString()}, Using {adjWhenCreate.ToString()} as WhenCreate instead");
 
             if (adjWhenCreate != adjEventType)
-                return;            
-
-            InsertIntoRemoveQueue(Delay, woi.Guid.Full);
-            if (!Removed.TryAdd(woi.Guid.Full, woi))
-                log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.Name}({Generator.WeenieClassId}).GeneratorProfile[{LinkId}].NotifyGenerator: Cannot add 0x{woi.Guid}:{woi.Name} to Removed. Already exists.");
-
-            InvalidateCurrentCreateCache();
-        }
-
-        public void FreeSlot(uint objectGuid)
-        {
-            Spawned.Remove(objectGuid);
-            Removed.Remove(objectGuid);
-
-            InvalidateCurrentCreateCache();
-        }
-
-        public class RemoveQueueNode
-        {
-            public float Delay { get; private set; }
-            public uint Guid { get; private set; }
-            public DateTime When { get; private set; }
-
-            public RemoveQueueNode(float delay, uint guid)
-            {
-                Delay = delay;
-                Guid = guid;
-                When = DateTime.UtcNow.AddSeconds(Delay);
-            }
-        }
-
-        private void InsertIntoRemoveQueue(float delay, uint guid)
-        {
-            var rqn = new RemoveQueueNode(delay, guid);
-
-            if (RemoveQueue.Count == 0)
-            {
-                RemoveQueue.AddFirst(new RemoveQueueNode(delay, guid));
                 return;
-            }
 
-            if (RemoveQueue.Last.Value.When <= rqn.When)
-            {
-                RemoveQueue.AddLast(rqn);
-                return;
-            }
+            //InsertIntoRemoveQueue(Delay, woi.Guid.Full);
+            //if (!Removed.TryAdd(woi.Guid.Full, woi))
+            //    log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.Name}({Generator.WeenieClassId}).GeneratorProfile[{LinkId}].NotifyGenerator: Cannot add 0x{woi.Guid}:{woi.Name} to Removed. Already exists.");
 
-            var currentNode = RemoveQueue.First;
+            //InvalidateCurrentCreateCache();
+            Spawned.Remove(woi.Guid.Full);
 
-            while (currentNode != null)
-            {
-                if (rqn.When <= currentNode.Value.When)
-                {
-                    RemoveQueue.AddBefore(currentNode, rqn);
-                    return;
-                }
-
-                currentNode = currentNode.Next;
-            }
-
-            RemoveQueue.AddLast(rqn); // This line really shouldn't be hit
+            NextAvailable = DateTime.UtcNow.AddSeconds(Delay);
         }
+
+        //public void FreeSlot(uint objectGuid)
+        //{
+        //    Spawned.Remove(objectGuid);
+        //    Removed.Remove(objectGuid);
+
+        //    InvalidateCurrentCreateCache();
+        //}
+
+        //public class RemoveQueueNode
+        //{
+        //    public float Delay { get; private set; }
+        //    public uint Guid { get; private set; }
+        //    public DateTime When { get; private set; }
+
+        //    public RemoveQueueNode(float delay, uint guid)
+        //    {
+        //        Delay = delay;
+        //        Guid = guid;
+        //        When = DateTime.UtcNow.AddSeconds(Delay);
+        //    }
+        //}
+
+        //private void InsertIntoRemoveQueue(float delay, uint guid)
+        //{
+        //    var rqn = new RemoveQueueNode(delay, guid);
+
+        //    if (RemoveQueue.Count == 0)
+        //    {
+        //        RemoveQueue.AddFirst(new RemoveQueueNode(delay, guid));
+        //        return;
+        //    }
+
+        //    if (RemoveQueue.Last.Value.When <= rqn.When)
+        //    {
+        //        RemoveQueue.AddLast(rqn);
+        //        return;
+        //    }
+
+        //    var currentNode = RemoveQueue.First;
+
+        //    while (currentNode != null)
+        //    {
+        //        if (rqn.When <= currentNode.Value.When)
+        //        {
+        //            RemoveQueue.AddBefore(currentNode, rqn);
+        //            return;
+        //        }
+
+        //        currentNode = currentNode.Next;
+        //    }
+
+        //    RemoveQueue.AddLast(rqn); // This line really shouldn't be hit
+        //}
 
         public void Reset()
         {
@@ -707,13 +738,13 @@ namespace ACE.Server.Entity
             Spawned.Clear();
             SpawnQueue.Clear();
 
-            RemoveQueue.Clear();
-            Removed.Clear();
+            //RemoveQueue.Clear();
+            //Removed.Clear();
 
             GeneratedTreasureItem = false;
             Generator.GeneratedTreasureItem = false;
 
-            InvalidateCurrentCreateCache();
+            //InvalidateCurrentCreateCache();
         }
 
         public void KillAll()
@@ -729,10 +760,10 @@ namespace ACE.Server.Entity
             Spawned.Clear();
             SpawnQueue.Clear();
 
-            RemoveQueue.Clear();
-            Removed.Clear();
+            //RemoveQueue.Clear();
+            //Removed.Clear();
 
-            InvalidateCurrentCreateCache();
+            //InvalidateCurrentCreateCache();
         }
 
         public void DestroyAll(bool fromLandblockUnload = false)
@@ -748,10 +779,10 @@ namespace ACE.Server.Entity
             Spawned.Clear();
             SpawnQueue.Clear();
 
-            RemoveQueue.Clear();
-            Removed.Clear();
+            //RemoveQueue.Clear();
+            //Removed.Clear();
 
-            InvalidateCurrentCreateCache();
+            //InvalidateCurrentCreateCache();
         }
     }
 }

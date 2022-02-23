@@ -2765,8 +2765,12 @@ namespace ACE.Server.Command.Handlers
                         msg += $"Probability: {profile.Biota.Probability} | WCID: {profile.Biota.WeenieClassId} | Delay: {profile.Biota.Delay} | Init: {profile.Biota.InitCreate} | Max: {profile.Biota.MaxCreate}\n";
                         msg += $"WhenCreate: {((RegenerationType)profile.Biota.WhenCreate).ToString()} | WhereCreate: {((RegenLocationType)profile.Biota.WhereCreate).ToString()}\n";
                         msg += $"StackSize: {profile.Biota.StackSize} | PaletteId: {profile.Biota.PaletteId} | Shade: {profile.Biota.Shade}\n";
-                        msg += $"CurrentCreate: {profile.CurrentCreate} | Spawned.Count: {profile.Spawned.Count} | SpawnQueue.Count: {profile.SpawnQueue.Count} | RemoveQueue.Count: {profile.RemoveQueue.Count}\n";
+                        //msg += $"CurrentCreate: {profile.CurrentCreate} | Spawned.Count: {profile.Spawned.Count} | SpawnQueue.Count: {profile.SpawnQueue.Count} | RemoveQueue.Count: {profile.RemoveQueue.Count}\n";
+                        msg += $"CurrentCreate: {profile.CurrentCreate} | Spawned.Count: {profile.Spawned.Count} | SpawnQueue.Count: {profile.SpawnQueue.Count}\n";
                         msg += $"GeneratedTreasureItem: {profile.GeneratedTreasureItem}\n";
+                        msg += $"IsMaxed: {profile.IsMaxed}\n";
+                        if (!profile.IsMaxed)
+                            msg += $"IsAvailable: {profile.IsAvailable}{(profile.IsAvailable ? "" : $", NextAvailable: {profile.NextAvailable.ToLocalTime()}")}\n";
                         msg += $"--====--\n";
                         if (profile.Spawned.Count > 0)
                         {
@@ -2802,33 +2806,33 @@ namespace ACE.Server.Command.Handlers
                             msg += $"--====--\n";
                         }
 
-                        if (profile.RemoveQueue.Count > 0)
-                        {
-                            msg += "Pending Removed Objects:\n";
-                            foreach (var spawn in profile.RemoveQueue)
-                            {
-                                var action = "";
-                                switch ((RegenerationType)profile.Biota.WhenCreate)
-                                {
-                                    case RegenerationType.Death:
-                                        action = "died";
-                                        break;
-                                    case RegenerationType.Destruction:
-                                        action = "destroyed";
-                                        break;
-                                    case RegenerationType.PickUp:
-                                        action = "picked up";
-                                        break;
-                                    case RegenerationType.Undef:
-                                    default:
-                                        action = "despawned";
-                                        break;
-                                }
+                        //if (profile.RemoveQueue.Count > 0)
+                        //{
+                        //    msg += "Pending Removed Objects:\n";
+                        //    foreach (var spawn in profile.RemoveQueue)
+                        //    {
+                        //        var action = "";
+                        //        switch ((RegenerationType)profile.Biota.WhenCreate)
+                        //        {
+                        //            case RegenerationType.Death:
+                        //                action = "died";
+                        //                break;
+                        //            case RegenerationType.Destruction:
+                        //                action = "destroyed";
+                        //                break;
+                        //            case RegenerationType.PickUp:
+                        //                action = "picked up";
+                        //                break;
+                        //            case RegenerationType.Undef:
+                        //            default:
+                        //                action = "despawned";
+                        //                break;
+                        //        }
 
-                                msg += $"0x{spawn.Guid:X8} {action} at {spawn.When.AddSeconds(-profile.Delay).ToLocalTime()} and will be removed from profile at {spawn.When.ToLocalTime()}\n";
-                            }
-                            msg += $"--====--\n";
-                        }
+                        //        msg += $"0x{spawn.Guid:X8} {action} at {spawn.When.AddSeconds(-profile.Delay).ToLocalTime()} and will be removed from profile at {spawn.When.ToLocalTime()}\n";
+                        //    }
+                        //    msg += $"--====--\n";
+                        //}
 
                         msg += $"===============================================\n";
                     }
