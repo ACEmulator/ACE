@@ -680,8 +680,7 @@ namespace ACE.Server.WorldObjects
                 //if (CurrentlyPoweringUp || (this is Container container && container.ResetMessagePending))
                 if (CurrentlyPoweringUp)
                 {
-                    //Console.WriteLine($"{Name}.Generator_Generate({RegenerationInterval}) SelectProfilesInit: Init={InitCreate} Current={CurrentCreate} Max={MaxCreate}");
-                    //SelectProfilesInit();
+                    //Console.WriteLine($"{Name}.Generator_Generate({RegenerationInterval}) SelectAProfile: Init={InitCreate} Current={CurrentCreate} Max={MaxCreate} GenStopSelectProfileConditions={GenStopSelectProfileConditions}");
                     while (!GenStopSelectProfileConditions && CurrentCreate < InitCreate)
                     {
                         SelectAProfile();
@@ -690,8 +689,7 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                 {
-                    //Console.WriteLine($"{Name}.Generator_Generate({RegenerationInterval}) SelectMoreProfiles: Init={InitCreate} Current={CurrentCreate} Max={MaxCreate}");
-                    //SelectProfilesLoop();
+                    //Console.WriteLine($"{Name}.Generator_Generate({RegenerationInterval}) SelectAProfile: Init={InitCreate} Current={CurrentCreate} Max={MaxCreate}");
                     SelectAProfile();
                 }
             }
