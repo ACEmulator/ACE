@@ -104,6 +104,11 @@ namespace ACE.Server.WorldObjects
         //public bool AllProfilesMaxed => !GeneratorProfiles.Any(i => !i.IsPlaceholder && !i.MaxObjectsSpawned);
         public bool AllProfilesMaxed => !GeneratorProfiles.Any(i => !i.IsPlaceholder && !i.IsMaxed);
 
+        /// <summary>
+        /// Returns TRUE if all generator profiles are unavailable
+        /// </summary>
+        public bool AllProfilesUnavailable => !GeneratorProfiles.Any(i => !i.IsPlaceholder && i.IsAvailable);
+
         ///// <summary>
         ///// Returns TRUE if all generator profiles are all timed out
         ///// </summary>
@@ -424,6 +429,9 @@ namespace ACE.Server.WorldObjects
                 //    return;
                 //}
 
+                if (GenStopSelectProfileConditions)
+                    return;
+                
                 //var totalProbability = rng_selected ? GetTotalProbability() : 1.0f;
                 //var rng = ThreadSafeRandom.Next(0.0f, totalProbability);
                 var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
@@ -449,9 +457,6 @@ namespace ACE.Server.WorldObjects
                     //if (profile.RemoveQueue.Count == profile.MaxCreate)
                     if (!profile.IsAvailable)
                         continue;
-
-                    if (CurrentCreate >= MaxCreate)
-                        return;
 
                     if (profile.RegenLocationType.HasFlag(RegenLocationType.Treasure))
                     {
@@ -494,8 +499,7 @@ namespace ACE.Server.WorldObjects
                         //    CurrentlyPoweringUp = false;
                         //    return;
                         //}
-
-                        if (CurrentCreate >= MaxCreate)
+                        if (GenStopSelectProfileConditions)
                             return;
                     }
                 }
@@ -784,6 +788,25 @@ namespace ACE.Server.WorldObjects
                 log.Warn($"[GENERATOR] 0x{Guid}:{WeenieClassId} {Name}.GetSpawnObjectsForProfile(profile[{profile.LinkId}]): profile.InitCreate = {profile.InitCreate} | profile.MaxCreate = {profile.MaxCreate} | profile.WeenieClassId = {profile.WeenieClassId} | genSlotsAvailable = {genSlotsAvailable} | profileSlotsAvailable = {profileSlotsAvailable} | numObjects = {numObjects}, cannot spawn.");
 
             return numObjects;
+        }
+
+        /// <summary>
+        /// Returns TRUE if stop conditions have been reached for aborting generator profile selection
+        /// </summary>
+        public bool GenStopSelectProfileConditions
+        {
+            get
+            {
+                if (CurrentCreate >= MaxCreate)
+                {
+                    //if (CurrentCreate > InitCreate)
+                    //log.Debug($"{WeenieClassId} - 0x{Guid}:{Name}.StopConditionsInit(): CurrentCreate({CurrentCreate}) > InitCreate({InitCreate})");
+
+                    return true;
+                }
+                return AllProfilesUnavailable || AllProfilesMaxed;
+                //return AllProfilesMaxed;
+            }
         }
 
         ///// <summary>
@@ -1194,7 +1217,7 @@ namespace ACE.Server.WorldObjects
                 {
                     //Console.WriteLine($"{Name}.Generator_Generate({RegenerationInterval}) SelectProfilesInit: Init={InitCreate} Current={CurrentCreate} Max={MaxCreate}");
                     //SelectProfilesInit();
-                    while (CurrentCreate < InitCreate)
+                    while (!GenStopSelectProfileConditions && CurrentCreate < InitCreate)
                     {
                         SelectAProfile();
                     }
