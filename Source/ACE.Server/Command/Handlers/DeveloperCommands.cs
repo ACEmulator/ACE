@@ -2763,9 +2763,8 @@ namespace ACE.Server.Command.Handlers
                         msg += $"Active GeneratorProfile id: {activeProfile} | LinkId: {profile.LinkId}\n";
 
                         msg += $"Probability: {profile.Biota.Probability} | WCID: {profile.Biota.WeenieClassId} | Delay: {profile.Biota.Delay} | Init: {profile.Biota.InitCreate} | Max: {profile.Biota.MaxCreate}\n";
-                        msg += $"WhenCreate: {((RegenerationType)profile.Biota.WhenCreate).ToString()} | WhereCreate: {((RegenLocationType)profile.Biota.WhereCreate).ToString()}\n";
+                        msg += $"WhenCreate: {profile.Biota.WhenCreate.ToString()} | WhereCreate: {profile.Biota.WhereCreate.ToString()}\n";
                         msg += $"StackSize: {profile.Biota.StackSize} | PaletteId: {profile.Biota.PaletteId} | Shade: {profile.Biota.Shade}\n";
-                        //msg += $"CurrentCreate: {profile.CurrentCreate} | Spawned.Count: {profile.Spawned.Count} | SpawnQueue.Count: {profile.SpawnQueue.Count} | RemoveQueue.Count: {profile.RemoveQueue.Count}\n";
                         msg += $"CurrentCreate: {profile.CurrentCreate} | Spawned.Count: {profile.Spawned.Count} | SpawnQueue.Count: {profile.SpawnQueue.Count}\n";
                         msg += $"GeneratedTreasureItem: {profile.GeneratedTreasureItem}\n";
                         msg += $"IsMaxed: {profile.IsMaxed}\n";
