@@ -263,52 +263,6 @@ namespace ACE.Server.WorldObjects
             ResetTimestamp = Time.GetUnixTime();
             ResetMessagePending = false;
         }
-
-        //public override void ResetGenerator()
-        //{
-        //    foreach (var generator in GeneratorProfiles)
-        //    {
-        //        var profileReset = false;
-
-        //        foreach (var rNode in generator.Spawned.Values)
-        //        {
-        //            var wo = rNode.TryGetWorldObject();
-
-        //            if (wo != null)
-        //            {
-        //                if (TryRemoveFromInventory(wo.Guid)) // only affect contained items.
-        //                {
-        //                    wo.Destroy();
-        //                }
-
-        //                if (!(wo is Creature))
-        //                    profileReset = true;
-        //            }
-        //        }
-
-        //        if (profileReset)
-        //        {
-        //            generator.Spawned.Clear();
-        //            generator.SpawnQueue.Clear();
-        //            generator.RemoveQueue.Clear();
-        //            generator.Removed.Clear();
-        //        }
-        //    }
-
-        //    if (GeneratedTreasureItem)
-        //    {
-        //        var items = new List<WorldObject>();
-        //        foreach (var item in Inventory.Values)
-        //            items.Add(item);
-        //        foreach (var item in items)
-        //        {
-        //            if (TryRemoveFromInventory(item.Guid))
-        //                item.Destroy();
-        //        }
-        //        GeneratedTreasureItem = false;
-        //    }
-        //}
-
         protected override float DoOnOpenMotionChanges()
         {
             if (MotionTableId != 0)
