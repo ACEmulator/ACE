@@ -688,7 +688,7 @@ namespace ACE.Server.WorldObjects
 
                         if (genLoopCount > 1000)
                         {
-                            log.Warn($"[GENERATOR] 0x{Guid} {Name}.Generator_Generate(): genLoopCount > 1000, aborted. GenStopSelectProfileConditions: {GenStopSelectProfileConditions} | InitCreate: {InitCreate} | CurrentCreate: {CurrentCreate} | WCID: {WeenieClassId} - LOC: {Location.ToLOCString()}");
+                            log.Error($"[GENERATOR] 0x{Guid} {Name}.Generator_Generate(): genLoopCount > 1000, aborted init spawn. GenStopSelectProfileConditions: {GenStopSelectProfileConditions} | InitCreate: {InitCreate} | CurrentCreate: {CurrentCreate} | WCID: {WeenieClassId} - LOC: {Location.ToLOCString()}");
                             break;
                         }
                     }
