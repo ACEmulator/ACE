@@ -254,11 +254,6 @@ namespace ACE.Server.Entity
                     continue;
                 }
 
-                //if ((RegenLocationType & RegenLocationType.Treasure) != 0)
-                //    RemoveTreasure();
-
-                //if (Spawned.Count < MaxCreate)
-                //if (!IsMaxed)
                 if (MaxCreate == -1 || Spawned.Count < MaxCreate)
                 {
                     var objects = Spawn();
@@ -594,8 +589,8 @@ namespace ACE.Server.Entity
             if (woi == null) return;
 
             var adjEventType = eventType; // some generators use pickup when they mean to use destruction, some use destruction when they mean to use pickup. this data comes from 16py mostly and these issues are corrected below.
-            var whenCreate = (RegenerationType)Biota.WhenCreate;
-            var adjWhenCreate = (RegenerationType)Biota.WhenCreate;
+            var whenCreate = Biota.WhenCreate;
+            var adjWhenCreate = Biota.WhenCreate;
 
             if (eventType == RegenerationType.PickUp && whenCreate == RegenerationType.Destruction)
                 adjEventType = RegenerationType.Destruction;
