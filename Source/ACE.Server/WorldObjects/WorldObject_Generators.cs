@@ -680,9 +680,17 @@ namespace ACE.Server.WorldObjects
                 if (CurrentlyPoweringUp)
                 {
                     //Console.WriteLine($"{Name}.Generator_Generate({RegenerationInterval}) SelectAProfile: Init={InitCreate} Current={CurrentCreate} Max={MaxCreate} GenStopSelectProfileConditions={GenStopSelectProfileConditions}");
+                    var genLoopCount = 0;
                     while (!GenStopSelectProfileConditions && CurrentCreate < InitCreate)
                     {
                         SelectAProfile();
+                        genLoopCount++;
+
+                        if (genLoopCount > 1000)
+                        {
+                            log.Warn($"[GENERATOR] 0x{Guid} {Name}.Generator_Generate(): genLoopCount > 1000, aborted. GenStopSelectProfileConditions: {GenStopSelectProfileConditions} | InitCreate: {InitCreate} | CurrentCreate: {CurrentCreate} | WCID: {WeenieClassId} - LOC: {Location.ToLOCString()}");
+                            break;
+                        }
                     }
                     CurrentlyPoweringUp = false;
                 }
