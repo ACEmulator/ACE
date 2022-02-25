@@ -647,16 +647,7 @@ namespace ACE.Server.Entity
                 }
             }
 
-            Spawned.Clear();
-            SpawnQueue.Clear();
-
-            //RemoveQueue.Clear();
-            //Removed.Clear();
-
-            GeneratedTreasureItem = false;
-            Generator.GeneratedTreasureItem = false;
-
-            //InvalidateCurrentCreateCache();
+            CleanupProfile();
         }
 
         public void KillAll()
@@ -669,13 +660,7 @@ namespace ACE.Server.Entity
                     creature.Smite(Generator, true);
             }
 
-            Spawned.Clear();
-            SpawnQueue.Clear();
-
-            //RemoveQueue.Clear();
-            //Removed.Clear();
-
-            //InvalidateCurrentCreateCache();
+            CleanupProfile();
         }
 
         public void DestroyAll(bool fromLandblockUnload = false)
@@ -688,11 +673,21 @@ namespace ACE.Server.Entity
                     wo.Destroy(true, fromLandblockUnload);
             }
 
+            CleanupProfile();
+        }
+
+        private void CleanupProfile()
+        {
             Spawned.Clear();
             SpawnQueue.Clear();
 
             //RemoveQueue.Clear();
             //Removed.Clear();
+
+            NextAvailable = DateTime.UtcNow;
+
+            GeneratedTreasureItem = false;
+            Generator.GeneratedTreasureItem = false;
 
             //InvalidateCurrentCreateCache();
         }
