@@ -677,7 +677,6 @@ namespace ACE.Server.WorldObjects
 
             if (!GeneratorDisabled)
             {
-                //if (CurrentlyPoweringUp || (this is Container container && container.ResetMessagePending))
                 if (CurrentlyPoweringUp)
                 {
                     //Console.WriteLine($"{Name}.Generator_Generate({RegenerationInterval}) SelectAProfile: Init={InitCreate} Current={CurrentCreate} Max={MaxCreate} GenStopSelectProfileConditions={GenStopSelectProfileConditions}");
