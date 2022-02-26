@@ -73,7 +73,7 @@ namespace ACE.Server.WorldObjects
             {
                 NextGeneratorUpdateTime = currentUnixTime; // Generators start right away
                 //NextGeneratorUpdateTime = Time.GetFutureUnixTime(CachedHeartbeatInterval);
-                NextGeneratorRegenerationTime = Time.GetFutureUnixTime(CachedHeartbeatInterval);
+                //NextGeneratorRegenerationTime = Time.GetFutureUnixTime(CachedHeartbeatInterval);
                 if (cachedRegenerationInterval == 0)
                     NextGeneratorRegenerationTime = double.MaxValue;
             }
