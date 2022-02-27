@@ -340,6 +340,12 @@ namespace ACE.Server.WorldObjects
 
                     return true;
                 }
+
+                if (CurrentlyPoweringUp && CurrentCreate >= InitCreate)
+                {
+                    return true;
+                }
+
                 return AllProfilesUnavailable || AllProfilesMaxed;
                 //return AllProfilesMaxed;
             }
@@ -587,8 +593,8 @@ namespace ACE.Server.WorldObjects
                 Generator.Destroy(); // Generator's complete spawn count has been wiped out
             }
 
-            if (!Generator.IsDestroyed)
-                Generator.SelectAProfile();
+            //if (!Generator.IsDestroyed)
+            //    Generator.SelectAProfile();
 
             Generator = null;
             GeneratorId = null;
