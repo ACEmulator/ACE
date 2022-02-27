@@ -587,6 +587,9 @@ namespace ACE.Server.WorldObjects
                 Generator.Destroy(); // Generator's complete spawn count has been wiped out
             }
 
+            if (!Generator.IsDestroyed)
+                Generator.SelectAProfile();
+
             Generator = null;
             GeneratorId = null;
         }
