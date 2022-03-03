@@ -58,8 +58,6 @@ namespace ACE.Server.Entity
         /// </summary>
         public bool GeneratedTreasureItem { get; private set; }
 
-        //private int? currentCreate { get; set; }
-
         /// <summary>
         /// The total # of active spawned objects + awaiting spawning
         /// </summary>
@@ -69,12 +67,6 @@ namespace ACE.Server.Entity
             {
                 if (!GeneratedTreasureItem)
                 {
-                    //if (currentCreate == null)
-                    //    //return Spawned.Count + SpawnQueue.Count
-                    //    currentCreate = Spawned.Keys.Except(Removed.Keys).Count() + SpawnQueue.Count;
-
-                    //return currentCreate.Value;
-
                     return Spawned.Count + SpawnQueue.Count;
                 }
                 else
@@ -101,7 +93,6 @@ namespace ACE.Server.Entity
         /// Returns the WeenieClassId for this generator profile
         /// </summary>
         public uint WeenieClassId { get => Biota.WeenieClassId; }
-
 
         /// <summary>
         /// Flag indicates if generator profile is performing the initial spawn (TRUE / default),
@@ -156,36 +147,6 @@ namespace ACE.Server.Entity
             Id = profileId;
         }
 
-        ///// <summary>
-        ///// Called every ~5 seconds for generator<para />
-        ///// Processes the RemoveQueue
-        ///// </summary>
-        //public void Maintenance_HeartBeat()
-        //{
-        //    //while (RemoveQueue.TryPeek(out var result) && result.time <= DateTime.UtcNow)
-        //    //{
-        //    //    RemoveQueue.Dequeue();
-        //    //    FreeSlot(result.objectGuid);
-        //    //}
-
-        //    //var currentUnixTime = DateTime.UtcNow;
-
-        //    //while (RemoveQueue.Count > 0)
-        //    //{
-        //    //    var first = RemoveQueue.First.Value;
-
-        //    //    if (first.When <= currentUnixTime)
-        //    //    {
-        //    //        RemoveQueue.RemoveFirst();
-        //    //        FreeSlot(first.Guid);
-        //    //    }
-        //    //    else
-        //    //    {
-        //    //        break;
-        //    //    }
-        //    //}
-        //}
-
         /// <summary>
         /// Called upon Generate request<para />
         /// Processes the SpawnQueue
@@ -222,26 +183,15 @@ namespace ACE.Server.Entity
                 }*/
                 SpawnQueue.Add(GetSpawnTime());
             }
-
-            //InvalidateCurrentCreateCache();
         }
-
-        ///// <summary>
-        ///// This should be called anytime SpawnQueue, Spawned, or Removed is updated
-        ///// </summary>
-        //private void InvalidateCurrentCreateCache()
-        //{
-        //    currentCreate = null;
-        //}
 
         /// <summary>
         /// Spawns generator objects at the correct SpawnTime
-        /// Called on heartbeat ticks every ~5 seconds
+        /// Called on when Generate is requested
         /// </summary>
         public void ProcessQueue()
         {
             var index = 0;
-            //var updates = false;
 
             while (index < SpawnQueue.Count)
             {
@@ -275,11 +225,7 @@ namespace ACE.Server.Entity
                 }
 
                 SpawnQueue.RemoveAt(index);
-                //updates = true;
             }
-
-            //if (updates)
-            //    InvalidateCurrentCreateCache();
 
             FirstSpawn = false;
         }
@@ -354,7 +300,6 @@ namespace ACE.Server.Entity
                     success = Spawn_Default(obj);
 
                 // if first spawn fails, don't continually attempt to retry
-                //if (success)
                 if (success || FirstSpawn)
                     spawned.Add(obj);
 
@@ -572,7 +517,6 @@ namespace ACE.Server.Entity
                 inventoryObj.Destroy();
             }
             Spawned.Clear();
-            //InvalidateCurrentCreateCache();
         }
 
 
@@ -615,11 +559,6 @@ namespace ACE.Server.Entity
             if (adjWhenCreate != adjEventType)
                 return;
 
-            //InsertIntoRemoveQueue(Delay, woi.Guid.Full);
-            //if (!Removed.TryAdd(woi.Guid.Full, woi))
-            //    log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.Name}({Generator.WeenieClassId}).GeneratorProfile[{LinkId}].NotifyGenerator: Cannot add 0x{woi.Guid}:{woi.Name} to Removed. Already exists.");
-
-            //InvalidateCurrentCreateCache();
             Spawned.Remove(woi.Guid.Full);
 
             NextAvailable = DateTime.UtcNow.AddSeconds(Delay);
@@ -681,15 +620,10 @@ namespace ACE.Server.Entity
             Spawned.Clear();
             SpawnQueue.Clear();
 
-            //RemoveQueue.Clear();
-            //Removed.Clear();
-
             NextAvailable = DateTime.UtcNow;
 
             GeneratedTreasureItem = false;
             Generator.GeneratedTreasureItem = false;
-
-            //InvalidateCurrentCreateCache();
         }
     }
 }

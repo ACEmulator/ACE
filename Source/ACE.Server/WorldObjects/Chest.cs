@@ -219,11 +219,6 @@ namespace ACE.Server.WorldObjects
 
             if (ChestClearedWhenClosed && InitCreate > 0)
             {
-                //var removeQueueTotal = 0;
-                //foreach (var generator in GeneratorProfiles)
-                //    removeQueueTotal += generator.RemoveQueue.Count;
-
-                //if ((CurrentCreate - removeQueueTotal) == 0)
                 if (CurrentCreate == 0)
                     FadeOutAndDestroy(); // Chest's complete generated inventory count has been wiped out
                     //Destroy(); // Chest's complete generated inventory count has been wiped out
