@@ -253,9 +253,9 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
-        /// Returns TRUE if spell category matches item rare categories
+        /// Returns TRUE if spell category matches spells that should redirect to items player is holding
         /// </summary>
-        public bool IsItemRareType
+        public bool IsItemRedirectableType
         {
             get
             {
@@ -266,6 +266,7 @@ namespace ACE.Server.Entity
                     case SpellCategory.DefenseModRaisingRare:
                     case SpellCategory.WeaponTimeRaisingRare:
                     case SpellCategory.AppraisalResistanceLoweringRare:
+                    case SpellCategory.MaxDamageRaising:
                         return true;
                     default:
                         return false;
