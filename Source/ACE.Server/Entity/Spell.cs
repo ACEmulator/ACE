@@ -252,6 +252,27 @@ namespace ACE.Server.Entity
             }
         }
 
+        /// <summary>
+        /// Returns TRUE if spell category matches item rare categories
+        /// </summary>
+        public bool IsItemRareType
+        {
+            get
+            {
+                switch (Category)
+                {
+                    case SpellCategory.DamageRaisingRare:
+                    case SpellCategory.AttackModRaisingRare:
+                    case SpellCategory.DefenseModRaisingRare:
+                    case SpellCategory.WeaponTimeRaisingRare:
+                    case SpellCategory.AppraisalResistanceLoweringRare:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        }
+
         public bool IsNegativeRedirectable => IsHarmful && (IsImpenBaneType || IsOtherNegativeRedirectable);
 
         public bool IsOtherNegativeRedirectable
