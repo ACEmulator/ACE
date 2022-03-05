@@ -172,8 +172,6 @@ namespace ACE.Server.Entity
         /// </summary>
         public void Enqueue(int numObjects = 1)
         {
-            if (numObjects < 1) return;
-
             for (var i = 0; i < numObjects; i++)
             {
                 /*if (MaxObjectsSpawned)
