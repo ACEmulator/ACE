@@ -2805,34 +2805,6 @@ namespace ACE.Server.Command.Handlers
                             msg += $"--====--\n";
                         }
 
-                        //if (profile.RemoveQueue.Count > 0)
-                        //{
-                        //    msg += "Pending Removed Objects:\n";
-                        //    foreach (var spawn in profile.RemoveQueue)
-                        //    {
-                        //        var action = "";
-                        //        switch ((RegenerationType)profile.Biota.WhenCreate)
-                        //        {
-                        //            case RegenerationType.Death:
-                        //                action = "died";
-                        //                break;
-                        //            case RegenerationType.Destruction:
-                        //                action = "destroyed";
-                        //                break;
-                        //            case RegenerationType.PickUp:
-                        //                action = "picked up";
-                        //                break;
-                        //            case RegenerationType.Undef:
-                        //            default:
-                        //                action = "despawned";
-                        //                break;
-                        //        }
-
-                        //        msg += $"0x{spawn.Guid:X8} {action} at {spawn.When.AddSeconds(-profile.Delay).ToLocalTime()} and will be removed from profile at {spawn.When.ToLocalTime()}\n";
-                        //    }
-                        //    msg += $"--====--\n";
-                        //}
-
                         msg += $"===============================================\n";
                     }
                 }
