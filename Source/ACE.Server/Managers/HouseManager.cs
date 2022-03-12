@@ -869,6 +869,9 @@ namespace ACE.Server.Managers
 
                     house.SlumLord.MergeAllStackables();
 
+                    foreach (var item in house.SlumLord.Inventory.Values)
+                        item.SaveBiotaToDatabase();
+
                     house.SlumLord.SaveBiotaToDatabase();
 
                     var onlinePlayer = PlayerManager.GetOnlinePlayer(playerHouse.PlayerGuid);
@@ -879,6 +882,8 @@ namespace ACE.Server.Managers
                         actionChain.AddAction(onlinePlayer, onlinePlayer.HandleActionQueryHouse);
                         actionChain.EnqueueChain();
                     }
+
+                    log.Debug($"[HOUSE] HouseManager.PayRent({house.Guid}): fully paid rent into SlumLord.");
                 }
             });
         }

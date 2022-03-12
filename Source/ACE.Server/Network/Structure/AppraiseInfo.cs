@@ -137,7 +137,10 @@ namespace ACE.Server.Network.Structure
                         if (!PropertiesInt.ContainsKey(PropertyInt.AppraisalLockpickSuccessPercent))
                             PropertiesInt.Add(PropertyInt.AppraisalLockpickSuccessPercent, (int)successChance);
                     }
-                }                
+                }
+                // if wo has DefaultLocked property and is unlocked, add that state to the property buckets
+                else if (PropertiesBool.ContainsKey(PropertyBool.DefaultLocked))
+                    PropertiesBool[PropertyBool.Locked] = false;
             }
 
             if (wo is Corpse)
