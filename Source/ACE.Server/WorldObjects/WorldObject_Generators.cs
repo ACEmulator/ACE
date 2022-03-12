@@ -116,7 +116,8 @@ namespace ACE.Server.WorldObjects
 
             //var totalProbability = rng_selected ? GetTotalProbability() : 1.0f;
             //var rng = ThreadSafeRandom.Next(0.0f, totalProbability);
-            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+            //var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+            var rng = ThreadSafeRandom.Next(0.0f, GetTotalProbability());
 
             for (var i = 0; i < GeneratorProfiles.Count; i++)
             {
@@ -150,7 +151,8 @@ namespace ACE.Server.WorldObjects
                 }
 
                 //var probability = rng_selected ? GetAdjustedProbability(i) : profile.Biota.Probability;
-                var probability = profile.Biota.Probability;
+                //var probability = profile.Biota.Probability;
+                var probability = GetAdjustedProbability(i);
 
                 if (rng < probability || probability == -1)
                 {
@@ -177,7 +179,7 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// Returns the total probability of all RNG profiles
-        /// which arent at max objects spawned yet
+        /// which arent at max objects spawned yet or on cooldown
         /// </summary>
         public float GetTotalProbability()
         {
@@ -190,12 +192,14 @@ namespace ACE.Server.WorldObjects
 
                 if (probability == -1)
                 {
-                    if (!profile.IsMaxed)
+                    //if (!profile.IsMaxed)
+                    if (!profile.IsMaxed && profile.IsAvailable)
                         return 1.0f;
 
                     continue;
                 }
-                if (!profile.IsMaxed)
+                //if (!profile.IsMaxed)
+                if (!profile.IsMaxed && profile.IsAvailable)
                 {
                     if (lastProbability > probability)
                         lastProbability = 0.0f;
@@ -229,7 +233,7 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// Returns the adjust probability for a generator profile index,
-        /// taking into account previous profile probabilities which are already at max objects spawned
+        /// taking into account previous profile probabilities which are already at max objects spawned or on cooldown
         /// </summary>
         public float GetAdjustedProbability(int index)
         {
@@ -257,7 +261,8 @@ namespace ACE.Server.WorldObjects
                 if (probability == -1)
                     continue;
 
-                if (!profile.IsMaxed)
+                //if (!profile.IsMaxed)
+                if (!profile.IsMaxed && profile.IsAvailable)
                 {
                     if (lastProbability > probability)
                         lastProbability = 0.0f;
