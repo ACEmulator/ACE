@@ -804,13 +804,13 @@ namespace ACE.Server.WorldObjects.Managers
 
                     if (targetObject != null)
                     {
-                        var stat = targetObject.GetProperty((PropertyString)emote.Stat);
+                        var stringStat = targetObject.GetProperty((PropertyString)emote.Stat);
 
-                        if (stat == null && HasValidTestNoQuality(emote.Message))
+                        if (stringStat == null && HasValidTestNoQuality(emote.Message))
                             ExecuteEmoteSet(EmoteCategory.TestNoQuality, emote.Message, targetObject, true);
                         else
                         {
-                            success = stat != null && stat.Equals(emote.TestString);
+                            success = stringStat != null && stringStat.Equals(emote.TestString);
                             ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
                         }
                     }
