@@ -155,7 +155,10 @@ namespace ACE.Server.WorldObjects.Managers
                 case EmoteType.AwardSkillXP:
 
                     if (player != null)
+                    {
+                        if (delay == 0) delay += 1; // because of how AwardSkillXP grants and then raises the skill, ensure delay is at least 1 to allow for processing correctly
                         player.AwardSkillXP((Skill)emote.Stat, (uint)emote.Amount, true);
+                    }
                     break;
 
                 case EmoteType.AwardTrainingCredits:
