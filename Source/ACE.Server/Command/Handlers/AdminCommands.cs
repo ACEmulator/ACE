@@ -2869,7 +2869,7 @@ namespace ACE.Server.Command.Handlers
             }
             else
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"You can force {wo.Name} to drop everything because it is not a player.", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot force {wo.Name} to drop everything because it is not a player.", ChatMessageType.Broadcast));
             }
         }
 
@@ -3332,8 +3332,32 @@ namespace ACE.Server.Command.Handlers
             // This command fully restores your(or the selected creature's) health, mana, and stamina.
             // @heal - Heals yourself(or the selected creature).
 
-            // TODO: Check if player has a selected target, heal target otherwise heal player.
-            session.Player.SetMaxVitals();
+            var objectId = ObjectGuid.Invalid;
+
+            if (session.Player.HealthQueryTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
+            else if (session.Player.ManaQueryTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
+            else if (session.Player.CurrentAppraisalTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
+
+            if (objectId == ObjectGuid.Invalid)
+                objectId = session.Player.Guid;
+
+            var wo = session.Player.CurrentLandblock?.GetObject(objectId);
+
+            if (wo is null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Unable to locate what you have selected.", ChatMessageType.Broadcast));
+            }
+            else if (wo is Player player)
+            {
+                player.SetMaxVitals();
+            }
+            else
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot heal {wo.Name} because it is not a player.", ChatMessageType.Broadcast));
+            }
         }
 
         // housekeep
