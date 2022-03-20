@@ -2706,7 +2706,7 @@ namespace ACE.Server.Command.Handlers
             }
             else
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"You can not send text to {wo.Name} because it is not a player.", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot send text to {wo.Name} because it is not a player.", ChatMessageType.Broadcast));
             }
         }
 
