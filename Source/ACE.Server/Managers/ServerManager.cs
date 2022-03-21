@@ -107,12 +107,12 @@ namespace ACE.Server.Managers
                 if (!ShutdownInitiated)
                 {
                     // reset shutdown details
-                    string shutdownText = $"The server has canceled the shutdown procedure @ {DateTime.UtcNow} UTC";
+                    string shutdownText = $"The server shut down has been cancelled @ {DateTime.Now} ({DateTime.UtcNow} UTC)";
                     log.Info(shutdownText);
 
                     // special text
                     foreach (var player in PlayerManager.GetAllOnline())
-                        player.Session.WorldBroadcast(shutdownText);
+                        player.Session.WorldBroadcast($"Broadcast from System> ATTENTION - This Asheron's Call Server shut down has been cancelled.");
 
                     // break function
                     return;
