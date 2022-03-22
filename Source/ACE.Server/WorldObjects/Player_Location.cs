@@ -873,6 +873,7 @@ namespace ACE.Server.WorldObjects
             0x5963,     // Gauntlet Arena Two (Eldritch Web)
             0x5964,     // Gauntlet Arena One (Radiant Blood)
             0x5965,     // Gauntlet Arena Two (Radiant Blood)
+            0x0174,     // Potato Golems
         };
 
         /// <summary>
