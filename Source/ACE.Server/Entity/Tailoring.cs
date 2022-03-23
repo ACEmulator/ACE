@@ -877,9 +877,9 @@ namespace ACE.Server.Entity
                         }
                         else
                         {
-                            //If item has no set, roll a 10% chance to add a Set
-                            int addSetRoll = ThreadSafeRandom.Next(0, 9);
-                            if (addSetRoll == 0)
+                            //If item has no set, roll a 15% chance to add a Set
+                            int addSetRoll = ThreadSafeRandom.Next(0, 99);
+                            if (addSetRoll < 15)
                             {
                                 setRollResult = true;
                             }
@@ -926,7 +926,7 @@ namespace ACE.Server.Entity
                             resultMsg = "I once had a dream that I was peeing on a tree in the woods.  When I woke up, I had pissed all over myself.  I hope that makes you feel slightly better about the fact that your item which didn't previously have a Set on it still doesn't have a Set on it.  Better luck next time cunt.";
                         }
 
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(resultMsg, ChatMessageType.Broadcast));
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(resultMsg, ChatMessageType.Broadcast));
 
                         break;
 
