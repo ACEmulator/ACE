@@ -251,6 +251,8 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked));
             }
 
+            ClearUnmanagedInventory();
+
             if (IsGenerator)
             {
                 ResetGenerator();
