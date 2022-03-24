@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
@@ -36,6 +37,7 @@ namespace ACE.Server.Entity
         public const uint MorphGemArmorWork = 4200024;
         public const uint MorphGemArcane = 4200026;
         public const uint MorphGemRandomEpic = 4200027;
+        public const uint MorphGemRandomSet = 4200028;
 
         public const uint MaxBodyArmorLevel = 330;
         public const uint MaxExtremityArmorLevel = 360;
@@ -201,6 +203,7 @@ namespace ACE.Server.Entity
                 case MorphGemArmorWork:
                 case MorphGemArcane:
                 case MorphGemRandomEpic:
+                case MorphGemRandomSet:
                     ApplyMorphGem(player, source, target);
                     return;
             }
@@ -851,6 +854,82 @@ namespace ACE.Server.Entity
 
                         break;
 
+                    case MorphGemRandomSet:
+
+                        if (target.ClothingPriority == null || (target.ClothingPriority & (CoverageMask)CoverageMaskHelper.Outerwear) == 0)
+                        {
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("The target item does not meet the requirements for adding an Equipment Set", ChatMessageType.Broadcast));
+                            return;
+                        }
+
+                        var originalSetId = target.EquipmentSetId;
+                        bool setRollResult = false;
+
+                        if(target.EquipmentSetId.HasValue)
+                        {
+                            //If item has an existing set, roll a 10% chance to remove the Set
+                            int removeSetRoll = ThreadSafeRandom.Next(0, 9);
+                            if(removeSetRoll > 0)
+                            {
+                                setRollResult = true;
+                            }
+                        }
+                        else
+                        {
+                            //If item has no set, roll a 15% chance to add a Set
+                            int addSetRoll = ThreadSafeRandom.Next(0, 99);
+                            if (addSetRoll < 15)
+                            {
+                                setRollResult = true;
+                            }
+                        }
+
+                        if(setRollResult)
+                        {
+                            target.EquipmentSetId = (EquipmentSet)ThreadSafeRandom.Next((int)EquipmentSet.Soldiers, (int)EquipmentSet.Lightningproof);
+                            if(originalSetId.HasValue && target.EquipmentSetId.Value == originalSetId.Value)
+                            {
+                                int counter = 0;
+                                while(target.EquipmentSetId.Value == originalSetId.Value && counter < 10)
+                                {
+                                    target.EquipmentSetId = (EquipmentSet)ThreadSafeRandom.Next((int)EquipmentSet.Soldiers, (int)EquipmentSet.Lightningproof);
+                                    counter++;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            target.EquipmentSetId = null;
+                        }
+
+                        string resultMsg = string.Empty;
+
+                        if (originalSetId.HasValue && setRollResult)
+                        {
+                            //Randomized existing set
+                            resultMsg = "You and I, we aren't so different.  We are nothing alike yet we are... nothing.  None of it matters.  You, especially, don't matter.  You will die.  I will die.  Will we then be the same?  Will we be at all?  Will you shut the fuck up?  Your armor has a different Set on it now, congrats.";
+                        }
+                        else if (!originalSetId.HasValue && setRollResult)
+                        {
+                            //Added new set
+                            resultMsg = "If you get caught with drugs and they ask you who you got them from, it was the naked Indian.  Also, your item that didn't have a Set, well, now it has a Set.  Take a look and see.  Hopefully it's what you wanted.";
+                        }
+                        else if(originalSetId.HasValue && !setRollResult)
+                        {
+                            //Remove existing set
+                            resultMsg = "Bad luck cunt, your armor that had a Set on it, well now it doesn't have a Set on it.  Also, you're ugly and smell bad, and those are your best qualities.";
+                        }
+                        else
+                        {
+                            //No existing set, failed to add a set
+                            resultMsg = "I once had a dream that I was peeing on a tree in the woods.  When I woke up, I had pissed all over myself.  I hope that makes you feel slightly better about the fact that your item which didn't previously have a Set on it still doesn't have a Set on it.  Better luck next time cunt.";
+                        }
+
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(resultMsg, ChatMessageType.Broadcast));
+
+                        break;
+
                     default:
                         player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                         return;
@@ -1112,6 +1191,7 @@ namespace ACE.Server.Entity
                 case MorphGemArmorWork:
                 case MorphGemArcane:
                 case MorphGemRandomEpic:
+                case MorphGemRandomSet:
 
                     return true;
 

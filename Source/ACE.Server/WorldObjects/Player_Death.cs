@@ -613,6 +613,15 @@ namespace ACE.Server.WorldObjects
                     }
                 }
 
+                //Golems drops trophies every time
+                if (this.CurrentLandblock.Id.ToString().Contains("0174"))
+                {
+                    var pkTrophy = WorldObjectFactory.CreateNewWorldObject(1000002);
+                    pkTrophy.SetStackSize(2);
+                    dropItems.Add(pkTrophy);
+                    alreadyDropped = true;
+                }
+
                 if (!alreadyDropped && shouldDropTrophy == 1 && monarchCheck && timerLogic)
                 {
                     var dropItem = WorldObjectFactory.CreateNewWorldObject(1000002);
