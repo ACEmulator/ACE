@@ -1620,7 +1620,7 @@ namespace ACE.Server.WorldObjects.Managers
             if (Debug)
                 Console.Write($"{(EmoteType)emote.Type}");
 
-            if (!string.IsNullOrEmpty(emoteSet.Quest) && emoteSet.Quest == emote.Message)
+            if (!string.IsNullOrEmpty(emoteSet.Quest) && emoteSet.Quest == emote.Message && EmoteIsInqUpdateOrGoto(emote))
             {
                 log.Error($"[EMOTE] {WorldObject.Name}.EmoteManager.DoEnqueue(): Infinite loop detected on 0x{WorldObject.Guid}:{WorldObject.WeenieClassId}\n-> {emoteSet.Category}: {emoteSet.Quest} to {(EmoteType)emote.Type}: {emote.Message}");
 
@@ -1659,6 +1659,54 @@ namespace ACE.Server.WorldObjects.Managers
                     if (Nested == 0)
                         IsBusy = false;
                 }
+            }
+        }
+
+        private bool EmoteIsInqUpdateOrGoto(PropertiesEmoteAction emote)
+        {
+            if (emote == null)
+                return false;
+
+            var emoteType = (EmoteType)emote.Type;
+
+            switch (emoteType)
+            {
+                case EmoteType.UpdateQuest:
+                case EmoteType.InqQuest:
+                case EmoteType.InqQuestSolves:
+                case EmoteType.InqBoolStat:
+                case EmoteType.InqIntStat:
+                case EmoteType.InqFloatStat:
+                case EmoteType.InqStringStat:
+                case EmoteType.InqAttributeStat:
+                case EmoteType.InqRawAttributeStat:
+                case EmoteType.InqSecondaryAttributeStat:
+                case EmoteType.InqRawSecondaryAttributeStat:
+                case EmoteType.InqSkillStat:
+                case EmoteType.InqRawSkillStat:
+                case EmoteType.InqSkillTrained:
+                case EmoteType.InqSkillSpecialized:
+                case EmoteType.InqEvent:
+                case EmoteType.InqFellowQuest:
+                case EmoteType.InqFellowNum:
+                case EmoteType.UpdateFellowQuest:
+                case EmoteType.Goto:
+                case EmoteType.InqNumCharacterTitles:
+                case EmoteType.InqYesNo:
+                case EmoteType.InqOwnsItems:
+                case EmoteType.UpdateMyQuest:
+                case EmoteType.InqMyQuest:
+                case EmoteType.InqMyQuestSolves:
+                case EmoteType.InqPackSpace:
+                case EmoteType.InqQuestBitsOn:
+                case EmoteType.InqQuestBitsOff:
+                case EmoteType.InqMyQuestBitsOn:
+                case EmoteType.InqMyQuestBitsOff:
+                case EmoteType.InqInt64Stat:
+                case EmoteType.InqContractsFull:
+                    return true;
+                default:
+                    return false;
             }
         }
 
