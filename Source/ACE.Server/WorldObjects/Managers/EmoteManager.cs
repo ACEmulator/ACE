@@ -1592,6 +1592,22 @@ namespace ACE.Server.WorldObjects.Managers
 
             var emote = emoteSet.PropertiesEmoteAction.ElementAt(emoteIdx);
 
+            if (Nested > 75 && !string.IsNullOrEmpty(emoteSet.Quest) && emoteSet.Quest == emote.Message && EmoteIsInqUpdateOrGoto(emote))
+            {
+                var emoteStack = $"{emoteSet.Category}: {emoteSet.Quest}\n";
+                foreach (var e in emoteSet.PropertiesEmoteAction)
+                    emoteStack += $"       - {(EmoteType)emote.Type}{(string.IsNullOrEmpty(emote.Message) ? "" : $": {emote.Message}")}\n";
+
+                log.Error($"[EMOTE] {WorldObject.Name}.EmoteManager.DoEnqueue(): Nested > 75, possible Infinite loop detected and aborted on 0x{WorldObject.Guid}:{WorldObject.WeenieClassId}\n-> {emoteStack}");
+
+                Nested--;
+
+                if (Nested == 0)
+                    IsBusy = false;
+
+                return;
+            }
+
             if (delay + emote.Delay > 0)
             {
                 var actionChain = new ActionChain();
@@ -1620,15 +1636,17 @@ namespace ACE.Server.WorldObjects.Managers
             if (Debug)
                 Console.Write($"{(EmoteType)emote.Type}");
 
-            if (!string.IsNullOrEmpty(emoteSet.Quest) && emoteSet.Quest == emote.Message && EmoteIsInqUpdateOrGoto(emote))
-            {
-                log.Error($"[EMOTE] {WorldObject.Name}.EmoteManager.DoEnqueue(): Infinite loop detected on 0x{WorldObject.Guid}:{WorldObject.WeenieClassId}\n-> {emoteSet.Category}: {emoteSet.Quest} to {(EmoteType)emote.Type}: {emote.Message}");
+            //if (!string.IsNullOrEmpty(emoteSet.Quest) && emoteSet.Quest == emote.Message && EmoteIsInqUpdateOrGoto(emote))
+            //{
+            //    log.Error($"[EMOTE] {WorldObject.Name}.EmoteManager.DoEnqueue(): Infinite loop detected on 0x{WorldObject.Guid}:{WorldObject.WeenieClassId}\n-> {emoteSet.Category}: {emoteSet.Quest} to {(EmoteType)emote.Type}: {emote.Message}");
 
-                Nested = 0;
-                IsBusy = false;
+            //    Nested--;
 
-                return;
-            }
+            //    if (Nested == 0)
+            //        IsBusy = false;
+
+            //    return;
+            //}
 
             var nextDelay = ExecuteEmote(emoteSet, emote, targetObject);
 
