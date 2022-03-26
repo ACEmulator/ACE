@@ -1620,6 +1620,16 @@ namespace ACE.Server.WorldObjects.Managers
             if (Debug)
                 Console.Write($"{(EmoteType)emote.Type}");
 
+            if (!string.IsNullOrEmpty(emoteSet.Quest) && emoteSet.Quest == emote.Message)
+            {
+                log.Error($"[EMOTE] {WorldObject.Name}.EmoteManager.DoEnqueue(): Infinite loop detected on 0x{WorldObject.Guid}:{WorldObject.WeenieClassId}\n-> {emoteSet.Category}: {emoteSet.Quest} to {(EmoteType)emote.Type}: {emote.Message}");
+
+                Nested = 0;
+                IsBusy = false;
+
+                return;
+            }
+
             var nextDelay = ExecuteEmote(emoteSet, emote, targetObject);
 
             if (Debug)
