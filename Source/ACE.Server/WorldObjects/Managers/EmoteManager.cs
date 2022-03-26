@@ -1598,7 +1598,7 @@ namespace ACE.Server.WorldObjects.Managers
                 foreach (var e in emoteSet.PropertiesEmoteAction)
                     emoteStack += $"       - {(EmoteType)emote.Type}{(string.IsNullOrEmpty(emote.Message) ? "" : $": {emote.Message}")}\n";
 
-                log.Error($"[EMOTE] {WorldObject.Name}.EmoteManager.DoEnqueue(): Nested > 75, possible Infinite loop detected and aborted on 0x{WorldObject.Guid}:{WorldObject.WeenieClassId}\n-> {emoteStack}");
+                log.Error($"[EMOTE] {WorldObject.Name}.EmoteManager.Enqueue(): Nested > 75, possible Infinite loop detected and aborted on 0x{WorldObject.Guid}:{WorldObject.WeenieClassId}\n-> {emoteStack}");
 
                 Nested--;
 
