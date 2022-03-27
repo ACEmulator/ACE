@@ -3019,7 +3019,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (!target.GetProperty(PropertyBool.AllowGive) ?? false)
+            if (!target.AllowGive)
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
                 Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsNotAcceptingGiftsRightNow, target.Name));
