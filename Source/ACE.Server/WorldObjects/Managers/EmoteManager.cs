@@ -1592,7 +1592,7 @@ namespace ACE.Server.WorldObjects.Managers
 
             var emote = emoteSet.PropertiesEmoteAction.ElementAt(emoteIdx);
 
-            if (Nested > 75 && !string.IsNullOrEmpty(emoteSet.Quest) && emoteSet.Quest == emote.Message && EmoteIsInqUpdateOrGoto(emote))
+            if (Nested > 75 && !string.IsNullOrEmpty(emoteSet.Quest) && emoteSet.Quest == emote.Message && EmoteIsBranchingType(emote))
             {
                 var emoteStack = $"{emoteSet.Category}: {emoteSet.Quest}\n";
                 foreach (var e in emoteSet.PropertiesEmoteAction)
@@ -1636,7 +1636,7 @@ namespace ACE.Server.WorldObjects.Managers
             if (Debug)
                 Console.Write($"{(EmoteType)emote.Type}");
 
-            //if (!string.IsNullOrEmpty(emoteSet.Quest) && emoteSet.Quest == emote.Message && EmoteIsInqUpdateOrGoto(emote))
+            //if (!string.IsNullOrEmpty(emoteSet.Quest) && emoteSet.Quest == emote.Message && EmoteIsBranchingType(emote))
             //{
             //    log.Error($"[EMOTE] {WorldObject.Name}.EmoteManager.DoEnqueue(): Infinite loop detected on 0x{WorldObject.Guid}:{WorldObject.WeenieClassId}\n-> {emoteSet.Category}: {emoteSet.Quest} to {(EmoteType)emote.Type}: {emote.Message}");
 
@@ -1680,7 +1680,7 @@ namespace ACE.Server.WorldObjects.Managers
             }
         }
 
-        private bool EmoteIsInqUpdateOrGoto(PropertiesEmoteAction emote)
+        private bool EmoteIsBranchingType(PropertiesEmoteAction emote)
         {
             if (emote == null)
                 return false;
