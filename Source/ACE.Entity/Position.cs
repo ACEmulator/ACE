@@ -217,15 +217,24 @@ namespace ACE.Entity
             Rotation = pos.Rotation;
         }
 
-        public Position(uint blockCellID, float newPositionX, float newPositionY, float newPositionZ, float newRotationX, float newRotationY, float newRotationZ, float newRotationW)
+        public Position(uint blockCellID, float newPositionX, float newPositionY, float newPositionZ, float newRotationX, float newRotationY, float newRotationZ, float newRotationW, bool relativePos = false)
         {
             LandblockId = new LandblockId(blockCellID);
 
-            Pos = new Vector3(newPositionX, newPositionY, newPositionZ);
-            Rotation = new Quaternion(newRotationX, newRotationY, newRotationZ, newRotationW);
+            if (!relativePos)
+            {
+                Pos = new Vector3(newPositionX, newPositionY, newPositionZ);
+                Rotation = new Quaternion(newRotationX, newRotationY, newRotationZ, newRotationW);
 
-            if ((blockCellID & 0xFFFF) == 0)
-                SetPosition(Pos);
+                if ((blockCellID & 0xFFFF) == 0)
+                    SetPosition(Pos);
+            }
+            else
+            {
+                // position is marked as relative so pass in raw values and make no further adjustments.
+                PositionX = newPositionX; PositionY = newPositionY; PositionZ = newPositionZ;
+                Rotation = new Quaternion(newRotationX, newRotationY, newRotationZ, newRotationW);
+            }
         }
 
         public Position(uint blockCellID, Vector3 position, Quaternion rotation)

@@ -75,10 +75,10 @@ namespace ACE.Entity.Enum.Properties
         LinkedPortalOne            = 31,
         [ServerOnly]
         WieldedTreasureType        = 32,
-
-        UnknownGuessedname         = 33,
-        UnknownGuessedname2        = 34,
-
+        [ServerOnly]
+        InventoryTreasureType      = 33,
+        [ServerOnly]
+        ShowTreasureType           = 34,
         [ServerOnly]
         DeathTreasureType          = 35,
         [ServerOnly]

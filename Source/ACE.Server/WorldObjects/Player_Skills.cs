@@ -340,7 +340,13 @@ namespace ACE.Server.WorldObjects
             amount = Math.Min(amount, playerSkill.ExperienceLeft);
 
             GrantXP(amount, XpType.Emote, ShareType.None);
-            HandleActionRaiseSkill(skill, amount);
+            var raiseChain = new ActionChain();
+            raiseChain.AddDelayForOneTick();
+            raiseChain.AddAction(this, () =>
+            {
+                HandleActionRaiseSkill(skill, amount);
+            });
+            raiseChain.EnqueueChain();
 
             if (alertPlayer)
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You've earned {amount:N0} experience in your {playerSkill.Skill.ToSentence()} skill.", ChatMessageType.Broadcast));

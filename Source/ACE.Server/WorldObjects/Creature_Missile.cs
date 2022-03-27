@@ -111,16 +111,17 @@ namespace ACE.Server.WorldObjects
                 {
                     if (player != null)
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat("Your missile attack hit the environment.", ChatMessageType.Broadcast));
-
-                    proj.Destroy();
                 }
 
+                proj.Destroy();
                 return null;
             }
 
             if (!IsProjectileVisible(proj))
             {
                 proj.OnCollideEnvironment();
+
+                proj.Destroy();
                 return null;
             }
 
