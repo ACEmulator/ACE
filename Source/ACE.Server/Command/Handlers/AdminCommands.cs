@@ -3662,19 +3662,20 @@ namespace ACE.Server.Command.Handlers
 
                 if (parameters[0].Equals("stamp"))
                 {
-                    if (parameters.Length < 3)
-                    {
-                        session.Player.SendMessage($"You must specify a quest to stamp and number completions using the following command: /qst stamp questname number");
-                        return;
-                    }
-                    if (!int.TryParse(parameters[2], out var numCompletions))
+                    var numCompletions = int.MinValue;
+
+                    if (parameters.Length > 2 && !int.TryParse(parameters[2], out numCompletions))
                     {
                         session.Player.SendMessage($"{parameters[2]} is not a valid int");
                         return;
                     }
                     var questName = parameters[1];
 
-                    creature.QuestManager.SetQuestCompletions(questName, numCompletions);
+                    if (numCompletions != int.MinValue)
+                        creature.QuestManager.SetQuestCompletions(questName, numCompletions);
+                    else
+                        creature.QuestManager.Update(questName);
+
                     var quest = creature.QuestManager.GetQuest(questName);
                     if (quest != null)
                     {
@@ -3686,6 +3687,133 @@ namespace ACE.Server.Command.Handlers
                         session.Player.SendMessage($"Couldn't stamp {questName} on {creature.Name}");
                     }
                     return;
+                }
+
+                if (parameters[0].Equals("bits"))
+                {
+                    if (parameters.Length < 2)
+                    {
+                        var msg = "@qst - Query, stamp, and erase quests on the targeted player\n";
+                        msg += "Usage: @qst bits [on | off | show] <questname> <bits>\n";
+                        msg += "qst bits on  - Stamps the specific quest flag on the targeted player with specified bits ON. If this fails, it's probably because you spelled the quest flag wrong.\n";
+                        msg += "qst bits off - Stamps the specific quest flag on the targeted player with specified bits OFF. If this fails, it's probably because you spelled the quest flag wrong.\n";
+                        msg += "qst bits show - List the specific quest flag bits for the targeted player.\n";
+                        session.Player.SendMessage(msg);
+                        return;
+                    }
+
+                    if (parameters[1].Equals("on"))
+                    {
+                        if (parameters.Length < 3)
+                        {
+                            session.Player.SendMessage($"You must specify bits to turn on or off.");
+                            return;
+                        }
+                        if (parameters.Length < 2)
+                        {
+                            session.Player.SendMessage($"You must specify a quest to set its bits.");
+                            return;
+                        }
+
+                        var questName = parameters[2];
+
+                        var questBits = parameters[3];
+
+                        if (!uint.TryParse(questBits.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? questBits[2..] : questBits, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var bits))
+                        {
+                            session.Player.SendMessage($"{parameters[3]} is not a valid hex number");
+                            return;
+                        }
+
+                        if (creature.QuestManager.HasQuestBits(questName, (int)bits))
+                        {
+                            session.Player.SendMessage($"{creature.Name} already has set 0x{bits:X} bits to ON for {questName}");
+                            return;
+                        }
+
+                        creature.QuestManager.SetQuestBits(questName, (int)bits);
+                        session.Player.SendMessage($"{creature.Name} has set 0x{bits:X} bits to ON for {questName}");
+                        return;
+                    }
+
+                    if (parameters[1].Equals("off"))
+                    {
+                        if (parameters.Length < 3)
+                        {
+                            session.Player.SendMessage($"You must specify bits to turn on or off.");
+                            return;
+                        }
+                        if (parameters.Length < 2)
+                        {
+                            session.Player.SendMessage($"You must specify a quest to set its bits.");
+                            return;
+                        }
+
+                        var questName = parameters[2];
+
+                        var questBits = parameters[3];
+
+                        if (!uint.TryParse(questBits.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? questBits[2..] : questBits, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var bits))
+                        {
+                            session.Player.SendMessage($"{parameters[3]} is not a valid uint");
+                            return;
+                        }
+
+                        if (creature.QuestManager.HasNoQuestBits(questName, (int)bits))
+                        {
+                            session.Player.SendMessage($"{creature.Name} already has set 0x{bits:X} bits to OFF for {questName}");
+                            return;
+                        }
+
+                        creature.QuestManager.SetQuestBits(questName, (int)bits, false);
+                        session.Player.SendMessage($"{creature.Name} has set 0x{bits:X} bits to OFF for {questName}");
+                        return;
+                    }
+
+                    if (parameters[1].Equals("show"))
+                    {
+                        if (parameters.Length < 2)
+                        {
+                            session.Player.SendMessage($"You must specify a quest to show its bits.");
+                            return;
+                        }
+
+                        var questName = parameters[2];
+
+                        var questsHdr = $"Quest Bits Registry for {creature.Name} (0x{creature.Guid}):\n";
+                        questsHdr += "================================================\n";
+
+                        var quest = creature.QuestManager.GetQuest(questName);
+
+                        if (quest == null)
+                        {
+                            session.Player.SendMessage($"{questName} not found.");
+                            return;
+                        }
+
+                        var maxSolves = creature.QuestManager.GetMaxSolves(questName);
+                        var maxSolvesBinary = Convert.ToString(maxSolves, 2);
+
+                        var questEntry = "";
+                        questEntry += $"Quest Name: {quest.QuestName}\n";
+                        questEntry += $"Current Set Bits: 0x{quest.NumTimesCompleted:X}\n";
+                        questEntry += $"Allowed Max Bits: 0x{maxSolves:X}\n";
+                        questEntry += $"Last Set On: {quest.LastTimeCompleted} ({Common.Time.GetDateTimeFromTimestamp(quest.LastTimeCompleted).ToLocalTime()})\n";
+
+                        //var nextSolve = creature.QuestManager.GetNextSolveTime(quest.QuestName);
+
+                        //if (nextSolve == TimeSpan.MinValue)
+                        //    questEntry += "Can Solve: Immediately\n";
+                        //else if (nextSolve == TimeSpan.MaxValue)
+                        //    questEntry += "Can Solve: Never again\n";
+                        //else
+                        //    questEntry += $"Can Solve: In {nextSolve:%d} days, {nextSolve:%h} hours, {nextSolve:%m} minutes and, {nextSolve:%s} seconds. ({(DateTime.UtcNow + nextSolve).ToLocalTime()})\n";
+
+                        questEntry += $"-= Binary String Representation =-\n  C: {Convert.ToString(quest.NumTimesCompleted, 2).PadLeft(maxSolvesBinary.Length, '0')}\n  A: {Convert.ToString(maxSolves, 2)}\n";
+
+                        questEntry += "--====--\n";
+                        session.Player.SendMessage(questsHdr + questEntry);
+                    }
                 }
 
                 if (parameters[0].Equals("fellow"))
@@ -3804,19 +3932,20 @@ namespace ACE.Server.Command.Handlers
 
                         if (parameters[1].Equals("stamp"))
                         {
-                            if (parameters.Length < 4)
-                            {
-                                session.Player.SendMessage($"You must specify a quest to stamp and number completions using the following command: /qst fellow stamp questname number");
-                                return;
-                            }
-                            if (!int.TryParse(parameters[3], out var numCompletions))
+                            var numCompletions = int.MinValue;
+
+                            if (parameters.Length > 3 && !int.TryParse(parameters[3], out numCompletions))
                             {
                                 session.Player.SendMessage($"{parameters[3]} is not a valid int");
                                 return;
                             }
                             var questName = parameters[2];
 
-                            fellowship.QuestManager.SetQuestCompletions(questName, numCompletions);
+                            if (numCompletions != int.MinValue)
+                                fellowship.QuestManager.SetQuestCompletions(questName, numCompletions);
+                            else
+                                fellowship.QuestManager.Update(questName);
+
                             var quest = fellowship.QuestManager.GetQuest(questName);
                             if (quest != null)
                             {
