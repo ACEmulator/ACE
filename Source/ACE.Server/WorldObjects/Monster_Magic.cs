@@ -412,5 +412,16 @@ namespace ACE.Server.WorldObjects
 
             MonsterOnAttackMonster(creatureTarget);
         }
+        /// <summary>
+        /// Checks for AiUseHumanMagicAnimations and if true, sets CurrentSpell and sets combat mode to Magic
+        /// </summary>
+        public void CheckForHumanPreCast(Spell spell)
+        {
+            if (AiUseHumanMagicAnimations)
+            {
+                CurrentSpell = new Spell(spell.Id);
+                SetCombatMode(CombatMode.Magic);
+            }
+        }
     }
 }

@@ -201,6 +201,8 @@ namespace ACE.Server.WorldObjects.Managers
                             break;
                         }
 
+                        creature.CheckForHumanPreCast(spell);
+
                         var spellTarget = GetSpellTarget(spell, targetObject);
 
                         var preCastTime = creature.PreCastMotion(spellTarget);
