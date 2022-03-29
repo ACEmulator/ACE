@@ -874,6 +874,7 @@ namespace ACE.Server.WorldObjects
             0x5964,     // Gauntlet Arena One (Radiant Blood)
             0x5965,     // Gauntlet Arena Two (Radiant Blood)
             0x0174,     // Potato Golems
+            0x01C9,     // Abandoned Mines
         };
 
         /// <summary>
