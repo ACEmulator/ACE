@@ -71,6 +71,7 @@ namespace ACE.Server.WorldObjects.Managers
                     case ConfirmationType.CraftInteraction:
                     case ConfirmationType.Augmentation:
                     case ConfirmationType.Yes_No:
+                        Player.SendMessage("You waited too long to answer the question!");
                         // These events automatically trigger a response from client, others do not.
                         // do nothing further
                         break;

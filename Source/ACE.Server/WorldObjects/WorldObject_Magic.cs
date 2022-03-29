@@ -2119,7 +2119,7 @@ namespace ACE.Server.WorldObjects
                     }
                 }
             }
-            else if (spell.IsOtherNegativeRedirectable)
+            else if (spell.IsOtherNegativeRedirectable || spell.IsItemRedirectableType)
             {
                 // blood loather, spirit loather, lure blade, turn blade, leaden weapon, hermetic void
                 if (targetCreature == null)
@@ -2135,6 +2135,8 @@ namespace ACE.Server.WorldObjects
                         ItemType.Weapon => targetCreature.GetEquippedWeapon(),
                         ItemType.Caster => targetCreature.GetEquippedWand(),
                         ItemType.WeaponOrCaster => targetCreature.GetEquippedWeapon() ?? targetCreature.GetEquippedWand(),
+                        ItemType.MeleeWeapon => targetCreature.GetEquippedMeleeWeapon(),
+                        ItemType.MissileWeapon => targetCreature.GetEquippedMissileWeapon(),
                         _ => null
                     };
 
