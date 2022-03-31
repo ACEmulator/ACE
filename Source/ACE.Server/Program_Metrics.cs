@@ -101,7 +101,7 @@ namespace ACE.Server
             // https://github.com/prometheus-net/prometheus-net
             Metrics.DefaultRegistry.AddBeforeCollectCallback(MetricsAddBeforeCollectCallback);
 
-            metricServer = new MetricServer(hostname: "127.0.0.1", port: 1234); // todo make this configurable
+            metricServer = new MetricServer(hostname: "127.0.0.1", port: 9200); // todo make this configurable
             metricServer.Start();
 
             // https://github.com/djluck/prometheus-net.DotNetRuntime
