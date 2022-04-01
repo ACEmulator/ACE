@@ -35,6 +35,8 @@ namespace ACE.Server
         private static readonly Gauge ace_DatabaseManager_AccountCount = Metrics.CreateGauge("ace_DatabaseManager_AccountCount", null, new GaugeConfiguration { SuppressInitialValue = true });
         private static readonly Gauge ace_DatabaseManager_Shard_CachedPlayerBiotas = Metrics.CreateGauge("ace_DatabaseManager_Shard_CachedPlayerBiotas", null, new GaugeConfiguration { SuppressInitialValue = true });
         private static readonly Gauge ace_DatabaseManager_Shard_CachedNonPlayerBiotas = Metrics.CreateGauge("ace_DatabaseManager_Shard_CachedNonPlayerBiotas", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_DatabaseManager_Shard_QueueCount = Metrics.CreateGauge("ace_DatabaseManager_Shard_QueueCount", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_DatabaseManager_Shard_QueueWaitTime = Metrics.CreateGauge("ace_DatabaseManager_Shard_QueueWaitTime", null, new GaugeConfiguration { SuppressInitialValue = true });
 
         private static readonly Gauge ace_LandblockManager_ActiveLandblocks = Metrics.CreateGauge("ace_LandblockManager_ActiveLandblocks", null, new GaugeConfiguration { SuppressInitialValue = true });
         private static readonly Gauge ace_LandblockManager_DormantLandblocks = Metrics.CreateGauge("ace_LandblockManager_DormantLandblocks", null, new GaugeConfiguration { SuppressInitialValue = true });
@@ -149,6 +151,8 @@ namespace ACE.Server
                 ace_DatabaseManager_Shard_CachedPlayerBiotas.Set(playerBiotaIds);
                 ace_DatabaseManager_Shard_CachedNonPlayerBiotas.Set(nonPlayerBiotaIds);
             }
+            ace_DatabaseManager_Shard_QueueCount.Set(DatabaseManager.Shard?.QueueCount ?? 0);
+            DatabaseManager.Shard?.GetCurrentQueueWaitTime(result => ace_DatabaseManager_Shard_QueueWaitTime.Set(result.TotalMilliseconds));
 
             var loadedLandblocks = LandblockManager.GetLoadedLandblocks();
             int dormantLandblocks = 0, activeDungeonLandblocks = 0, dormantDungeonLandblocks = 0;
