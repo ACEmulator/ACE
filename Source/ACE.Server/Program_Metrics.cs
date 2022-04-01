@@ -118,7 +118,7 @@ namespace ACE.Server
         static void ShutdownMetrics()
         {
             // todo this throws exception
-            dotNetMetricsCollector.Dispose();
+            //dotNetMetricsCollector.Dispose();
 
             metricServer.Stop();
         }
@@ -140,7 +140,7 @@ namespace ACE.Server
             ace_PlayerManager_TotalCount.Set(PlayerManager.GetOfflineCount() + PlayerManager.GetOnlineCount());
 
             ace_DatabaseManager_AccountCount.Set(DatabaseManager.Authentication.GetAccountCount());
-            if (DatabaseManager.Shard.BaseDatabase is ShardDatabaseWithCaching shardDatabaseWithCaching)
+            if (DatabaseManager.Shard?.BaseDatabase is ShardDatabaseWithCaching shardDatabaseWithCaching)
             {
                 var biotaIds = shardDatabaseWithCaching.GetBiotaCacheKeys();
                 var playerBiotaIds = biotaIds.Count(id => ObjectGuid.IsPlayer(id));
