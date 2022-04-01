@@ -221,6 +221,9 @@ namespace ACE.Server
                 Environment.Exit(0);
             }
 
+            log.Info("Initializing Metrics...");
+            InitMetrics();
+
             log.Info("Initializing ServerManager...");
             ServerManager.Initialize();
 
@@ -312,8 +315,8 @@ namespace ACE.Server
                 WorldManager.Open(null);
             }
 
-            log.Info("Initializing Metrics...");
-            InitMetrics();
+            //log.Info("Initializing Metrics...");
+            //InitMetrics();
         }
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
