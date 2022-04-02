@@ -20,6 +20,8 @@ namespace ACE.Server
 
         private static IDisposable dotNetMetricsCollector;
 
+        private static readonly Gauge ace_Info = Metrics.CreateGauge("ace_Info", null, new GaugeConfiguration { SuppressInitialValue = true, LabelNames = new[] { "server_version", "database_version_base", "database_version_patch"} });
+
         private static readonly Gauge ace_Process_TotalRunTime = Metrics.CreateGauge("ace_Process_TotalRunTime", null, new GaugeConfiguration { SuppressInitialValue = true });
         private static readonly Gauge ace_Process_TotalProcessorTime = Metrics.CreateGauge("ace_Process_TotalProcessorTime", null, new GaugeConfiguration { SuppressInitialValue = true });
         private static readonly Gauge ace_Process_Threads = Metrics.CreateGauge("ace_Process_Threads", null, new GaugeConfiguration { SuppressInitialValue = true });
@@ -98,6 +100,9 @@ namespace ACE.Server
 
         private static readonly Gauge ace_ServerObjectManager_ServerObjects = Metrics.CreateGauge("ace_ServerObjectManager_ServerObjects", null, new GaugeConfiguration { SuppressInitialValue = true });
 
+        private static string database_Base_Version = null;
+        private static string database_Patch_Version = null;
+
         static void InitMetrics()
         {
             // https://github.com/prometheus-net/prometheus-net
@@ -128,6 +133,15 @@ namespace ACE.Server
         static void MetricsAddBeforeCollectCallback()
         {
             var proc = Process.GetCurrentProcess();
+
+            if (database_Base_Version is null && DatabaseManager.World is not null)
+            {
+                var dbVersion = DatabaseManager.World.GetVersion();
+                database_Base_Version = dbVersion.BaseVersion;
+                database_Patch_Version = dbVersion.PatchVersion;
+            }
+
+            ace_Info.WithLabels(ServerBuildInfo.FullVersion, database_Base_Version ?? "", database_Patch_Version ?? "").Set(1);
 
             ace_Process_TotalRunTime.Set((DateTime.Now - proc.StartTime).TotalSeconds);
             ace_Process_TotalProcessorTime.Set(proc.TotalProcessorTime.TotalSeconds);
