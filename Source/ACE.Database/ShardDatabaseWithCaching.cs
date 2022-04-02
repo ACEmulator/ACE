@@ -7,10 +7,14 @@ using System.Threading;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 
+using log4net;
+
 namespace ACE.Database
 {
     public class ShardDatabaseWithCaching : ShardDatabase
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public TimeSpan PlayerBiotaRetentionTime { get; set; }
         public TimeSpan NonPlayerBiotaRetentionTime { get; set; }
 
@@ -73,7 +77,12 @@ namespace ACE.Database
                 if (ObjectGuid.IsPlayer(biota.Id))
                 {
                     if (PlayerBiotaRetentionTime > TimeSpan.Zero)
-                        biotaCache[biota.Id] = new CacheObject<Biota> {LastSeen = DateTime.UtcNow, Context = context, CachedObject = biota};
+                    {
+                        if (!biotaCache.ContainsKey(biota.Id))
+                            log.Debug($"Added 0x{biota.Id} to CachedBiotas, StackTrace:\n{Environment.StackTrace}");
+
+                        biotaCache[biota.Id] = new CacheObject<Biota> { LastSeen = DateTime.UtcNow, Context = context, CachedObject = biota };
+                    }
                 }
                 else if (NonPlayerBiotaRetentionTime > TimeSpan.Zero)
                     biotaCache[biota.Id] = new CacheObject<Biota> {LastSeen = DateTime.UtcNow, Context = context, CachedObject = biota};
