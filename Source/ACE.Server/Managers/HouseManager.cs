@@ -923,7 +923,7 @@ namespace ACE.Server.Managers
             }
         }
 
-        public static int TotalOwnedHousing => RentQueue.Count;
+        public static int TotalOwnedHousing => RentQueue?.Count ?? 0;
 
         public static Dictionary<HouseType, int> TotalOwnedHousingByType = new Dictionary<HouseType, int>();
 
