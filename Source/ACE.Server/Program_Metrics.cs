@@ -100,6 +100,24 @@ namespace ACE.Server
 
         private static readonly Gauge ace_ServerObjectManager_ServerObjects = Metrics.CreateGauge("ace_ServerObjectManager_ServerObjects", null, new GaugeConfiguration { SuppressInitialValue = true });
 
+        private static readonly Gauge ace_GuidManager_PlayerGuidAllocator_Min = Metrics.CreateGauge("ace_GuidManager_PlayerGuidAllocator_Min", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_GuidManager_PlayerGuidAllocator_Current = Metrics.CreateGauge("ace_GuidManager_PlayerGuidAllocator_Current", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_GuidManager_PlayerGuidAllocator_Max = Metrics.CreateGauge("ace_GuidManager_PlayerGuidAllocator_Max", null, new GaugeConfiguration { SuppressInitialValue = true });
+
+        private static readonly Gauge ace_GuidManager_DynamicGuidAllocator_Min = Metrics.CreateGauge("ace_GuidManager_DynamicGuidAllocator_Min", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_GuidManager_DynamicGuidAllocator_Current = Metrics.CreateGauge("ace_GuidManager_DynamicGuidAllocator_Current", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_GuidManager_DynamicGuidAllocator_Max = Metrics.CreateGauge("ace_GuidManager_DynamicGuidAllocator_Max", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_GuidManager_DynamicGuidAllocator_SequenceGapPairsTotal = Metrics.CreateGauge("ace_GuidManager_DynamicGuidAllocator_SequenceGapPairsTotal", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_GuidManager_DynamicGuidAllocator_RecycledGuidsTotal = Metrics.CreateGauge("ace_GuidManager_DynamicGuidAllocator_RecycledGuidsTotal", null, new GaugeConfiguration { SuppressInitialValue = true });
+
+        private static readonly Gauge ace_AllegianceManager_AllegiancesLoadedInMemory = Metrics.CreateGauge("ace_AllegianceManager_AllegiancesLoadedInMemory", null, new GaugeConfiguration { SuppressInitialValue = true });
+
+        private static readonly Gauge ace_HouseManager_TotalOwnedHousing = Metrics.CreateGauge("ace_HouseManager_TotalOwnedHousing", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_HouseManager_TotalOwnedApartments = Metrics.CreateGauge("ace_HouseManager_TotalOwnedApartments", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_HouseManager_TotalOwnedCottages = Metrics.CreateGauge("ace_HouseManager_TotalOwnedCottages", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_HouseManager_TotalOwnedVillas = Metrics.CreateGauge("ace_HouseManager_TotalOwnedVillas", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_HouseManager_TotalOwnedMansions = Metrics.CreateGauge("ace_HouseManager_TotalOwnedMansions", null, new GaugeConfiguration { SuppressInitialValue = true });
+
         private static string database_Base_Version = null;
         private static string database_Patch_Version = null;
 
@@ -257,6 +275,24 @@ namespace ACE.Server
             sb.Append($"Portal.dat has {DatManager.PortalDat.FileCache.Count:N0} files cached of {DatManager.PortalDat.AllFiles.Count:N0} total{'\n'}");
             sb.Append($"Cell.dat has {DatManager.CellDat.FileCache.Count:N0} files cached of {DatManager.CellDat.AllFiles.Count:N0} total{'\n'}");
             */
+
+            ace_GuidManager_PlayerGuidAllocator_Min.Set(GuidManager.PlayerMin);
+            ace_GuidManager_PlayerGuidAllocator_Current.Set(GuidManager.PlayerCurrent);
+            ace_GuidManager_PlayerGuidAllocator_Max.Set(GuidManager.PlayerMax);
+
+            ace_GuidManager_DynamicGuidAllocator_Min.Set(GuidManager.DynamicMin);
+            ace_GuidManager_DynamicGuidAllocator_Current.Set(GuidManager.DynamicCurrent);
+            ace_GuidManager_DynamicGuidAllocator_Max.Set(GuidManager.DynamicMax);
+            ace_GuidManager_DynamicGuidAllocator_SequenceGapPairsTotal.Set(GuidManager.SequenceGapPairsTotal);
+            ace_GuidManager_DynamicGuidAllocator_RecycledGuidsTotal.Set(GuidManager.RecycledGuidsTotal);
+
+            ace_AllegianceManager_AllegiancesLoadedInMemory.Set(AllegianceManager.Allegiances.Count);
+
+            ace_HouseManager_TotalOwnedHousing.Set(HouseManager.TotalOwnedHousing);
+            ace_HouseManager_TotalOwnedApartments.Set(HouseManager.TotalOwnedHousingByType[ACE.Entity.Enum.HouseType.Apartment]);
+            ace_HouseManager_TotalOwnedCottages.Set(HouseManager.TotalOwnedHousingByType[ACE.Entity.Enum.HouseType.Cottage]);
+            ace_HouseManager_TotalOwnedVillas.Set(HouseManager.TotalOwnedHousingByType[ACE.Entity.Enum.HouseType.Villa]);
+            ace_HouseManager_TotalOwnedMansions.Set(HouseManager.TotalOwnedHousingByType[ACE.Entity.Enum.HouseType.Mansion]);
         }
     }
 }
