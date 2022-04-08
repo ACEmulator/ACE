@@ -343,6 +343,7 @@ namespace ACE.Server.Managers
             while (currentTime > nextEntry.RentDue)
             {
                 RentQueue.Remove(nextEntry);
+                DecrementTotalOwnedHousingByType(nextEntry.House.HouseType);
 
                 ProcessRent(nextEntry);
 
@@ -507,7 +508,7 @@ namespace ACE.Server.Managers
             if (multihouse)
             {
                 RemoveRentQueue(house.Guid.Full);
-                DecrementOwnedHousingByTypeTotal(house.HouseType);
+                DecrementTotalOwnedHousingByType(house.HouseType);
 
                 player.SaveBiotaToDatabase();
 
@@ -654,7 +655,7 @@ namespace ACE.Server.Managers
                 HandleEviction(playerHouse, true);
 
                 RemoveRentQueue(house.Guid.Full);
-                DecrementOwnedHousingByTypeTotal(house.HouseType);
+                DecrementTotalOwnedHousingByType(house.HouseType);
             });
         }
 
@@ -927,6 +928,8 @@ namespace ACE.Server.Managers
 
         public static Dictionary<HouseType, int> TotalOwnedHousingByType = new Dictionary<HouseType, int>();
 
-        public static void DecrementOwnedHousingByTypeTotal(HouseType houseType) => TotalOwnedHousingByType[houseType]--;
+        public static void IncrementTotalOwnedHousingByType(HouseType houseType) => TotalOwnedHousingByType[houseType]++;
+
+        public static void DecrementTotalOwnedHousingByType(HouseType houseType) => TotalOwnedHousingByType[houseType]--;
     }
 }
