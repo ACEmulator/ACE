@@ -111,6 +111,7 @@ namespace ACE.Server
         private static readonly Gauge ace_GuidManager_DynamicGuidAllocator_RecycledGuidsTotal = Metrics.CreateGauge("ace_GuidManager_DynamicGuidAllocator_RecycledGuidsTotal", null, new GaugeConfiguration { SuppressInitialValue = true });
 
         private static readonly Gauge ace_AllegianceManager_AllegiancesLoadedInMemory = Metrics.CreateGauge("ace_AllegianceManager_AllegiancesLoadedInMemory", null, new GaugeConfiguration { SuppressInitialValue = true });
+        private static readonly Gauge ace_AllegianceManager_PlayersMappedInMemory = Metrics.CreateGauge("ace_AllegianceManager_PlayersMappedInMemory", null, new GaugeConfiguration { SuppressInitialValue = true });
 
         private static readonly Gauge ace_HouseManager_TotalOwnedHousing = Metrics.CreateGauge("ace_HouseManager_TotalOwnedHousing", null, new GaugeConfiguration { SuppressInitialValue = true });
         private static readonly Gauge ace_HouseManager_TotalOwnedApartments = Metrics.CreateGauge("ace_HouseManager_TotalOwnedApartments", null, new GaugeConfiguration { SuppressInitialValue = true });
@@ -287,6 +288,7 @@ namespace ACE.Server
             ace_GuidManager_DynamicGuidAllocator_RecycledGuidsTotal.Set(GuidManager.RecycledGuidsTotal);
 
             ace_AllegianceManager_AllegiancesLoadedInMemory.Set(AllegianceManager.Allegiances.Count);
+            ace_AllegianceManager_PlayersMappedInMemory.Set(AllegianceManager.Players.Count);
 
             ace_HouseManager_TotalOwnedHousing.Set(HouseManager.TotalOwnedHousing);
             ace_HouseManager_TotalOwnedApartments.Set(HouseManager.TotalOwnedHousingByType[ACE.Entity.Enum.HouseType.Apartment]);
