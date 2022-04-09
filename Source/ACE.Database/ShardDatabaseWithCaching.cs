@@ -79,7 +79,7 @@ namespace ACE.Database
                     if (PlayerBiotaRetentionTime > TimeSpan.Zero)
                     {
                         if (!biotaCache.ContainsKey(biota.Id))
-                            log.Debug($"Added 0x{biota.Id} to CachedBiotas, StackTrace:\n{Environment.StackTrace}");
+                            log.Debug($"Added 0x{biota.Id:X8} to CachedBiotas, StackTrace:\n{Environment.StackTrace}");
 
                         biotaCache[biota.Id] = new CacheObject<Biota> { LastSeen = DateTime.UtcNow, Context = context, CachedObject = biota };
                     }
