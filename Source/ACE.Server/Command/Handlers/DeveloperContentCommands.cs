@@ -227,6 +227,7 @@ namespace ACE.Server.Command.Handlers.Processors
                     return;
                 }
             }
+
             try
             {
                 switch (contentType)
@@ -243,7 +244,7 @@ namespace ACE.Server.Command.Handlers.Processors
                         ImportSQLRecipe(session, param);
                         break;
 
-                case FileType.Weenie:
+                    case FileType.Weenie:
                     if (param.Equals("all", StringComparison.OrdinalIgnoreCase))
                     {
                         ImportSQLWeenieWrapped(session, param, parameters.Length >= 3 ? parameters[2] : "");
@@ -264,9 +265,8 @@ namespace ACE.Server.Command.Handlers.Processors
                         ImportSQLWeenie(session, param);
                     }
                     break;
-            }
-        }
-            
+                }
+            }            
             catch(Exception e)
             {
                 CommandHandlerHelper.WriteOutputError(session, $"There was an error importing the SQL:\n\n{e.Message}");
