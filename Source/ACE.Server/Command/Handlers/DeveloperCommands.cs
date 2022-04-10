@@ -2751,7 +2751,7 @@ namespace ACE.Server.Command.Handlers
                     msg += $"RegenerationTimestamp: {wo.RegenerationTimestamp} ({Time.GetDateTimeFromTimestamp(wo.RegenerationTimestamp).ToLocalTime()})\n";
                     msg += $"NextGeneratorRegenerationTime: {wo.NextGeneratorRegenerationTime} ({((wo.NextGeneratorRegenerationTime == double.MaxValue) ? "On Demand" : Time.GetDateTimeFromTimestamp(wo.NextGeneratorRegenerationTime).ToLocalTime().ToString())})\n";
 
-                    msg += $"GeneratorProfiles.Count: {wo.GeneratorProfiles.Count}\n";
+                    msg += $"GeneratorProfiles.Count: {wo.GeneratorProfiles.Count(g => !g.IsPlaceholder)}\n";
                     msg += $"GeneratorActiveProfiles.Count: {wo.GeneratorActiveProfiles.Count}\n";
                     msg += $"CurrentCreate: {wo.CurrentCreate}\n";
 
@@ -2763,10 +2763,13 @@ namespace ACE.Server.Command.Handlers
                         msg += $"Active GeneratorProfile id: {activeProfile} | LinkId: {profile.LinkId}\n";
 
                         msg += $"Probability: {profile.Biota.Probability} | WCID: {profile.Biota.WeenieClassId} | Delay: {profile.Biota.Delay} | Init: {profile.Biota.InitCreate} | Max: {profile.Biota.MaxCreate}\n";
-                        msg += $"WhenCreate: {((RegenerationType)profile.Biota.WhenCreate).ToString()} | WhereCreate: {((RegenLocationType)profile.Biota.WhereCreate).ToString()}\n";
+                        msg += $"WhenCreate: {profile.Biota.WhenCreate.ToString()} | WhereCreate: {profile.Biota.WhereCreate.ToString()}\n";
                         msg += $"StackSize: {profile.Biota.StackSize} | PaletteId: {profile.Biota.PaletteId} | Shade: {profile.Biota.Shade}\n";
-                        msg += $"CurrentCreate: {profile.CurrentCreate} | Spawned.Count: {profile.Spawned.Count} | SpawnQueue.Count: {profile.SpawnQueue.Count} | RemoveQueue.Count: {profile.RemoveQueue.Count}\n";
+                        msg += $"CurrentCreate: {profile.CurrentCreate} | Spawned.Count: {profile.Spawned.Count} | SpawnQueue.Count: {profile.SpawnQueue.Count}\n";
                         msg += $"GeneratedTreasureItem: {profile.GeneratedTreasureItem}\n";
+                        msg += $"IsMaxed: {profile.IsMaxed}\n";
+                        if (!profile.IsMaxed)
+                            msg += $"IsAvailable: {profile.IsAvailable}{(profile.IsAvailable ? "" : $", NextAvailable: {profile.NextAvailable.ToLocalTime()}")}\n";
                         msg += $"--====--\n";
                         if (profile.Spawned.Count > 0)
                         {
@@ -2798,34 +2801,6 @@ namespace ACE.Server.Command.Handlers
                             foreach (var spawn in profile.SpawnQueue)
                             {
                                 msg += $"{spawn.ToLocalTime()}\n";
-                            }
-                            msg += $"--====--\n";
-                        }
-
-                        if (profile.RemoveQueue.Count > 0)
-                        {
-                            msg += "Pending Removed Objects:\n";
-                            foreach (var spawn in profile.RemoveQueue)
-                            {
-                                var action = "";
-                                switch ((RegenerationType)profile.Biota.WhenCreate)
-                                {
-                                    case RegenerationType.Death:
-                                        action = "died";
-                                        break;
-                                    case RegenerationType.Destruction:
-                                        action = "destroyed";
-                                        break;
-                                    case RegenerationType.PickUp:
-                                        action = "picked up";
-                                        break;
-                                    case RegenerationType.Undef:
-                                    default:
-                                        action = "despawned";
-                                        break;
-                                }
-
-                                msg += $"0x{spawn.objectGuid:X8} {action} at {spawn.time.AddSeconds(-profile.Delay).ToLocalTime()} and will be removed from profile at {spawn.time.ToLocalTime()}\n";
                             }
                             msg += $"--====--\n";
                         }

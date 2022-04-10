@@ -3022,14 +3022,7 @@ namespace ACE.Server.WorldObjects
             if (target.EmoteManager.IsBusy)
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
-                Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsTooBusyToAcceptGifts, target.Name));
-                return;
-            }
-
-            if (!target.GetProperty(PropertyBool.AllowGive) ?? false)
-            {
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
-                Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsNotAcceptingGiftsRightNow, target.Name));
+                Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.AiRefuseItemDuringEmote, target.Name));
                 return;
             }
 
@@ -3043,7 +3036,7 @@ namespace ACE.Server.WorldObjects
 
             if (target.HasGiveOrRefuseEmoteForItem(item, out var emoteResult) || acceptAll)
             {
-                if (acceptAll || emoteResult.Category == EmoteCategory.Give)
+                if (acceptAll || (emoteResult.Category == EmoteCategory.Give && target.AllowGive))
                 {
                     // for NPCs that accept items with EmoteCategory.Give,
                     // if stacked item, only give 1, ignoring amount indicated, unless they are AiAcceptEverything in which case, take full amount indicated
@@ -3073,10 +3066,16 @@ namespace ACE.Server.WorldObjects
 
                     target.EmoteManager.ExecuteEmoteSet(emoteResult, this);
                 }
+                else
+                {
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                    Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsNotAcceptingGiftsRightNow, target.Name));
+                    return;
+                }
             }
             else
             {
-                if (item.WeenieType == WeenieType.Deed && target.AiAcceptEverything) // http://acpedia.org/wiki/Housing_FAQ#House_deeds
+                if (item.WeenieType == WeenieType.Deed && target.AllowGive && target.AiAcceptEverything) // http://acpedia.org/wiki/Housing_FAQ#House_deeds
                 {                    
                     var stackSize = item.StackSize ?? 1;
 

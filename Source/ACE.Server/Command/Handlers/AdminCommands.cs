@@ -24,6 +24,7 @@ using ACE.Server.Factories;
 using ACE.Server.Factories.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects;
@@ -1302,16 +1303,16 @@ namespace ACE.Server.Command.Handlers
                     var msg = "HUD Report:\n";
                     msg += "=========================================================\n";
 
-                    msg += string.Format("{0, -12} {1, 4:0} / {2, 4:0} ({3, 7:P} available for purchase)\n", "Apartments:", apartments, apartmentsTotal, apartmentsAvail);
-                    msg += string.Format("{0, -12} {1, 4:0} / {2, 4:0} ({3, 7:P} available for purchase)\n", "Cottages:", cottages, cottagesTotal, cottagesAvail);
-                    msg += string.Format("{0, -12} {1, 4:0} / {2, 4:0} ({3, 7:P} available for purchase)\n", "Villas:", villas, villasTotal, villasAvail);
-                    msg += string.Format("{0, -12} {1, 4:0} / {2, 4:0} ({3, 7:P} available for purchase)\n", "Mansions:", mansions, mansionsTotal, mansionsAvail);
+                    msg += string.Format("{0, -12} {1, 4:0} / {2, 4:0} ({3, 7:P2} available for purchase)\n", "Apartments:", apartments, apartmentsTotal, apartmentsAvail);
+                    msg += string.Format("{0, -12} {1, 4:0} / {2, 4:0} ({3, 7:P2} available for purchase)\n", "Cottages:", cottages, cottagesTotal, cottagesAvail);
+                    msg += string.Format("{0, -12} {1, 4:0} / {2, 4:0} ({3, 7:P2} available for purchase)\n", "Villas:", villas, villasTotal, villasAvail);
+                    msg += string.Format("{0, -12} {1, 4:0} / {2, 4:0} ({3, 7:P2} available for purchase)\n", "Mansions:", mansions, mansionsTotal, mansionsAvail);
 
                     var housesTotal = apartmentsTotal + cottagesTotal + villasTotal + mansionsTotal;
                     var housesSold = apartments + cottages + villas + mansions;
                     var housesAvail = (housesTotal - housesSold) / housesTotal;
 
-                    msg += string.Format("{0, -12} {1, 4:0} / {2, 4:0} ({3, 7:P} available for purchase)\n", "Total:", housesSold, housesTotal, housesAvail);
+                    msg += string.Format("{0, -12} {1, 4:0} / {2, 4:0} ({3, 7:P2} available for purchase)\n", "Total:", housesSold, housesTotal, housesAvail);
 
                     msg += "=========================================================\n";
 
@@ -2616,7 +2617,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // de_n name, text
-        [CommandHandler("de_n", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2, "Sends text to named player, formatted exactly as entered.", "<name> <text>")]
+        [CommandHandler("de_n", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2, "Sends text to named player, formatted exactly as entered.", "<name>, <text>")]
         public static void Handlede_n(Session session, params string[] parameters)
         {
             // usage: @de_n name, text
@@ -2624,11 +2625,11 @@ namespace ACE.Server.Command.Handlers
             // Sends text to named player, formatted exactly as entered, with no prefix of any kind.
             // @direct_emote_name - Sends text to named player, formatted exactly as entered.
 
-            // TODO: output
+            Handledirect_emote_name(session, parameters);
         }
 
         // direct_emote_name name, text
-        [CommandHandler("direct_emote_name", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2, "Sends text to named player, formatted exactly as entered.", "<name> <text>")]
+        [CommandHandler("direct_emote_name", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2, "Sends text to named player, formatted exactly as entered.", "<name>, <text>")]
         public static void Handledirect_emote_name(Session session, params string[] parameters)
         {
             // usage: @de_n name, text
@@ -2636,7 +2637,23 @@ namespace ACE.Server.Command.Handlers
             // Sends text to named player, formatted exactly as entered, with no prefix of any kind.
             // @direct_emote_name - Sends text to named player, formatted exactly as entered.
 
-            // TODO: output
+            var args = string.Join(" ", parameters);
+            if (!args.Contains(","))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"There was no player name specified.", ChatMessageType.Broadcast));
+            }
+            else
+            {
+                var split = args.Split(",");
+                var playerName = split[0];
+                var msg = string.Join(" ", parameters).Remove(0, playerName.Length + 2);
+
+                var player = PlayerManager.GetOnlinePlayer(playerName);
+                if (player != null)
+                    player.SendMessage(msg);
+                else
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} is not online.", ChatMessageType.Broadcast));
+            }
         }
 
         // de_s text
@@ -2648,7 +2665,7 @@ namespace ACE.Server.Command.Handlers
             // Sends text to selected player, formatted exactly as entered, with no prefix of any kind.
             // @direct_emote_select - Sends text to selected player, formatted exactly as entered.
 
-            // TODO: output
+            Handledirect_emote_select(session, parameters);
         }
 
         // direct_emote_select text
@@ -2660,7 +2677,37 @@ namespace ACE.Server.Command.Handlers
             // Sends text to selected player, formatted exactly as entered, with no prefix of any kind.
             // @direct_emote_select - Sends text to selected player, formatted exactly as entered.
 
-            // TODO: output
+            var objectId = ObjectGuid.Invalid;
+
+            if (session.Player.HealthQueryTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
+            else if (session.Player.ManaQueryTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
+            else if (session.Player.CurrentAppraisalTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
+
+            if (objectId == ObjectGuid.Invalid)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You must select a player to send them a message.", ChatMessageType.Broadcast));
+                return;
+            }    
+
+            var wo = session.Player.CurrentLandblock?.GetObject(objectId);
+
+            if (wo is null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Unable to locate what you have selected.", ChatMessageType.Broadcast));
+            }
+            else if (wo is Player player)
+            {
+                var msg = string.Join(" ", parameters);
+
+                player.SendMessage(msg);
+            }
+            else
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot send text to {wo.Name} because it is not a player.", ChatMessageType.Broadcast));
+            }
         }
 
         // dispel
@@ -2737,7 +2784,93 @@ namespace ACE.Server.Command.Handlers
         {
             // @fumble - Forces the selected target to drop everything they contain to the ground.
 
-            // TODO: output
+            var objectId = ObjectGuid.Invalid;
+
+            if (session.Player.HealthQueryTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
+            else if (session.Player.ManaQueryTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
+            else if (session.Player.CurrentAppraisalTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
+
+            if (objectId == ObjectGuid.Invalid)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You must select a player to force them to drop everything.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var wo = session.Player.CurrentLandblock?.GetObject(objectId);
+
+            if (wo is null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Unable to locate what you have selected.", ChatMessageType.Broadcast));
+            }
+            else if (wo is Player player)
+            {
+                var items = new List<WorldObject>();
+                var playerLoc = new Position(player.Location);
+
+                foreach (var item in player.Inventory)
+                {
+                    if (player.TryRemoveFromInventoryWithNetworking(item.Key, out var worldObject, Player.RemoveFromInventoryAction.DropItem))
+                        items.Add(worldObject);
+                }
+
+                foreach (var item in player.EquippedObjects)
+                {
+                    if (player.TryDequipObjectWithNetworking(item.Key.Full, out var worldObject, Player.DequipObjectAction.DropItem))
+                        items.Add(worldObject);
+                }
+
+                player.SavePlayerToDatabase();
+
+                foreach (var item in items)
+                {
+                    item.Location = new Position(playerLoc);
+                    item.Location.PositionZ += .5f;
+                    item.Placement = Placement.Resting;  // This is needed to make items lay flat on the ground.
+
+                    // increased precision for non-ethereal objects
+                    var ethereal = item.Ethereal;
+                    item.Ethereal = true;
+
+                    if (session.Player.CurrentLandblock?.AddWorldObject(item) ?? false)
+                    {
+                        item.Location.LandblockId = new LandblockId(item.Location.GetCell());
+
+                        // try slide to new position
+                        var transit = item.PhysicsObj.transition(item.PhysicsObj.Position, new Physics.Common.Position(item.Location), false);
+
+                        if (transit != null && transit.SpherePath.CurCell != null)
+                        {
+                            item.PhysicsObj.SetPositionInternal(transit);
+
+                            item.SyncLocation();
+
+                            item.SendUpdatePosition(true);
+                        }
+                        item.Ethereal = ethereal;
+
+                        // drop success
+                        player.Session.Network.EnqueueSend(
+                            new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, ObjectGuid.Invalid),
+                            new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, ObjectGuid.Invalid),
+                            new GameEventItemServerSaysMoveItem(player.Session, item),
+                            new GameMessageUpdatePosition(item));
+
+                        player.EnqueueBroadcast(new GameMessageSound(player.Guid, Sound.DropItem));
+
+                        item.EmoteManager.OnDrop(player);
+                        item.SaveBiotaToDatabase();
+                    }
+                    else
+                        log.Warn($"0x{item.Guid}:{item.Name} for player {player.Name} lost from fumble failure.");
+                }
+            }
+            else
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot force {wo.Name} to drop everything because it is not a player.", ChatMessageType.Broadcast));
+            }
         }
 
         // god
@@ -3199,8 +3332,32 @@ namespace ACE.Server.Command.Handlers
             // This command fully restores your(or the selected creature's) health, mana, and stamina.
             // @heal - Heals yourself(or the selected creature).
 
-            // TODO: Check if player has a selected target, heal target otherwise heal player.
-            session.Player.SetMaxVitals();
+            var objectId = ObjectGuid.Invalid;
+
+            if (session.Player.HealthQueryTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
+            else if (session.Player.ManaQueryTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
+            else if (session.Player.CurrentAppraisalTarget.HasValue)
+                objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
+
+            if (objectId == ObjectGuid.Invalid)
+                objectId = session.Player.Guid;
+
+            var wo = session.Player.CurrentLandblock?.GetObject(objectId);
+
+            if (wo is null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Unable to locate what you have selected.", ChatMessageType.Broadcast));
+            }
+            else if (wo is Player player)
+            {
+                player.SetMaxVitals();
+            }
+            else
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot heal {wo.Name} because it is not a player.", ChatMessageType.Broadcast));
+            }
         }
 
         // housekeep
@@ -3381,7 +3538,7 @@ namespace ACE.Server.Command.Handlers
         // qst
         [CommandHandler("qst", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Query, stamp, and erase quests on the targeted player",
-            "[list | bestow | erase]\n"
+            "(fellow) [list | bestow | erase]\n"
             + "qst list - List the quest flags for the targeted player\n"
             + "qst bestow - Stamps the specific quest flag on the targeted player. If this fails, it's probably because you spelled the quest flag wrong.\n"
             + "qst stamp - Stamps the specific quest flag on the targeted player the specified number of times. If this fails, it's probably because you spelled the quest flag wrong.\n"
@@ -3505,19 +3662,20 @@ namespace ACE.Server.Command.Handlers
 
                 if (parameters[0].Equals("stamp"))
                 {
-                    if (parameters.Length < 3)
-                    {
-                        session.Player.SendMessage($"You must specify a quest to stamp and number completions using the following command: /qst stamp questname number");
-                        return;
-                    }
-                    if (!int.TryParse(parameters[2], out var numCompletions))
+                    var numCompletions = int.MinValue;
+
+                    if (parameters.Length > 2 && !int.TryParse(parameters[2], out numCompletions))
                     {
                         session.Player.SendMessage($"{parameters[2]} is not a valid int");
                         return;
                     }
                     var questName = parameters[1];
 
-                    creature.QuestManager.SetQuestCompletions(questName, numCompletions);
+                    if (numCompletions != int.MinValue)
+                        creature.QuestManager.SetQuestCompletions(questName, numCompletions);
+                    else
+                        creature.QuestManager.Update(questName);
+
                     var quest = creature.QuestManager.GetQuest(questName);
                     if (quest != null)
                     {
@@ -3529,6 +3687,280 @@ namespace ACE.Server.Command.Handlers
                         session.Player.SendMessage($"Couldn't stamp {questName} on {creature.Name}");
                     }
                     return;
+                }
+
+                if (parameters[0].Equals("bits"))
+                {
+                    if (parameters.Length < 2)
+                    {
+                        var msg = "@qst - Query, stamp, and erase quests on the targeted player\n";
+                        msg += "Usage: @qst bits [on | off | show] <questname> <bits>\n";
+                        msg += "qst bits on  - Stamps the specific quest flag on the targeted player with specified bits ON. If this fails, it's probably because you spelled the quest flag wrong.\n";
+                        msg += "qst bits off - Stamps the specific quest flag on the targeted player with specified bits OFF. If this fails, it's probably because you spelled the quest flag wrong.\n";
+                        msg += "qst bits show - List the specific quest flag bits for the targeted player.\n";
+                        session.Player.SendMessage(msg);
+                        return;
+                    }
+
+                    if (parameters[1].Equals("on"))
+                    {
+                        if (parameters.Length < 3)
+                        {
+                            session.Player.SendMessage($"You must specify bits to turn on or off.");
+                            return;
+                        }
+                        if (parameters.Length < 2)
+                        {
+                            session.Player.SendMessage($"You must specify a quest to set its bits.");
+                            return;
+                        }
+
+                        var questName = parameters[2];
+
+                        var questBits = parameters[3];
+
+                        if (!uint.TryParse(questBits.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? questBits[2..] : questBits, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var bits))
+                        {
+                            session.Player.SendMessage($"{parameters[3]} is not a valid hex number");
+                            return;
+                        }
+
+                        if (creature.QuestManager.HasQuestBits(questName, (int)bits))
+                        {
+                            session.Player.SendMessage($"{creature.Name} already has set 0x{bits:X} bits to ON for {questName}");
+                            return;
+                        }
+
+                        creature.QuestManager.SetQuestBits(questName, (int)bits);
+                        session.Player.SendMessage($"{creature.Name} has set 0x{bits:X} bits to ON for {questName}");
+                        return;
+                    }
+
+                    if (parameters[1].Equals("off"))
+                    {
+                        if (parameters.Length < 3)
+                        {
+                            session.Player.SendMessage($"You must specify bits to turn on or off.");
+                            return;
+                        }
+                        if (parameters.Length < 2)
+                        {
+                            session.Player.SendMessage($"You must specify a quest to set its bits.");
+                            return;
+                        }
+
+                        var questName = parameters[2];
+
+                        var questBits = parameters[3];
+
+                        if (!uint.TryParse(questBits.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? questBits[2..] : questBits, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var bits))
+                        {
+                            session.Player.SendMessage($"{parameters[3]} is not a valid uint");
+                            return;
+                        }
+
+                        if (creature.QuestManager.HasNoQuestBits(questName, (int)bits))
+                        {
+                            session.Player.SendMessage($"{creature.Name} already has set 0x{bits:X} bits to OFF for {questName}");
+                            return;
+                        }
+
+                        creature.QuestManager.SetQuestBits(questName, (int)bits, false);
+                        session.Player.SendMessage($"{creature.Name} has set 0x{bits:X} bits to OFF for {questName}");
+                        return;
+                    }
+
+                    if (parameters[1].Equals("show"))
+                    {
+                        if (parameters.Length < 2)
+                        {
+                            session.Player.SendMessage($"You must specify a quest to show its bits.");
+                            return;
+                        }
+
+                        var questName = parameters[2];
+
+                        var questsHdr = $"Quest Bits Registry for {creature.Name} (0x{creature.Guid}):\n";
+                        questsHdr += "================================================\n";
+
+                        var quest = creature.QuestManager.GetQuest(questName);
+
+                        if (quest == null)
+                        {
+                            session.Player.SendMessage($"{questName} not found.");
+                            return;
+                        }
+
+                        var maxSolves = creature.QuestManager.GetMaxSolves(questName);
+                        var maxSolvesBinary = Convert.ToString(maxSolves, 2);
+
+                        var questEntry = "";
+                        questEntry += $"Quest Name: {quest.QuestName}\n";
+                        questEntry += $"Current Set Bits: 0x{quest.NumTimesCompleted:X}\n";
+                        questEntry += $"Allowed Max Bits: 0x{maxSolves:X}\n";
+                        questEntry += $"Last Set On: {quest.LastTimeCompleted} ({Common.Time.GetDateTimeFromTimestamp(quest.LastTimeCompleted).ToLocalTime()})\n";
+
+                        //var nextSolve = creature.QuestManager.GetNextSolveTime(quest.QuestName);
+
+                        //if (nextSolve == TimeSpan.MinValue)
+                        //    questEntry += "Can Solve: Immediately\n";
+                        //else if (nextSolve == TimeSpan.MaxValue)
+                        //    questEntry += "Can Solve: Never again\n";
+                        //else
+                        //    questEntry += $"Can Solve: In {nextSolve:%d} days, {nextSolve:%h} hours, {nextSolve:%m} minutes and, {nextSolve:%s} seconds. ({(DateTime.UtcNow + nextSolve).ToLocalTime()})\n";
+
+                        questEntry += $"-= Binary String Representation =-\n  C: {Convert.ToString(quest.NumTimesCompleted, 2).PadLeft(maxSolvesBinary.Length, '0')}\n  A: {Convert.ToString(maxSolves, 2)}\n";
+
+                        questEntry += "--====--\n";
+                        session.Player.SendMessage(questsHdr + questEntry);
+                    }
+                }
+
+                if (parameters[0].Equals("fellow"))
+                {
+                    if (creature is Player player)
+                    {
+                        var fellowship = player.Fellowship;
+
+                        if (fellowship == null)
+                        {
+                            session.Player.SendMessage($"Selected player {wo.Name} (0x{objectId}) is not in a fellowship.");
+                            return;
+                        }
+
+                        if (parameters.Length < 2)
+                        {
+                            var msg = "@qst - Query, stamp, and erase quests on the targeted player\n";
+                            msg += "Usage: @qst fellow [list | bestow | erase]\n";
+                            msg += "qst fellow list - List the quest flags for the Fellowship of targeted player\n";
+                            msg += "qst fellow bestow - Stamps the specific quest flag on the Fellowship of targeted player. If this fails, it's probably because you spelled the quest flag wrong.\n";
+                            msg += "qst fellow stamp - Stamps the specific quest flag on the Fellowship of targeted player the specified number of times. If this fails, it's probably because you spelled the quest flag wrong.\n";
+                            msg += "qst fellow erase - Erase the specific quest flag from the Fellowship of targeted player. If no quest flag is given, it erases the entire quest table for the Fellowship of targeted player.\n";
+                            session.Player.SendMessage(msg);
+                            return;
+                        }
+
+                        if (parameters[1].Equals("list"))
+                        {
+                            var questsHdr = $"Quest Registry for Fellowship of {creature.Name} (0x{creature.Guid}):\n";
+                            questsHdr += "================================================\n";
+                            session.Player.SendMessage(questsHdr);
+
+                            var quests = fellowship.QuestManager.GetQuests();
+
+                            if (quests.Count == 0)
+                            {
+                                session.Player.SendMessage("No quests found.");
+                                return;
+                            }
+
+                            foreach (var quest in quests)
+                            {
+                                var questEntry = "";
+                                questEntry += $"Quest Name: {quest.QuestName}\nCompletions: {quest.NumTimesCompleted} | Last Completion: {quest.LastTimeCompleted} ({Common.Time.GetDateTimeFromTimestamp(quest.LastTimeCompleted).ToLocalTime()})\n";
+                                var nextSolve = fellowship.QuestManager.GetNextSolveTime(quest.QuestName);
+
+                                if (nextSolve == TimeSpan.MinValue)
+                                    questEntry += "Can Solve: Immediately\n";
+                                else if (nextSolve == TimeSpan.MaxValue)
+                                    questEntry += "Can Solve: Never again\n";
+                                else
+                                    questEntry += $"Can Solve: In {nextSolve:%d} days, {nextSolve:%h} hours, {nextSolve:%m} minutes and, {nextSolve:%s} seconds. ({(DateTime.UtcNow + nextSolve).ToLocalTime()})\n";
+
+                                questEntry += "--====--\n";
+                                session.Player.SendMessage(questEntry);
+                            }
+                            return;
+                        }
+
+                        if (parameters[1].Equals("bestow"))
+                        {
+                            if (parameters.Length < 3)
+                            {
+                                // delete all quests?
+                                // seems unsafe, maybe a confirmation?
+                                return;
+                            }
+                            var questName = parameters[2];
+                            if (fellowship.QuestManager.HasQuest(questName))
+                            {
+                                session.Player.SendMessage($"Fellowship of {creature.Name} already has {questName}");
+                                return;
+                            }
+
+                            var canSolve = fellowship.QuestManager.CanSolve(questName);
+                            if (canSolve)
+                            {
+                                fellowship.QuestManager.Update(questName);
+                                session.Player.SendMessage($"{questName} bestowed on Fellowship of {creature.Name}");
+                                return;
+                            }
+                            else
+                            {
+                                session.Player.SendMessage($"Couldn't bestow {questName} on Fellowship of {creature.Name}");
+                                return;
+                            }
+                        }
+
+                        if (parameters[1].Equals("erase"))
+                        {
+                            if (parameters.Length < 3)
+                            {
+                                // delete all quests?
+                                // seems unsafe, maybe a confirmation?
+                                session.Player.SendMessage($"You must specify a quest to erase, if you want to erase all quests use the following command: /qst fellow erase *");
+                                return;
+                            }
+                            var questName = parameters[2];
+
+                            if (questName == "*")
+                            {
+                                fellowship.QuestManager.EraseAll();
+                                session.Player.SendMessage($"All quests erased.");
+                                return;
+                            }
+
+                            if (!fellowship.QuestManager.HasQuest(questName))
+                            {
+                                session.Player.SendMessage($"{questName} not found.");
+                                return;
+                            }
+                            fellowship.QuestManager.Erase(questName);
+                            session.Player.SendMessage($"{questName} erased.");
+                            return;
+                        }
+
+                        if (parameters[1].Equals("stamp"))
+                        {
+                            var numCompletions = int.MinValue;
+
+                            if (parameters.Length > 3 && !int.TryParse(parameters[3], out numCompletions))
+                            {
+                                session.Player.SendMessage($"{parameters[3]} is not a valid int");
+                                return;
+                            }
+                            var questName = parameters[2];
+
+                            if (numCompletions != int.MinValue)
+                                fellowship.QuestManager.SetQuestCompletions(questName, numCompletions);
+                            else
+                                fellowship.QuestManager.Update(questName);
+
+                            var quest = fellowship.QuestManager.GetQuest(questName);
+                            if (quest != null)
+                            {
+                                var numTimesCompleted = quest.NumTimesCompleted;
+                                session.Player.SendMessage($"{questName} stamped with {numTimesCompleted} completions.");
+                            }
+                            else
+                            {
+                                session.Player.SendMessage($"Couldn't stamp {questName} on {creature.Name}");
+                            }
+                            return;
+                        }
+                    }
+                    else
+                        session.Player.SendMessage($"Selected object {wo.Name} (0x{objectId}) is not a player and cannot have a fellowship.");
                 }
             }
             else

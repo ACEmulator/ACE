@@ -72,6 +72,8 @@ namespace ACE.Server.WorldObjects
             if (IsGenerator)
             {
                 NextGeneratorUpdateTime = currentUnixTime; // Generators start right away
+                //NextGeneratorUpdateTime = Time.GetFutureUnixTime(CachedHeartbeatInterval);
+                //NextGeneratorRegenerationTime = Time.GetFutureUnixTime(CachedHeartbeatInterval);
                 if (cachedRegenerationInterval == 0)
                     NextGeneratorRegenerationTime = double.MaxValue;
             }
@@ -124,7 +126,7 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.GeneratorRegeneration({currentUnixTime})");
 
-            Generator_Regeneration();
+            Generator_Generate();
 
             SetProperty(PropertyFloat.RegenerationTimestamp, currentUnixTime);
 
