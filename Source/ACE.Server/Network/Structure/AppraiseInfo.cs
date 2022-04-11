@@ -119,9 +119,9 @@ namespace ACE.Server.Network.Structure
             // Because of the way ACE handles default base values in recipe system (or rather the lack thereof)
             // we need to check the following weapon properties to see if they're below expected minimum and adjust accordingly
             // The issue is that the recipe system likely added 0.005 to 0 instead of 1, which is what *should* have happened.
-            if (wo.WeaponMagicDefense.HasValue && wo.WeaponMagicDefense.Value > 0 && wo.WeaponMagicDefense.Value < 1 && ((wo.GetProperty(PropertyInt.ImbueStackingBits) ?? 0) & 1) == 1)
+            if (wo.WeaponMagicDefense.HasValue && wo.WeaponMagicDefense.Value > 0 && wo.WeaponMagicDefense.Value < 1 && ((wo.GetProperty(PropertyInt.ImbueStackingBits) ?? 0) & 1) != 0)
                 PropertiesFloat[PropertyFloat.WeaponMagicDefense] += 1;
-            if (wo.WeaponMissileDefense.HasValue && wo.WeaponMissileDefense.Value > 0 && wo.WeaponMissileDefense.Value < 1 && ((wo.GetProperty(PropertyInt.ImbueStackingBits) ?? 0) & 1) == 1)
+            if (wo.WeaponMissileDefense.HasValue && wo.WeaponMissileDefense.Value > 0 && wo.WeaponMissileDefense.Value < 1 && ((wo.GetProperty(PropertyInt.ImbueStackingBits) ?? 0) & 1) != 0)
                 PropertiesFloat[PropertyFloat.WeaponMissileDefense] += 1;
 
             if (wo is Door || wo is Chest)
