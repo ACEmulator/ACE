@@ -2208,6 +2208,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (stack.IsAttunedOrContainsAttuned && stackRootOwner == this && containerRootOwner != this)
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId));
+                return;
+            }
+
             if ((stackRootOwner == this && containerRootOwner != this)  || (stackRootOwner != this && containerRootOwner == this)) // Movement is between the player and the world
             {
                 if (stackRootOwner is Vendor)
