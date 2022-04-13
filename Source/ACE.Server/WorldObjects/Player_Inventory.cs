@@ -2615,6 +2615,12 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            if (sourceStack.IsAttunedOrContainsAttuned && sourceStackRootOwner == this && targetStackRootOwner != this)
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, sourceStack.Guid.Full));
+                return;
+            }
+
             if ((sourceStackRootOwner == this && targetStackRootOwner != this)  || (sourceStackRootOwner != this && targetStackRootOwner == this)) // Movement is between the player and the world
             {
                 if (sourceStackRootOwner is Vendor)
