@@ -280,6 +280,13 @@ namespace ACE.Server.WorldObjects
                     continue;
                 }
 
+                if (wo is Container container && container.Inventory.Count > 0)
+                {
+                    var itemName = (wo.StackSize ?? 1) > 1 ? wo.GetPluralName() : wo.Name;
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You cannot sell that! The {itemName} must be empty.")); // custom message?
+                    continue;
+                }
+
                 verified.Add(wo.Guid.Full, wo);
             }
 
