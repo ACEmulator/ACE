@@ -110,7 +110,17 @@ namespace ACE.Server.WorldObjects
             if (weapon == null)
                 return defaultModifier;
 
-            var defenseMod = (float)(weapon.WeaponDefense ?? defaultModifier) + weapon.EnchantmentManager.GetDefenseMod();
+            //var defenseMod = (float)(weapon.WeaponDefense ?? defaultModifier) + weapon.EnchantmentManager.GetDefenseMod();
+
+            // TODO: Resolve this issue a better way?
+            // Because of the way ACE handles default base values in recipe system (or rather the lack thereof)
+            // we need to check the following weapon properties to see if they're below expected minimum and adjust accordingly
+            // The issue is that the recipe system likely added 0.01 to 0 instead of 1, which is what *should* have happened.
+            var baseWepDef = (float)(weapon.WeaponDefense ?? defaultModifier);
+            if (weapon.WeaponDefense > 0 && weapon.WeaponDefense < 1 && ((weapon.GetProperty(PropertyInt.ImbueStackingBits) ?? 0) & 4) != 0)
+                baseWepDef += 1;
+
+            var defenseMod = baseWepDef + weapon.EnchantmentManager.GetDefenseMod();
 
             if (weapon.IsEnchantable)
                 defenseMod += wielder.EnchantmentManager.GetDefenseMod();
@@ -128,8 +138,19 @@ namespace ACE.Server.WorldObjects
             if (weapon == null || wielder.CombatMode == CombatMode.NonCombat)
                 return defaultModifier;
 
+            //// no enchantments?
+            //return (float)(weapon.WeaponMissileDefense ?? 1.0f);
+
+            var baseWepDef = (float)(weapon.WeaponMissileDefense ?? 1.0f);
+            // TODO: Resolve this issue a better way?
+            // Because of the way ACE handles default base values in recipe system (or rather the lack thereof)
+            // we need to check the following weapon properties to see if they're below expected minimum and adjust accordingly
+            // The issue is that the recipe system likely added 0.005 to 0 instead of 1, which is what *should* have happened.
+            if (weapon.WeaponMissileDefense > 0 && weapon.WeaponMissileDefense < 1 && ((weapon.GetProperty(PropertyInt.ImbueStackingBits) ?? 0) & 1) == 1)
+                baseWepDef += 1;
+
             // no enchantments?
-            return (float)(weapon.WeaponMissileDefense ?? 1.0f);
+            return baseWepDef;
         }
 
         /// <summary>
@@ -142,8 +163,19 @@ namespace ACE.Server.WorldObjects
             if (weapon == null || wielder.CombatMode == CombatMode.NonCombat)
                 return defaultModifier;
 
+            //// no enchantments?
+            //return (float)(weapon.WeaponMagicDefense ?? 1.0f);
+
+            var baseWepDef = (float)(weapon.WeaponMagicDefense ?? 1.0f);
+            // TODO: Resolve this issue a better way?
+            // Because of the way ACE handles default base values in recipe system (or rather the lack thereof)
+            // we need to check the following weapon properties to see if they're below expected minimum and adjust accordingly
+            // The issue is that the recipe system likely added 0.005 to 0 instead of 1, which is what *should* have happened.
+            if (weapon.WeaponMagicDefense > 0 && weapon.WeaponMagicDefense < 1 && ((weapon.GetProperty(PropertyInt.ImbueStackingBits) ?? 0) & 1) == 1)
+                baseWepDef += 1;
+
             // no enchantments?
-            return (float)(weapon.WeaponMagicDefense ?? 1.0f);
+            return baseWepDef;
         }
 
         /// <summary>

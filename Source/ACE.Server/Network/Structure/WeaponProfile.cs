@@ -130,6 +130,14 @@ namespace ACE.Server.Network.Structure
             if (weapon is Ammunition) return 1.0f;
 
             var baseDefense = weapon.GetProperty(PropertyFloat.WeaponDefense) ?? 1.0f;
+
+            // TODO: Resolve this issue a better way?
+            // Because of the way ACE handles default base values in recipe system (or rather the lack thereof)
+            // we need to check the following weapon properties to see if they're below expected minimum and adjust accordingly
+            // The issue is that the recipe system likely added 0.01 to 0 instead of 1, which is what *should* have happened.
+            if (weapon.WeaponDefense.HasValue && weapon.WeaponDefense.Value > 0 && weapon.WeaponDefense.Value < 1 && ((weapon.GetProperty(PropertyInt.ImbueStackingBits) ?? 0) & 4) != 0)
+                baseDefense += 1;
+
             var defenseMod = weapon.EnchantmentManager.GetDefenseMod();
             var auraDefenseMod = weapon.Wielder != null ? weapon.Wielder.EnchantmentManager.GetDefenseMod() : 0.0f;
             Enchantment_WeaponDefense = weapon.IsEnchantable ? defenseMod + auraDefenseMod : defenseMod;
