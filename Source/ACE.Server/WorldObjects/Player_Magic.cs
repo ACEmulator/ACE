@@ -77,7 +77,7 @@ namespace ACE.Server.WorldObjects
         /// Handles player targeted casting message
         /// </summary>
         /// <param name="builtInSpell">If TRUE, casting a built-in spell from a weapon</param>
-        public void HandleActionCastTargetedSpell(uint targetGuid, uint spellId, bool builtInSpell = false)
+        public void HandleActionCastTargetedSpell(uint targetGuid, uint spellId, bool builtInSpell = false, uint casterGuid = 0)
         {
             //Console.WriteLine($"{Name}.HandleActionCastTargetedSpell({targetGuid:X8}, {spellId}, {builtInSpell})");
 
@@ -126,7 +126,7 @@ namespace ACE.Server.WorldObjects
 
             // verify spell is contained in player's spellbook,
             // or in the weapon's spellbook in the case of built-in spells
-            if (!VerifySpell(spellId, builtInSpell))
+            if (!VerifySpell(spellId, builtInSpell, casterGuid))
             {
                 SendUseDoneEvent(WeenieError.MagicInvalidSpellType);
                 return;
@@ -336,10 +336,10 @@ namespace ACE.Server.WorldObjects
         /// or in the weapon's spellbook in the case of built-in spells
         /// </summary>
         /// <param name="builtInSpell">If TRUE, casting a built-in spell from a weapon</param>
-        public bool VerifySpell(uint spellId, bool builtInSpell = false)
+        public bool VerifySpell(uint spellId, bool builtInSpell = false, uint casterGuid = 0)
         {
             if (builtInSpell)
-                return IsWeaponSpell(spellId);
+                return IsWeaponSpell(spellId, casterGuid);
             else
                 return SpellIsKnown(spellId);
 
@@ -350,9 +350,13 @@ namespace ACE.Server.WorldObjects
         /// Returns TRUE if the currently equipped casting implement
         /// has a built-in spell
         /// </summary>
-        public bool IsWeaponSpell(uint spellId)
+        public bool IsWeaponSpell(uint spellId, uint casterGuid = 0)
         {
             var caster = GetEquippedWand();
+
+            if (casterGuid != 0)
+                caster = FindObject(casterGuid, SearchLocations.MyInventory);
+
             if (caster == null || caster.SpellDID == null)
                 return false;
 
