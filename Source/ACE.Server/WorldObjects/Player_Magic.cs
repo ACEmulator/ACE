@@ -355,7 +355,7 @@ namespace ACE.Server.WorldObjects
             var caster = GetEquippedWand();
 
             if (casterGuid != 0)
-                caster = FindObject(casterGuid, SearchLocations.MyInventory);
+                caster = FindObject(casterGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems);
 
             if (caster == null || caster.SpellDID == null)
                 return false;
