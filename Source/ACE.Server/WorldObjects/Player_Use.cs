@@ -86,7 +86,7 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                 {
-                    HandleActionCastTargetedSpell(targetObjectGuid, sourceItem.SpellDID ?? 0, true, sourceItem.Guid.Full);
+                    HandleActionCastTargetedSpell(targetObjectGuid, sourceItem.SpellDID ?? 0, sourceItem);
                     return;
                 }
             }
