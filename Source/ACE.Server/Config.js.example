@@ -173,48 +173,51 @@
   },
   // This section can trigger events that may happen before the world starts up, or after it shuts down
   // The shard should be in a disconnected state from any running ACE world
-  "Offline": {
-    // Purge characters that have been deleted longer than PruneDeletedCharactersDays
-    // These characters, and their associated biotas, will be deleted permanantly!
-    "PurgeDeletedCharacters": false,
+    "Offline": {
+        // Purge characters that have been deleted longer than PruneDeletedCharactersDays
+        // These characters, and their associated biotas, will be deleted permanantly!
+        "PurgeDeletedCharacters": false,
 
-    // Number of days a character must have been deleted for before eligible for purging
-    "PurgeDeletedCharactersDays": 30,
+        // Number of days a character must have been deleted for before eligible for purging
+        "PurgeDeletedCharactersDays": 30,
 
-    // This will purge biotas that are completely disconnected from the world
-    // These may have been items that were never deleted properly, items that were given to the town crier before delete was implemented, etc...
-    // This can be time consuming so it's not something you would have set to true for every server startup. You might run this once every few months
-    "PurgeOrphanedBiotas": false,
+        // This will purge biotas that are completely disconnected from the world
+        // These may have been items that were never deleted properly, items that were given to the town crier before delete was implemented, etc...
+        // This can be time consuming so it's not something you would have set to true for every server startup. You might run this once every few months
+        "PurgeOrphanedBiotas": false,
 
-    // This will prune deleted characters from all friend lists in the database
-    "PruneDeletedCharactersFromFriendLists": true,
+        // This will prune deleted characters from all friend lists in the database
+        "PruneDeletedCharactersFromFriendLists": true,
 
-    // This will prune shortcuts to objects that no longer exist in the database
-    "PruneDeletedObjectsFromShortcutBars": false,
+        // This will prune shortcuts to objects that no longer exist in the database
+        "PruneDeletedObjectsFromShortcutBars": false,
 
-    // This will prune deleted characters from all squlech lists in the database, excluding those used to squlech accounts
-    "PruneDeletedCharactersFromSquelchLists": false,
+        // This will prune deleted characters from all squlech lists in the database, excluding those used to squlech accounts
+        "PruneDeletedCharactersFromSquelchLists": false,
 
-    // Automatically apply new updates to databases upon startup if they haven't yet been applied
-    "AutoApplyDatabaseUpdates": true,
+        // Automatically check for updated server releases. Does not apply updates, just notifies of new version available.
+        "AutoServerUpdateCheck": true,
 
-    // Automatically check for and update to latest available world database
-    "AutoUpdateWorldDatabase": true,
+        // Automatically apply new updates to databases upon startup if they haven't yet been applied
+        "AutoApplyDatabaseUpdates": true,
 
-    // After updating to latest world database, automatically import further customizations
-    // AutoUpdateWorldDatabase must be true for this option to be used
-    // SQL files will be executed given the sort order of the full paths of the files
-    "AutoApplyWorldCustomizations": true,
+        // Automatically check for and update to latest available world database
+        "AutoUpdateWorldDatabase": true,
 
-    // When AutoApplyWorldCustomizations is set to true, the auto apply process will search for
-    // all .sql files in the following directories.
-    // This process will still use ./Content by default, or the the config_properties_string
-    // value for 'content_folder' if it exists
-    // Example: [ "C:\\MyContent", "C:\\FTPRoot\\Editor1Content", "C:\\FTPRoot\\Editor2Content" ]
-    "WorldCustomizationAddedPaths": [],
+        // After updating to latest world database, automatically import further customizations
+        // AutoUpdateWorldDatabase must be true for this option to be used
+        // SQL files will be executed given the sort order of the full paths of the files
+        "AutoApplyWorldCustomizations": true,
 
-     // When retrieving a file list of .sql files in the AutoApplyWorldCustomizations process
-     // this will cause the file search to retrieve all files recursively from each directory
-     "RecurseWorldCustomizationPaths": true
-  }
+        // When AutoApplyWorldCustomizations is set to true, the auto apply process will search for
+        // all .sql files in the following directories.
+        // This process will still use ./Content by default, or the the config_properties_string
+        // value for 'content_folder' if it exists
+        // Example: [ "C:\\MyContent", "C:\\FTPRoot\\Editor1Content", "C:\\FTPRoot\\Editor2Content" ]
+        "WorldCustomizationAddedPaths": [],
+
+        // When retrieving a file list of .sql files in the AutoApplyWorldCustomizations process
+        // this will cause the file search to retrieve all files recursively from each directory
+        "RecurseWorldCustomizationPaths": true
+    }
 }
