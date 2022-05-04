@@ -940,6 +940,16 @@ namespace ACE.Server.Managers
                     if (prop != null)
                         success = false;
                     break;
+
+                case CompareType.NotHasBits:
+                    if (((int)prop.Value & (int)val) != 0)
+                        success = false;
+                    break;
+
+                case CompareType.HasBits:
+                    if (((int)prop.Value & (int)val) != (int)val)
+                        success = false;
+                    break;
             }
 
             if (!success)
@@ -1230,6 +1240,20 @@ namespace ACE.Server.Managers
                     if (added)
                         targetMod.ChangesDetected = true;
                     if (Debug) Console.WriteLine($"{targetMod.Name}.AddSpell({intMod.Stat}) - {op}");
+                    break;
+                case ModificationOperation.SetBitsOn:
+                    var bits = targetMod.GetProperty(prop) ?? 0;
+                    bits |= value;
+                    player.UpdateProperty(targetMod, prop, bits);
+                    modified.Add(targetMod.Guid.Full);
+                    if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, 0x{bits:X}) - {op}");
+                    break;
+                case ModificationOperation.SetBitsOff:
+                    bits = targetMod.GetProperty(prop) ?? 0;
+                    bits &= ~value;
+                    player.UpdateProperty(targetMod, prop, bits);
+                    modified.Add(targetMod.Guid.Full);
+                    if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, 0x{bits:X}) - {op}");
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyInt({source.Name}, {target.Name}): unhandled operation {op}");
