@@ -942,12 +942,12 @@ namespace ACE.Server.Managers
                     break;
 
                 case CompareType.NotHasBits:
-                    if (((int)prop.Value & (int)val) != 0)
+                    if (((int)(prop ?? 0) & (int)val) != 0)
                         success = false;
                     break;
 
                 case CompareType.HasBits:
-                    if (((int)prop.Value & (int)val) != (int)val)
+                    if (((int)(prop ?? 0) & (int)val) != (int)val)
                         success = false;
                     break;
             }
