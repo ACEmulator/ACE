@@ -393,7 +393,7 @@ namespace ACE.Server
                 Console.Write("Looking up latest release from ACEmulator/ACE-World-16PY-Patches .... ");
 
                 // webrequest code provided by OptimShi
-                var url = "https://api.github.com/repos/ACEmulator/ACE-World-16PY-Patches/releases";
+                var url = "https://api.github.com/repos/ACEmulator/ACE-World-16PY-Patches/releases/latest";
                 var request = (HttpWebRequest)WebRequest.Create(url);
                 request.UserAgent = "Mozilla//5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko//20100101 Firefox//72.0";
                 request.UserAgent = "ACE.Server";
@@ -405,9 +405,9 @@ namespace ACE.Server
                 response.Close();
 
                 dynamic json = JsonConvert.DeserializeObject(html);
-                string tag = json[0].tag_name;
-                string dbURL = json[0].assets[0].browser_download_url;
-                string dbFileName = json[0].assets[0].name;
+                string tag = json.tag_name;
+                string dbURL = json.assets[0].browser_download_url;
+                string dbFileName = json.assets[0].name;
                 // webrequest code provided by OptimShi
 
                 Console.WriteLine($"Found {tag} !");
