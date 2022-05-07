@@ -307,12 +307,12 @@ namespace ACE.Server.Managers
             // You determine that you have a 99 percent chance to succeed.
             // You determine that you have a 38 percent chance to succeed. 5 percent is due to your augmentation.
 
-            var floorMsg = $"You determine that you have a {percent.Round()}% chance to succeed.";
+            var floorMsg = $"You determine that you have a {percent.Round()} percent chance to succeed.";
 
             var numAugs = recipe.IsImbuing() ? player.AugmentationBonusImbueChance : 0;
 
             if (numAugs > 0)
-                floorMsg += $"\n{numAugs * 5}% is due to your augmentation.";
+                floorMsg += $"\n{numAugs * 5} percent is due to your augmentation.";
 
             if (!player.ConfirmationManager.EnqueueSend(new Confirmation_CraftInteration(player.Guid, source.Guid, target.Guid), floorMsg))
             {
@@ -322,7 +322,7 @@ namespace ACE.Server.Managers
 
             if (PropertyManager.GetBool("craft_exact_msg").Item)
             {
-                var exactMsg = $"You have a {(float)percent}% chance of using {source.NameWithMaterial} on {target.NameWithMaterial}.";
+                var exactMsg = $"You have a {(float)percent} percent chance of using {source.NameWithMaterial} on {target.NameWithMaterial}.";
 
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(exactMsg, ChatMessageType.Craft));
             }
