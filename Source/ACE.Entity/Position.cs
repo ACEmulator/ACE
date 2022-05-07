@@ -217,15 +217,24 @@ namespace ACE.Entity
             Rotation = pos.Rotation;
         }
 
-        public Position(uint blockCellID, float newPositionX, float newPositionY, float newPositionZ, float newRotationX, float newRotationY, float newRotationZ, float newRotationW)
+        public Position(uint blockCellID, float newPositionX, float newPositionY, float newPositionZ, float newRotationX, float newRotationY, float newRotationZ, float newRotationW, bool relativePos = false)
         {
             LandblockId = new LandblockId(blockCellID);
 
-            Pos = new Vector3(newPositionX, newPositionY, newPositionZ);
-            Rotation = new Quaternion(newRotationX, newRotationY, newRotationZ, newRotationW);
+            if (!relativePos)
+            {
+                Pos = new Vector3(newPositionX, newPositionY, newPositionZ);
+                Rotation = new Quaternion(newRotationX, newRotationY, newRotationZ, newRotationW);
 
-            if ((blockCellID & 0xFFFF) == 0)
-                SetPosition(Pos);
+                if ((blockCellID & 0xFFFF) == 0)
+                    SetPosition(Pos);
+            }
+            else
+            {
+                // position is marked as relative so pass in raw values and make no further adjustments.
+                PositionX = newPositionX; PositionY = newPositionY; PositionZ = newPositionZ;
+                Rotation = new Quaternion(newRotationX, newRotationY, newRotationZ, newRotationW);
+            }
         }
 
         public Position(uint blockCellID, Vector3 position, Quaternion rotation)
@@ -274,6 +283,42 @@ namespace ACE.Entity
             PositionX = xOffset;
             PositionY = yOffset;
             PositionZ = zOffset;
+            Rotation = Quaternion.Identity;
+        }
+
+        /// <summary>
+        /// Given a Vector2 set of coordinates, create a new position object for use in converting from VLOC to LOC
+        /// </summary>
+        /// <param name="coordinates">A set coordinates provided in a Vector2 object with East-West being the X value and North-South being the Y value</param>
+        public Position(Vector2 coordinates)
+        {
+            // convert from (-101.95, 102.05) to (0, 204)
+            coordinates += Vector2.One * 101.95f;
+
+            // 204 = map clicks across dereth
+            // 2040 = number of cells across dereth
+            // 24 = meters per cell
+            //var globalPos = coordinates / 204 * 2040 * 24;
+            var globalPos = coordinates * 240;   // simplified
+
+            // inlining, this logic is in PositionExtensions.FromGlobal()
+            var blockX = (int)globalPos.X / BlockLength;
+            var blockY = (int)globalPos.Y / BlockLength;
+
+            var originX = globalPos.X % BlockLength;
+            var originY = globalPos.Y % BlockLength;
+
+            var cellX = (int)originX / CellLength;
+            var cellY = (int)originY / CellLength;
+
+            var cell = cellX * CellSide + cellY + 1;
+
+            var objCellID = (uint)(blockX << 24 | blockY << 16 | cell);
+
+            LandblockId = new LandblockId(objCellID);
+
+            Pos = new Vector3(originX, originY, 0);     // must use PositionExtensions.AdjustMapCoords() to get Z
+
             Rotation = Quaternion.Identity;
         }
 

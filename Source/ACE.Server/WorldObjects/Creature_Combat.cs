@@ -7,7 +7,9 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Structure;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.WorldObjects
@@ -906,7 +908,11 @@ namespace ACE.Server.WorldObjects
             var spell = new Spell(spellID);
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
-            target.EnchantmentManager.Add(spell, this, weapon);
+            var addResult = target.EnchantmentManager.Add(spell, this, weapon);
+
+            if (target is Player playerTarget)
+                playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, new Enchantment(playerTarget, addResult.Enchantment)));
+
             target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingDefenseDebuff));
 
             FightDirty_SendMessage(target, spell);
@@ -925,7 +931,10 @@ namespace ACE.Server.WorldObjects
             var spell = new Spell(spellID);
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
-            target.EnchantmentManager.Add(spell, this, weapon);
+            var addResult = target.EnchantmentManager.Add(spell, this, weapon);
+
+            if (target is Player playerTarget)
+                playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, new Enchantment(playerTarget, addResult.Enchantment)));
 
             // only send if not already applied?
             target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingDamageOverTime));
@@ -946,7 +955,13 @@ namespace ACE.Server.WorldObjects
             var spell = new Spell(spellID);
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
-            target.EnchantmentManager.Add(spell, this, weapon);
+            var addResult = target.EnchantmentManager.Add(spell, this, weapon);
+
+            var playerTarget = target as Player;
+
+            if (playerTarget != null)
+                playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, new Enchantment(playerTarget, addResult.Enchantment)));
+
             target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingAttackDebuff));
 
             FightDirty_SendMessage(target, spell);
@@ -958,7 +973,11 @@ namespace ACE.Server.WorldObjects
             spell = new Spell(spellID);
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
-            target.EnchantmentManager.Add(spell, this, weapon);
+            addResult = target.EnchantmentManager.Add(spell, this, weapon);
+
+            if (playerTarget != null)
+                playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, new Enchantment(playerTarget, addResult.Enchantment)));
+
             target.EnqueueBroadcast(new GameMessageScript(target.Guid, PlayScript.DirtyFightingHealDebuff));
 
             FightDirty_SendMessage(target, spell);

@@ -861,6 +861,15 @@ namespace ACE.Server.WorldObjects
             if (this is Pet pet && pet.P_PetOwner?.CurrentActivePet == this)
                 pet.P_PetOwner.CurrentActivePet = null;
 
+            if (this is Vendor vendor)
+            {
+                foreach (var wo in vendor.DefaultItemsForSale.Values)
+                    wo.Destroy();
+
+                foreach (var wo in vendor.UniqueItemsForSale.Values)
+                    wo.Destroy();
+            }
+
             if (raiseNotifyOfDestructionEvent)
                 NotifyOfEvent(RegenerationType.Destruction);
 

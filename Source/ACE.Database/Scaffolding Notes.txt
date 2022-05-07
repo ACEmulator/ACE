@@ -13,9 +13,9 @@ Notes:
 If your server is not local host, you can replace localhost with the appropriate IP address
 You also need to change the myPassword to your root accounts password. If not using root, enter the appropriate user and password.
 
-Scaffold-DbContext "server=localhost;port=3306;user=root;password=myPassword;database=ace_auth;TreatTinyAsBoolean=False" -Project ACE.Database -OutputDir ".\Models\Auth" -Context "AuthDbContext" -f Pomelo.EntityFrameworkCore.MySql
-Scaffold-DbContext "server=localhost;port=3306;user=root;password=myPassword;database=ace_shard;TreatTinyAsBoolean=False" -Project ACE.Database -OutputDir ".\Models\Shard" -Context "ShardDbContext" -f Pomelo.EntityFrameworkCore.MySql
-Scaffold-DbContext "server=localhost;port=3306;user=root;password=myPassword;database=ace_world;TreatTinyAsBoolean=False" -Project ACE.Database -OutputDir ".\Models\World" -Context "WorldDbContext" -f Pomelo.EntityFrameworkCore.MySql
+Scaffold-DbContext "server=localhost;port=3306;user=root;password=myPassword;database=ace_auth;TreatTinyAsBoolean=False" -Project ACE.Database -OutputDir ".\Models\Auth" -Context "AuthDbContext" -f Pomelo.EntityFrameworkCore.MySql -NoPluralize
+Scaffold-DbContext "server=localhost;port=3306;user=root;password=myPassword;database=ace_shard;TreatTinyAsBoolean=False" -Project ACE.Database -OutputDir ".\Models\Shard" -Context "ShardDbContext" -f Pomelo.EntityFrameworkCore.MySql -NoPluralize
+Scaffold-DbContext "server=localhost;port=3306;user=root;password=myPassword;database=ace_world;TreatTinyAsBoolean=False" -Project ACE.Database -OutputDir ".\Models\World" -Context "WorldDbContext" -f Pomelo.EntityFrameworkCore.MySql -NoPluralize
 
 If you get this error:
 

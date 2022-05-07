@@ -9,11 +9,10 @@ namespace ACE.Server.Entity
     /// </summary>
     public class EnchantmentStatus
     {
-        public Spell Spell;
-        public StackType StackType;
-        public GameMessageSystemChat Message;
-        public bool Broadcast;
-        public bool Success;
+        public Spell Spell { get; set; }
+        public StackType StackType { get; set; }
+        public GameMessageSystemChat Message { get; set; }
+        public bool Success { get; set; }
 
         public EnchantmentStatus(Spell spell)
         {

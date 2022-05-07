@@ -230,7 +230,49 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Returns TRUE if spell category matches impen / bane / brittlemail / lure
         /// </summary>
-        public bool IsImpenBaneType => Category >= SpellCategory.ArmorValueRaising && Category <= SpellCategory.AcidicResistanceLowering;
+        public bool IsImpenBaneType
+        {
+            get
+            {
+                switch (Category)
+                {
+                    case SpellCategory n when n >= SpellCategory.ArmorValueRaising && n <= SpellCategory.AcidicResistanceLowering:
+                    case SpellCategory.ArmorValueRaisingRare:
+                    case SpellCategory.AcidResistanceRaisingRare:
+                    case SpellCategory.BludgeonResistanceRaisingRare:
+                    case SpellCategory.ColdResistanceRaisingRare:
+                    case SpellCategory.ElectricResistanceRaisingRare:
+                    case SpellCategory.FireResistanceRaisingRare:
+                    case SpellCategory.PierceResistanceRaisingRare:
+                    case SpellCategory.SlashResistanceRaisingRare:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns TRUE if spell category matches spells that should redirect to items player is holding
+        /// </summary>
+        public bool IsItemRedirectableType
+        {
+            get
+            {
+                switch (Category)
+                {
+                    case SpellCategory.DamageRaisingRare:
+                    case SpellCategory.AttackModRaisingRare:
+                    case SpellCategory.DefenseModRaisingRare:
+                    case SpellCategory.WeaponTimeRaisingRare:
+                    case SpellCategory.AppraisalResistanceLoweringRare:
+                    case SpellCategory.MaxDamageRaising:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        }
 
         public bool IsNegativeRedirectable => IsHarmful && (IsImpenBaneType || IsOtherNegativeRedirectable);
 
@@ -357,6 +399,43 @@ namespace ACE.Server.Entity
                 return maxVitals;
             }
         }
+
+        /// <summary>
+        /// Returns TRUE if this spell is a DamageOverTime or HealingOverTime spell
+        /// </summary>
+        public bool IsDamageOverTime
+        {
+            get
+            {
+                if (Flags.HasFlag(SpellFlags.DamageOverTime))
+                    return true;
+
+                switch (Category)
+                {
+                    case SpellCategory.HealOverTimeRaising:
+                    case SpellCategory.DamageOverTimeRaising:
+                    case SpellCategory.AetheriaProcHealthOverTimeRaising:
+                    case SpellCategory.AetheriaProcDamageOverTimeRaising:
+                    case SpellCategory.NetherDamageOverTimeRaising:
+                    case SpellCategory.NetherDamageOverTimeRaising2:
+                    case SpellCategory.NetherDamageOverTimeRaising3:
+
+                        return true;
+                }
+
+                switch ((PropertyInt)StatModKey)
+                {
+                    case PropertyInt.HealOverTime:
+                    case PropertyInt.DamageOverTime:
+
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
+        public bool HasExtraTick => IsDamageOverTime;
 
         public bool Equals(Spell spell)
         {

@@ -8,6 +8,7 @@ namespace ACE.Server.Managers
     public static class ServerPerformanceMonitor
     {
         public static bool IsRunning;
+        public static bool IsRunningCumulative;
 
 
         public enum MonitorType
@@ -31,8 +32,8 @@ namespace ACE.Server.Managers
             DoSessionWork_RemoveSessions,
 
             // These are all found in NetworkManager.ProcessPacket()
-            ProcessPacket_0,
-            ProcessPacket_1,
+            //ProcessPacket_0,
+            //ProcessPacket_1,
 
             MaxItems // Keep this at the end to properly size our monitors array
         }
@@ -116,6 +117,7 @@ namespace ACE.Server.Managers
             Reset();
 
             IsRunning = true;
+            IsRunningCumulative = true;
         }
 
         public static void Stop()
@@ -124,6 +126,23 @@ namespace ACE.Server.Managers
                 return;
 
             IsRunning = false;
+            IsRunningCumulative = false;
+        }
+
+        public static void StartCumulative()
+        {
+            if (IsRunningCumulative)
+                return;
+
+            IsRunningCumulative = true;
+        }
+
+        public static void StopCumulative()
+        {
+            if (!IsRunningCumulative)
+                return;
+
+            IsRunningCumulative = false;
         }
 
         public static void Tick()
@@ -216,7 +235,7 @@ namespace ACE.Server.Managers
 
         public static void RestartCumulativeEvents()
         {
-            if (!IsRunning)
+            if (!IsRunning || !IsRunningCumulative)
                 return;
 
             for (int i = 0; i < cumulativeSeconds.Length; i++)
@@ -225,7 +244,7 @@ namespace ACE.Server.Managers
 
         public static void AddToCumulativeEvent(CumulativeEventHistoryType eventHistoryType, double seconds)
         {
-            if (!IsRunning)
+            if (!IsRunning || !IsRunningCumulative)
                 return;
 
             lock (cumulative5m[(int)eventHistoryType])
@@ -234,7 +253,7 @@ namespace ACE.Server.Managers
 
         public static void RegisterCumulativeEvents()
         {
-            if (!IsRunning)
+            if (!IsRunning || !IsRunningCumulative)
                 return;
 
             for (int i = 0; i < cumulative5m.Length; i++)
@@ -280,29 +299,32 @@ namespace ACE.Server.Managers
             for (int i = (int)MonitorType.LandblockManager_TickPhysics; i <= (int)MonitorType.LandblockManager_TickSingleThreadedWork; i++)
                 AddMonitorOutputToStringBuilder(monitors5m[i].EventHistory, monitors1h[i].EventHistory, monitors24h[i].EventHistory, ((MonitorType)i).ToString(), sb);
 
-            sb.Append($"Calls from Landblock.TickPhysics() - Cumulative over a single UpdateGameWorld Tick{'\n'}");
-            for (int i = (int)CumulativeEventHistoryType.Player_Tick_UpdateObjectPhysics; i <= (int)CumulativeEventHistoryType.WorldObject_Tick_UpdateObjectPhysics; i++)
-                AddMonitorOutputToStringBuilder(cumulative5m[i], cumulative1h[i], cumulative24h[i], ((CumulativeEventHistoryType)i).ToString(), sb);
+            if (IsRunningCumulative)
+            {
+                sb.Append($"Calls from Landblock.TickPhysics() - Cumulative over a single UpdateGameWorld Tick{'\n'}");
+                for (int i = (int) CumulativeEventHistoryType.Player_Tick_UpdateObjectPhysics; i <= (int) CumulativeEventHistoryType.WorldObject_Tick_UpdateObjectPhysics; i++)
+                    AddMonitorOutputToStringBuilder(cumulative5m[i], cumulative1h[i], cumulative24h[i], ((CumulativeEventHistoryType) i).ToString(), sb);
 
-            sb.Append($"Calls from Landblock.TickLandblockGroupThreadSafeWork() - Cumulative over a single UpdateGameWorld Tick{'\n'}");
-            for (int i = (int)CumulativeEventHistoryType.Landblock_Tick_RunActions; i <= (int)CumulativeEventHistoryType.Landblock_Tick_Database_Save; i++)
-                AddMonitorOutputToStringBuilder(cumulative5m[i], cumulative1h[i], cumulative24h[i], ((CumulativeEventHistoryType)i).ToString(), sb);
+                sb.Append($"Calls from Landblock.TickLandblockGroupThreadSafeWork() - Cumulative over a single UpdateGameWorld Tick{'\n'}");
+                for (int i = (int) CumulativeEventHistoryType.Landblock_Tick_RunActions; i <= (int) CumulativeEventHistoryType.Landblock_Tick_Database_Save; i++)
+                    AddMonitorOutputToStringBuilder(cumulative5m[i], cumulative1h[i], cumulative24h[i], ((CumulativeEventHistoryType) i).ToString(), sb);
 
-            sb.Append($"Calls from Landblock.TickLandblockGroupThreadSafeWork() - Misc - Cumulative over a single UpdateGameWorld Tick{'\n'}");
-            for (int i = (int)CumulativeEventHistoryType.Monster_Awareness_FindNextTarget; i <= (int)CumulativeEventHistoryType.LootGenerationFactory_CreateRandomLootObjects; i++)
-                AddMonitorOutputToStringBuilder(cumulative5m[i], cumulative1h[i], cumulative24h[i], ((CumulativeEventHistoryType)i).ToString(), sb);
+                sb.Append($"Calls from Landblock.TickLandblockGroupThreadSafeWork() - Misc - Cumulative over a single UpdateGameWorld Tick{'\n'}");
+                for (int i = (int) CumulativeEventHistoryType.Monster_Awareness_FindNextTarget; i <= (int) CumulativeEventHistoryType.LootGenerationFactory_CreateRandomLootObjects; i++)
+                    AddMonitorOutputToStringBuilder(cumulative5m[i], cumulative1h[i], cumulative24h[i], ((CumulativeEventHistoryType) i).ToString(), sb);
 
-            sb.Append($"Calls from Landblock.TickSingleThreadedWork() - Cumulative over a single UpdateGameWorld Tick{'\n'}");
-            for (int i = (int)CumulativeEventHistoryType.Landblock_Tick_Player_Tick; i <= (int)CumulativeEventHistoryType.Landblock_Tick_WorldObject_Heartbeat; i++)
-                AddMonitorOutputToStringBuilder(cumulative5m[i], cumulative1h[i], cumulative24h[i], ((CumulativeEventHistoryType)i).ToString(), sb);
+                sb.Append($"Calls from Landblock.TickSingleThreadedWork() - Cumulative over a single UpdateGameWorld Tick{'\n'}");
+                for (int i = (int) CumulativeEventHistoryType.Landblock_Tick_Player_Tick; i <= (int) CumulativeEventHistoryType.Landblock_Tick_WorldObject_Heartbeat; i++)
+                    AddMonitorOutputToStringBuilder(cumulative5m[i], cumulative1h[i], cumulative24h[i], ((CumulativeEventHistoryType) i).ToString(), sb);
+            }
 
             sb.Append($"Calls from NetworkManager.DoSessionWork(){'\n'}");
             for (int i = (int)MonitorType.DoSessionWork_TickOutbound; i <= (int)MonitorType.DoSessionWork_RemoveSessions; i++)
                 AddMonitorOutputToStringBuilder(monitors5m[i].EventHistory, monitors1h[i].EventHistory, monitors24h[i].EventHistory, ((MonitorType)i).ToString(), sb);
 
-            sb.Append($"Calls from NetworkManager.ProcessPacket(){'\n'}");
-            for (int i = (int)MonitorType.ProcessPacket_0; i <= (int)MonitorType.ProcessPacket_1; i++)
-                AddMonitorOutputToStringBuilder(monitors5m[i].EventHistory, monitors1h[i].EventHistory, monitors24h[i].EventHistory, ((MonitorType)i).ToString(), sb);
+            //sb.Append($"Calls from NetworkManager.ProcessPacket(){'\n'}");
+            //for (int i = (int)MonitorType.ProcessPacket_0; i <= (int)MonitorType.ProcessPacket_1; i++)
+            //    AddMonitorOutputToStringBuilder(monitors5m[i].EventHistory, monitors1h[i].EventHistory, monitors24h[i].EventHistory, ((MonitorType)i).ToString(), sb);
 
             return sb.ToString();
         }

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
+using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
@@ -115,6 +115,15 @@ namespace ACE.Server.Network.Structure
             if (wo.Damage != null && !(wo is Clothing) || wo is MeleeWeapon || wo is Missile || wo is MissileLauncher || wo is Ammunition || wo is Caster)
                 BuildWeapon(wo);
 
+            // TODO: Resolve this issue a better way?
+            // Because of the way ACE handles default base values in recipe system (or rather the lack thereof)
+            // we need to check the following weapon properties to see if they're below expected minimum and adjust accordingly
+            // The issue is that the recipe system likely added 0.005 to 0 instead of 1, which is what *should* have happened.
+            if (wo.WeaponMagicDefense.HasValue && wo.WeaponMagicDefense.Value > 0 && wo.WeaponMagicDefense.Value < 1 && ((wo.GetProperty(PropertyInt.ImbueStackingBits) ?? 0) & 1) != 0)
+                PropertiesFloat[PropertyFloat.WeaponMagicDefense] += 1;
+            if (wo.WeaponMissileDefense.HasValue && wo.WeaponMissileDefense.Value > 0 && wo.WeaponMissileDefense.Value < 1 && ((wo.GetProperty(PropertyInt.ImbueStackingBits) ?? 0) & 1) != 0)
+                PropertiesFloat[PropertyFloat.WeaponMissileDefense] += 1;
+
             if (wo is Door || wo is Chest)
             {
                 // If wo is not locked, do not send ResistLockpick value. If ResistLockpick is sent for unlocked objects, id panel shows bonus to Lockpick skill
@@ -137,7 +146,10 @@ namespace ACE.Server.Network.Structure
                         if (!PropertiesInt.ContainsKey(PropertyInt.AppraisalLockpickSuccessPercent))
                             PropertiesInt.Add(PropertyInt.AppraisalLockpickSuccessPercent, (int)successChance);
                     }
-                }                
+                }
+                // if wo has DefaultLocked property and is unlocked, add that state to the property buckets
+                else if (PropertiesBool.ContainsKey(PropertyBool.DefaultLocked))
+                    PropertiesBool[PropertyBool.Locked] = false;
             }
 
             if (wo is Corpse)
@@ -255,28 +267,35 @@ namespace ACE.Server.Network.Structure
 
                     containsString = "It contains: \n";
 
-                    if (PropertiesString.ContainsKey(PropertyString.LongDesc) && PropertiesString[PropertyString.LongDesc] != null)
+                    if (!string.IsNullOrWhiteSpace(hookedItem.LongDesc))
                     {
-                        containsString += PropertiesString[PropertyString.LongDesc];
+                        containsString += hookedItem.LongDesc;
                     }
-                    else if (PropertiesString.ContainsKey(PropertyString.ShortDesc) && PropertiesString[PropertyString.ShortDesc] != null)
-                    {
-                        containsString += PropertiesString[PropertyString.ShortDesc];
-                    }
+                    //else if (PropertiesString.ContainsKey(PropertyString.ShortDesc) && PropertiesString[PropertyString.ShortDesc] != null)
+                    //{
+                    //    containsString += PropertiesString[PropertyString.ShortDesc];
+                    //}
                     else
                     {
-                        containsString += PropertiesString[PropertyString.Name];
+                        containsString += hookedItem.Name;
                     }
 
                     BuildHookProfile(hookedItem);
                 }
 
-                if (PropertiesString.ContainsKey(PropertyString.LongDesc) && PropertiesString[PropertyString.LongDesc] != null)
-                    PropertiesString[PropertyString.LongDesc] = baseDescString + containsString;
-                else if (PropertiesString.ContainsKey(PropertyString.ShortDesc) && PropertiesString[PropertyString.ShortDesc] != null)
-                    PropertiesString[PropertyString.LongDesc] = baseDescString + containsString;
-                else
-                    PropertiesString[PropertyString.LongDesc] = baseDescString + containsString;
+                //if (PropertiesString.ContainsKey(PropertyString.LongDesc) && PropertiesString[PropertyString.LongDesc] != null)
+                //    PropertiesString[PropertyString.LongDesc] = baseDescString + containsString;
+                ////else if (PropertiesString.ContainsKey(PropertyString.ShortDesc) && PropertiesString[PropertyString.ShortDesc] != null)
+                ////    PropertiesString[PropertyString.LongDesc] = baseDescString + containsString;
+                //else
+                //    PropertiesString[PropertyString.LongDesc] = baseDescString + containsString;
+
+                PropertiesString[PropertyString.LongDesc] = baseDescString + containsString;
+
+                PropertiesInt.Remove(PropertyInt.Structure);
+
+                // retail should have removed this property and then server side built the same result for the hook longdesc replacement but didn't and ends up with some odd looking appraisals as seen on video/pcaps
+                //PropertiesInt.Remove(PropertyInt.AppraisalLongDescDecoration);
             }
 
             if (wo is ManaStone)
@@ -542,7 +561,14 @@ namespace ACE.Server.Network.Structure
 
             AddRatings(creature);
 
-            if (PropertiesInt.ContainsKey(PropertyInt.EncumbranceVal) && !NPCLooksLikeObject)
+            if (NPCLooksLikeObject)
+            {
+                var weenie = creature.Weenie ?? DatabaseManager.World.GetCachedWeenie(creature.WeenieClassId);
+
+                if (!weenie.GetProperty(PropertyInt.EncumbranceVal).HasValue)
+                    PropertiesInt.Remove(PropertyInt.EncumbranceVal);
+            }
+            else
                 PropertiesInt.Remove(PropertyInt.EncumbranceVal);
 
             // see notes in CombatPet.Init()

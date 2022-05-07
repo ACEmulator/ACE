@@ -498,6 +498,8 @@ namespace ACE.Server.WorldObjects
                 slumlord.SetAndBroadcastName();
 
                 slumlord.SaveBiotaToDatabase();
+
+                HouseList.AddToAvailable(slumlord);
             }
 
             HouseId = null;
@@ -643,7 +645,9 @@ namespace ACE.Server.WorldObjects
             slumlord.ClearInventory();
 
             slumlord.SaveBiotaToDatabase();
-            
+
+            HouseList.RemoveFromAvailable(slumlord);
+
             SaveBiotaToDatabase();
 
             if (house.HouseType != HouseType.Apartment)

@@ -164,7 +164,11 @@ namespace ACE.Server.WorldObjects.Entity
 
             var iTotal = (fTotal + additives).Round();
 
-            iTotal = Math.Max(iTotal, 5);   // a creature cannot fall below 5 MaxVital from vitae
+            // a creature cannot fall below 5 MaxVital from enchantments / vitae normally,
+            // or 1 MaxVital for creatures with very low starting vitals
+            var minVital = total >= 5 ? 5 : 1; 
+
+            iTotal = Math.Max(minVital, iTotal);
 
             return (uint)iTotal;
         }

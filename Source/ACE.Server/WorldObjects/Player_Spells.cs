@@ -58,16 +58,19 @@ namespace ACE.Server.WorldObjects
 
             if (!AddKnownSpell(spellId))
             {
-                GameMessageSystemChat errorMessage = new GameMessageSystemChat("That spell is already known", ChatMessageType.Broadcast);
-                Session.Network.EnqueueSend(errorMessage);
+                if (uiOutput)
+                {
+                    GameMessageSystemChat errorMessage = new GameMessageSystemChat("You already know that spell!", ChatMessageType.Broadcast);
+                    Session.Network.EnqueueSend(errorMessage);
+                }
                 return;
             }
 
             GameEventMagicUpdateSpell updateSpellEvent = new GameEventMagicUpdateSpell(Session, (ushort)spellId);
             Session.Network.EnqueueSend(updateSpellEvent);
 
-            //Check to see if we echo output to the client
-            if (uiOutput == true)
+            // Check to see if we echo output to the client text area and do playscript animation
+            if (uiOutput)
             {
                 // Always seems to be this SkillUpPurple effect
                 ApplyVisualEffects(PlayScript.SkillUpPurple);
@@ -75,6 +78,10 @@ namespace ACE.Server.WorldObjects
                 string message = $"You learn the {spells.Spells[spellId].Name} spell.\n";
                 GameMessageSystemChat learnMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
                 Session.Network.EnqueueSend(learnMessage);
+            }
+            else
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You have learned a new spell."));
             }
         }
 
@@ -257,19 +264,17 @@ namespace ACE.Server.WorldObjects
                     var critterBuffsForPlayer = buffsForPlayer.Where(k => k.Spell.School == MagicSchool.CreatureEnchantment).ToList();
                     var itemBuffsForPlayer = buffsForPlayer.Where(k => k.Spell.School == MagicSchool.ItemEnchantment).ToList();
 
-                    uint dmg = 0;
-                    EnchantmentStatus ec;
                     lifeBuffsForPlayer.ForEach(spl =>
                     {
-                        bool casted = LifeMagic(spl.Spell, out dmg, out ec, targetPlayer);
+                        CreateEnchantmentSilent(spl.Spell, targetPlayer);
                     });
                     critterBuffsForPlayer.ForEach(spl =>
                     {
-                        ec = CreatureMagic(targetPlayer, spl.Spell);
+                        CreateEnchantmentSilent(spl.Spell, targetPlayer);
                     });
                     itemBuffsForPlayer.ForEach(spl =>
                     {
-                        ec = ItemMagic(targetPlayer, spl.Spell);
+                        CreateEnchantmentSilent(spl.Spell, targetPlayer);
                     });
                 }
                 if (buffMessages.Any(k => k.Bane))
@@ -282,15 +287,23 @@ namespace ACE.Server.WorldObjects
                         foreach (var item in items)
                         {
                             if ((item.WeenieType == WeenieType.Clothing || item.IsShield) && item.IsEnchantable)
-                            {
-                                itemBuff.SetLandblockMessage(item.Guid);
-                                var enchantmentStatus = targetPlayer.ItemMagic(item, itemBuff.Spell, this);
-                                targetPlayer?.EnqueueBroadcast(itemBuff.LandblockMessage);
-                            }
+                                CreateEnchantmentSilent(itemBuff.Spell, item);
                         }
                     }
                 }
             });
+        }
+
+        private void CreateEnchantmentSilent(Spell spell, WorldObject target)
+        {
+            var addResult = target.EnchantmentManager.Add(spell, this, null);
+
+            if (target is Player targetPlayer)
+            {
+                targetPlayer.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(targetPlayer.Session, new Enchantment(targetPlayer, addResult.Enchantment)));
+
+                targetPlayer.HandleSpellHooks(spell);
+            }
         }
 
         // TODO: switch this over to SpellProgressionTables

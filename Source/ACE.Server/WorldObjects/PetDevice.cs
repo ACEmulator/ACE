@@ -128,9 +128,9 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     // retail stow
-                    var pet = WorldObjectFactory.CreateNewWorldObject((uint)PetClass) as Pet;
+                    var weenie = DatabaseManager.World.GetCachedWeenie((uint)PetClass);
 
-                    if (pet == null || !pet.IsPassivePet)
+                    if (weenie == null || weenie.WeenieType != WeenieType.Pet)
                     {
                         player.SendTransientError($"{player.CurrentActivePet.Name} is already active");
                         return new ActivationResult(false);
@@ -158,6 +158,8 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
             var success = pet.Init(player, this);
+
+            if (success != true) wo.Destroy();
 
             return success;
         }

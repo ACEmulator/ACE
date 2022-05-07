@@ -135,6 +135,8 @@ namespace ACE.Server.Physics.Common
 
             foreach (var buildingCell in BuildingCells.Where(i => i.Environment != null))
             {
+                if (buildingCell.Environment == null) continue;
+
                 foreach (var cellStruct in buildingCell.Environment.Cells.Values)
                 {
                     foreach (var vertex in cellStruct.VertexArray.Vertices.Values)

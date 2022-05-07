@@ -157,7 +157,7 @@ namespace ACE.Server.WorldObjects
             PhysicsTableId = item.PhysicsTableId;
             SoundTableId = item.SoundTableId;
             ObjScale = item.ObjScale;
-            Name = item.Name;
+            Name = item.NameWithMaterial;
 
             if (MotionTableId != 0)
                 CurrentMotionState = new Motion(MotionStance.Invalid);

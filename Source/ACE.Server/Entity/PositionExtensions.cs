@@ -3,6 +3,7 @@ using System.Numerics;
 
 using log4net;
 
+using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Physics.Common;
@@ -18,7 +19,7 @@ namespace ACE.Server.Entity
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static Vector3 ToGlobal(this Position p, bool skipIndoors = true)
+        public static Vector3 ToGlobal(this Position p, bool skipIndoors = false)
         {
             // TODO: Is this necessary? It seemed to be loading rogue physics landblocks. Commented out 2019-04 Mag-nus
             //var landblock = LScape.get_landblock(p.LandblockId.Raw);
@@ -243,6 +244,29 @@ namespace ACE.Server.Entity
 
                 pos.LandblockId = new LandblockId(pos.GetCell());
             }
+        }
+
+        public static void Translate(this Position pos, uint blockCell)
+        {
+            var newBlockX = blockCell >> 24;
+            var newBlockY = (blockCell >> 16) & 0xFF;
+
+            var xDiff = (int)newBlockX - pos.LandblockX;
+            var yDiff = (int)newBlockY - pos.LandblockY;
+
+            //pos.Origin.X -= xDiff * 192;
+            pos.PositionX -= xDiff * 192;
+            //pos.Origin.Y -= yDiff * 192;
+            pos.PositionY -= yDiff * 192;
+
+            //pos.ObjCellID = blockCell;
+            pos.LandblockId = new LandblockId(blockCell);
+        }
+
+        public static void FindZ(this Position pos)
+        {
+            var envCell = DatManager.CellDat.ReadFromDat<DatLoader.FileTypes.EnvCell>(pos.Cell);
+            pos.PositionZ = envCell.Position.Origin.Z;
         }
 
         public static float GetTerrainZ(this Position p)
