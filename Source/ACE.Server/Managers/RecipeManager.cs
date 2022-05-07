@@ -789,7 +789,7 @@ namespace ACE.Server.Managers
 
             // TODO: figure out other Usable flags
             if (usable.HasFlag(Usable.Contained))
-                searchLocations |= Player.SearchLocations.MyInventory;
+                searchLocations |= Player.SearchLocations.MyInventory | Player.SearchLocations.MyEquippedItems;
             if (usable.HasFlag(Usable.Wielded))
                 searchLocations |= Player.SearchLocations.MyEquippedItems;
             if (usable.HasFlag(Usable.Remote))
