@@ -66,7 +66,7 @@ namespace ACE.Common
         /// <summary>
         /// Automatically check for updated server binaries
         /// </summary>
-        [System.ComponentModel.DefaultValue(false)]
+        [System.ComponentModel.DefaultValue(true)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool AutoServerUpdateCheck { get; set; }
 
