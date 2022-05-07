@@ -605,6 +605,7 @@ namespace ACE.Server.Managers
                 ("version_info_enabled", new Property<bool>(false, "toggles the /aceversion player command")),
                 ("vendor_shop_uses_generator", new Property<bool>(false, "enables or disables vendors using generator system in addition to createlist to create artificial scarcity")),
                 ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world"))
+                ("xp_passup_offline_limit", new Property<bool>(true, "disable this to remove xp passup offline limit"))
                 );
 
         public static readonly ReadOnlyDictionary<string, Property<long>> DefaultLongProperties =
