@@ -192,8 +192,6 @@ namespace ACE.Server
                 log.Info($"Pruned {numberOfSquelchesPruned:N0} invalid squelched characters found on squelch lists.");
             }
 
-            //if (ConfigManager.Config.Offline)
-
             if (ConfigManager.Config.Offline.AutoServerUpdateCheck)
                 CheckForServerUpdate();
             else
