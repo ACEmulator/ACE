@@ -636,28 +636,6 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            // contain and non-wielded treasure create
-            if (Biota.PropertiesCreateList != null)
-            {
-                var createList = Biota.PropertiesCreateList.Where(i => (i.DestinationType & DestinationType.Contain) != 0 ||
-                                (i.DestinationType & DestinationType.Treasure) != 0 && (i.DestinationType & DestinationType.Wield) == 0).ToList();
-
-                var selected = CreateListSelect(createList);
-
-                foreach (var item in selected)
-                {
-                    var wo = WorldObjectFactory.CreateNewWorldObject(item);
-
-                    if (wo != null)
-                    {
-                        if (corpse != null)
-                            corpse.TryAddToInventory(wo);
-                        else
-                            droppedItems.Add(wo);
-                    }
-                }
-            }
-
             // move wielded treasure over, which also should include Wielded objects not marked for destroy on death.
             // allow server operators to configure this behavior due to errors in createlist post 16py data
             var dropFlags = PropertyManager.GetBool("creatures_drop_createlist_wield").Item ? DestinationType.WieldTreasure : DestinationType.Treasure;
@@ -678,6 +656,28 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                     droppedItems.Add(item);
+            }
+
+            // contain and non-wielded treasure create
+            if (Biota.PropertiesCreateList != null)
+            {
+                var createList = Biota.PropertiesCreateList.Where(i => (i.DestinationType & DestinationType.Contain) != 0 ||
+                                (i.DestinationType & DestinationType.Treasure) != 0 && (i.DestinationType & DestinationType.Wield) == 0).ToList();
+
+                var selected = CreateListSelect(createList);
+
+                foreach (var item in selected)
+                {
+                    var wo = WorldObjectFactory.CreateNewWorldObject(item);
+
+                    if (wo != null)
+                    {
+                        if (corpse != null)
+                            corpse.TryAddToInventory(wo);
+                        else
+                            droppedItems.Add(wo);
+                    }
+                }
             }
 
             return droppedItems;

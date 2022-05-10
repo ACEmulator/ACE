@@ -127,6 +127,8 @@ namespace ACE.Server.WorldObjects
 
                 EquipInventoryItems();
 
+                GenerateInventoryTreasure();
+
                 // TODO: fix tod data
                 Health.Current = Health.MaxValue;
                 Stamina.Current = Stamina.MaxValue;
