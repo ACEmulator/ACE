@@ -119,7 +119,9 @@ namespace ACE.Server.Entity
                 Available[houseType].Remove(house);
 
             var weenie = DatabaseManager.World.GetWeenie(slumLord.WeenieClassId);
-            var landblockInstance = slumLord.House.LinkedInstances.FirstOrDefault(i => i.Guid == slumLord.Guid.Full);
+            //var landblockInstance = slumLord.House.LinkedInstances.FirstOrDefault(i => i.Guid == slumLord.Guid.Full);
+            var landblockInstance = slumLord.House?.LinkedInstances.FirstOrDefault(i => i.Guid == slumLord.Guid.Full) ?? houseToAdd.LinkedInstances.FirstOrDefault(i => i.Guid == slumLord.Guid.Full);
+            //var landblockInstance = houseToAdd.LinkedInstances.FirstOrDefault(i => i.Guid == slumLord.Guid.Full);
 
             if (weenie == null || landblockInstance == null) return;
 
