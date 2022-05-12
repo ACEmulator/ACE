@@ -499,7 +499,7 @@ namespace ACE.Server.WorldObjects
 
                 slumlord.SaveBiotaToDatabase();
 
-                HouseList.AddToAvailable(slumlord);
+                HouseList.AddToAvailable(slumlord, house);
             }
 
             HouseId = null;
@@ -646,7 +646,7 @@ namespace ACE.Server.WorldObjects
 
             slumlord.SaveBiotaToDatabase();
 
-            HouseList.RemoveFromAvailable(slumlord);
+            HouseList.RemoveFromAvailable(slumlord, house);
 
             SaveBiotaToDatabase();
 
