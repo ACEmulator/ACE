@@ -36,6 +36,18 @@ namespace ACE.Server.WorldObjects
 
         public override void SetLinkProperties(WorldObject wo)
         {
+            if (House == null)
+            {
+                log.Warn($"[HOUSE] HousePortal.SetLinkProperties({(wo != null ? $"{wo.Name}:0x{wo.Guid}:{wo.WeenieClassId}" : "null")}): House is null for HousePortal 0x{Guid} at {Location.ToLOCString()}");
+                return;
+            }
+
+            if (wo == null)
+            {
+                log.Warn($"[HOUSE] HousePortal.SetLinkProperties(null): WorldObject is null for HousePortal 0x{Guid} at {Location.ToLOCString()} | {(House != null ? $"House = {House.Name}:0x{House.Guid}:{House.WeenieClassId}" : "House is null")}");
+                return;
+            }
+
             // get properties from parent?
             wo.HouseId = House.HouseId;
             wo.HouseOwner = House.HouseOwner;
