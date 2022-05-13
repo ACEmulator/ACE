@@ -78,7 +78,7 @@ namespace ACE.Entity.Enum.Properties
         [ServerOnly]
         InventoryTreasureType      = 33,
         [ServerOnly]
-        ShowTreasureType           = 34,
+        ShopTreasureType           = 34,
         [ServerOnly]
         DeathTreasureType          = 35,
         [ServerOnly]
