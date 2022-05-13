@@ -195,6 +195,9 @@
     // This will prune deleted characters from all squlech lists in the database, excluding those used to squlech accounts
     "PruneDeletedCharactersFromSquelchLists": false,
 
+    // Automatically check for updated server releases. Does not apply updates, just notifies of new version available.
+    "AutoServerUpdateCheck": true,
+
     // Automatically apply new updates to databases upon startup if they haven't yet been applied
     "AutoApplyDatabaseUpdates": true,
 

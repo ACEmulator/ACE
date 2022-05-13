@@ -481,6 +481,8 @@ namespace ACE.Server.Managers
 
             slumlord.SaveBiotaToDatabase();
 
+            HouseList.AddToAvailable(slumlord, house);
+
             // if evicting a multihouse owner's previous house,
             // no update for player properties
             if (player.HouseInstance == house.Guid.Full)

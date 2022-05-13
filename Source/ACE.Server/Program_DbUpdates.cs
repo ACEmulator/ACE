@@ -24,14 +24,14 @@ namespace ACE.Server
                 var currentVersion = worldDb.GetVersion();
                 log.Info($"Current World Database version: Base - {currentVersion.BaseVersion} | Patch - {currentVersion.PatchVersion}");
 
-                var url = "https://api.github.com/repos/ACEmulator/ACE-World-16PY-Patches/releases";
+                var url = "https://api.github.com/repos/ACEmulator/ACE-World-16PY-Patches/releases/latest";
 
                 using var client = new WebClient();
                 var html = client.GetStringFromURL(url).Result;
                 dynamic json = JsonConvert.DeserializeObject(html);
-                string tag = json[0].tag_name;
-                string dbURL = json[0].assets[0].browser_download_url;
-                string dbFileName = json[0].assets[0].name;
+                string tag = json.tag_name;
+                string dbURL = json.assets[0].browser_download_url;
+                string dbFileName = json.assets[0].name;
 
                 if (currentVersion.PatchVersion != tag)
                 {
