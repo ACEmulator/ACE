@@ -894,7 +894,7 @@ namespace ACE.Server.WorldObjects
             }
 
             if (item.ClothingBaseEffects.ContainsKey(SetupTableId))
-            // Check if the player model has data. Gear Knights, this is usually you.
+            // Check if the ClothingBase is applicable for this Setup. (Gear Knights, this is usually you.)
             {
                 // Add the model and texture(s)
                 ClothingBaseEffect clothingBaseEffect = item.ClothingBaseEffects[SetupTableId];
@@ -902,39 +902,34 @@ namespace ACE.Server.WorldObjects
                 {
                     byte partNum = (byte)t.Index;
                     objDesc.AnimPartChanges.Add(new PropertiesAnimPart { Index = (byte)t.Index, AnimationId = t.ModelId });
-                    //AddModel((byte)t.Index, (ushort)t.ModelId);
                     foreach (CloTextureEffect t1 in t.CloTextureEffects)
                         objDesc.TextureChanges.Add(new PropertiesTextureMap { PartIndex = (byte)t.Index, OldTexture = t1.OldTexture, NewTexture = t1.NewTexture });
-                    //AddTexture((byte)t.Index, (ushort)t1.OldTexture, (ushort)t1.NewTexture);
                 }
 
                 //if (item.ClothingSubPalEffects.Count == 1 && (PaletteTemplate.HasValue | Shade.HasValue))
                 //    Console.WriteLine($"Found an item with 1 ClothingSubPalEffects and a PaletteTemplate = {PaletteTemplate} and/or Shade = {Shade} ");
 
-                if (item.ClothingSubPalEffects.Count > 0)
-                {
-                    //int size = item.ClothingSubPalEffects.Count;
-                    //int palCount = size;
-
+                // If there are no ClothingSubPalEffects, or this item has no Shade and no PaletteTemplate set, we will not apply any Palette changes
+                if (item.ClothingSubPalEffects.Count > 0 && (Shade.HasValue || PaletteTemplate.HasValue))
+                { 
                     CloSubPalEffect itemSubPal;
                     int palOption = 0;
                     if (PaletteTemplate.HasValue)
                         palOption = (int)PaletteTemplate;
-                    if (item.ClothingSubPalEffects.ContainsKey((uint)palOption))
-                    {
-                        itemSubPal = item.ClothingSubPalEffects[(uint)palOption];
-                    }
-                    else
-                    {
-                        itemSubPal = item.ClothingSubPalEffects[item.ClothingSubPalEffects.Keys.ElementAt(0)];
-                    }
 
-                    if (itemSubPal.Icon > 0 && !(IgnoreCloIcons ?? false) && (Shade.HasValue || PaletteTemplate.HasValue))
+                    // Load the correct ClothingSubPalEffects for the assigned PaletteTemplate, or the first in the Dictionary if none set or it is set to an invalid value
+                    if (item.ClothingSubPalEffects.ContainsKey((uint)palOption))
+                        itemSubPal = item.ClothingSubPalEffects[(uint)palOption];
+                    else
+                        itemSubPal = item.ClothingSubPalEffects[item.ClothingSubPalEffects.Keys.ElementAt(0)];
+
+                    if (itemSubPal.Icon > 0 && !(IgnoreCloIcons ?? false))
                         IconId = itemSubPal.Icon;
 
-                    float shade = 0;
+                    float shade = 0; // Default if no shade is set.
                     if (Shade.HasValue)
                         shade = (float)Shade;
+
                     for (int i = 0; i < itemSubPal.CloSubPalettes.Count; i++)
                     {
                         var itemPalSet = DatManager.PortalDat.ReadFromDat<PaletteSet>(itemSubPal.CloSubPalettes[i].PaletteSet);
@@ -944,9 +939,7 @@ namespace ACE.Server.WorldObjects
                         {
                             ushort palOffset = (ushort)(itemSubPal.CloSubPalettes[i].Ranges[j].Offset / 8);
                             ushort numColors = (ushort)(itemSubPal.CloSubPalettes[i].Ranges[j].NumColors / 8);
-                            if (PaletteTemplate.HasValue || Shade.HasValue)
-                                objDesc.SubPalettes.Add(new PropertiesPalette { SubPaletteId = itemPal, Offset = palOffset, Length = numColors });
-                            //AddPalette(itemPal, (ushort)palOffset, (ushort)numColors);
+                            objDesc.SubPalettes.Add(new PropertiesPalette { SubPaletteId = itemPal, Offset = palOffset, Length = numColors });
                         }
                     }
                 }
