@@ -39,6 +39,17 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
+        public Sentinel(Biota biota, Character character, Session session) : base(biota, character, session)
+        {
+            if (!Character.IsPlussed)
+            {
+                Character.IsPlussed = true;
+                CharacterChangesDetected = true;
+            }
+
+            SetEphemeralValues();
+        }
+
         private void SetEphemeralValues()
         {
             ObjectDescriptionFlags |= ObjectDescriptionFlag.Admin;

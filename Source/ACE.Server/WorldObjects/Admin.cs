@@ -27,6 +27,11 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
+        public Admin(Biota biota, Character character, Session session) : base(biota, character, session)
+        {
+            SetEphemeralValues();
+        }
+
         private void SetEphemeralValues()
         {
             //BaseDescriptionFlags |= ObjectDescriptionFlag.Admin;
