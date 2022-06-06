@@ -825,7 +825,7 @@ namespace ACE.Server.WorldObjects.Managers
 
                     if (player != null)
                     {
-                        if (!player.ConfirmationManager.EnqueueSend(new Confirmation_YesNo(WorldObject.Guid, player.Guid, emote.Message), emote.TestString))
+                        if (!player.ConfirmationManager.EnqueueSend(new Confirmation_YesNo(WorldObject.Guid, player.Guid, emote.Message), Replace(emote.TestString, WorldObject, targetObject, emoteSet.Quest)))
                         {
                             ExecuteEmoteSet(EmoteCategory.TestFailure, emote.Message, player);
                         }
