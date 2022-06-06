@@ -100,16 +100,10 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            var start = DateTime.UtcNow;
-            DatabaseManager.Shard.GetPossessedBiotasInParallel(character.Id, biotas =>
-            {
-                log.Debug($"GetPossessedBiotasInParallel for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
-
-                ActionQueue.EnqueueAction(new ActionEventDelegate(() => DoPlayerEnterWorld(session, character, offlinePlayer.Biota, biotas)));
-            });
+            ActionQueue.EnqueueAction(new ActionEventDelegate(() => DoPlayerEnterWorld(session, character, offlinePlayer.Biota)));
         }
 
-        private static void DoPlayerEnterWorld(Session session, Character character, Biota playerBiota, PossessedBiotas possessedBiotas)
+        private static void DoPlayerEnterWorld(Session session, Character character, Biota playerBiota)
         {
             Player player;
 
@@ -150,11 +144,11 @@ namespace ACE.Server.Managers
             }
 
             if (playerBiota.WeenieType == WeenieType.Admin)
-                player = new Admin(playerBiota, possessedBiotas.Inventory, possessedBiotas.WieldedItems, character, session);
+                player = new Admin(playerBiota, character, session);
             else if (playerBiota.WeenieType == WeenieType.Sentinel)
-                player = new Sentinel(playerBiota, possessedBiotas.Inventory, possessedBiotas.WieldedItems, character, session);
+                player = new Sentinel(playerBiota, character, session);
             else
-                player = new Player(playerBiota, possessedBiotas.Inventory, possessedBiotas.WieldedItems, character, session);
+                player = new Player(playerBiota, character, session);
 
             session.SetPlayer(player);
 
@@ -217,6 +211,13 @@ namespace ACE.Server.Managers
             if (olthoiPlayerReturnedToLifestone)
                 session.Player.Location = new Position(session.Player.Sanctuary);
 
+            var start = DateTime.UtcNow;
+            DatabaseManager.Shard.GetPossessedBiotasInParallel(character.Id, biotas =>
+            {
+                log.Debug($"GetPossessedBiotasInParallel for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
+                player.SetBiotas(biotas.Inventory, biotas.WieldedItems);
+            });
+
             session.Player.PlayerEnterWorld();
 
             var success = LandblockManager.AddObject(session.Player, true);
@@ -274,7 +275,9 @@ namespace ACE.Server.Managers
             if (olthoiPlayerReturnedToLifestone)
                 session.Network.EnqueueSend(new GameMessageSystemChat("You have returned to the Olthoi Queen to serve the hive.", ChatMessageType.Broadcast));
             else if (playerLoggedInOnNoLogLandblock) // see http://acpedia.org/wiki/Mount_Elyrii_Hive
-                session.Network.EnqueueSend(new GameMessageSystemChat("The currents of portal space cannot return you from whence you came. Your previous location forbids login.", ChatMessageType.Broadcast));            
+                session.Network.EnqueueSend(new GameMessageSystemChat("The currents of portal space cannot return you from whence you came. Your previous location forbids login.", ChatMessageType.Broadcast));
+
+
         }
 
         private static string AppendLines(params string[] lines)
