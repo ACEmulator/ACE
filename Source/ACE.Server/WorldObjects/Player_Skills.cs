@@ -840,6 +840,25 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
         }
 
+        public void HandleFreeMasteryResetRenewal()
+        {
+            if (!(GetProperty(PropertyBool.FreeMasteryResetRenewed) ?? false)) return;
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(5.0f);
+            actionChain.AddAction(this, () =>
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Your opportunity to change your Masteries is renewed!", ChatMessageType.Magic));
+
+                RemoveProperty(PropertyBool.FreeMasteryResetRenewed);
+
+                QuestManager.Erase("MeleeMasteryChange");
+                QuestManager.Erase("RangedMasteryChange");
+                QuestManager.Erase("SummonMasteryChange");
+            });
+            actionChain.EnqueueChain();
+        }
+
         /// <summary>
         /// Resets the skill, refunds all experience and skill credits, if allowed.
         /// </summary>
