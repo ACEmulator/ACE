@@ -715,7 +715,7 @@ namespace ACE.Server.WorldObjects
 
         public void OnTeleportComplete()
         {
-            if (CurrentLandblock != null && !CurrentLandblock.CreateWorldObjectsCompleted)
+            if ((CurrentLandblock != null && !CurrentLandblock.CreateWorldObjectsCompleted) || !this.EquippedObjectsLoaded)
             {
                 // If the critical landblock resources haven't been loaded yet, we keep the player in the pink bubble state
                 // We'll check periodically to see when it's safe to let them materialize in
