@@ -125,6 +125,19 @@ namespace ACE.Server.WorldObjects
             UpdateCoinValue(false);
         }
 
+        public Player(Biota biota, Character character, Session session) : base(biota)
+        {
+            Character = character;
+            Session = session;
+
+            Account = DatabaseManager.Authentication.GetAccountById(Character.AccountId);
+
+            SetEphemeralValues();
+
+            UpdateCoinValue(false);
+        }
+
+
         public override void InitPhysicsObj()
         {
             base.InitPhysicsObj();
@@ -1200,6 +1213,12 @@ namespace ACE.Server.WorldObjects
                 innerChain.EnqueueChain();
             });
             actionChain.EnqueueChain();
+        }
+
+        public void SetBiotas(IEnumerable<ACE.Database.Models.Shard.Biota> inventory, IEnumerable<ACE.Database.Models.Shard.Biota> wieldedItems)
+        {
+            SortBiotasIntoInventory(inventory);
+            AddBiotasToEquippedObjects(wieldedItems);
         }
     }
 }
