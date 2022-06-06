@@ -216,9 +216,8 @@ namespace ACE.Server.Managers
             {
                 log.Debug($"GetPossessedBiotasInParallel for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
                 player.SetBiotas(biotas.Inventory, biotas.WieldedItems);
+                session.Player.PlayerEnterWorld();
             });
-
-            session.Player.PlayerEnterWorld();
 
             var success = LandblockManager.AddObject(session.Player, true);
             if (!success)
