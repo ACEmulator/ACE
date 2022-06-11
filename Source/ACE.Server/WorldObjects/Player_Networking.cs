@@ -122,6 +122,7 @@ namespace ACE.Server.WorldObjects
             HandleSkillSpecCreditRefund();
             HandleFreeSkillResetRenewal();
             HandleFreeAttributeResetRenewal();
+            HandleFreeMasteryResetRenewal();
 
             HandleDBUpdates();
 

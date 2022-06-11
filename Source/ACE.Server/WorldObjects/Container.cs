@@ -604,6 +604,28 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Removes all items from an inventory that are unmanaged/controlled
+        /// </summary>
+        /// <returns>TRUE if all unmanaged items were removed successfully</returns>
+        public bool ClearUnmanagedInventory(bool forceSave = false)
+        {
+            var success = true;
+            var itemGuids = Inventory.Where(i => i.Value.GeneratorId == null).Select(i => i.Key).ToList();
+            foreach (var itemGuid in itemGuids)
+            {
+                if (!TryRemoveFromInventory(itemGuid, out var item, forceSave))
+                    success = false;
+
+                if (success)
+                    item.Destroy();
+            }
+            if (forceSave)
+                SaveBiotaToDatabase();
+
+            return success;
+        }
+
+        /// <summary>
         /// This will clear the ContainerId and PlacementPosition properties.<para />
         /// It will also subtract the EncumbranceVal and Value.
         /// </summary>
@@ -863,6 +885,8 @@ namespace ACE.Server.WorldObjects
             //        Generator_Regeneration();
             //}
 
+            ClearUnmanagedInventory();
+
             ResetMessagePending = false;
         }
 
@@ -877,6 +901,9 @@ namespace ACE.Server.WorldObjects
 
                 if (wo == null)
                     continue;
+
+                if (!Guid.IsPlayer())
+                    wo.GeneratorId = Guid.Full; // add this to mark item as "managed" so container resets don't delete it.
 
                 if (item.Palette > 0)
                     wo.PaletteTemplate = item.Palette;
