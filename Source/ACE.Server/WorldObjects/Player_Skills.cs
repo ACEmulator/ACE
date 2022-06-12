@@ -852,9 +852,9 @@ namespace ACE.Server.WorldObjects
 
                 RemoveProperty(PropertyBool.FreeMasteryResetRenewed);
 
-                QuestManager.Erase("MeleeMasteryChange");
-                QuestManager.Erase("RangedMasteryChange");
-                QuestManager.Erase("SummonMasteryChange");
+                QuestManager.Erase("UsedFreeMeleeMasteryReset");
+                QuestManager.Erase("UsedFreeRangedMasteryReset");
+                QuestManager.Erase("UsedFreeSummoningMasteryReset");
             });
             actionChain.EnqueueChain();
         }
