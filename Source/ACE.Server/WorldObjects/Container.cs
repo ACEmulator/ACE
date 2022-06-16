@@ -609,7 +609,7 @@ namespace ACE.Server.WorldObjects
         /// <returns>TRUE if all unmanaged items were removed successfully</returns>
         public bool ClearUnmanagedInventory(bool forceSave = false)
         {
-            if (WeenieClassId == (uint)ACE.Entity.Enum.WeenieClassName.W_STORAGE_CLASS)
+            if (this is Storage || WeenieClassId == (uint)ACE.Entity.Enum.WeenieClassName.W_STORAGE_CLASS)
                 return false; // Do not clear storage, ever.
 
             var success = true;
