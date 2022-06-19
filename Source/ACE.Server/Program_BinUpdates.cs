@@ -26,14 +26,8 @@ namespace ACE.Server
                 log.Info($"Current Server Binary: {ServerBuildInfo.FullVersion}");
 
                 var url = "https://api.github.com/repos/ACEmulator/ACE/releases/latest";
-                var request = (HttpWebRequest)WebRequest.Create(url);
-                request.UserAgent = "ACE.Server";
-
-                var response = request.GetResponse();
-                var reader = new StreamReader(response.GetResponseStream(), System.Text.Encoding.UTF8);
-                var html = reader.ReadToEnd();
-                reader.Close();
-                response.Close();
+                using var client = new WebClient();
+                var html = client.GetStringFromURL(url).Result;
 
                 dynamic json = JsonConvert.DeserializeObject(html);
 
