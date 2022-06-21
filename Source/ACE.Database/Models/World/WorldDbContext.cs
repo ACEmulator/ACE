@@ -78,7 +78,7 @@ namespace ACE.Database.Models.World
             {
                 var config = Common.ConfigManager.Config.MySql.World;
 
-                var connectionString = $"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database};TreatTinyAsBoolean=False";
+                var connectionString = $"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database};TreatTinyAsBoolean=False;SslMode=None;ApplicationName=ACEmulator";
 
                 optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), builder =>
                 {
