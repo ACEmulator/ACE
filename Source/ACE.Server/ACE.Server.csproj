@@ -3,6 +3,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
     <Platforms>x64</Platforms>
   </PropertyGroup>
 
@@ -12,7 +14,7 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/ACEmulator/ACE</RepositoryUrl>
     <PackageProjectUrl>https://emulator.ac</PackageProjectUrl>
-    <Copyright>© 2017-2020 ACEmulator Team and Contributors</Copyright>
+    <Copyright>© 2017-2022 ACEmulator Team and Contributors</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <Description>Asheron's Call server emulator</Description>
     <Company>ACEmulator</Company>
