@@ -3893,7 +3893,7 @@ namespace ACE.Server.Command.Handlers
             session.Player.HandleActionUseWithTarget(guid, target.Guid.Full);
         }
 
-        [CommandHandler("portalstorm", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Tests starting a portal storm on yourself", "storm_level [0=Brewing, 1=Immeinent, 2=Stormed, 3=Subsided]")]
+        [CommandHandler("portalstorm", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Tests starting a portal storm on yourself", "storm_level [0=Brewing, 1=Imminent, 2=Stormed, 3=Subsided]")]
         public static void HandlePortalStorm(Session session, params string[] parameters)
         {
             if (!uint.TryParse(parameters[0], out var storm_level))
