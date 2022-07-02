@@ -218,6 +218,12 @@ namespace ACE.Server.Network.Structure
                 PropertiesString.Add(PropertyString.LongDesc, longDesc);
             }
 
+            if (wo is Container)
+            {
+                if (PropertiesInt.ContainsKey(PropertyInt.Value))
+                    PropertiesInt[PropertyInt.Value] = DatabaseManager.World.GetCachedWeenie(wo.WeenieClassId).GetValue() ?? 0; // Value is masked to base value of Weenie
+            }
+
             if (wo is Storage)
             {
                 var longDesc = "";
@@ -230,9 +236,6 @@ namespace ACE.Server.Network.Structure
                     PropertiesString.Remove(key);
 
                 PropertiesString.Add(PropertyString.LongDesc, longDesc);
-
-                if (PropertiesInt.ContainsKey(PropertyInt.Value))
-                    PropertiesInt[PropertyInt.Value] = wo.Biota.GetProperty(PropertyInt.Value, wo.BiotaDatabaseLock) ?? 200; // Value is masked to base value of Storage
             }
 
             if (wo is Hook)
