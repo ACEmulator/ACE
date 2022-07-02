@@ -278,7 +278,7 @@ namespace ACE.Server
                         database = worldDB;
                         break;
                 }
-                var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={host};port={port};user={username};password={password};database={database};DefaultCommandTimeout=120;SslMode=None;ApplicationName=ACEmulator");
+                var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection($"server={host};port={port};user={username};password={password};database={database};DefaultCommandTimeout=120;SslMode=None");
                 sqlDBFile = sqlDBFile.Replace("ace_auth", authDB);
                 sqlDBFile = sqlDBFile.Replace("ace_shard", shardDB);
                 sqlDBFile = sqlDBFile.Replace("ace_world", worldDB);
