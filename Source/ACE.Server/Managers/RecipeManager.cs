@@ -1153,7 +1153,15 @@ namespace ACE.Server.Managers
                 if (mod.ExecutesOnSuccess != success)
                     continue;
 
-                // adjust vitals, but all appear to be 0 in current database?
+                // adjust vitals
+                if (mod.Health != 0)
+                    ModifyVital(player, PropertyAttribute2nd.Health, mod.Health);
+
+                if (mod.Stamina != 0)
+                    ModifyVital(player, PropertyAttribute2nd.Stamina, mod.Stamina);
+
+                if (mod.Mana != 0)
+                    ModifyVital(player, PropertyAttribute2nd.Mana, mod.Mana);
 
                 // apply type mods
                 foreach (var boolMod in mod.RecipeModsBool)
@@ -1180,6 +1188,31 @@ namespace ACE.Server.Managers
             }
 
             return modified;
+        }
+
+        private static void ModifyVital(Player player, PropertyAttribute2nd attribute2nd, int value)
+        {
+            var vital = player.GetCreatureVital(attribute2nd);
+
+            var vitalChange = (uint)Math.Abs(player.UpdateVitalDelta(vital, value));
+
+            if (attribute2nd == PropertyAttribute2nd.Health)
+            {
+                if (value >= 0)
+                    player.DamageHistory.OnHeal(vitalChange);
+                else
+                    player.DamageHistory.Add(player, DamageType.Health, vitalChange);
+
+                if (player.Health.Current <= 0)
+                {
+                    // should this be possible?
+                    //var lastDamager = player != null ? new DamageHistoryInfo(player) : null;
+                    var lastDamager = new DamageHistoryInfo(player);
+
+                    player.OnDeath(lastDamager, DamageType.Health, false);
+                    player.Die();
+                }
+            }
         }
 
         public static void ModifyBool(Player player, RecipeModsBool boolMod, WorldObject source, WorldObject target, WorldObject result, HashSet<uint> modified)
