@@ -313,7 +313,7 @@ namespace ACE.Server.WorldObjects
                 if (Spell.MetaSpellType == ACE.Entity.Enum.SpellType.EnchantmentProjectile)
                 {
                     // handle EnchantmentProjectile successfully landing on target
-                    ProjectileSource.CreateEnchantment(creatureTarget, ProjectileSource, ProjectileLauncher, Spell);
+                    ProjectileSource.CreateEnchantment(creatureTarget, ProjectileSource, ProjectileLauncher, Spell, false, FromProc);
                 }
                 else
                 {

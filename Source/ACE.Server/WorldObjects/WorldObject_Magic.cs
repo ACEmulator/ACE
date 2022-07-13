@@ -370,7 +370,7 @@ namespace ACE.Server.WorldObjects
         /// Handles casting SpellType.Enchantment / FellowEnchantment spells
         /// this is also called if SpellType.EnchantmentProjectile successfully hits
         /// </summary>
-        public void CreateEnchantment(WorldObject target, WorldObject caster, WorldObject weapon, Spell spell, bool equip = false)
+        public void CreateEnchantment(WorldObject target, WorldObject caster, WorldObject weapon, Spell spell, bool equip = false, bool fromProc = false)
         {
             // weird itemCaster -> caster collapsing going on here -- fixme
 
@@ -392,6 +392,14 @@ namespace ACE.Server.WorldObjects
                     caster = this;
                     cloakProc = true;
                 }
+            }
+            else if (fromProc)
+            {
+                // fromProc is assumed to be cloakProc currently
+                // todo: change fromProc from bool to WorldObject
+                // do we need separate concepts for itemCaster and fromProc objects?
+                caster = this;
+                cloakProc = true;
             }
 
             // create enchantment
