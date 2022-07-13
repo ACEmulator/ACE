@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
 
@@ -13,7 +13,7 @@
 
     <Description>Asheron's Call server emulator</Description>
 
-    <Copyright>© 2017-2020 ACEmulator Team and Contributors</Copyright>
+    <Copyright>© 2017-2022 ACEmulator Team and Contributors</Copyright>
 
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
 
@@ -28,7 +28,7 @@
 
   <ItemGroup>
     <PackageReference Include="Appveyor.TestLogger" Version="2.0.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="2.2.10" />
     <PackageReference Include="MSTest.TestFramework" Version="2.2.10" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />

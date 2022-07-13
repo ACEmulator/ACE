@@ -2,17 +2,27 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Platforms>x64</Platforms>
   </PropertyGroup>
 
   <PropertyGroup>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <ServerGarbageCollection>true</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+    <RetainVMGarbageCollection>true</RetainVMGarbageCollection>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <Authors>ACEmulator Contributors</Authors>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/ACEmulator/ACE</RepositoryUrl>
     <PackageProjectUrl>https://emulator.ac</PackageProjectUrl>
-    <Copyright>© 2017-2020 ACEmulator Team and Contributors</Copyright>
+    <Copyright>© 2017-2022 ACEmulator Team and Contributors</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <Description>Asheron's Call server emulator</Description>
     <Company>ACEmulator</Company>

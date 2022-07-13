@@ -4,7 +4,6 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Collections.Generic;
 
@@ -26,15 +25,9 @@ namespace ACE.Server
                 log.Info($"Current World Database version: Base - {currentVersion.BaseVersion} | Patch - {currentVersion.PatchVersion}");
 
                 var url = "https://api.github.com/repos/ACEmulator/ACE-World-16PY-Patches/releases/latest";
-                var request = (HttpWebRequest)WebRequest.Create(url);
-                request.UserAgent = "ACE.Server";
 
-                var response = request.GetResponse();
-                var reader = new StreamReader(response.GetResponseStream(), System.Text.Encoding.UTF8);
-                var html = reader.ReadToEnd();
-                reader.Close();
-                response.Close();
-
+                using var client = new WebClient();
+                var html = client.GetStringFromURL(url).Result;
                 dynamic json = JsonConvert.DeserializeObject(html);
                 string tag = json.tag_name;
                 string dbURL = json.assets[0].browser_download_url;
@@ -89,17 +82,16 @@ namespace ACE.Server
             }
 
             Console.Write($"Downloading {dbFileName} .... ");
-            using (var client = new WebClient())
+            using var client = new WebClient();
+            try
             {
-                try
-                {
-                    client.DownloadFile(dbURL, dbFileName);
-                }
-                catch
-                {
-                    Console.Write($"Download for {dbFileName} failed!");
-                    return;
-                }
+                var dlTask = client.DownloadFile(dbURL, dbFileName);
+                dlTask.Wait();
+            }
+            catch
+            {
+                Console.Write($"Download for {dbFileName} failed!");
+                return;
             }
             Console.WriteLine("download complete!");
 

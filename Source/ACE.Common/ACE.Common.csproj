@@ -7,7 +7,7 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/ACEmulator/ACE</RepositoryUrl>
     <PackageProjectUrl>https://emulator.ac</PackageProjectUrl>
-    <Copyright>© 2017-2020 ACEmulator Team and Contributors</Copyright>
+    <Copyright>© 2017-2022 ACEmulator Team and Contributors</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <Description>Asheron's Call server emulator</Description>
     <Company>ACEmulator</Company>
@@ -18,7 +18,6 @@
     <PackageReference Include="BCrypt.Net-Core" Version="1.6.0" />
     <PackageReference Include="DouglasCrockford.JsMin" Version="2.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="TimeZoneConverter" Version="5.0.0" />
   </ItemGroup>
 
     <ItemGroup>
