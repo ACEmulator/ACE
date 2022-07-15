@@ -35,6 +35,17 @@ namespace ACE.Server.WorldObjects
 
         public void Player_Tick(double currentUnixTime)
         {
+            if (CharacterSaveFailed)
+            {
+                // Boot the player as their Character object is not saving properly
+                if (!IsLoggingOut)
+                {
+                    log.Error($"{Session.Player.Name} - disconnected for CharacterSaveFailed");
+                    Session.LogOffPlayer(true);
+                }
+                return;
+            }
+
             actionQueue.RunActions();
 
             if (nextAgeUpdateTime <= currentUnixTime)
