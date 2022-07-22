@@ -1059,6 +1059,6 @@ namespace ACE.Common
         /// <summary>
         /// Converts the <see cref="DateTime.UtcNow"/> object to a new <see cref="DerethDateTime"/> object set to EMU Standard Sync Time.
         /// </summary>
-        public static DerethDateTime UtcNowToEMUTime => new DerethDateTime((DateTime.UtcNow - TimeZoneInfo.ConvertTimeToUtc(retailDayLast_RealWorld, TimeZoneInfo.FindSystemTimeZoneById("America/New_York"))).TotalSeconds);
+        public static DerethDateTime UtcNowToEMUTime => new DerethDateTime((DateTime.UtcNow - TimeZoneInfo.ConvertTimeToUtc(retailDayLast_RealWorld, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"))).TotalSeconds);
     }
 }
