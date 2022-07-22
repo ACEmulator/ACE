@@ -30,7 +30,7 @@ namespace ACE.Server.WorldObjects
         public bool CharacterSaveFailed { get; set; }
 
         /// <summary>
-        /// Set to true when SaveCharacter() returns a failure
+        /// Set to true when SaveBiotaToDatabase() returns a failure
         /// </summary>
         public bool BiotaSaveFailed { get; set; }
 
