@@ -40,8 +40,25 @@ namespace ACE.Server.WorldObjects
                 // Boot the player as their Character object is not saving properly
                 if (!IsLoggingOut)
                 {
-                    log.Error($"{Session.Player.Name} - disconnected for CharacterSaveFailed");
-                    Session.LogOffPlayer(true);
+                    log.Error($"{Session.Player.Name} | 0x{Guid} | Account: {Account.AccountName} - disconnected for CharacterSaveFailed");
+                    //Session.SendCharacterError(CharacterError.AccountLogin);
+                    Session.Terminate(SessionTerminationReason.CharacterSaveFailed, new GameMessageCharacterError(CharacterError.AccountLogin));
+                    //Session.LogOffPlayer(true);
+                    CharacterSaveFailed = false;
+                }
+                return;
+            }
+
+            if (BiotaSaveFailed)
+            {
+                // Boot the player as their Character object is not saving properly
+                if (!IsLoggingOut)
+                {
+                    log.Error($"{Session.Player.Name} | 0x{Guid} | Account: {Account.AccountName} - disconnected for BiotaSaveFailed");
+                    //Session.SendCharacterError(CharacterError.EnterGameCharacterLocked);
+                    Session.Terminate(SessionTerminationReason.BiotaSaveFailed, new GameMessageCharacterError(CharacterError.AccountLogin));
+                    //Session.LogOffPlayer(true);
+                    BiotaSaveFailed = false;
                 }
                 return;
             }
