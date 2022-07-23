@@ -30,7 +30,9 @@ namespace ACE.Server.Network.Enum
         ServerShuttingDown,
         AccountBanned,
         ClientOutOfDate,
-        ForcedLogOffRequested
+        ForcedLogOffRequested,
+        CharacterSaveFailed,
+        BiotaSaveFailed
     }
     public static class SessionTerminationReasonHelper
     {
@@ -58,7 +60,9 @@ namespace ACE.Server.Network.Enum
             "Server is shutting down",
             "Account is banned",
             "Client is not up to date",
-            "Forced log off requested by Admin"
+            "Forced log off requested by Admin",
+            "Character Save Failed",
+            "Biota Save Failed"
         };
         public static string GetDescription(this SessionTerminationReason reason)
         {

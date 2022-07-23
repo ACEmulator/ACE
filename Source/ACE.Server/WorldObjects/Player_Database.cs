@@ -30,6 +30,11 @@ namespace ACE.Server.WorldObjects
         public bool CharacterSaveFailed { get; set; }
 
         /// <summary>
+        /// Set to true when SaveBiotaToDatabase() returns a failure
+        /// </summary>
+        public bool BiotaSaveFailed { get; set; }
+
+        /// <summary>
         /// The time period between automatic saving of player character changes
         /// </summary>
         public long PlayerSaveIntervalSecs
