@@ -239,6 +239,7 @@
     <PackageReference Include="MySql.Data" Version="8.0.29" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -248,12 +249,6 @@
     <ProjectReference Include="..\ACE.DatLoader\ACE.DatLoader.csproj" />
     <ProjectReference Include="..\ACE.Entity\ACE.Entity.csproj" />
   </ItemGroup>
-
-    <ItemGroup>
-        <Reference Include="Microsoft.Extensions.DependencyModel">
-            <HintPath>C:\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.extensions.dependencymodel\2.1.0\lib\netstandard1.6\Microsoft.Extensions.DependencyModel.dll</HintPath>
-        </Reference>
-    </ItemGroup>
 
   <ItemGroup>
     <Reference Include="Lifestoned.DataModel">
@@ -307,7 +302,7 @@
   </Target>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="modify and uncomment the following to aid in plugin development&#xD;&#xA;set src=$(TargetDir)&#xD;&#xA;set dst=E:\from desktop\ACE\ACE-Plugins\Dependencies\ACE&#xD;&#xA;robocopy &quot;%src% &quot; &quot;%dst% &quot; &quot;*.*&quot; /XO /NJH /NP&#xD;&#xA;SET ERRORLEVEL = 0" />
+    <Exec Command="modify and uncomment the following to aid in plugin development&#xD;&#xA;set src=$(TargetDir)&#xD;&#xA;set dst=E:\path.to\ACE\ACE-Plugins\Dependencies\ACE&#xD;&#xA;robocopy &quot;%src% &quot; &quot;%dst% &quot; &quot;*.*&quot; /XO /NJH /NP&#xD;&#xA;SET ERRORLEVEL = 0" />
   </Target>
 
 </Project>
