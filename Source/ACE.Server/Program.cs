@@ -304,7 +304,6 @@ namespace ACE.Server
             log.Info("Initializing EventManager...");
             EventManager.Initialize();
 
-
             if (ConfigManager.Config.Plugins.Enabled)
             {
                 log.Info("Initializing PluginManager...");
@@ -315,7 +314,6 @@ namespace ACE.Server
             log.Info("Forcing .net garbage collection...");
             for (int i = 0 ; i < 10 ; i++)
                 GC.Collect();
-
 
             // This should be last
             log.Info("Initializing CommandManager...");
