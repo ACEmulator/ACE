@@ -1,4 +1,4 @@
-using ACE.Server.Network.GameEvent.Events;
+using System;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -7,10 +7,10 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.FellowshipUpdateRequest)]
         public static void Handle(ClientMessage message, Session session)
         {
-            if (session.Player.Fellowship != null)
-            {
-                session.Network.EnqueueSend(new GameEventFellowshipFullUpdate(session));
-            }
+            // indicates if fellowship panel on client is visible
+            var panelOpen = Convert.ToBoolean(message.Payload.ReadInt32());
+
+            session.Player.HandleFellowshipUpdateRequest(panelOpen);
         }
     }
 }

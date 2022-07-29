@@ -2,8 +2,7 @@
 namespace ACE.DatLoader
 {
     /// <summary>
-    /// File types inside .dat files.  These constants were extracted from the
-    /// decompiled client
+    /// File types inside .dat files.  These constants were extracted from the decompiled client
     /// </summary>
     public enum DatFileType : uint
     {
@@ -334,7 +333,7 @@ namespace ACE.DatLoader
         /// <summary>
         /// This is in the Language dat (client_local_English.dat)
         /// </summary>
-        [DatDatabaseType(DatDatabaseType.Portal)]
+        [DatDatabaseType(DatDatabaseType.Language)]
         [DatFileTypeExtension("uil")]
         [DatFileTypeIdRange(0x21000000, 0x21FFFFFF)]
         UiLayout                = 35, // DB_TYPE_UI_LAYOUT
@@ -350,7 +349,7 @@ namespace ACE.DatLoader
         /// <summary>
         /// This is in the Language dat (client_local_English.dat)
         /// </summary>
-        [DatDatabaseType(DatDatabaseType.Portal)]
+        [DatDatabaseType(DatDatabaseType.Language)]
         [DatFileTypeExtension("stt")]
         [DatFileTypeIdRange(0x23000000, 0x24FFFFFF)]
         StringTable             = 37, // DB_TYPE_STRING_TABLE 
@@ -427,7 +426,7 @@ namespace ACE.DatLoader
         /// This is located in the Language dat (client_local_English.dat)
         /// "stringtable" in the client
         /// </summary>
-        [DatDatabaseType(DatDatabaseType.Portal)]
+        [DatDatabaseType(DatDatabaseType.Language)]
         [DatFileTypeExtension("sti")]
         [DatFileTypeIdRange(0x41000000, 0x41FFFFFF)]
         StringState = 48, // DB_TYPE_STRING_STATE
@@ -444,7 +443,7 @@ namespace ACE.DatLoader
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeExtension("rendermesh")]
         [DatFileTypeIdRange(0x19000000, 0x19FFFFFF)]
-        RenderMesh              = 50, // DB_TYPE_RENDER_MESH
+        RenderMesh              = 67, // DB_TYPE_RENDER_MESH
         
         // the following special files are called out in a different section of the decompiled client:
 

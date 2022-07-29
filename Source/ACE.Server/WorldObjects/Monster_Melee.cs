@@ -1,12 +1,15 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
 using ACE.DatLoader;
+using ACE.DatLoader.Entity.AnimationHooks;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
@@ -17,11 +20,15 @@ namespace ACE.Server.WorldObjects
     partial class Creature
     {
         /// <summary>
-        /// The delay between melee attacks (todo: find actual value)
+        /// The maximum delay in seconds between the end of a monster's previous attack,
+        /// and their next attack
         /// </summary>
-        public static readonly float MeleeDelay = 1.5f;
-        public static readonly float MeleeDelayMin = 0.5f;
-        public static readonly float MeleeDelayMax = 2.0f;
+        public double? PowerupTime
+        {
+            get => GetProperty(PropertyFloat.PowerupTime);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.PowerupTime); else SetProperty(PropertyFloat.PowerupTime, value.Value); }
+        }
+
 
         /// <summary>
         /// Returns TRUE if creature can perform a melee attack
@@ -51,27 +58,36 @@ namespace ACE.Server.WorldObjects
             if (CurrentMotionState.Stance == MotionStance.NonCombat)
                 DoAttackStance();
 
+            var weapon = GetEquippedWeapon();
+
             // select combat maneuver
             var motionCommand = GetCombatManeuver();
             if (motionCommand == null)
                 return 0.0f;
 
             DoSwingMotion(AttackTarget, motionCommand.Value, out float animLength, out var attackFrames);
-            PhysicsObj.stick_to_object(AttackTarget.PhysicsObj.ID);
+
+            if (!AiImmobile)
+                PhysicsObj.stick_to_object(AttackTarget.PhysicsObj.ID);
 
             var numStrikes = attackFrames.Count;
 
             var actionChain = new ActionChain();
 
+            // handle self-procs
+            TryProcEquippedItems(this, this, true, weapon);
+
             var prevTime = 0.0f;
+            bool targetProc = false;
+
             for (var i = 0; i < numStrikes; i++)
             {
-                actionChain.AddDelaySeconds(attackFrames[i] * animLength - prevTime);
-                prevTime = attackFrames[i] * animLength;
+                actionChain.AddDelaySeconds(attackFrames[i].time * animLength - prevTime);
+                prevTime = attackFrames[i].time * animLength;
 
                 actionChain.AddAction(this, () =>
                 {
-                    if (AttackTarget == null || IsDead) return;
+                    if (AttackTarget == null || IsDead || target.IsDead) return;
 
                     if (WeenieType == WeenieType.GamePiece)
                     {
@@ -80,21 +96,13 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    var weapon = GetEquippedWeapon();
-                    var damageEvent = DamageEvent.CalculateDamage(this, target, weapon, motionCommand);
+                    var damageEvent = DamageEvent.CalculateDamage(this, target, weapon, motionCommand, attackFrames[0].attackHook);
 
                     //var damage = CalculateDamage(ref damageType, maneuver, bodyPart, ref critical, ref shieldMod);
 
                     if (damageEvent.HasDamage)
                     {
-                        if (combatPet != null || targetPet != null)
-                        {
-                            // combat pet inflicting or receiving damage
-                            //Console.WriteLine($"{target.Name} taking {Math.Round(damage)} {damageType} damage from {Name}");
-                            target.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage);
-                            EmitSplatter(target, damageEvent.Damage);
-                        }
-                        else if (targetPlayer != null)
+                        if (targetPlayer != null)
                         {
                             // this is a player taking damage
                             targetPlayer.TakeDamage(this, damageEvent);
@@ -104,6 +112,29 @@ namespace ACE.Server.WorldObjects
                                 var shieldSkill = targetPlayer.GetCreatureSkill(Skill.Shield);
                                 Proficiency.OnSuccessUse(targetPlayer, shieldSkill, shieldSkill.Current); // ?
                             }
+
+                            // handle Dirty Fighting
+                            if (GetCreatureSkill(Skill.DirtyFighting).AdvancementClass >= SkillAdvancementClass.Trained)
+                                FightDirty(targetPlayer, damageEvent.Weapon);
+                        }
+                        else if (combatPet != null || targetPet != null || Faction1Bits != null || target.Faction1Bits != null || PotentialFoe(target))
+                        {
+                            // combat pet inflicting or receiving damage
+                            //Console.WriteLine($"{target.Name} taking {Math.Round(damage)} {damageType} damage from {Name}");
+                            target.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage);
+
+                            EmitSplatter(target, damageEvent.Damage);
+
+                            // handle Dirty Fighting
+                            if (GetCreatureSkill(Skill.DirtyFighting).AdvancementClass >= SkillAdvancementClass.Trained)
+                                FightDirty(target, damageEvent.Weapon);
+                        }
+
+                        // handle target procs
+                        if (!targetProc)
+                        {
+                            TryProcEquippedItems(this, target, false, weapon);
+                            targetProc = true;
                         }
                     }
                     else
@@ -111,13 +142,19 @@ namespace ACE.Server.WorldObjects
 
                     if (combatPet != null)
                         combatPet.PetOnAttackMonster(target);
+                    else if (targetPlayer == null)
+                        MonsterOnAttackMonster(target);
                 });
             }
             actionChain.EnqueueChain();
 
-            // TODO: figure out exact speed / delay formula
-            var meleeDelay = ThreadSafeRandom.Next(MeleeDelayMin, MeleeDelayMax);
-            NextAttackTime = Timers.RunningTime + animLength + meleeDelay;
+            PrevAttackTime = Timers.RunningTime;
+            NextMoveTime = PrevAttackTime + animLength + 0.5f;
+
+            var meleeDelay = ThreadSafeRandom.Next(0.0f, (float)(PowerupTime ?? 1.0f));
+
+            NextAttackTime = PrevAttackTime + animLength + meleeDelay;
+
             return animLength;
         }
 
@@ -149,7 +186,7 @@ namespace ACE.Server.WorldObjects
                 return null;
             }
 
-            var stanceKey = (uint)CurrentMotionState.Stance << 16 | ((uint)MotionCommand.Ready & 0xFFFFF);
+            var stanceKey = (uint)CurrentMotionState.Stance << 16 | ((uint)MotionCommand.Ready & 0xFFFFFF);
             motionTable.Links.TryGetValue(stanceKey, out var motions);
             if (motions == null)
             {
@@ -196,9 +233,11 @@ namespace ACE.Server.WorldObjects
 
             if (!attackTypes.Table.TryGetValue(AttackType, out var maneuvers) || maneuvers.Count == 0)
             {
-                if (AttackType == AttackType.Kick)
+                if (AttackType == AttackType.Punch && AttackHeight == ACE.Entity.Enum.AttackHeight.Low || AttackType == AttackType.Kick)
                 {
-                    AttackType = AttackType.Punch;
+                    // 27864 - Mosswart Muckstalker w/ a katar, low punch not found in CMT, but contains kick
+                    // might need additional research
+                    AttackType = AttackType == AttackType.Punch ? AttackType.Kick : AttackType.Punch;
 
                     if (!attackTypes.Table.TryGetValue(AttackType, out maneuvers) || maneuvers.Count == 0)
                     {
@@ -289,13 +328,22 @@ namespace ACE.Server.WorldObjects
             }*/
         }
 
+        private static readonly List<(float time, AttackHook attackHook)> defaultAttackFrames = new List<(float time, AttackHook attackHook)>() { ( 1.0f / 3.0f, null ) };
+
+        private static readonly ConcurrentDictionary<AttackFrameParams, bool> missingAttackFrames = new ConcurrentDictionary<AttackFrameParams, bool>();
+
+        private bool moveBit;
+
         /// <summary>
         /// Perform the melee attack swing animation
         /// </summary>
-        public void DoSwingMotion(WorldObject target, MotionCommand motionCommand, out float animLength, out List<float> attackFrames)
+        public void DoSwingMotion(WorldObject target, MotionCommand motionCommand, out float animLength, out List<(float time, AttackHook attackHook)> attackFrames)
         {
-            if (ForcePos)
-                SendUpdatePosition();
+            if (!moveBit)
+            {
+                SendUpdatePosition(true);
+                moveBit = true;
+            }
 
             //Console.WriteLine($"{maneuver.Style} - {maneuver.Motion} - {maneuver.AttackHeight}");
 
@@ -307,8 +355,21 @@ namespace ACE.Server.WorldObjects
 
             attackFrames = MotionTable.GetAttackFrames(MotionTableId, CurrentMotionState.Stance, motionCommand);
 
+            if (attackFrames.Count == 0)
+            {
+                var attackFrameParams = new AttackFrameParams(MotionTableId, CurrentMotionState.Stance, motionCommand);
+                if (!missingAttackFrames.ContainsKey(attackFrameParams))
+                {
+                    // only show warning message once for each combo
+                    log.Warn($"{Name} ({Guid}) - no attack frames for MotionTable {MotionTableId:X8}, {CurrentMotionState.Stance}, {motionCommand}, using defaults");
+                    missingAttackFrames.TryAdd(attackFrameParams, true);
+                }
+                attackFrames = defaultAttackFrames;
+            }
+
             var motion = new Motion(this, motionCommand, animSpeed);
             motion.MotionState.TurnSpeed = 2.25f;
+
             if (!AiImmobile)
                 motion.MotionFlags |= MotionFlags.StickToObject;
 
@@ -321,7 +382,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns base damage range for next monster attack
         /// </summary>
-        public BaseDamageMod GetBaseDamage(BiotaPropertiesBodyPart attackPart)
+        public BaseDamageMod GetBaseDamage(PropertiesBodyPart attackPart)
         {
             if (CurrentAttack == CombatType.Missile && GetMissileAmmo() != null)
                 return GetMissileDamage();
@@ -361,7 +422,7 @@ namespace ACE.Server.WorldObjects
         /// Returns the percent of damage absorbed by layered armor + clothing
         /// </summary>
         /// <param name="armors">The list of armor/clothing covering the targeted body part</param>
-        public float GetArmorMod(DamageType damageType, List<WorldObject> armors, WorldObject weapon, float armorRendingMod = 1.0f)
+        public float GetArmorMod(Creature defender, DamageType damageType, List<WorldObject> armors, WorldObject weapon, float armorRendingMod = 1.0f)
         {
             var ignoreMagicArmor =  (weapon?.IgnoreMagicArmor ?? false)  || IgnoreMagicArmor;
             var ignoreMagicResist = (weapon?.IgnoreMagicResist ?? false) || IgnoreMagicResist;
@@ -373,7 +434,7 @@ namespace ACE.Server.WorldObjects
 
             // life spells
             // additive: armor/imperil
-            var bodyArmorMod = AttackTarget.EnchantmentManager.GetBodyArmorMod();
+            var bodyArmorMod = defender.EnchantmentManager.GetBodyArmorMod();
             if (ignoreMagicResist)
                 bodyArmorMod = IgnoreMagicResistScaled(bodyArmorMod);
 
@@ -397,20 +458,20 @@ namespace ACE.Server.WorldObjects
             return armorMod;
         }
 
-        public int IgnoreMagicArmorScaled(float enchantments)
+        public float IgnoreMagicArmorScaled(float enchantments)
         {
             if (!(this is Player))
-                return 0;
+                return 0.0f;
 
             var scalar = PropertyManager.GetDouble("ignore_magic_armor_pvp_scalar").Item;
 
             if (scalar != 1.0)
-                return (int)Math.Round(enchantments * (1.0 - scalar));
+                return (float)(enchantments * (1.0 - scalar));
             else
-                return 0;
+                return 0.0f;
         }
 
-        public int IgnoreMagicResistScaled(float enchantments)
+        public int IgnoreMagicResistScaled(int enchantments)
         {
             if (!(this is Player))
                 return 0;
@@ -440,12 +501,10 @@ namespace ACE.Server.WorldObjects
             Console.WriteLine("Base RL: " + resistance);*/
 
             // armor level additives
-            var target = AttackTarget as Creature;
-
             var armorMod = armor.EnchantmentManager.GetArmorMod();
 
             if (ignoreMagicArmor)
-                armorMod = IgnoreMagicArmorScaled(armorMod);
+                armorMod = (int)Math.Round(IgnoreMagicArmorScaled(armorMod));
 
             // Console.WriteLine("Impen: " + armorMod);
             var effectiveAL = baseArmor + armorMod;
@@ -463,8 +522,8 @@ namespace ACE.Server.WorldObjects
             effectiveRL = Math.Clamp(effectiveRL, -2.0f, 2.0f);
 
             // TODO: could brittlemail / lures send a piece of armor or clothing's AL into the negatives?
-            if (effectiveAL < 0)
-                effectiveRL = 1.0f / effectiveRL;
+            //if (effectiveAL < 0 && effectiveRL != 0)
+                //effectiveRL = 1.0f / effectiveRL;
 
             /*Console.WriteLine("Effective AL: " + effectiveAL);
             Console.WriteLine("Effective RL: " + effectiveRL);
@@ -528,24 +587,31 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the monster body part performing the next attack
         /// </summary>
-        public BiotaPropertiesBodyPart GetAttackPart(MotionCommand motionCommand)
+        public KeyValuePair<CombatBodyPart, PropertiesBodyPart> GetAttackPart(MotionCommand motionCommand, AttackHook attackHook)
         {
-            List<BiotaPropertiesBodyPart> parts = null;
-            var attackHeight = (uint)AttackHeight;
+            List<KeyValuePair<CombatBodyPart, PropertiesBodyPart>> parts = null;
 
-            if (motionCommand >= MotionCommand.SpecialAttack1 && motionCommand <= MotionCommand.SpecialAttack3)
+            // todo: speed up key lookup?
+            if (attackHook != null)
+            {
+                parts = Biota.PropertiesBodyPart.Where(b => (uint)b.Key == attackHook.AttackCone.PartIndex).ToList();
+            }
+            else if (motionCommand >= MotionCommand.SpecialAttack1 && motionCommand <= MotionCommand.SpecialAttack3)
+            {
                 //parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH == 0).ToList();
-                parts = Biota.BiotaPropertiesBodyPart.Where(b => b.Key == (int)CombatBodyPart.Breath).ToList();  // always use Breath?
+                parts = Biota.PropertiesBodyPart.Where(b => b.Key == CombatBodyPart.Breath).ToList(); // always use Breath?
+            }
 
-            if (parts == null)
+            // added parts.Count check for monsters wielding weapons -- should we be getting a body part here?
+            if (parts == null || parts.Count == 0)
                 //parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH != 0).ToList();
-                parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.Key != (int)CombatBodyPart.Breath).ToList();
+                parts = Biota.PropertiesBodyPart.Where(b => b.Value.DVal != 0 && b.Key != CombatBodyPart.Breath).ToList();
 
             if (parts.Count == 0)
             {
                 log.Warn($"{Name} ({Guid}.GetAttackPart({motionCommand}) failed");
                 log.Warn($"CombatTable: {CombatTableDID:X8}, MotionTable: {MotionTableId:X8}, CurrentStance: {CurrentMotionState.Stance}, AttackHeight: {AttackHeight}, AttackType: {AttackType}");
-                return null;
+                return new KeyValuePair<CombatBodyPart, PropertiesBodyPart>();
             }
 
             var part = parts[ThreadSafeRandom.Next(0, parts.Count - 1)];

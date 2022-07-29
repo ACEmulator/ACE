@@ -97,7 +97,7 @@ namespace ACE.Database.Models.Auth
             byte[] buffer = passwordBytes.Concat(saltBytes).ToArray();
             byte[] hash;
 
-            using (SHA512Managed hasher = new SHA512Managed())
+            using (var hasher = SHA512.Create())
                 hash = hasher.ComputeHash(buffer);
 
             return Convert.ToBase64String(hash);
@@ -108,6 +108,16 @@ namespace ACE.Database.Models.Auth
             account.LastLoginIP = address.GetAddressBytes();
             account.LastLoginTime = DateTime.UtcNow;
             account.TotalTimesLoggedIn++;
+
+            DatabaseManager.Authentication.UpdateAccount(account);
+        }
+
+        public static void UnBan(this Account account)
+        {
+            account.BanExpireTime = null;
+            account.BannedByAccountId = null;
+            account.BannedTime = null;
+            account.BanReason = null;
 
             DatabaseManager.Authentication.UpdateAccount(account);
         }

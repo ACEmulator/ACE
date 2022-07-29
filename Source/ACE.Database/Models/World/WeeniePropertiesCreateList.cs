@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#nullable disable
+
 namespace ACE.Database.Models.World
 {
     public partial class WeeniePropertiesCreateList
@@ -14,6 +16,6 @@ namespace ACE.Database.Models.World
         public float Shade { get; set; }
         public bool TryToBond { get; set; }
 
-        public Weenie Object { get; set; }
+        public virtual Weenie Object { get; set; }
     }
 }

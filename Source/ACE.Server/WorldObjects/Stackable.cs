@@ -3,8 +3,6 @@ using System;
 using ACE.Entity;
 using ACE.Entity.Models;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     public class Stackable : WorldObject
@@ -62,6 +60,11 @@ namespace ACE.Server.WorldObjects
                 EncumbranceVal = (StackUnitEncumbrance ?? 0) * (StackSize ?? 1);
                 Value = (StackUnitValue ?? 0) * (StackSize ?? 1);
             }
+        }
+
+        public override void ActOnUse(WorldObject wo)
+        {
+            // Do nothing
         }
     }
 }

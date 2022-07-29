@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects.Entity;
 
@@ -24,6 +24,19 @@ namespace ACE.Server.WorldObjects.Managers
             }
         }
 
+        private bool? hasVitae;
+
+        public override bool HasVitae
+        {
+            get
+            {
+                if (hasVitae == null)
+                    hasVitae = base.HasVitae;
+
+                return hasVitae.Value;
+            }
+        }
+
         /// <summary>
         /// Constructs a new EnchantmentManager for a WorldObject
         /// </summary>
@@ -34,9 +47,9 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// Add/update an enchantment in this object's registry
         /// </summary>
-        public override AddEnchantmentResult Add(Spell spell, WorldObject caster, bool equip = false)
+        public override AddEnchantmentResult Add(Spell spell, WorldObject caster, WorldObject weapon, bool equip = false)
         {
-            var result = base.Add(spell, caster, equip);
+            var result = base.Add(spell, caster, weapon, equip);
 
             ClearCache();
 
@@ -47,7 +60,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// Removes a spell from the enchantment registry, and
         /// sends the relevant network messages for spell removal
         /// </summary>
-        public override void Remove(BiotaPropertiesEnchantmentRegistry entry, bool sound = true)
+        public override void Remove(PropertiesEnchantmentRegistry entry, bool sound = true)
         {
             base.Remove(entry, sound);
 
@@ -58,7 +71,7 @@ namespace ACE.Server.WorldObjects.Managers
 
             if (Player != null)
             {
-                if (entry.SpellCategory != SpellCategory_Cooldown)
+                if (entry.SpellCategory != (SpellCategory)SpellCategory_Cooldown)
                 {
                     var spell = new Spell(entry.SpellId);
                     Player.HandleSpellHooks(spell);
@@ -106,7 +119,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// Silently removes a spell from the enchantment registry, and sends the relevant network message for dispel
         /// </summary>
-        public override void Dispel(BiotaPropertiesEnchantmentRegistry entry)
+        public override void Dispel(PropertiesEnchantmentRegistry entry)
         {
             base.Dispel(entry);
 
@@ -125,7 +138,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// <summary>
         /// Silently removes multiple spells from the enchantment registry, and sends the relevent network messages for dispel
         /// </summary>
-        public override void Dispel(List<BiotaPropertiesEnchantmentRegistry> entries)
+        public override void Dispel(List<PropertiesEnchantmentRegistry> entries)
         {
             base.Dispel(entries);
 
@@ -145,12 +158,16 @@ namespace ACE.Server.WorldObjects.Managers
         private void ClearCache()
         {
             hasEnchantments = null;
+            hasVitae = null;
 
-            attributeModCache.Clear();
+            attributeModAdditiveCache.Clear();
+            attributeModMultiplierCache.Clear();
+
             vitalModAdditiveCache.Clear();
             vitalModMultiplierCache.Clear();
 
-            skillModCache.Clear();
+            skillModAdditiveCache.Clear();
+            skillModMultiplierCache.Clear();
 
             bodyArmorModCache = null;
             resistanceModCache.Clear();
@@ -169,24 +186,41 @@ namespace ACE.Server.WorldObjects.Managers
             armorModCache = null;
             armorModVsTypeModCache.Clear();
             ratingCache.Clear();
-            xpModCache = null;
+            netherDotDamageRatingCache = null;
+            xpBonusCache = null;
             resistLockpickCache = null;
         }
 
 
-        private readonly Dictionary<PropertyAttribute, int> attributeModCache = new Dictionary<PropertyAttribute, int>();
+        private readonly Dictionary<PropertyAttribute, int> attributeModAdditiveCache = new Dictionary<PropertyAttribute, int>();
+        private readonly Dictionary<PropertyAttribute, float> attributeModMultiplierCache = new Dictionary<PropertyAttribute, float>();
 
         /// <summary>
-        /// Returns the bonus to an attribute from enchantments
+        /// Returns the additive modifiers to an attribute from enchantments
         /// </summary>
-        public override int GetAttributeMod(PropertyAttribute attribute)
+        public override int GetAttributeMod_Additive(PropertyAttribute attribute)
         {
-            if (attributeModCache.TryGetValue(attribute, out var value))
+            if (attributeModAdditiveCache.TryGetValue(attribute, out var value))
                 return value;
 
-            value = base.GetAttributeMod(attribute);
+            value = base.GetAttributeMod_Additive(attribute);
 
-            attributeModCache[attribute] = value;
+            attributeModAdditiveCache[attribute] = value;
+
+            return value;
+        }
+
+        /// <summary>
+        /// Returns the multiplicative modifiers to an attribute from enchantments
+        /// </summary>
+        public override float GetAttributeMod_Multiplier(PropertyAttribute attribute)
+        {
+            if (attributeModMultiplierCache.TryGetValue(attribute, out var value))
+                return value;
+
+            value = base.GetAttributeMod_Multiplier(attribute);
+
+            attributeModMultiplierCache[attribute] = value;
 
             return value;
         }
@@ -224,23 +258,38 @@ namespace ACE.Server.WorldObjects.Managers
             return value;
         }
 
-        private readonly Dictionary<Skill, int> skillModCache = new Dictionary<Skill, int>();
+        private readonly Dictionary<Skill, int> skillModAdditiveCache = new Dictionary<Skill, int>();
+        private readonly Dictionary<Skill, float> skillModMultiplierCache = new Dictionary<Skill, float>();
 
         /// <summary>
-        /// Returns the bonus to a skill from enchantments
+        /// Returns the additive modifiers to a skill from enchantments
         /// </summary>
-        public override int GetSkillMod(Skill skill)
+        public override int GetSkillMod_Additives(Skill skill)
         {
-            if (skillModCache.TryGetValue(skill, out var value))
+            if (skillModAdditiveCache.TryGetValue(skill, out var value))
                 return value;
 
-            value = base.GetSkillMod(skill);
+            value = base.GetSkillMod_Additives(skill);
 
-            skillModCache[skill] = value;
+            skillModAdditiveCache[skill] = value;
 
             return value;
         }
 
+        /// <summary>
+        /// Returns the multiplicative modifiers to a skill from enchantments
+        /// </summary>
+        public override float GetSkillMod_Multiplier(Skill skill)
+        {
+            if (skillModMultiplierCache.TryGetValue(skill, out var value))
+                return value;
+
+            value = base.GetSkillMod_Multiplier(skill);
+
+            skillModMultiplierCache[skill] = value;
+
+            return value;
+        }
 
         private int? bodyArmorModCache;
 
@@ -506,14 +555,24 @@ namespace ACE.Server.WorldObjects.Managers
             return value;
         }
 
-        private float? xpModCache;
+        private int? netherDotDamageRatingCache;
 
-        public override float GetXPMod()
+        public override int GetNetherDotDamageRating()
         {
-            if (xpModCache == null)
-                xpModCache = base.GetXPMod();
+            if (netherDotDamageRatingCache == null)
+                netherDotDamageRatingCache = base.GetNetherDotDamageRating();
 
-            return xpModCache.Value;
+            return netherDotDamageRatingCache.Value;
+        }
+
+        private float? xpBonusCache;
+
+        public override float GetXPBonus()
+        {
+            if (xpBonusCache == null)
+                xpBonusCache = base.GetXPBonus();
+
+            return xpBonusCache.Value;
         }
 
         public override bool StartCooldown(WorldObject item)

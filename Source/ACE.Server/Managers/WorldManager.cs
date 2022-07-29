@@ -9,8 +9,9 @@ using ACE.Common;
 using ACE.Common.Performance;
 using ACE.Database;
 using ACE.Database.Entity;
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
@@ -21,6 +22,7 @@ using ACE.Server.Network.Managers;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Common;
 
+using Character = ACE.Database.Models.Shard.Character;
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Managers
@@ -42,7 +44,7 @@ namespace ACE.Server.Managers
 
         public static WorldStatusState WorldStatus { get; private set; } = WorldStatusState.Closed;
 
-        private static readonly ActionQueue actionQueue = new ActionQueue();
+        public static readonly ActionQueue ActionQueue = new ActionQueue();
         public static readonly DelayManager DelayManager = new DelayManager();
 
         static WorldManager()
@@ -103,7 +105,7 @@ namespace ACE.Server.Managers
             {
                 log.Debug($"GetPossessedBiotasInParallel for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
 
-                actionQueue.EnqueueAction(new ActionEventDelegate(() => DoPlayerEnterWorld(session, character, offlinePlayer.Biota, biotas)));
+                ActionQueue.EnqueueAction(new ActionEventDelegate(() => DoPlayerEnterWorld(session, character, offlinePlayer.Biota, biotas)));
             });
         }
 
@@ -111,7 +113,7 @@ namespace ACE.Server.Managers
         {
             Player player;
 
-            Player.HandleNoLogLandblock(playerBiota);
+            Player.HandleNoLogLandblock(playerBiota, out var playerLoggedInOnNoLogLandblock);
 
             var stripAdminProperties = false;
             var addAdminProperties = false;
@@ -120,36 +122,36 @@ namespace ACE.Server.Managers
             {
                 if (session.AccessLevel <= AccessLevel.Advocate) // check for elevated characters
                 {
-                    if (playerBiota.WeenieType == (int)WeenieType.Admin || playerBiota.WeenieType == (int)WeenieType.Sentinel) // Downgrade weenie
+                    if (playerBiota.WeenieType == WeenieType.Admin || playerBiota.WeenieType == WeenieType.Sentinel) // Downgrade weenie
                     {
                         character.IsPlussed = false;
-                        playerBiota.WeenieType = (int)WeenieType.Creature;
+                        playerBiota.WeenieType = WeenieType.Creature;
                         stripAdminProperties = true;
                     }
                 }
                 else if (session.AccessLevel >= AccessLevel.Sentinel && session.AccessLevel <= AccessLevel.Envoy)
                 {
-                    if (playerBiota.WeenieType == (int)WeenieType.Creature || playerBiota.WeenieType == (int)WeenieType.Admin) // Up/downgrade weenie
+                    if (playerBiota.WeenieType == WeenieType.Creature || playerBiota.WeenieType == WeenieType.Admin) // Up/downgrade weenie
                     {
                         character.IsPlussed = true;
-                        playerBiota.WeenieType = (int)WeenieType.Sentinel;
+                        playerBiota.WeenieType = WeenieType.Sentinel;
                         addSentinelProperties = true;
                     }
                 }
                 else // Developers and Admins
                 {
-                    if (playerBiota.WeenieType == (int)WeenieType.Creature || playerBiota.WeenieType == (int)WeenieType.Sentinel) // Up/downgrade weenie
+                    if (playerBiota.WeenieType == WeenieType.Creature || playerBiota.WeenieType == WeenieType.Sentinel) // Up/downgrade weenie
                     {
                         character.IsPlussed = true;
-                        playerBiota.WeenieType = (int)WeenieType.Admin;
+                        playerBiota.WeenieType = WeenieType.Admin;
                         addAdminProperties = true;
                     }
                 }
             }
 
-            if (playerBiota.WeenieType == (int)WeenieType.Admin)
+            if (playerBiota.WeenieType == WeenieType.Admin)
                 player = new Admin(playerBiota, possessedBiotas.Inventory, possessedBiotas.WieldedItems, character, session);
-            else if (playerBiota.WeenieType == (int)WeenieType.Sentinel)
+            else if (playerBiota.WeenieType == WeenieType.Sentinel)
                 player = new Sentinel(playerBiota, possessedBiotas.Inventory, possessedBiotas.WieldedItems, character, session);
             else
                 player = new Player(playerBiota, possessedBiotas.Inventory, possessedBiotas.WieldedItems, character, session);
@@ -160,7 +162,7 @@ namespace ACE.Server.Managers
             {
                 player.CloakStatus = CloakStatus.Undef;
                 player.Attackable = true;
-                player.SetProperty(ACE.Entity.Enum.Properties.PropertyBool.DamagedByCollisions, true);
+                player.SetProperty(PropertyBool.DamagedByCollisions, true);
                 player.AdvocateLevel = null;
                 player.ChannelsActive = null;
                 player.ChannelsAllowed = null;
@@ -169,6 +171,7 @@ namespace ACE.Server.Managers
                 player.IgnoreHouseBarriers = false;
                 player.IgnorePortalRestrictions = false;
                 player.SafeSpellComponents = false;
+                player.ReportCollisions = true;
 
 
                 player.ChangesDetected = true;
@@ -188,10 +191,10 @@ namespace ACE.Server.Managers
                 {
                     player.CloakStatus = CloakStatus.Off;
                     player.Attackable = weenie.Attackable;
-                    player.SetProperty(ACE.Entity.Enum.Properties.PropertyBool.DamagedByCollisions, false);
-                    player.AdvocateLevel = weenie.GetProperty(ACE.Entity.Enum.Properties.PropertyInt.AdvocateLevel);
-                    player.ChannelsActive = (Channel?)weenie.GetProperty(ACE.Entity.Enum.Properties.PropertyInt.ChannelsActive);
-                    player.ChannelsAllowed = (Channel?)weenie.GetProperty(ACE.Entity.Enum.Properties.PropertyInt.ChannelsAllowed);
+                    player.SetProperty(PropertyBool.DamagedByCollisions, false);
+                    player.AdvocateLevel = weenie.GetProperty(PropertyInt.AdvocateLevel);
+                    player.ChannelsActive = (Channel?)weenie.GetProperty(PropertyInt.ChannelsActive);
+                    player.ChannelsAllowed = (Channel?)weenie.GetProperty(PropertyInt.ChannelsAllowed);
                     player.Invincible = false;
                     player.Cloaked = false;
 
@@ -209,6 +212,10 @@ namespace ACE.Server.Managers
                 else
                     session.Player.Location = new Position(0xA9B40019, 84, 7.1f, 94, 0, 0, -0.0784591f, 0.996917f);  // ultimate fallback
             }
+
+            var olthoiPlayerReturnedToLifestone = session.Player.IsOlthoiPlayer && character.TotalLogins >= 1 && session.Player.LoginAtLifestone;
+            if (olthoiPlayerReturnedToLifestone)
+                session.Player.Location = new Position(session.Player.Sanctuary);
 
             session.Player.PlayerEnterWorld();
 
@@ -233,13 +240,24 @@ namespace ACE.Server.Managers
                 actionChain.EnqueueChain();
             }
 
+            // These warnings are set by DDD_InterrogationResponse
+            if ((session.DatWarnCell || session.DatWarnLanguage || session.DatWarnPortal) && PropertyManager.GetBool("show_dat_warning").Item)
+            {
+                var msg = PropertyManager.GetString("dat_warning_msg").Item;
+                var chatMsg = new GameMessageSystemChat(msg, ChatMessageType.System);
+                session.Network.EnqueueSend(chatMsg);
+            }
+
             var popup_header = PropertyManager.GetString("popup_header").Item;
             var popup_motd = PropertyManager.GetString("popup_motd").Item;
-            var popup_welcome = PropertyManager.GetString("popup_welcome").Item;
+            var popup_welcome = player.IsOlthoiPlayer ? PropertyManager.GetString("popup_welcome_olthoi").Item : PropertyManager.GetString("popup_welcome").Item;
 
             if (character.TotalLogins <= 1)
             {
-                session.Network.EnqueueSend(new GameEventPopupString(session, AppendLines(popup_header, popup_motd, popup_welcome)));
+                if (player.IsOlthoiPlayer)
+                    session.Network.EnqueueSend(new GameEventPopupString(session, AppendLines(popup_welcome, popup_motd)));
+                else
+                    session.Network.EnqueueSend(new GameEventPopupString(session, AppendLines(popup_header, popup_motd, popup_welcome)));
             }
             else if (!string.IsNullOrEmpty(popup_motd))
             {
@@ -252,6 +270,11 @@ namespace ACE.Server.Managers
             var server_motd = PropertyManager.GetString("server_motd").Item;
             if (!string.IsNullOrEmpty(server_motd))
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{server_motd}\n", ChatMessageType.Broadcast));
+
+            if (olthoiPlayerReturnedToLifestone)
+                session.Network.EnqueueSend(new GameMessageSystemChat("You have returned to the Olthoi Queen to serve the hive.", ChatMessageType.Broadcast));
+            else if (playerLoggedInOnNoLogLandblock) // see http://acpedia.org/wiki/Mount_Elyrii_Hive
+                session.Network.EnqueueSend(new GameMessageSystemChat("The currents of portal space cannot return you from whence you came. Your previous location forbids login.", ChatMessageType.Broadcast));            
         }
 
         private static string AppendLines(params string[] lines)
@@ -271,11 +294,11 @@ namespace ACE.Server.Managers
         /// Note that this work will be done on the next tick, not immediately, so be careful about your order of operations.
         /// If you must ensure order, pass your follow up work in with the argument actionToFollowUpWith. That work will be enqueued onto the Player.
         /// </summary>
-        public static void ThreadSafeTeleport(Player player, Position newPosition, IAction actionToFollowUpWith = null)
+        public static void ThreadSafeTeleport(Player player, Position newPosition, IAction actionToFollowUpWith = null, bool fromPortal = false)
         {
             EnqueueAction(new ActionEventDelegate(() =>
             {
-                player.Teleport(newPosition);
+                player.Teleport(newPosition, fromPortal);
 
                 if (actionToFollowUpWith != null)
                     EnqueueAction(actionToFollowUpWith);
@@ -284,7 +307,7 @@ namespace ACE.Server.Managers
 
         public static void EnqueueAction(IAction action)
         {
-            actionQueue.EnqueueAction(action);
+            ActionQueue.EnqueueAction(action);
         }
 
         private static readonly RateLimiter updateGameWorldRateLimiter = new RateLimiter(60, TimeSpan.FromSeconds(1));
@@ -342,7 +365,7 @@ namespace ACE.Server.Managers
 
                 // This will consist of PlayerEnterWorld actions, as well as other game world actions that require thread safety
                 ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.actionQueue_RunActions);
-                actionQueue.RunActions();
+                ActionQueue.RunActions();
                 ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.actionQueue_RunActions);
 
                 ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.DelayManager_RunActions);

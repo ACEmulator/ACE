@@ -128,7 +128,6 @@ namespace ACE.DatLoader.FileTypes
             switch (Format)
             {
                 case SurfacePixelFormat.PFID_R8G8B8: // RGB
-                case SurfacePixelFormat.PFID_CUSTOM_LSCAPE_R8G8B8:
                     using (BinaryReader reader = new BinaryReader(new MemoryStream(SourceData)))
                     {
                         for (uint i = 0; i < Height; i++)
@@ -137,6 +136,20 @@ namespace ACE.DatLoader.FileTypes
                                 byte b = reader.ReadByte();
                                 byte g = reader.ReadByte();
                                 byte r = reader.ReadByte();
+                                int color = (r << 16) | (g << 8) | b;
+                                colors.Add(color);
+                            }
+                    }
+                    break;
+                case SurfacePixelFormat.PFID_CUSTOM_LSCAPE_R8G8B8:
+                    using (BinaryReader reader = new BinaryReader(new MemoryStream(SourceData)))
+                    {
+                        for (uint i = 0; i < Height; i++)
+                            for (uint j = 0; j < Width; j++)
+                            {
+                                byte r = reader.ReadByte();
+                                byte g = reader.ReadByte();
+                                byte b = reader.ReadByte();
                                 int color = (r << 16) | (g << 8) | b;
                                 colors.Add(color);
                             }

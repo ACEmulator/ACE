@@ -3,7 +3,9 @@ using System.Collections.Generic;
 
 using log4net;
 
+using ACE.Common;
 using ACE.Database;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
@@ -12,6 +14,7 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
+
 
 namespace ACE.Server.Command.Handlers
 {
@@ -25,7 +28,7 @@ namespace ACE.Server.Command.Handlers
             "")]
         public static void HandlePop(Session session, params string[] parameters)
         {
-            session.Network.EnqueueSend(new GameMessageSystemChat($"Current world population: {PlayerManager.GetOnlineCount().ToString()}\n", ChatMessageType.Broadcast));
+            CommandHandlerHelper.WriteOutputInfo(session, $"Current world population: {PlayerManager.GetOnlineCount():N0}", ChatMessageType.Broadcast);
         }
 
         // quest info (uses GDLe formatting to match plugin expectations)
@@ -38,7 +41,15 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            foreach (var playerQuest in session.Player.QuestManager.Quests)
+            var quests = session.Player.QuestManager.GetQuests();
+
+            if (quests.Count == 0)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("Quest list is empty.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            foreach (var playerQuest in quests)
             {
                 var text = "";
                 var questName = QuestManager.GetQuestName(playerQuest.QuestName);
@@ -48,8 +59,13 @@ namespace ACE.Server.Command.Handlers
                     Console.WriteLine($"Couldn't find quest {playerQuest.QuestName}");
                     continue;
                 }
+
+                var minDelta = quest.MinDelta;
+                if (QuestManager.CanScaleQuestMinDelta(quest))
+                    minDelta = (uint)(quest.MinDelta * PropertyManager.GetDouble("quest_mindelta_rate").Item);
+
                 text += $"{playerQuest.QuestName.ToLower()} - {playerQuest.NumTimesCompleted} solves ({playerQuest.LastTimeCompleted})";
-                text += $"\"{quest.Message}\" {quest.MaxSolves} {quest.MinDelta}";
+                text += $"\"{quest.Message}\" {quest.MaxSolves} {minDelta}";
 
                 session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
             }
@@ -90,11 +106,12 @@ namespace ACE.Server.Command.Handlers
             // show confirmation popup
             if (!confirmed)
             {
-                var houseType = $"{keepHouse.HouseType}".ToLower();;
+                var houseType = $"{keepHouse.HouseType}".ToLower();
                 var loc = HouseManager.GetCoords(keepHouse.SlumLord.Location);
 
                 var msg = $"Are you sure you want to keep the {houseType} at\n{loc}?";
-                session.Player.ConfirmationManager.EnqueueSend(new Confirmation_Custom(session.Player.Guid, () => HandleHouseSelect(session, true, parameters)), msg);
+                if (!session.Player.ConfirmationManager.EnqueueSend(new Confirmation_Custom(session.Player.Guid, () => HandleHouseSelect(session, true, parameters)), msg))
+                    session.Player.SendWeenieError(WeenieError.ConfirmationInProgress);
                 return;
             }
 
@@ -314,6 +331,197 @@ namespace ACE.Server.Command.Handlers
 
             // update client
             session.Network.EnqueueSend(new GameEventPlayerDescription(session));
+        }
+
+        /// <summary>
+        /// Force resend of all visible objects known to this player. Can fix rare cases of invisible object bugs.
+        /// Can only be used once every 5 mins max.
+        /// </summary>
+        [CommandHandler("objsend", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Force resend of all visible objects known to this player. Can fix rare cases of invisible object bugs. Can only be used once every 5 mins max.")]
+        public static void HandleObjSend(Session session, params string[] parameters)
+        {
+            // a good repro spot for this is the first room after the door in facility hub
+            // in the portal drop / staircase room, the VisibleCells do not have the room after the door
+            // however, the room after the door *does* have the portal drop / staircase room in its VisibleCells (the inverse relationship is imbalanced)
+            // not sure how to fix this atm, seems like it triggers a client bug..
+
+            if (DateTime.UtcNow - session.Player.PrevObjSend < TimeSpan.FromMinutes(5))
+            {
+                session.Player.SendTransientError("You have used this command too recently!");
+                return;
+            }
+
+            var creaturesOnly = parameters.Length > 0 && parameters[0].Contains("creature", StringComparison.OrdinalIgnoreCase);
+
+            var knownObjs = session.Player.GetKnownObjects();
+
+            foreach (var knownObj in knownObjs)
+            {
+                if (creaturesOnly && !(knownObj is Creature))
+                    continue;
+
+                session.Player.RemoveTrackedObject(knownObj, false);
+                session.Player.TrackObject(knownObj);
+            }
+            session.Player.PrevObjSend = DateTime.UtcNow;
+        }
+
+        // show player ace server versions
+        [CommandHandler("aceversion", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Shows this server's version data")]
+        public static void HandleACEversion(Session session, params string[] parameters)
+        {
+            if (!PropertyManager.GetBool("version_info_enabled").Item)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("The command \"aceversion\" is not currently enabled on this server.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var msg = ServerBuildInfo.GetVersionInfo();
+
+            session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast));
+        }
+
+        // reportbug < code | content > < description >
+        [CommandHandler("reportbug", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 2,
+            "Generate a Bug Report",
+            "<category> <description>\n" +
+            "This command generates a URL for you to copy and paste into your web browser to submit for review by server operators and developers.\n" +
+            "Category can be the following:\n" +
+            "Creature\n" +
+            "NPC\n" +
+            "Item\n" +
+            "Quest\n" +
+            "Recipe\n" +
+            "Landblock\n" +
+            "Mechanic\n" +
+            "Code\n" +
+            "Other\n" +
+            "For the first three options, the bug report will include identifiers for what you currently have selected/targeted.\n" +
+            "After category, please include a brief description of the issue, which you can further detail in the report on the website.\n" +
+            "Examples:\n" +
+            "/reportbug creature Drudge Prowler is over powered\n" +
+            "/reportbug npc Ulgrim doesn't know what to do with Sake\n" +
+            "/reportbug quest I can't enter the portal to the Lost City of Frore\n" +
+            "/reportbug recipe I cannot combine Bundle of Arrowheads with Bundle of Arrowshafts\n" +
+            "/reportbug code I was killed by a Non-Player Killer\n"
+            )]
+        public static void HandleReportbug(Session session, params string[] parameters)
+        {
+            if (!PropertyManager.GetBool("reportbug_enabled").Item)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("The command \"reportbug\" is not currently enabled on this server.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var category = parameters[0];
+            var description = "";
+
+            for (var i = 1; i < parameters.Length; i++)
+                description += parameters[i] + " ";
+
+            description.Trim();
+
+            switch (category.ToLower())
+            {
+                case "creature":
+                case "npc":
+                case "quest":
+                case "item":
+                case "recipe":
+                case "landblock":
+                case "mechanic":
+                case "code":
+                case "other":
+                    break;
+                default:
+                    category = "Other";
+                    break;
+            }
+
+            var sn = ConfigManager.Config.Server.WorldName;
+            var c = session.Player.Name;
+
+            var st = "ACE";
+
+            //var versions = ServerBuildInfo.GetVersionInfo();
+            var databaseVersion = DatabaseManager.World.GetVersion();
+            var sv = ServerBuildInfo.FullVersion;
+            var pv = databaseVersion.PatchVersion;
+
+            //var ct = PropertyManager.GetString("reportbug_content_type").Item;
+            var cg = category.ToLower();
+
+            var w = "";
+            var g = "";
+
+            if (cg == "creature" || cg == "npc"|| cg == "item" || cg == "item")
+            {
+                var objectId = new ObjectGuid();
+                if (session.Player.HealthQueryTarget.HasValue || session.Player.ManaQueryTarget.HasValue || session.Player.CurrentAppraisalTarget.HasValue)
+                {
+                    if (session.Player.HealthQueryTarget.HasValue)
+                        objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
+                    else if (session.Player.ManaQueryTarget.HasValue)
+                        objectId = new ObjectGuid((uint)session.Player.ManaQueryTarget);
+                    else
+                        objectId = new ObjectGuid((uint)session.Player.CurrentAppraisalTarget);
+
+                    //var wo = session.Player.CurrentLandblock?.GetObject(objectId);
+
+                    var wo = session.Player.FindObject(objectId.Full, Player.SearchLocations.Everywhere);
+
+                    if (wo != null)
+                    {
+                        w = $"{wo.WeenieClassId}";
+                        g = $"0x{wo.Guid:X8}";
+                    }
+                }
+            }
+
+            var l = session.Player.Location.ToLOCString();
+
+            var issue = description;
+
+            var urlbase = $"https://www.accpp.net/bug?";
+
+            var url = urlbase;
+            if (sn.Length > 0)
+                url += $"sn={Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(sn))}";
+            if (c.Length > 0)
+                url += $"&c={Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(c))}";
+            if (st.Length > 0)
+                url += $"&st={Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(st))}";
+            if (sv.Length > 0)
+                url += $"&sv={Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(sv))}";
+            if (pv.Length > 0)
+                url += $"&pv={Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(pv))}";
+            //if (ct.Length > 0)
+            //    url += $"&ct={Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(ct))}";
+            if (cg.Length > 0)
+            {
+                if (cg == "npc")
+                    cg = cg.ToUpper();
+                else
+                    cg = char.ToUpper(cg[0]) + cg.Substring(1);
+                url += $"&cg={Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(cg))}";
+            }
+            if (w.Length > 0)
+                url += $"&w={Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(w))}";
+            if (g.Length > 0)
+                url += $"&g={Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(g))}";
+            if (l.Length > 0)
+                url += $"&l={Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(l))}";
+            if (issue.Length > 0)
+                url += $"&i={Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(issue))}";
+
+            var msg = "\n\n\n\n";
+            msg += "Bug Report - Copy and Paste the following URL into your browser to submit a bug report\n";
+            msg += "-=-\n";
+            msg += $"{url}\n";
+            msg += "-=-\n";
+            msg += "\n\n\n\n";
+
+            session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.AdminTell));
         }
     }
 }

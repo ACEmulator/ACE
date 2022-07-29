@@ -62,19 +62,21 @@ namespace ACE.DatLoader.FileTypes
             public Dictionary<AttackType, List<MotionCommand>> Table = new Dictionary<AttackType, List<MotionCommand>>();
         }
 
-        public MotionCommand GetMotion(MotionStance stance, AttackHeight attackHeight, AttackType attackType, MotionCommand prevMotion)
+        public static readonly List<MotionCommand> Invalid = new List<MotionCommand>() { MotionCommand.Invalid };
+
+        public List<MotionCommand> GetMotion(MotionStance stance, AttackHeight attackHeight, AttackType attackType, MotionCommand prevMotion)
         {
             if (!Stances.TryGetValue(stance, out var attackHeights))
-                return MotionCommand.Invalid;
+                return Invalid;
 
             if (!attackHeights.Table.TryGetValue(attackHeight, out var attackTypes))
-                return MotionCommand.Invalid;
+                return Invalid;
 
             if (!attackTypes.Table.TryGetValue(attackType, out var maneuvers))
-                return MotionCommand.Invalid;
+                return Invalid;
 
-            if (maneuvers.Count == 1)
-                return maneuvers[0];
+            //if (maneuvers.Count == 1)
+                //return maneuvers[0];
 
             /*Console.WriteLine($"CombatManeuverTable({Id:X8}).GetMotion({stance}, {attackHeight}, {attackType}) - found {maneuvers.Count} maneuvers");
             foreach (var maneuver in maneuvers)
@@ -85,7 +87,7 @@ namespace ACE.DatLoader.FileTypes
             // BackhandMed
 
             // rng, or alternate?
-            for (var i = 0; i < maneuvers.Count; i++)
+            /*for (var i = 0; i < maneuvers.Count; i++)
             {
                 var maneuver = maneuvers[i];
 
@@ -97,7 +99,11 @@ namespace ACE.DatLoader.FileTypes
                         return maneuvers[0];
                 }
             }
-            return maneuvers[0];
+            return maneuvers[0];*/
+
+            // if the CMT contains > 1 entries for this lookup, return both
+            // the code determines which motion to use based on the power bar
+            return maneuvers;
         }
 
         public void ShowCombatTable()

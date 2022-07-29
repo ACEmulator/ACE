@@ -9,8 +9,6 @@ using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     /// <summary>

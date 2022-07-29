@@ -6,6 +6,11 @@ namespace ACE.Entity.Models
 {
     public class PropertiesGenerator
     {
+        /// <summary>
+        /// This is only used to tie this property back to a specific database row
+        /// </summary>
+        public uint DatabaseRecordId { get; set; }
+
         public float Probability { get; set; }
         public uint WeenieClassId { get; set; }
         public float? Delay { get; set; }

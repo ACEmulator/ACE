@@ -14,8 +14,6 @@ using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     /// <summary>
@@ -29,7 +27,7 @@ namespace ACE.Server.WorldObjects
 
         public bool HasItem => Inventory != null && Inventory.Count > 0;
 
-        public WorldObject Item => Inventory != null ? Inventory.Values.FirstOrDefault() : null;
+        public WorldObject Item => Inventory?.Values.FirstOrDefault();
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -58,13 +56,19 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return new ActivationResult(false);
 
+            if (player.IsOlthoiPlayer)
+            {
+                player.SendWeenieError(WeenieError.OlthoiCannotInteractWithThat);
+                return new ActivationResult(false);
+            }
+
             if (player.IgnoreHouseBarriers)
                 return new ActivationResult(true);
 
-            var rootHouse = House.RootHouse;
-            var houseOwner = rootHouse.HouseOwner;
+            var rootHouse = House?.RootHouse;
+            var houseOwner = rootHouse?.HouseOwner;
 
-            var houseHooksVisible = rootHouse.HouseHooksVisible ?? true;
+            var houseHooksVisible = rootHouse?.HouseHooksVisible ?? true;
 
             if (!houseHooksVisible)
             {
@@ -95,7 +99,7 @@ namespace ACE.Server.WorldObjects
 
         public override void ActOnUse(WorldObject wo)
         {
-            if (!(House.RootHouse.HouseHooksVisible ?? true) && Item != null)
+            if (!(House?.RootHouse?.HouseHooksVisible ?? true) && Item != null)
             {
                 if (wo is Player player)
                     player.LasUsedHookId = Guid;
@@ -111,7 +115,7 @@ namespace ACE.Server.WorldObjects
 
         protected override void OnInitialInventoryLoadCompleted()
         {
-            var hidden = !(House.RootHouse.HouseHooksVisible ?? true);
+            var hidden = !(House?.RootHouse?.HouseHooksVisible ?? true);
 
             Ethereal = !HasItem;
             if (!HasItem)
@@ -153,7 +157,7 @@ namespace ACE.Server.WorldObjects
             PhysicsTableId = item.PhysicsTableId;
             SoundTableId = item.SoundTableId;
             ObjScale = item.ObjScale;
-            Name = item.Name;
+            Name = item.NameWithMaterial;
 
             if (MotionTableId != 0)
                 CurrentMotionState = new Motion(MotionStance.Invalid);
@@ -161,6 +165,8 @@ namespace ACE.Server.WorldObjects
             Placement = (Placement)(item.HookPlacement ?? (int)ACE.Entity.Enum.Placement.Hook);
 
             item.EmoteManager.SetProxy(this);
+
+            House.HouseCurrentHooksUsable--;
 
             // Here we explicitly save the hook to the database to prevent item loss.
             // If the player adds an item to the hook, and the server crashes before the hook has been saved, the item will be lost.
@@ -203,6 +209,8 @@ namespace ACE.Server.WorldObjects
 
             removedItem.EmoteManager.ClearProxy();
 
+            House.HouseCurrentHooksUsable++;
+
             EnqueueBroadcast(new GameMessageUpdateObject(this));
 
             // Here we explicitly save the storage to the database to prevent property desync.
@@ -234,7 +242,7 @@ namespace ACE.Server.WorldObjects
         {
             if (!HasItem)
             {
-                if (!(House.HouseHooksVisible ?? false))
+                if (!(House?.RootHouse?.HouseHooksVisible ?? false))
                 {
                     NoDraw = true;
                     UiHidden = true;

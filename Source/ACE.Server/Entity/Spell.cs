@@ -131,6 +131,8 @@ namespace ACE.Server.Entity
 
         public bool IsTracking => !Flags.HasFlag(SpellFlags.NonTrackingProjectile);
 
+        public bool IsFellowshipSpell => Flags.HasFlag(SpellFlags.FellowshipSpell);
+
         public List<uint> TryBurnComponents(Player player)
         {
             var consumed = new List<uint>();
@@ -228,7 +230,49 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Returns TRUE if spell category matches impen / bane / brittlemail / lure
         /// </summary>
-        public bool IsImpenBaneType => Category >= SpellCategory.ArmorValueRaising && Category <= SpellCategory.AcidicResistanceLowering;
+        public bool IsImpenBaneType
+        {
+            get
+            {
+                switch (Category)
+                {
+                    case SpellCategory n when n >= SpellCategory.ArmorValueRaising && n <= SpellCategory.AcidicResistanceLowering:
+                    case SpellCategory.ArmorValueRaisingRare:
+                    case SpellCategory.AcidResistanceRaisingRare:
+                    case SpellCategory.BludgeonResistanceRaisingRare:
+                    case SpellCategory.ColdResistanceRaisingRare:
+                    case SpellCategory.ElectricResistanceRaisingRare:
+                    case SpellCategory.FireResistanceRaisingRare:
+                    case SpellCategory.PierceResistanceRaisingRare:
+                    case SpellCategory.SlashResistanceRaisingRare:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns TRUE if spell category matches spells that should redirect to items player is holding
+        /// </summary>
+        public bool IsItemRedirectableType
+        {
+            get
+            {
+                switch (Category)
+                {
+                    case SpellCategory.DamageRaisingRare:
+                    case SpellCategory.AttackModRaisingRare:
+                    case SpellCategory.DefenseModRaisingRare:
+                    case SpellCategory.WeaponTimeRaisingRare:
+                    case SpellCategory.AppraisalResistanceLoweringRare:
+                    case SpellCategory.MaxDamageRaising:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        }
 
         public bool IsNegativeRedirectable => IsHarmful && (IsImpenBaneType || IsOtherNegativeRedirectable);
 
@@ -236,11 +280,16 @@ namespace ACE.Server.Entity
         {
             get
             {
-                return Category == SpellCategory.DamageLowering     // encompasses both blood and spirit loather, inconsistent with spirit drinker in dat
-                    || Category == SpellCategory.DefenseModLowering
-                    || Category == SpellCategory.AttackModLowering
-                    || Category == SpellCategory.WeaponTimeLowering
-                    || Category == SpellCategory.ManaConversionModLowering;    // hermetic void, replaced hide value, unchanged category in dat
+                switch (Category)
+                {
+                    case SpellCategory.DamageLowering:            // encompasses both blood and spirit loather, inconsistent with spirit drinker in dat
+                    case SpellCategory.DefenseModLowering:
+                    case SpellCategory.AttackModLowering:
+                    case SpellCategory.WeaponTimeLowering:        // verified
+                    case SpellCategory.ManaConversionModLowering: // hermetic void, replaced hide value, unchanged category in dat
+                        return true;
+                }
+                return false;
             }
         }
 
@@ -248,11 +297,16 @@ namespace ACE.Server.Entity
         {
             get
             {
-                return MetaSpellType == SpellType.PortalLink
-                    || MetaSpellType == SpellType.PortalRecall
-                    || MetaSpellType == SpellType.PortalSending
-                    || MetaSpellType == SpellType.PortalSummon
-                    || MetaSpellType == SpellType.FellowPortalSending;
+                switch (MetaSpellType)
+                {
+                    case SpellType.PortalLink:
+                    case SpellType.PortalRecall:
+                    case SpellType.PortalSending:
+                    case SpellType.PortalSummon:
+                    case SpellType.FellowPortalSending:
+                        return true;
+                }
+                return false;
             }
         }
 
@@ -263,12 +317,17 @@ namespace ACE.Server.Entity
         {
             get
             {
-                return Category == SpellCategory.AttackModRaising
-                    || Category == SpellCategory.DamageRaising
-                    || Category == SpellCategory.DefenseModRaising
-                    || Category == SpellCategory.WeaponTimeRaising
-                    || Category == SpellCategory.ManaConversionModRaising
-                    || Category == SpellCategory.SpellDamageRaising;
+                switch (Category)
+                {
+                    case SpellCategory.AttackModRaising:
+                    case SpellCategory.DamageRaising:
+                    case SpellCategory.DefenseModRaising:
+                    case SpellCategory.WeaponTimeRaising:        // verified
+                    case SpellCategory.ManaConversionModRaising:
+                    case SpellCategory.SpellDamageRaising:
+                        return true;
+                }
+                return false;
             }
         }
 
@@ -340,6 +399,43 @@ namespace ACE.Server.Entity
                 return maxVitals;
             }
         }
+
+        /// <summary>
+        /// Returns TRUE if this spell is a DamageOverTime or HealingOverTime spell
+        /// </summary>
+        public bool IsDamageOverTime
+        {
+            get
+            {
+                if (Flags.HasFlag(SpellFlags.DamageOverTime))
+                    return true;
+
+                switch (Category)
+                {
+                    case SpellCategory.HealOverTimeRaising:
+                    case SpellCategory.DamageOverTimeRaising:
+                    case SpellCategory.AetheriaProcHealthOverTimeRaising:
+                    case SpellCategory.AetheriaProcDamageOverTimeRaising:
+                    case SpellCategory.NetherDamageOverTimeRaising:
+                    case SpellCategory.NetherDamageOverTimeRaising2:
+                    case SpellCategory.NetherDamageOverTimeRaising3:
+
+                        return true;
+                }
+
+                switch ((PropertyInt)StatModKey)
+                {
+                    case PropertyInt.HealOverTime:
+                    case PropertyInt.DamageOverTime:
+
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
+        public bool HasExtraTick => IsDamageOverTime;
 
         public bool Equals(Spell spell)
         {

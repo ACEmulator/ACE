@@ -105,7 +105,7 @@ namespace ACE.Server.WorldObjects
             var vitalCurrent = vital.Current;
             var vitalMax = vital.MaxValue;
 
-            if (vitalCurrent == vitalMax)
+            if (vitalCurrent == vitalMax && vital.RegenRate > 0)
                 return false;
 
             if (vitalCurrent > vitalMax)
@@ -140,15 +140,30 @@ namespace ACE.Server.WorldObjects
             var intTick = (int)totalTick;
             vital.PartialRegen = totalTick - intTick;
 
-            if (intTick > 0)
+            if (intTick != 0)
             {
+                //if (this is Player)
+                    //Console.WriteLine($"VitalTick({vital.Vital.ToSentence()}): attributeMod={attributeMod}, stanceMod={stanceMod}, enchantmentMod={enchantmentMod}, regenRate={vital.RegenRate}, currentTick={currentTick}, totalTick={totalTick}, accumulated={vital.PartialRegen}");
+
                 UpdateVitalDelta(vital, intTick);
                 if (vital.Vital == PropertyAttribute2nd.MaxHealth)
-                    DamageHistory.OnHeal((uint)intTick);
+                {
+                    if (intTick > 0)
+                        DamageHistory.OnHeal((uint)intTick);
+                    else
+                    {
+                        DamageHistory.Add(this, DamageType.Health, (uint)Math.Abs(intTick));
 
-                return true;
+                        if (Health.Current <= 0)
+                        {
+                            OnDeath(DamageHistory.LastDamager, DamageType.Health);
+                            Die();
+                        }
+                    }
+
+                    return true;
+                }
             }
-            //Console.WriteLine($"VitalTick({vital.Vital.ToSentence()}): attributeMod={attributeMod}, stanceMod={stanceMod}, enchantmentMod={enchantmentMod}, regenRate={vital.RegenRate}, currentTick={currentTick}, totalTick={totalTick}, accumulated={vital.PartialRegen}");
             return false;
         }
 
@@ -168,8 +183,8 @@ namespace ACE.Server.WorldObjects
             // at a faster rate the higher one's endurance is. This bonus is in addition to any regeneration spells one may have placed upon themselves.
             // This regeneration bonus caps at around 110%.
 
-            var strength = Strength.Base;
-            var endurance = Endurance.Base;
+            var strength = (int)Strength.Base;
+            var endurance = (int)Endurance.Base;
 
             var strAndEnd = strength + (endurance * 2);
 
@@ -179,8 +194,8 @@ namespace ACE.Server.WorldObjects
             if (strAndEnd <= 200)
                 return 1.0f;
 
-            var modifier = 1.0f + (float)(strAndEnd - 200) / 600 * 1.1f;
-            var attributeMod = Math.Min(modifier, 2.1f);
+            var modifier = 1.0f + (float)(strAndEnd - 200) / 600;
+            var attributeMod = Math.Clamp(modifier, 1.0f, 2.1f);
 
             return attributeMod;
         }

@@ -45,5 +45,17 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyBool.PortalIgnoresPkAttackTimer) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.PortalIgnoresPkAttackTimer); else SetProperty(PropertyBool.PortalIgnoresPkAttackTimer, value); }
         }
+
+        public SubscriptionStatus? AccountRequirements
+        {
+            get => (SubscriptionStatus?)GetProperty(PropertyInt.AccountRequirements);
+            set { if (value == null) RemoveProperty(PropertyInt.AccountRequirements); else SetProperty(PropertyInt.AccountRequirements, (int)value); }
+        }
+
+        public bool? AdvocateQuest
+        {
+            get => GetProperty(PropertyBool.AdvocateQuest);
+            set { if (value == null) RemoveProperty(PropertyBool.AdvocateQuest); else SetProperty(PropertyBool.AdvocateQuest, value.Value); }
+        }
     }
 }

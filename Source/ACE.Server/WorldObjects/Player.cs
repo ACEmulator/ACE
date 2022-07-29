@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 using log4net;
 
@@ -18,12 +19,13 @@ using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Sequence;
 using ACE.Server.Network.Structure;
+using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 using ACE.Server.WorldObjects.Managers;
 
-using Biota = ACE.Database.Models.Shard.Biota;
 using Character = ACE.Database.Models.Shard.Character;
 using MotionTable = ACE.DatLoader.FileTypes.MotionTable;
 
@@ -42,7 +44,21 @@ namespace ACE.Server.WorldObjects
         public ContractManager ContractManager;
 
         public bool LastContact = true;
-        public bool IsJumping = false;
+
+        public bool IsJumping
+        {
+            get
+            {
+                if (FastTick)
+                    return !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable);
+                else
+                {
+                    // for npks only, fixes a bug where OnWalkable can briefly lose state for 1 AutoPos frame
+                    // a good repro for this is collision w/ monsters near the top of ramps
+                    return !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable) && Velocity != Vector3.Zero;
+                }
+            }
+        }
 
         public DateTime LastJumpTime;
 
@@ -55,6 +71,8 @@ namespace ACE.Server.WorldObjects
 
         public static readonly float MaxRadarRange_Indoors = 25.0f;
         public static readonly float MaxRadarRange_Outdoors = 75.0f;
+
+        public DateTime PrevObjSend;
 
         public float CurrentRadarRange => Location.Indoors ? MaxRadarRange_Indoors : MaxRadarRange_Outdoors;
 
@@ -80,12 +98,19 @@ namespace ACE.Server.WorldObjects
             Attackable = true;
 
             SetProperty(PropertyString.DateOfBirth, $"{DateTime.UtcNow:dd MMMM yyyy}");
+
+            if (IsOlthoiPlayer)
+            {
+                GenerateContainList();
+            }
+            else
+                Biota.PropertiesCreateList?.Clear();
         }
 
         /// <summary>
         /// Restore a WorldObject from the database.
         /// </summary>
-        public Player(Biota biota, IEnumerable<Biota> inventory, IEnumerable<Biota> wieldedItems, Character character, Session session) : base(biota)
+        public Player(Biota biota, IEnumerable<ACE.Database.Models.Shard.Biota> inventory, IEnumerable<ACE.Database.Models.Shard.Biota> wieldedItems, Character character, Session session) : base(biota)
         {
             Character = character;
             Session = session;
@@ -123,17 +148,24 @@ namespace ACE.Server.WorldObjects
             // radius for object updates
             ListeningRadius = 5f;
 
-            if (Session != null && Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
+            if (Session != null && ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {
                 if (Session.AccessLevel == AccessLevel.Admin)
                     IsAdmin = true;
                 if (Session.AccessLevel == AccessLevel.Developer)
                     IsArch = true;
-                if (Session.AccessLevel == AccessLevel.Envoy || Session.AccessLevel == AccessLevel.Sentinel)
+                if (Session.AccessLevel == AccessLevel.Sentinel)
                     IsSentinel = true;
+                if (Session.AccessLevel == AccessLevel.Envoy)
+                {
+                    IsEnvoy = true;
+                    IsSentinel = true; //IsEnvoy is not recognized by the client and therefore the client should treat the user as a Sentinel.
+                }
                 if (Session.AccessLevel == AccessLevel.Advocate)
                     IsAdvocate = true;
             }
+
+            IsOlthoiPlayer = HeritageGroup == HeritageGroup.Olthoi || HeritageGroup == HeritageGroup.OlthoiAcid;
 
             ContainerCapacity = (byte)(7 + AugmentationExtraPackSlot);
 
@@ -159,9 +191,16 @@ namespace ACE.Server.WorldObjects
 
             MagicState = new MagicState(this);
 
+            FoodState = new FoodState(this);
+
             RecordCast = new RecordCast(this);
 
             AttackQueue = new AttackQueue(this);
+
+            if (!PlayerKillsPk.HasValue)
+                PlayerKillsPk = 0;
+            if (!PlayerKillsPkl.HasValue)
+                PlayerKillsPkl = 0;
 
             return; // todo
 
@@ -285,8 +324,11 @@ namespace ACE.Server.WorldObjects
                 if ((this is Admin || this is Sentinel) && CloakStatus == CloakStatus.On)
                     chance = 1.0f;
 
-                success = chance >= ThreadSafeRandom.Next(0.0f, 1.0f);
+                success = chance > ThreadSafeRandom.Next(0.0f, 1.0f);
             }
+
+            if (obj.ResistItemAppraisal >= 999)
+                success = false;
 
             if (creature is Pet || creature is CombatPet)
                 success = true;
@@ -322,6 +364,8 @@ namespace ACE.Server.WorldObjects
 
         public override void OnCollideObject(WorldObject target)
         {
+            //Console.WriteLine($"{Name}.OnCollideObject({target.Name})");
+
             if (target.ReportCollisions == false)
                 return;
 
@@ -331,6 +375,10 @@ namespace ACE.Server.WorldObjects
                 pressurePlate.OnCollideObject(this);
             else if (target is Hotspot hotspot)
                 hotspot.OnCollideObject(this);
+            else if (target is SpellProjectile spellProjectile)
+                spellProjectile.OnCollideObject(this);
+            else if (target.ProjectileTarget != null)
+                ProjectileCollisionHelper.OnCollideObject(target, this);
         }
 
         public override void OnCollideObjectEnd(WorldObject target)
@@ -439,6 +487,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool PKLogout;
 
+        public bool IsLoggingOut;
+
         /// <summary>
         /// Do the player log out work.<para />
         /// If you want to force a player to logout, use Session.LogOffPlayer().
@@ -447,12 +497,15 @@ namespace ACE.Server.WorldObjects
         {
             if (PKLogoutActive && !forceImmediate)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
-                Session.Network.EnqueueSend(new GameMessageSystemChat("Logging out in 20s...", ChatMessageType.Magic));
+                //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Beginning delayed player killer logoff...", ChatMessageType.Broadcast));
 
                 if (!PKLogout)
                 {
                     PKLogout = true;
+
+                    IsFrozen = true;
+                    EnqueueBroadcastPhysicsState();
 
                     LogoffTimestamp = Time.GetFutureUnixTime(PropertyManager.GetLong("pk_timer").Item);
                     PlayerManager.AddPlayerToLogoffQueue(this);
@@ -467,10 +520,13 @@ namespace ACE.Server.WorldObjects
 
         public void LogOut_Inner(bool clientSessionTerminatedAbruptly = false)
         {
+            IsBusy = true;
+            IsLoggingOut = true;
+
             if (Fellowship != null)
                 FellowshipQuit(false);
 
-            if (IsTrading && TradePartner != null)
+            if (IsTrading && TradePartner != ObjectGuid.Invalid)
             {
                 var tradePartner = PlayerManager.GetOnlinePlayer(TradePartner);
 
@@ -480,80 +536,115 @@ namespace ACE.Server.WorldObjects
 
             if (!clientSessionTerminatedAbruptly)
             {
-                // Thie retail server sends a ChatRoomTracker 0x0295 first, then the status message, 0x028B. It does them one at a time for each individual channel.
-                // The ChatRoomTracker message doesn't seem to change at all.
-                // For the purpose of ACE, we simplify this process.
-                var general = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveLeftThe_Channel, "General");
-                var trade = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveLeftThe_Channel, "Trade");
-                var lfg = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveLeftThe_Channel, "LFG");
-                var roleplay = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveLeftThe_Channel, "Roleplay");
-                Session.Network.EnqueueSend(general, trade, lfg, roleplay);
+                if (PropertyManager.GetBool("use_turbine_chat").Item)
+                {
+                    if (IsOlthoiPlayer)
+                    {
+                        LeaveTurbineChatChannel("Olthoi");
+                    }
+                    else
+                    {
+                        if (GetCharacterOption(CharacterOption.ListenToGeneralChat))
+                            LeaveTurbineChatChannel("General");
+                        if (GetCharacterOption(CharacterOption.ListenToTradeChat))
+                            LeaveTurbineChatChannel("Trade");
+                        if (GetCharacterOption(CharacterOption.ListenToLFGChat))
+                            LeaveTurbineChatChannel("LFG");
+                        if (GetCharacterOption(CharacterOption.ListenToRoleplayChat))
+                            LeaveTurbineChatChannel("Roleplay");
+                        if (GetCharacterOption(CharacterOption.ListenToAllegianceChat) && Allegiance != null)
+                            LeaveTurbineChatChannel("Allegiance");
+                        if (GetCharacterOption(CharacterOption.ListenToSocietyChat) && Society != FactionBits.None)
+                            LeaveTurbineChatChannel("Society");
+                    }
+                }
             }
 
             if (CurrentActivePet != null)
                 CurrentActivePet.Destroy();
 
+            // If we're in the dying animation process, we cannot logout until that animation completes..
+            if (IsInDeathProcess)
+                return;
+
+            LogOut_Final();
+        }
+
+        private void LogOut_Final(bool skipAnimations = false)
+        {
             if (CurrentLandblock != null)
             {
-                var logout = new Motion(MotionStance.NonCombat, MotionCommand.LogOut);
-                EnqueueBroadcastMotion(logout);
-
-                EnqueueBroadcastPhysicsState();
-
-                var logoutChain = new ActionChain();
-
-                var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>((uint)MotionTableId);
-                float logoutAnimationLength = motionTable.GetAnimationLength(MotionCommand.LogOut);
-                logoutChain.AddDelaySeconds(logoutAnimationLength);
-
-                // remove the player from landblock management -- after the animation has run
-                logoutChain.AddAction(this, () =>
+                if (skipAnimations)
                 {
-                    if (CurrentLandblock == null)
+                    FinalizeLogout();
+                }
+                else
+                {
+                    if (IsFrozen ?? false)
+                        IsFrozen = false;
+
+                    EnqueueBroadcastPhysicsState();
+
+                    var logout = new Motion(MotionStance.NonCombat, MotionCommand.LogOut);
+                    EnqueueBroadcastMotion(logout);                    
+
+                    var logoutChain = new ActionChain();
+
+                    var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>((uint) MotionTableId);
+                    float logoutAnimationLength = motionTable.GetAnimationLength(MotionCommand.LogOut);
+                    logoutChain.AddDelaySeconds(logoutAnimationLength);
+
+                    // remove the player from landblock management -- after the animation has run
+                    logoutChain.AddAction(WorldManager.ActionQueue, () =>
                     {
-                        log.Debug($"0x{Guid}:{Name}.LogOut_Inner.logoutChain: CurrentLandblock is null, unable to remove from a landblock...");
-                        if (Location != null)
-                            log.Debug($"0x{Guid}:{Name}.LogOut_Inner.logoutChain: Location is not null, Location = {Location.ToLOCString()}");
+                        // If we're in the dying animation process, we cannot RemoveWorldObject and logout until that animation completes..
+                        if (IsInDeathProcess)
+                            return;
+
+                        FinalizeLogout();
+                    });
+
+                    // close any open landblock containers (chests / corpses)
+                    if (LastOpenedContainerId != ObjectGuid.Invalid)
+                    {
+                        var container = CurrentLandblock.GetObject(LastOpenedContainerId) as Container;
+
+                        if (container != null)
+                            container.Close(this);
                     }
 
-                    CurrentLandblock?.RemoveWorldObject(Guid, false);
-                    SetPropertiesAtLogOut();
-                    SavePlayerToDatabase();
-                    PlayerManager.SwitchPlayerFromOnlineToOffline(this);
-                });
-
-                // close any open landblock containers (chests / corpses)
-                if (LastOpenedContainerId != ObjectGuid.Invalid)
-                {
-                    var container = CurrentLandblock.GetObject(LastOpenedContainerId) as Container;
-
-                    if (container != null)
-                        container.Close(this);
+                    logoutChain.EnqueueChain();
                 }
-
-                logoutChain.EnqueueChain();
             }
             else
             {
-                log.Debug($"0x{Guid}:{Name}.LogOut_Inner: CurrentLandblock is null");
-                if (Location != null)
-                {
-                    log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Location is not null, Location = {Location.ToLOCString()}");
-                    var validLoadedLandblock = LandblockManager.GetLandblock(Location.LandblockId, false);
-                    if (validLoadedLandblock.GetObject(Guid.Full) != null)
-                    {
-                        log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Player is still on landblock, removing...");
-                        validLoadedLandblock.RemoveWorldObject(Guid, false);
-                    }
-                    else
-                        log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Player is not found on the landblock Location references.");
-                }
-                else
-                    log.Debug($"0x{Guid}:{Name}.LogOut_Inner: Location is null");
-                SetPropertiesAtLogOut();
-                SavePlayerToDatabase();
-                PlayerManager.SwitchPlayerFromOnlineToOffline(this);
+                FinalizeLogout();
             }
+        }
+
+        public bool ForcedLogOffRequested;
+
+        /// <summary>
+        /// Force Log off a player requested to log out by an admin command forcelogoff/forcelogout or the ServerManager.<para />
+        /// THIS FUNCTION FOR SYSTEM USE ONLY; If you want to force a player to logout, use Session.LogOffPlayer().
+        /// </summary>
+        public void ForceLogoff()
+        {
+            if (!ForcedLogOffRequested) return;
+
+            FinalizeLogout();
+
+            ForcedLogOffRequested = false;
+        }
+
+        private void FinalizeLogout()
+        {
+            CurrentLandblock?.RemoveWorldObject(Guid, false);
+            SetPropertiesAtLogOut();
+            SavePlayerToDatabase();
+            PlayerManager.SwitchPlayerFromOnlineToOffline(this);
+
+            log.Debug($"[LOGOUT] Account {Account.AccountName} exited the world with character {Name} (0x{Guid}) at {DateTime.Now}.");
         }
 
         public void HandleMRT()
@@ -754,7 +845,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionTalk(string message)
         {
             if (!IsGagged)
-                EnqueueBroadcast(new GameMessageCreatureMessage(message, Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange, ChatMessageType.Speech);
+            {
+                EnqueueBroadcast(new GameMessageHearSpeech(message, GetNameWithSuffix(), Guid.Full, ChatMessageType.Speech), LocalBroadcastRange, ChatMessageType.Speech);
+
+                OnTalk(message);
+            }
             else
                 SendGagError();
         }
@@ -780,7 +875,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionEmote(string message)
         {
             if (!IsGagged)
-                EnqueueBroadcast(new GameMessageEmoteText(Guid.Full, Name, message), LocalBroadcastRange);
+            {
+                EnqueueBroadcast(new GameMessageEmoteText(Guid.Full, GetNameWithSuffix(), message), LocalBroadcastRange);
+
+                OnTalk(message);
+            }
             else
                 SendGagError();
         }
@@ -788,9 +887,33 @@ namespace ACE.Server.WorldObjects
         public void HandleActionSoulEmote(string message)
         {
             if (!IsGagged)
-                EnqueueBroadcast(new GameMessageSoulEmote(Guid.Full, Name, message), LocalBroadcastRange);
+            {
+                if (!IsOlthoiPlayer || (IsOlthoiPlayer && NoOlthoiTalk))
+                    EnqueueBroadcast(new GameMessageSoulEmote(Guid.Full, Name, message), LocalBroadcastRange);
+
+                OnTalk(message);
+            }
             else
                 SendGagError();
+        }
+
+        public void OnTalk(string message)
+        {
+            if (PhysicsObj == null || CurrentLandblock == null) return;
+
+            var isDungeon = CurrentLandblock.PhysicsLandblock != null && CurrentLandblock.PhysicsLandblock.IsDungeon;
+
+            var rangeSquared = LocalBroadcastRangeSq;
+
+            foreach (var creature in PhysicsObj.ObjMaint.GetKnownObjectsValuesAsCreature())
+            {
+                if (isDungeon && Location.Landblock != creature.Location.Landblock)
+                    continue;
+
+                var distSquared = Location.SquaredDistanceTo(creature.Location);
+                if (distSquared <= rangeSquared)
+                    creature.EmoteManager.OnHearChat(this, message);
+            }
         }
 
         public void HandleActionJump(JumpPack jump)
@@ -823,12 +946,9 @@ namespace ACE.Server.WorldObjects
                 jump.Velocity.Z = velocityZ;
             }*/
 
-            IsJumping = true;
             LastJumpTime = DateTime.UtcNow;
 
             UpdateVitalDelta(Stamina, -staminaCost);
-
-            IsJumping = false;
 
             //Console.WriteLine($"Jump velocity: {jump.Velocity}");
 
@@ -840,7 +960,7 @@ namespace ACE.Server.WorldObjects
                     PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime;
 
                 // perform jump in physics engine
-                PhysicsObj.TransientState &= ~(Physics.TransientStateFlags.Contact | Physics.TransientStateFlags.WaterContact);
+                PhysicsObj.TransientState &= ~(TransientStateFlags.Contact | TransientStateFlags.WaterContact);
                 PhysicsObj.calc_acceleration();
                 PhysicsObj.set_on_walkable(false);
                 PhysicsObj.set_local_velocity(jump.Velocity, false);
@@ -850,8 +970,17 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
+                PhysicsObj.UpdateTime = PhysicsTimer.CurrentTime;
+
                 // set jump velocity
-                PhysicsObj.set_velocity(jump.Velocity, true);
+                //var glob_velocity = Vector3.Transform(jump.Velocity, Location.Rotation);
+                //PhysicsObj.set_velocity(glob_velocity, true);
+
+                // perform jump in physics engine
+                PhysicsObj.TransientState &= ~(Physics.TransientStateFlags.Contact | Physics.TransientStateFlags.WaterContact);
+                PhysicsObj.calc_acceleration();
+                PhysicsObj.set_on_walkable(false);
+                PhysicsObj.set_local_velocity(jump.Velocity, false);
             }
 
             // this shouldn't be needed, but without sending this update motion / simulated movement event beforehand,
@@ -1006,32 +1135,70 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (TooBusyToRecall)
+            if (IsBusy || Teleporting || suicideInProgress)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
                 return;
             }
 
-            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is looking for a fight!", ChatMessageType.Broadcast), LocalBroadcastRange);
+            var animTime = 0.0f;
 
-            // perform pk lite entry motion / effect
-            var motion = new Motion(MotionStance.NonCombat, MotionCommand.EnterPKLite);
-            EnqueueBroadcastMotion(motion);
-
-            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
-            var animLength = motionTable.GetAnimationLength(MotionStance.NonCombat, MotionCommand.EnterPKLite);
+            if (CombatMode != CombatMode.NonCombat)
+            {
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat));
+                animTime += SetCombatMode(CombatMode.NonCombat);
+            }
 
             var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(animLength);
-            IsBusy = true;
+            actionChain.AddDelaySeconds(animTime);
             actionChain.AddAction(this, () =>
             {
-                IsBusy = false;
-                UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PKLite, true);
+                IsBusy = true;
 
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNowPKLite));
+                EnqueueBroadcast(new GameMessageSystemChat($"{Name} is looking for a fight!", ChatMessageType.Broadcast), LocalBroadcastRange);
+
+                // perform pk lite entry motion / effect
+                SendMotionAsCommands(MotionCommand.EnterPKLite, MotionStance.NonCombat);
+
+                var innerChain = new ActionChain();
+
+                // wait for animation to complete
+                animTime = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.EnterPKLite);
+                innerChain.AddDelaySeconds(animTime);
+                innerChain.AddAction(this, () =>
+                {
+                    IsBusy = false;
+
+                    if (PropertyManager.GetBool("allow_pkl_bump").Item)
+                    {
+                        // check for collisions
+                        PlayerKillerStatus = PlayerKillerStatus.PKLite;
+
+                        var colliding = PhysicsObj.ethereal_check_for_collisions();
+
+                        if (colliding)
+                        {
+                            // try initial placement
+                            var result = PhysicsObj.SetPositionSimple(PhysicsObj.Position, true);
+
+                            if (result == SetPositionError.OK)
+                            {
+                                // handle landblock update?
+                                SyncLocation();
+
+                                // force broadcast
+                                Sequences.GetNextSequence(SequenceType.ObjectForcePosition);
+                                SendUpdatePosition();
+                            }
+                        }
+                    }
+                    UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PKLite, true);
+
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNowPKLite));
+                });
+
+                innerChain.EnqueueChain();
             });
-
             actionChain.EnqueueChain();
         }
     }

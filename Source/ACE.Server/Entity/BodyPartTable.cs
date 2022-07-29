@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using log4net;
+
 using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Models;
@@ -9,6 +11,8 @@ namespace ACE.Server.Entity
 {
     public class BodyPartTable
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public Weenie Weenie;
 
         public readonly List<BodyPartProbability>[] Quadrants = new List<BodyPartProbability>[12];
@@ -19,6 +23,12 @@ namespace ACE.Server.Entity
 
             for (var i = 0; i < Quadrants.Length; i++)
                 Quadrants[i] = new List<BodyPartProbability>();
+
+            if (Weenie.PropertiesBodyPart == null)
+            {
+                log.Error($"BodyPartTable is null for {weenie.WeenieClassId} - {weenie.ClassName}!");
+                return;
+            }
 
             foreach (var kvp in Weenie.PropertiesBodyPart)
             {

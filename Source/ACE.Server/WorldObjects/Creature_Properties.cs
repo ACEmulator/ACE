@@ -1,3 +1,4 @@
+using System;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Managers;
@@ -50,8 +51,8 @@ namespace ACE.Server.WorldObjects
 
         public double? ResistHealthDrain
         {
-            get => GetProperty(PropertyFloat.ResistHealthBoost);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ResistHealthBoost); else SetProperty(PropertyFloat.ResistHealthBoost, value.Value); }
+            get => GetProperty(PropertyFloat.ResistHealthDrain);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ResistHealthDrain); else SetProperty(PropertyFloat.ResistHealthDrain, value.Value); }
         }
 
         public double? ResistHealthBoost
@@ -110,7 +111,7 @@ namespace ACE.Server.WorldObjects
             var protMod = EnchantmentManager.GetProtectionResistanceMod(damageType);
             var vulnMod = EnchantmentManager.GetVulnerabilityResistanceMod(damageType);
 
-            var naturalResistMod = GetNaturalResistance();
+            var naturalResistMod = GetNaturalResistance(damageType);
 
             // protection mod becomes either life protection or natural resistance,
             // whichever is more powerful (more powerful = lower value here)
@@ -123,14 +124,8 @@ namespace ACE.Server.WorldObjects
                 var resistAug = player.GetAugmentationResistance(damageType);
                 if (resistAug > 0)
                 {
-                    // should the existing protMod be converted to additive space first?
-
-                    // +10% protection = 0.90909 mod
-                    // +20% protection = 0.83333 mod
-                    //protMod *= 1.0f / (1.0f + resistAug * 0.1f);
-
-                    var additive = -ModToRating(protMod);
-                    protMod = GetNegativeRatingMod(additive + resistAug * 10);
+                    var augFactor = Math.Min(1.0f, resistAug * 0.1f);
+                    protMod *= 1.0f - augFactor;
                 }
             }
 
@@ -156,7 +151,7 @@ namespace ACE.Server.WorldObjects
             return protMod * vulnMod;
         }
 
-        public virtual float GetNaturalResistance()
+        public virtual float GetNaturalResistance(DamageType damageType)
         {
             // overridden for players
             return 1.0f;
@@ -210,15 +205,15 @@ namespace ACE.Server.WorldObjects
                 case ResistanceType.HealthBoost:
                     return (ResistHealthBoost ?? 1.0) * GetHealingRatingMod();
                 case ResistanceType.HealthDrain:
-                    return (ResistHealthDrain ?? 1.0) * GetNaturalResistance() * GetLifeResistRatingMod();
+                    return (ResistHealthDrain ?? 1.0) * GetNaturalResistance(DamageType.Health) * GetLifeResistRatingMod();
                 case ResistanceType.StaminaBoost:
                     return (ResistStaminaBoost ?? 1.0) * GetHealingRatingMod();     // does healing rating affect these?
                 case ResistanceType.StaminaDrain:
-                    return (ResistStaminaDrain ?? 1.0) * GetNaturalResistance();
+                    return (ResistStaminaDrain ?? 1.0) * GetNaturalResistance(DamageType.Stamina);
                 case ResistanceType.ManaBoost:
                     return (ResistManaBoost ?? 1.0) * GetHealingRatingMod();
                 case ResistanceType.ManaDrain:
-                    return (ResistManaDrain ?? 1.0) * GetNaturalResistance();
+                    return (ResistManaDrain ?? 1.0) * GetNaturalResistance(DamageType.Mana);
                 default:
                     return 1.0;
             }
@@ -304,5 +299,61 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyString.KillQuest3);
             set { if (value == null) RemoveProperty(PropertyString.KillQuest3); else SetProperty(PropertyString.KillQuest3, value); }
         }
+
+        public FactionBits? Faction1Bits
+        {
+            get => (FactionBits?)GetProperty(PropertyInt.Faction1Bits);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Faction1Bits); else SetProperty(PropertyInt.Faction1Bits, (int)value); }
+        }
+
+        public int? Faction2Bits
+        {
+            get => GetProperty(PropertyInt.Faction2Bits);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Faction2Bits); else SetProperty(PropertyInt.Faction2Bits, value.Value); }
+        }
+
+        public int? Faction3Bits
+        {
+            get => GetProperty(PropertyInt.Faction3Bits);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Faction3Bits); else SetProperty(PropertyInt.Faction3Bits, value.Value); }
+        }
+
+        public int? Hatred1Bits
+        {
+            get => GetProperty(PropertyInt.Hatred1Bits);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Hatred1Bits); else SetProperty(PropertyInt.Hatred1Bits, value.Value); }
+        }
+
+        public int? Hatred2Bits
+        {
+            get => GetProperty(PropertyInt.Hatred2Bits);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Hatred2Bits); else SetProperty(PropertyInt.Hatred2Bits, value.Value); }
+        }
+
+        public int? Hatred3Bits
+        {
+            get => GetProperty(PropertyInt.Hatred3Bits);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Hatred3Bits); else SetProperty(PropertyInt.Hatred3Bits, value.Value); }
+        }
+
+        public int? SocietyRankCelhan
+        {
+            get => GetProperty(PropertyInt.SocietyRankCelhan);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.SocietyRankCelhan); else SetProperty(PropertyInt.SocietyRankCelhan, value.Value); }
+        }
+
+        public int? SocietyRankEldweb
+        {
+            get => GetProperty(PropertyInt.SocietyRankEldweb);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.SocietyRankEldweb); else SetProperty(PropertyInt.SocietyRankEldweb, value.Value); }
+        }
+
+        public int? SocietyRankRadblo
+        {
+            get => GetProperty(PropertyInt.SocietyRankRadblo);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.SocietyRankRadblo); else SetProperty(PropertyInt.SocietyRankRadblo, value.Value); }
+        }
+
+        public FactionBits Society => Faction1Bits ?? FactionBits.None;
     }
 }

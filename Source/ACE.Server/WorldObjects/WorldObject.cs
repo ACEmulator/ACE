@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -9,7 +10,6 @@ using log4net;
 using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -28,7 +28,6 @@ using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Util;
 using ACE.Server.WorldObjects.Managers;
 
-using Biota = ACE.Database.Models.Shard.Biota;
 using Landblock = ACE.Server.Entity.Landblock;
 using Position = ACE.Entity.Position;
 
@@ -40,6 +39,12 @@ namespace ACE.Server.WorldObjects
     public abstract partial class WorldObject : IActor
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        /// <summary>
+        /// If this object was created from a weenie (and not a database biota), this is the source.
+        /// You should never manipulate these values. You should only reference these values in extreme cases.
+        /// </summary>
+        public Weenie Weenie { get; }
 
         /// <summary>
         /// This is object property overrides that should have come from the shard db (or init to defaults of object is new to this instance).
@@ -65,9 +70,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Landblock CurrentLandblock { get; internal set; }
 
-        public DateTime? ItemManaDepletionMessageTimestamp { get; set; } = null;
-        public DateTime? ItemManaConsumptionTimestamp { get; set; } = null;
-
         public bool IsBusy { get; set; }
         public bool IsShield { get => CombatUse != null && CombatUse == ACE.Entity.Enum.CombatUse.Shield; }
         // ValidLocations is bugged for some older two-handed weapons, still contains MeleeWeapon instead of TwoHanded?
@@ -78,14 +80,17 @@ namespace ACE.Server.WorldObjects
         public bool IsAmmoLauncher { get => IsBow || IsAtlatl; }
         public bool IsThrownWeapon { get => DefaultCombatStyle != null && DefaultCombatStyle == CombatStyle.ThrownWeapon; }
         public bool IsRanged { get => IsAmmoLauncher || IsThrownWeapon; }
+        public bool IsCaster { get => DefaultCombatStyle != null && (DefaultCombatStyle == CombatStyle.Magic); }
 
         public EmoteManager EmoteManager;
         public EnchantmentManagerWithCaching EnchantmentManager;
 
-        public WorldObject ProjectileSource;
-        public WorldObject ProjectileTarget;
+        // todo: move these to a base projectile class
+        public WorldObject ProjectileSource { get; set; }
+        public WorldObject ProjectileTarget { get; set; }
 
-        public WorldObject ProjectileLauncher;
+        public WorldObject ProjectileLauncher { get; set; }
+        public WorldObject ProjectileAmmo { get; set; }
 
         public bool HitMsg;     // FIXME: find a better way to do this for projectiles
 
@@ -98,8 +103,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected WorldObject(Weenie weenie, ObjectGuid guid)
         {
-            var newBiota = ACE.Entity.Adapter.WeenieConverter.ConvertToBiota(weenie, guid.Full);
-            Biota = ACE.Database.Adapter.BiotaConverter.ConvertFromEntityBiota(newBiota);
+            Weenie = weenie;
+            Biota = ACE.Entity.Adapter.WeenieConverter.ConvertToBiota(weenie, guid.Full, false, true);
             Guid = guid;
 
             InitializePropertyDictionaries();
@@ -126,6 +131,8 @@ namespace ACE.Server.WorldObjects
             InitializeGenerator();
             InitializeHeartbeats();
         }
+
+        public bool BumpVelocity { get; set; }
 
         /// <summary>
         /// Initializes a new default physics object
@@ -169,6 +176,9 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.State = defaultState;
 
             //if (creature != null) AllowEdgeSlide = true;
+
+            if (BumpVelocity)
+                PhysicsObj.Velocity = new Vector3(0, 0, 0.5f);
         }
 
         public bool AddPhysicsObj()
@@ -217,69 +227,24 @@ namespace ACE.Server.WorldObjects
         public void SyncLocation()
         {
             Location.LandblockId = new LandblockId(PhysicsObj.Position.ObjCellID);
-            Location.Pos = PhysicsObj.Position.Frame.Origin;
+
+            // skip ObjCellID check when updating from physics
+            // TODO: update to newer version of ACE.Entity.Position
+            Location.PositionX = PhysicsObj.Position.Frame.Origin.X;
+            Location.PositionY = PhysicsObj.Position.Frame.Origin.Y;
+            Location.PositionZ = PhysicsObj.Position.Frame.Origin.Z;
+
             Location.Rotation = PhysicsObj.Position.Frame.Orientation;
         }
 
         private void InitializePropertyDictionaries()
         {
-            foreach (var x in Biota.BiotaPropertiesBool)
-                biotaPropertyBools[(PropertyBool)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesDID)
-                biotaPropertyDataIds[(PropertyDataId)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesFloat)
-                biotaPropertyFloats[(PropertyFloat)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesIID)
-                biotaPropertyInstanceIds[(PropertyInstanceId)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesInt)
-                biotaPropertyInts[(PropertyInt)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesInt64)
-                biotaPropertyInt64s[(PropertyInt64)x.Type] = x;
-            foreach (var x in Biota.BiotaPropertiesString)
-                biotaPropertyStrings[(PropertyString)x.Type] = x;
-
-            foreach (var x in EphemeralProperties.PropertiesBool.ToList())
-                ephemeralPropertyBools.TryAdd((PropertyBool)x, null);
-            foreach (var x in EphemeralProperties.PropertiesDataId.ToList())
-                ephemeralPropertyDataIds.TryAdd((PropertyDataId)x, null);
-            foreach (var x in EphemeralProperties.PropertiesDouble.ToList())
-                ephemeralPropertyFloats.TryAdd((PropertyFloat)x, null);
-            foreach (var x in EphemeralProperties.PropertiesInstanceId.ToList())
-                ephemeralPropertyInstanceIds.TryAdd((PropertyInstanceId)x, null);
-            foreach (var x in EphemeralProperties.PropertiesInt.ToList())
-                ephemeralPropertyInts.TryAdd((PropertyInt)x, null);
-            foreach (var x in EphemeralProperties.PropertiesInt64.ToList())
-                ephemeralPropertyInt64s.TryAdd((PropertyInt64)x, null);
-            foreach (var x in EphemeralProperties.PropertiesString.ToList())
-                ephemeralPropertyStrings.TryAdd((PropertyString)x, null);
-
-            foreach (var x in Biota.BiotaPropertiesSpellBook)
-                BiotaPropertySpells[x.Spell] = x;
+            if (Biota.PropertiesEnchantmentRegistry == null)
+                Biota.PropertiesEnchantmentRegistry = new Collection<PropertiesEnchantmentRegistry>();
         }
 
         private void SetEphemeralValues()
         { 
-            foreach (var x in Biota.BiotaPropertiesBool.Where(i => EphemeralProperties.PropertiesBool.Contains(i.Type)).ToList())
-                ephemeralPropertyBools[(PropertyBool)x.Type] = x.Value;
-            foreach (var x in Biota.BiotaPropertiesDID.Where(i => EphemeralProperties.PropertiesDataId.Contains(i.Type)).ToList())
-                ephemeralPropertyDataIds[(PropertyDataId)x.Type] = x.Value;
-            foreach (var x in Biota.BiotaPropertiesFloat.Where(i => EphemeralProperties.PropertiesDouble.Contains(i.Type)).ToList())
-                ephemeralPropertyFloats[(PropertyFloat)x.Type] = x.Value;
-            foreach (var x in Biota.BiotaPropertiesIID.Where(i => EphemeralProperties.PropertiesInstanceId.Contains(i.Type)).ToList())
-                ephemeralPropertyInstanceIds[(PropertyInstanceId)x.Type] = x.Value;
-            foreach (var x in Biota.BiotaPropertiesInt.Where(i => EphemeralProperties.PropertiesInt.Contains(i.Type)).ToList())
-                ephemeralPropertyInts[(PropertyInt)x.Type] = x.Value;
-            foreach (var x in Biota.BiotaPropertiesInt64.Where(i => EphemeralProperties.PropertiesInt64.Contains(i.Type)).ToList())
-                ephemeralPropertyInt64s[(PropertyInt64)x.Type] = x.Value;
-            foreach (var x in Biota.BiotaPropertiesString.Where(i => EphemeralProperties.PropertiesString.Contains(i.Type)).ToList())
-                ephemeralPropertyStrings[(PropertyString)x.Type] = x.Value;
-
-            foreach (var x in EphemeralProperties.PositionTypes.ToList())
-                ephemeralPositions.TryAdd((PositionType)x, null);
-
-            foreach (var x in Biota.BiotaPropertiesPosition.Where(i => EphemeralProperties.PositionTypes.Contains(i.PositionType)).ToList())
-                ephemeralPositions[(PositionType)x.PositionType] = new Position(x.ObjCellId, x.OriginX, x.OriginY, x.OriginZ, x.AnglesX, x.AnglesY, x.AnglesZ, x.AnglesW);
-
             ObjectDescriptionFlags = ObjectDescriptionFlag.Attackable;
 
             EmoteManager = new EmoteManager(this);
@@ -297,7 +262,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool Teleporting { get; set; } = false;
 
-        public bool HasGiveOrRefuseEmoteForItem(WorldObject item, out BiotaPropertiesEmote emote)
+        public bool HasGiveOrRefuseEmoteForItem(WorldObject item, out PropertiesEmote emote)
         {
             // NPC refuses this item, with a custom response
             var refuseItem = EmoteManager.GetEmoteSet(EmoteCategory.Refuse, null, null, item.WeenieClassId);
@@ -343,6 +308,8 @@ namespace ACE.Server.WorldObjects
 
             var SightObj = PhysicsObj.makeObject(0x02000124, 0, false, true);
 
+            SightObj.State |= PhysicsState.Missile;
+
             var startPos = new Physics.Common.Position(PhysicsObj.Position);
             var targetPos = new Physics.Common.Position(wo.PhysicsObj.Position);
 
@@ -378,6 +345,8 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             var SightObj = PhysicsObj.makeObject(0x02000124, 0, false, true);
+
+            SightObj.State |= PhysicsState.Missile;
 
             var startPos = new Physics.Common.Position(PhysicsObj.Position);
             var targetPos = new Physics.Common.Position(pos);
@@ -543,7 +512,7 @@ namespace ACE.Server.WorldObjects
                         sb.AppendLine($"{prop.Name} = {obj.ContainerType.ToString()}" + " (" + (uint)obj.ContainerType + ")");
                         break;
                     case "usable":
-                        sb.AppendLine($"{prop.Name} = {obj.Usable.ToString()}" + " (" + (uint)obj.Usable + ")");
+                        sb.AppendLine($"{prop.Name} = {obj.ItemUseable.ToString()}" + " (" + (uint)obj.ItemUseable + ")");
                         break;
                     case "radarbehavior":
                         sb.AppendLine($"{prop.Name} = {obj.RadarBehavior.ToString()}" + " (" + (uint)obj.RadarBehavior + ")");
@@ -700,8 +669,7 @@ namespace ACE.Server.WorldObjects
             // thrown weapons
             if (ProjectileTarget == null) return;
 
-            var proj = new Projectile(this);
-            proj.OnCollideObject(target);
+            ProjectileCollisionHelper.OnCollideObject(this, target);
         }
 
         public virtual void OnCollideObjectEnd(WorldObject target)
@@ -714,8 +682,7 @@ namespace ACE.Server.WorldObjects
             // thrown weapons
             if (ProjectileTarget == null) return;
 
-            var proj = new Projectile(this);
-            proj.OnCollideEnvironment();
+            ProjectileCollisionHelper.OnCollideEnvironment(this);
         }
 
         public void ApplyVisualEffects(PlayScript effect, float speed = 1)
@@ -743,6 +710,8 @@ namespace ACE.Server.WorldObjects
 
         public virtual void OnGeneration(WorldObject generator)
         {
+            //Console.WriteLine($"{Name}.OnGeneration()");
+
             EmoteManager.OnGeneration();
         }
 
@@ -759,6 +728,8 @@ namespace ACE.Server.WorldObjects
 
             if (Generator != null)
                 OnGeneration(Generator);
+
+            //Console.WriteLine($"{Name}.EnterWorld()");
 
             return true;
         }
@@ -863,11 +834,11 @@ namespace ACE.Server.WorldObjects
         /// If this is a container or a creature, all of the inventory and/or equipped objects will also be destroyed.<para />
         /// An object should only be destroyed once.
         /// </summary>
-        public virtual void Destroy(bool raiseNotifyOfDestructionEvent = true)
+        public void Destroy(bool raiseNotifyOfDestructionEvent = true, bool fromLandblockUnload = false)
         {
             if (IsDestroyed)
             {
-                log.WarnFormat("Item 0x{0:X8}:{1} called destroy more than once.", Guid.Full, Name);
+                //log.WarnFormat("Item 0x{0:X8}:{1} called destroy more than once.", Guid.Full, Name);
                 return;
             }
 
@@ -890,8 +861,25 @@ namespace ACE.Server.WorldObjects
             if (this is Pet pet && pet.P_PetOwner?.CurrentActivePet == this)
                 pet.P_PetOwner.CurrentActivePet = null;
 
+            if (this is Vendor vendor)
+            {
+                foreach (var wo in vendor.DefaultItemsForSale.Values)
+                    wo.Destroy();
+
+                foreach (var wo in vendor.UniqueItemsForSale.Values)
+                    wo.Destroy();
+            }
+
             if (raiseNotifyOfDestructionEvent)
                 NotifyOfEvent(RegenerationType.Destruction);
+
+            if (IsGenerator)
+            {
+                if (fromLandblockUnload)
+                    ProcessGeneratorDestructionDirective(GeneratorDestruct.Destroy, fromLandblockUnload);
+                else
+                    OnGeneratorDestroy();
+            }
 
             CurrentLandblock?.RemoveWorldObject(Guid);
 
@@ -931,7 +919,7 @@ namespace ACE.Server.WorldObjects
         /// adds to the physics animation system, and broadcasts to nearby players
         /// </summary>
         /// <returns>The amount it takes to execute the motion</returns>
-        public float ExecuteMotion(Motion motion, bool sendClient = true, float? maxRange = null)
+        public float ExecuteMotion(Motion motion, bool sendClient = true, float? maxRange = null, bool persist = false)
         {
             var motionCommand = motion.MotionState.ForwardCommand;
 
@@ -957,6 +945,9 @@ namespace ACE.Server.WorldObjects
                 motionInterp.apply_raw_movement(true, true);
             }
 
+            if (persist && PropertyManager.GetBool("persist_movement").Item)
+                motion.Persist(CurrentMotionState);
+
             // hardcoded ready?
             var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, CurrentMotionState.MotionState.ForwardCommand, motionCommand);
             CurrentMotionState = motion;
@@ -968,9 +959,19 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
+        public float ExecuteMotionPersist(Motion motion, bool sendClient = true, float? maxRange = null)
+        {
+            return ExecuteMotion(motion, sendClient, maxRange, true);
+        }
+
         public void SetStance(MotionStance stance, bool broadcast = true)
         {
-            CurrentMotionState = new Motion(stance);
+            var motion = new Motion(stance);
+
+            if (PropertyManager.GetBool("persist_movement").Item)
+                motion.Persist(CurrentMotionState);
+
+            CurrentMotionState = motion;
 
             if (broadcast)
                 EnqueueBroadcastMotion(CurrentMotionState);
@@ -1052,16 +1053,6 @@ namespace ACE.Server.WorldObjects
             // empty base
         }
 
-        public virtual void OnSticky()
-        {
-            // empty base
-        }
-
-        public virtual void OnUnsticky()
-        {
-            // empty base
-        }
-
         public bool IsTradeNote => ItemType == ItemType.PromissoryNote;
 
         public virtual bool IsAttunedOrContainsAttuned => Attuned >= AttunedStatus.Attuned;
@@ -1077,5 +1068,14 @@ namespace ACE.Server.WorldObjects
             else
                 return new List<WorldObject>() { this };
         }
+
+        public bool HasArmorLevel()
+        {
+            return ArmorLevel > 0;
+        }
+
+        public virtual bool IsBeingTradedOrContainsItemBeingTraded(HashSet<ObjectGuid> guidList) => guidList.Contains(Guid);
+
+        public bool IsSocietyArmor => WieldSkillType >= (int)PropertyInt.SocietyRankCelhan && WieldSkillType <= (int)PropertyInt.SocietyRankRadblo;
     }
 }

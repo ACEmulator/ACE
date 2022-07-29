@@ -1,44 +1,30 @@
 using System;
 using System.Collections.Generic;
-
+using ACE.Server.Entity;
+using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.GameEvent.Events
 {
     public class GameEventFellowshipFullUpdate : GameEventMessage
     {
-        public static FellowComparer FellowComparer = new FellowComparer();
+        private static readonly HashComparer FellowComparer = new HashComparer(16);
 
         public GameEventFellowshipFullUpdate(Session session)
             : base(GameEventType.FellowshipFullUpdate, GameMessageGroup.UIQueue, session)
         {
-            // This is a naive, bare-bones implementation of 0x02BE, FullFellowshipUpdate.
-            // 0x02BE is fairly complicated, so the following code is at least valuable as an example of a valid server response.
-
-            // todo: The current implementation has race conditions,
-            // and there are questions that must be answered before it can be fixed.
-            // We need to figure out who "owns" the fellowship data.
-            // Does everyone get a turn to read from and modify the fellowship data, and if so, how is this managed?
-
-            // Currently, creating and leaving a fellowship is supported.
-            // Any other fellowship function is not yet supported.
-
             var fellowship = session.Player.Fellowship;
 
-            #region PackableHashTable of fellowship table - <ObjectID,Fellow>
-            // the current number of fellowship members
-            Writer.Write((ushort)fellowship.FellowshipMembers.Count); //count - number of items in the table
-            Writer.Write(FellowComparer.TableSize);    // static table size from retail pcaps
+            var fellows = fellowship.GetFellowshipMembers();
 
-            // --- FellowInfo ---
+            PackableHashTable.WriteHeader(Writer, fellows.Count, FellowComparer.NumBuckets);
 
-            var fellowshipMembers = new SortedDictionary<uint, Player>(fellowship.GetFellowshipMembers(), FellowComparer);
-            foreach (Player fellow in fellowshipMembers.Values)
+            var sorted = new SortedDictionary<uint, Player>(fellows, FellowComparer);
+
+            foreach (var fellow in sorted.Values)
             {
-                // Write data associated with each fellowship member
                 WriteFellow(fellow);
             }
-            #endregion
 
             Writer.WriteString16L(fellowship.FellowshipName);
             Writer.Write(fellowship.FellowshipLeaderGuid);
@@ -48,9 +34,9 @@ namespace ACE.Server.Network.GameEvent.Events
 
             Writer.Write(Convert.ToUInt32(fellowship.IsLocked));
 
-            // TODO PackableHashTable of fellows departed - fellowsDeparted  -<ObjectID,int>
-            Writer.Write((uint)0x00200000);
-            Writer.Write((uint)0x00200000);
+            Writer.Write(fellowship.DepartedMembers);
+
+            Writer.Write(fellowship.FellowshipLocks);
         }
 
         public void WriteFellow(Player fellow)
@@ -74,24 +60,6 @@ namespace ACE.Server.Network.GameEvent.Events
             Writer.Write((uint)0x10); // TODO: shareLoot - if 0 then noSharePhatLoot, if 16(0x0010) then sharePhatLoot
 
             Writer.WriteString16L(fellow.Name);
-        }
-    }
-
-    public class FellowComparer : IComparer<uint>
-    {
-        public static ushort TableSize = 16;
-
-        public int Compare(uint a, uint b)
-        {
-            var keyA = a % TableSize;
-            var keyB = b % TableSize;
-
-            var result = keyA.CompareTo(keyB);
-
-            if (result == 0)
-                result = a.CompareTo(b);
-
-            return result;
         }
     }
 }

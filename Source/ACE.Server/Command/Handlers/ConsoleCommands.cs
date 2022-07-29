@@ -6,16 +6,23 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Server.Network;
 
-
-using ACE.Server.Factories;
-using Newtonsoft.Json;
-using System.IO;
-using ACE.Database;
-
 namespace ACE.Server.Command.Handlers
 {
     public static class ConsoleCommands
     {
+        [CommandHandler("version", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Show server version information.", "")]
+        public static void ShowVersion(Session session, params string[] parameters)
+        {
+            var msg = ServerBuildInfo.GetVersionInfo();
+            Console.WriteLine(msg);
+        }
+
+        [CommandHandler("exit", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Shut down server immediately.", "")]
+        public static void Exit(Session session, params string[] parameters)
+        {
+            AdminShardCommands.ShutdownServerNow(session, parameters);
+        }
+
         [CommandHandler("cell-export", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1, "Export contents of CELL DAT file.", "<export-directory-without-spaces>")]
         public static void ExportCellDatContents(Session session, params string[] parameters)
         {

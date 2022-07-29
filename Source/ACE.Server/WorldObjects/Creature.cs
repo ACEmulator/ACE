@@ -14,7 +14,6 @@ using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects.Entity;
 
-using Biota = ACE.Database.Models.Shard.Biota;
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.WorldObjects
@@ -33,8 +32,8 @@ namespace ACE.Server.WorldObjects
             {
                 if (_questManager == null)
                 {
-                    if (!(this is Player))
-                        log.Debug($"Initializing non-player QuestManager for {Name} (0x{Guid})");   // verify this almost never happens
+                    /*if (!(this is Player))
+                        log.Debug($"Initializing non-player QuestManager for {Name} (0x{Guid})");*/
 
                     _questManager = new QuestManager(this);
                 }
@@ -49,10 +48,20 @@ namespace ACE.Server.WorldObjects
         private Dictionary<uint, WorldObjectInfo> selectedTargets;
 
         /// <summary>
+        /// Currently used to handle some edge cases for faction mobs
+        /// DamageHistory.HasDamager() has the following issues:
+        /// - if a player attacks a same-factioned mob but is evaded, the mob would quickly de-aggro
+        /// - if a player attacks a same-factioned mob in a group of same-factioned mobs, the other nearby faction mobs should be alerted, and should maintain aggro, even without a DamageHistory entry
+        /// - if a summoner attacks a same-factioned mob, should the summoned CombatPet possibly defend the player in that situation?
+        /// </summary>
+        //public HashSet<uint> RetaliateTargets { get; set; }
+
+        /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
         public Creature(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
+            InitializePropertyDictionaries();
             SetEphemeralValues();
         }
 
@@ -61,7 +70,20 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Creature(Biota biota) : base(biota)
         {
+            InitializePropertyDictionaries();
             SetEphemeralValues();
+        }
+
+        private void InitializePropertyDictionaries()
+        {
+            if (Biota.PropertiesAttribute == null)
+                Biota.PropertiesAttribute = new Dictionary<PropertyAttribute, PropertiesAttribute>();
+            if (Biota.PropertiesAttribute2nd == null)
+                Biota.PropertiesAttribute2nd = new Dictionary<PropertyAttribute2nd, PropertiesAttribute2nd>();
+            if (Biota.PropertiesBodyPart == null)
+                Biota.PropertiesBodyPart = new Dictionary<CombatBodyPart, PropertiesBodyPart>();
+            if (Biota.PropertiesSkill == null)
+                Biota.PropertiesSkill = new Dictionary<Skill, PropertiesSkill>();
         }
 
         private void SetEphemeralValues()
@@ -85,8 +107,8 @@ namespace ACE.Server.WorldObjects
             Attributes[PropertyAttribute.Focus] = new CreatureAttribute(this, PropertyAttribute.Focus);
             Attributes[PropertyAttribute.Self] = new CreatureAttribute(this, PropertyAttribute.Self);
 
-            foreach (var skillProperty in Biota.BiotaPropertiesSkill)
-                Skills[(Skill)skillProperty.Type] = new CreatureSkill(this, skillProperty);
+            foreach (var kvp in Biota.PropertiesSkill)
+                Skills[kvp.Key] = new CreatureSkill(this, kvp.Key, kvp.Value);
 
             if (Health.Current <= 0)
                 Health.Current = Health.MaxValue;
@@ -99,12 +121,13 @@ namespace ACE.Server.WorldObjects
             {
                 GenerateWieldList();
 
-                if (!(this is CombatPet)) //combat pets normally wouldn't have these items, but due to subbing in code currently, sometimes they do. this skips them for now.
-                {
-                    GenerateWieldedTreasure();
+                EquipInventoryItems();
 
-                    EquipInventoryItems();
-                }
+                GenerateWieldedTreasure();
+
+                EquipInventoryItems();
+
+                GenerateInventoryTreasure();
 
                 // TODO: fix tod data
                 Health.Current = Health.MaxValue;
@@ -118,6 +141,9 @@ namespace ACE.Server.WorldObjects
 
             selectedTargets = new Dictionary<uint, WorldObjectInfo>();
         }
+
+        // verify logic
+        public bool IsNPC => !(this is Player) && !Attackable && TargetingTactic == TargetingTactic.None;
 
         public void GenerateNewFace()
         {

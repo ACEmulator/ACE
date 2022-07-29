@@ -12,6 +12,7 @@ namespace ACE.Common
     public class ThreadConfiguration
     {
         private double worldThreadCountMultiplier;
+        private double databaseThreadCountMultiplier;
 
         /*
          * Multiplier of 0.34:
@@ -38,13 +39,34 @@ namespace ACE.Common
             {
                 worldThreadCountMultiplier = value;
 
-                var worldThreadCount = (int)Math.Max(Environment.ProcessorCount * value, 1);
-                var databaseThreadCount = Math.Max(Environment.ProcessorCount - worldThreadCount, 1);
+                var threadCount = (int)Math.Max(Environment.ProcessorCount * value, 1);
 
-                LandblockManagerParallelOptions.MaxDegreeOfParallelism = worldThreadCount;
-                NetworkManagerParallelOptions.MaxDegreeOfParallelism = worldThreadCount;
+                LandblockManagerParallelOptions.MaxDegreeOfParallelism = threadCount;
+                NetworkManagerParallelOptions.MaxDegreeOfParallelism = threadCount;
+            }
+        }
 
-                DatabaseParallelOptions.MaxDegreeOfParallelism = databaseThreadCount;
+        [System.ComponentModel.DefaultValue(0)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public double DatabaseThreadCountMultiplier
+        {
+            get => databaseThreadCountMultiplier;
+            set
+            {
+                // This is to support for older configs that do not have this property defined
+                if (value == 0)
+                {
+                    var worldThreadCount = (int)Math.Max(Environment.ProcessorCount * WorldThreadCountMultiplier, 1);
+                    var databaseThreadCount = Math.Max(Environment.ProcessorCount - worldThreadCount, 1);
+                    DatabaseParallelOptions.MaxDegreeOfParallelism = databaseThreadCount;
+                    return;
+                }
+
+                databaseThreadCountMultiplier = value;
+
+                var threadCount = (int)Math.Max(Environment.ProcessorCount * value, 1);
+
+                DatabaseParallelOptions.MaxDegreeOfParallelism = threadCount;
             }
         }
 

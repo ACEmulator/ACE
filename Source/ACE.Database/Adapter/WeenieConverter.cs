@@ -22,43 +22,43 @@ namespace ACE.Database.Adapter
 
             if (weenie.WeeniePropertiesBool != null && (instantiateEmptyCollections || weenie.WeeniePropertiesBool.Count > 0))
             {
-                result.PropertiesBool = new Dictionary<PropertyBool, bool>();
+                result.PropertiesBool = new Dictionary<PropertyBool, bool>(weenie.WeeniePropertiesBool.Count);
                 foreach (var value in weenie.WeeniePropertiesBool)
                     result.PropertiesBool[(PropertyBool)value.Type] = value.Value;
             }
             if (weenie.WeeniePropertiesDID != null && (instantiateEmptyCollections || weenie.WeeniePropertiesDID.Count > 0))
             {
-                result.PropertiesDID = new Dictionary<PropertyDataId, uint>();
+                result.PropertiesDID = new Dictionary<PropertyDataId, uint>(weenie.WeeniePropertiesDID.Count);
                 foreach (var value in weenie.WeeniePropertiesDID)
                     result.PropertiesDID[(PropertyDataId)value.Type] = value.Value;
             }
             if (weenie.WeeniePropertiesFloat != null && (instantiateEmptyCollections || weenie.WeeniePropertiesFloat.Count > 0))
             {
-                result.PropertiesFloat = new Dictionary<PropertyFloat, double>();
+                result.PropertiesFloat = new Dictionary<PropertyFloat, double>(weenie.WeeniePropertiesFloat.Count);
                 foreach (var value in weenie.WeeniePropertiesFloat)
                     result.PropertiesFloat[(PropertyFloat)value.Type] = value.Value;
             }
             if (weenie.WeeniePropertiesIID != null && (instantiateEmptyCollections || weenie.WeeniePropertiesIID.Count > 0))
             {
-                result.PropertiesIID = new Dictionary<PropertyInstanceId, uint>();
+                result.PropertiesIID = new Dictionary<PropertyInstanceId, uint>(weenie.WeeniePropertiesIID.Count);
                 foreach (var value in weenie.WeeniePropertiesIID)
                     result.PropertiesIID[(PropertyInstanceId)value.Type] = value.Value;
             }
             if (weenie.WeeniePropertiesInt != null && (instantiateEmptyCollections || weenie.WeeniePropertiesInt.Count > 0))
             {
-                result.PropertiesInt = new Dictionary<PropertyInt, int>();
+                result.PropertiesInt = new Dictionary<PropertyInt, int>(weenie.WeeniePropertiesInt.Count);
                 foreach (var value in weenie.WeeniePropertiesInt)
                     result.PropertiesInt[(PropertyInt)value.Type] = value.Value;
             }
             if (weenie.WeeniePropertiesInt64 != null && (instantiateEmptyCollections || weenie.WeeniePropertiesInt64.Count > 0))
             {
-                result.PropertiesInt64 = new Dictionary<PropertyInt64, long>();
+                result.PropertiesInt64 = new Dictionary<PropertyInt64, long>(weenie.WeeniePropertiesInt64.Count);
                 foreach (var value in weenie.WeeniePropertiesInt64)
                     result.PropertiesInt64[(PropertyInt64)value.Type] = value.Value;
             }
             if (weenie.WeeniePropertiesString != null && (instantiateEmptyCollections || weenie.WeeniePropertiesString.Count > 0))
             {
-                result.PropertiesString = new Dictionary<PropertyString, string>();
+                result.PropertiesString = new Dictionary<PropertyString, string>(weenie.WeeniePropertiesString.Count);
                 foreach (var value in weenie.WeeniePropertiesString)
                     result.PropertiesString[(PropertyString)value.Type] = value.Value;
             }
@@ -66,7 +66,7 @@ namespace ACE.Database.Adapter
 
             if (weenie.WeeniePropertiesPosition != null && (instantiateEmptyCollections || weenie.WeeniePropertiesPosition.Count > 0))
             {
-                result.PropertiesPosition = new Dictionary<PositionType, PropertiesPosition>();
+                result.PropertiesPosition = new Dictionary<PositionType, PropertiesPosition>(weenie.WeeniePropertiesPosition.Count);
 
                 foreach (var record in weenie.WeeniePropertiesPosition)
                 {
@@ -90,7 +90,7 @@ namespace ACE.Database.Adapter
 
             if (weenie.WeeniePropertiesSpellBook != null && (instantiateEmptyCollections || weenie.WeeniePropertiesSpellBook.Count > 0))
             {
-                result.PropertiesSpellBook = new Dictionary<int, float>();
+                result.PropertiesSpellBook = new Dictionary<int, float>(weenie.WeeniePropertiesSpellBook.Count);
                 foreach (var value in weenie.WeeniePropertiesSpellBook)
                     result.PropertiesSpellBook[value.Spell] = value.Probability;
             }
@@ -98,7 +98,7 @@ namespace ACE.Database.Adapter
 
             if (weenie.WeeniePropertiesAnimPart != null && (instantiateEmptyCollections || weenie.WeeniePropertiesAnimPart.Count > 0))
             {
-                result.PropertiesAnimPart = new List<PropertiesAnimPart>();
+                result.PropertiesAnimPart = new List<PropertiesAnimPart>(weenie.WeeniePropertiesAnimPart.Count);
 
                 foreach (var record in weenie.WeeniePropertiesAnimPart)
                 {
@@ -131,7 +131,7 @@ namespace ACE.Database.Adapter
 
             if (weenie.WeeniePropertiesTextureMap != null && (instantiateEmptyCollections || weenie.WeeniePropertiesTextureMap.Count > 0))
             {
-                result.PropertiesTextureMap = new List<PropertiesTextureMap>();
+                result.PropertiesTextureMap = new List<PropertiesTextureMap>(weenie.WeeniePropertiesTextureMap.Count);
 
                 foreach (var record in weenie.WeeniePropertiesTextureMap)
                 {
@@ -248,7 +248,7 @@ namespace ACE.Database.Adapter
 
             if (weenie.WeeniePropertiesGenerator != null && (instantiateEmptyCollections || weenie.WeeniePropertiesGenerator.Count > 0))
             {
-                result.PropertiesGenerator = new List<PropertiesGenerator>();
+                result.PropertiesGenerator = new List<PropertiesGenerator>(weenie.WeeniePropertiesGenerator.Count);
 
                 foreach (var record in weenie.WeeniePropertiesGenerator) // TODO do we have the correct order?
                 {
@@ -283,7 +283,7 @@ namespace ACE.Database.Adapter
 
             if (weenie.WeeniePropertiesAttribute != null && (instantiateEmptyCollections || weenie.WeeniePropertiesAttribute.Count > 0))
             {
-                result.PropertiesAttribute = new Dictionary<PropertyAttribute, PropertiesAttribute>();
+                result.PropertiesAttribute = new Dictionary<PropertyAttribute, PropertiesAttribute>(weenie.WeeniePropertiesAttribute.Count);
 
                 foreach (var record in weenie.WeeniePropertiesAttribute)
                 {
@@ -300,7 +300,7 @@ namespace ACE.Database.Adapter
 
             if (weenie.WeeniePropertiesAttribute2nd != null && (instantiateEmptyCollections || weenie.WeeniePropertiesAttribute2nd.Count > 0))
             {
-                result.PropertiesAttribute2nd = new Dictionary<PropertyAttribute2nd, PropertiesAttribute2nd>();
+                result.PropertiesAttribute2nd = new Dictionary<PropertyAttribute2nd, PropertiesAttribute2nd>(weenie.WeeniePropertiesAttribute2nd.Count);
 
                 foreach (var record in weenie.WeeniePropertiesAttribute2nd)
                 {
@@ -318,7 +318,7 @@ namespace ACE.Database.Adapter
 
             if (weenie.WeeniePropertiesBodyPart != null && (instantiateEmptyCollections || weenie.WeeniePropertiesBodyPart.Count > 0))
             {
-                result.PropertiesBodyPart = new Dictionary<CombatBodyPart, PropertiesBodyPart>();
+                result.PropertiesBodyPart = new Dictionary<CombatBodyPart, PropertiesBodyPart>(weenie.WeeniePropertiesBodyPart.Count);
 
                 foreach (var record in weenie.WeeniePropertiesBodyPart)
                 {
@@ -357,7 +357,7 @@ namespace ACE.Database.Adapter
 
             if (weenie.WeeniePropertiesSkill != null && (instantiateEmptyCollections || weenie.WeeniePropertiesSkill.Count > 0))
             {
-                result.PropertiesSkill = new Dictionary<Skill, PropertiesSkill>();
+                result.PropertiesSkill = new Dictionary<Skill, PropertiesSkill>(weenie.WeeniePropertiesSkill.Count);
 
                 foreach (var record in weenie.WeeniePropertiesSkill)
                 {
@@ -389,7 +389,7 @@ namespace ACE.Database.Adapter
 
             if (weenie.WeeniePropertiesBookPageData != null && (instantiateEmptyCollections || weenie.WeeniePropertiesBookPageData.Count > 0))
             {
-                result.PropertiesBookPageData = new List<PropertiesBookPageData>();
+                result.PropertiesBookPageData = new List<PropertiesBookPageData>(weenie.WeeniePropertiesBookPageData.Count);
 
                 foreach (var record in weenie.WeeniePropertiesBookPageData.OrderBy(r => r.PageId))
                 {

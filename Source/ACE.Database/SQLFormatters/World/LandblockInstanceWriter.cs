@@ -49,17 +49,17 @@ namespace ACE.Database.SQLFormatters.World
                              $"0x{value.Guid.ToString("X8")}, " +
                              $"{value.WeenieClassId.ToString().PadLeft(5)}, " +
                              $"0x{value.ObjCellId:X8}, " +
-                             $"{value.OriginX}, " +
-                             $"{value.OriginY}, " +
-                             $"{value.OriginZ}, " +
-                             $"{value.AnglesW}, " +
-                             $"{value.AnglesX}, " +
-                             $"{value.AnglesY}, " +
-                             $"{value.AnglesZ}, " +
+                             $"{TrimNegativeZero(value.OriginX):0.######}, " +
+                             $"{TrimNegativeZero(value.OriginY):0.######}, " +
+                             $"{TrimNegativeZero(value.OriginZ):0.######}, " +
+                             $"{TrimNegativeZero(value.AnglesW):0.######}, " +
+                             $"{TrimNegativeZero(value.AnglesX):0.######}, " +
+                             $"{TrimNegativeZero(value.AnglesY):0.######}, " +
+                             $"{TrimNegativeZero(value.AnglesZ):0.######}, " +
                              $"{value.IsLinkChild.ToString().PadLeft(5)}, " +
                              $"'{value.LastModified:yyyy-MM-dd HH:mm:ss}'" +
                              $"); /* {label} */" +
-                             Environment.NewLine + $"/* @teleloc 0x{value.ObjCellId:X8} [{value.OriginX:F6} {value.OriginY:F6} {value.OriginZ:F6}] {value.AnglesW:F6} {value.AnglesX:F6} {value.AnglesY:F6} {value.AnglesZ:F6} */";
+                             Environment.NewLine + $"/* @teleloc 0x{value.ObjCellId:X8} [{TrimNegativeZero(value.OriginX):F6} {TrimNegativeZero(value.OriginY):F6} {TrimNegativeZero(value.OriginZ):F6}] {TrimNegativeZero(value.AnglesW):F6} {TrimNegativeZero(value.AnglesX):F6} {TrimNegativeZero(value.AnglesY):F6} {TrimNegativeZero(value.AnglesZ):F6} */";
 
                 output = FixNullFields(output);
 

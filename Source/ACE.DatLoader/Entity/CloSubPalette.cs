@@ -12,7 +12,7 @@ namespace ACE.DatLoader.Entity
         /// <summary>
         /// Icon portal.dat 0x0F000000
         /// </summary>
-        public uint PaletteSet { get; private set; }
+        public uint PaletteSet { get; set; }
 
         public void Unpack(BinaryReader reader)
         {

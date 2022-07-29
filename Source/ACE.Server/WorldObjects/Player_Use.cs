@@ -2,7 +2,9 @@ using System;
 
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 
 namespace ACE.Server.WorldObjects
@@ -44,31 +46,6 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // handle casters with built-in spells
-            if (sourceItemIsEquipped)
-            {
-                if (sourceItem.SpellDID != null)
-                {
-                    // check activation requirements
-                    var result = sourceItem.CheckUseRequirements(this);
-                    if (!result.Success)
-                    {
-                        if (result.Message != null)
-                            Session.Network.EnqueueSend(result.Message);
-
-                        SendUseDoneEvent();
-                    }
-                    else
-                        HandleActionCastTargetedSpell(targetObjectGuid, sourceItem.SpellDID ?? 0, true);
-                }
-                else
-                {
-                    SendUseDoneEvent();
-                }
-
-                return;
-            }
-
             // Resolve the guid to an object that is either in our possession or on the Landblock
             var target = FindObject(targetObjectGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems | SearchLocations.Landblock);
 
@@ -79,15 +56,78 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            // handle objects with built-in spells
+            if (sourceItem.SpellDID != null)
+            {
+                if (!RecipeManager.VerifyUse(this, sourceItem, target))
+                {
+                    //var spell = new Spell((int)sourceItem.SpellDID);
+                    //if (spell != null)
+                    //    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"{spell.Name} cannot be cast on {target.Name}."));
+                    var usable = sourceItem.ItemUseable ?? Usable.Undef;
+                    var action = "";
+                    if (usable.HasFlag(Usable.Wielded))
+                        action = "wield";
+                    else if (usable.HasFlag(Usable.Contained))
+                        action = "contain";
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You must {action} the {sourceItem.Name} to use it."));
+                    SendUseDoneEvent();
+                    return;
+                }
+                // check activation requirements
+                var result = sourceItem.CheckUseRequirements(this);
+                if (!result.Success)
+                {
+                    if (result.Message != null)
+                        Session.Network.EnqueueSend(result.Message);
+
+                    SendUseDoneEvent();
+                    return;
+                }
+                else
+                {
+                    HandleActionCastTargetedSpell(targetObjectGuid, sourceItem.SpellDID ?? 0, sourceItem);
+                    return;
+                }
+            }
+
+            // handle casters with built-in spells
+            //if (sourceItemIsEquipped)
+            //{
+            //    if (sourceItem.SpellDID != null)
+            //    {
+            //        // check activation requirements
+            //        var result = sourceItem.CheckUseRequirements(this);
+            //        if (!result.Success)
+            //        {
+            //            if (result.Message != null)
+            //                Session.Network.EnqueueSend(result.Message);
+
+            //            SendUseDoneEvent();
+            //        }
+            //        else
+            //        {
+            //            HandleActionCastTargetedSpell(targetObjectGuid, sourceItem.SpellDID ?? 0, true);
+            //            return;
+            //        }
+            //    }
+            //    else
+            //    {
+            //        SendUseDoneEvent();
+            //    }
+
+            //    return;
+            //}
+
             if (IsTrading)
             {
-                if (ItemsInTradeWindow.Contains(sourceItem.Guid))
+                if (sourceItem.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
                 {
                     SendUseDoneEvent(WeenieError.TradeItemBeingTraded);
                     //SendWeenieError(WeenieError.TradeItemBeingTraded);
                     return;
                 }
-                if (ItemsInTradeWindow.Contains(target.Guid))
+                if (target.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
                 {
                     SendUseDoneEvent(WeenieError.TradeItemBeingTraded);
                     //SendWeenieError(WeenieError.TradeItemBeingTraded);
@@ -104,7 +144,29 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            sourceItem.HandleActionUseOnTarget(this, target);
+            if (target.CurrentLandblock != null && target != this)
+            {
+                // todo: verify target can be used remotely
+                // move RecipeManager.VerifyUse logic into base Player_Use
+                // this was avoided because i didn't want to deal with the ramifications of random items missing the correct ItemUseable flags,
+                // and because there are still some ItemUseable flags with missing logic we haven't quite figured out yet
+
+                if (IsBusy)
+                {
+                    SendUseDoneEvent(WeenieError.YoureTooBusy);
+                    return;
+                }
+
+                CreateMoveToChain(target, (success) =>
+                {
+                    if (success)
+                        sourceItem.HandleActionUseOnTarget(this, target);
+                    else
+                        SendUseDoneEvent();
+                });
+            }
+            else
+                sourceItem.HandleActionUseOnTarget(this, target);
         }
 
         /// <summary>
@@ -123,7 +185,7 @@ namespace ACE.Server.WorldObjects
 
             var item = FindObject(itemGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems | SearchLocations.Landblock);
 
-            if (IsTrading && ItemsInTradeWindow.Contains(item.Guid))
+            if (IsTrading && item.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
             {
                 SendUseDoneEvent(WeenieError.TradeItemBeingTraded);
                 //SendWeenieError(WeenieError.TradeItemBeingTraded);
@@ -166,6 +228,10 @@ namespace ACE.Server.WorldObjects
             if (success)
                 item.OnActivate(this);
 
+            // manually managed
+            if (LastUseTime == float.MinValue)
+                return;
+
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(LastUseTime);
             actionChain.AddAction(this, () => SendUseDoneEvent());
@@ -207,6 +273,11 @@ namespace ACE.Server.WorldObjects
 
         public void ApplyConsumable(MotionCommand useMotion, Action action, float animMod = 1.0f)
         {
+            if (PropertyManager.GetBool("allow_fast_chug").Item && FastTick)
+            {
+                ApplyConsumableWithAnimationCallbacks(useMotion, action);
+                return;
+            }
             IsBusy = true;
 
             var actionChain = new ActionChain();
@@ -243,6 +314,84 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
 
             LastUseTime = animTime;
+        }
+
+        /// <summary>
+        /// Fast chugging state variable
+        /// </summary>
+        public FoodState FoodState { get; set; }
+
+        public void ApplyConsumableWithAnimationCallbacks(MotionCommand useMotion, Action action)
+        {
+            IsBusy = true;
+
+            var actionChain = new ActionChain();
+
+            // if combat mode, temporarily drop to non-combat
+            var prevStance = CurrentMotionState.Stance;
+
+            var animTime = 0.0f;
+
+            if (prevStance != MotionStance.NonCombat)
+                animTime = EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, (MotionCommand)prevStance);
+
+            // start the eat/drink motion
+            var useAnimTime = EnqueueMotion_Force(actionChain, MotionStance.NonCombat, useMotion);
+
+            animTime += useAnimTime;
+
+            // the rest is based on animation callback now
+            FoodState.StartChugging(useMotion, action, useAnimTime, prevStance);
+
+            actionChain.EnqueueChain();
+
+            // manually managed
+            LastUseTime = float.MinValue;
+        }
+
+        public void HandleMotionDone_UseConsumable(uint motionID, bool success)
+        {
+            //Console.WriteLine($"HandleMotionDone_UseConsumable({(MotionCommand)motionID}, {success})");
+
+            if (!FastTick || !FoodState.IsChugging) return;
+
+            if (motionID != (uint)FoodState.UseMotion)
+                return;
+
+            // restore state vars
+            var animTime = 0.0f;
+            var actionChain = new ActionChain();
+            var useMotion = FoodState.UseMotion;
+            var useAnimTime = FoodState.UseAnimTime;
+            var prevStance = FoodState.PrevStance;
+
+            if (motionID != (uint)MotionCommand.Ready)
+            {
+                if (FoodState.Callback != null)
+                {
+                    FoodState.Callback();
+                    FoodState.Callback = null;
+                }
+
+                FoodState.UseMotion = MotionCommand.Ready;
+
+                animTime += EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, useMotion);
+            }
+            else
+            {
+                FoodState.FinishChugging();
+
+                if (prevStance != MotionStance.NonCombat)
+                    animTime += EnqueueMotion_Force(actionChain, prevStance, MotionCommand.Ready, MotionCommand.NonCombat);
+
+                actionChain.AddAction(this, () =>
+                {
+                    SendUseDoneEvent();
+                    IsBusy = false;
+                });
+            }
+
+            actionChain.EnqueueChain();
         }
     }
 }

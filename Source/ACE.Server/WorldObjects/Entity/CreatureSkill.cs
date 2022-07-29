@@ -1,9 +1,9 @@
 using System;
 
 using ACE.Common.Extensions;
-using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects.Entity
@@ -12,17 +12,16 @@ namespace ACE.Server.WorldObjects.Entity
     {
         private readonly Creature creature;
 
-        // The underlying database record
-        public readonly BiotaPropertiesSkill BiotaPropertiesSkill;
-
         public readonly Skill Skill;
 
-        public CreatureSkill(Creature creature, BiotaPropertiesSkill biotaPropertiesSkill)
+        // The underlying database record
+        public readonly PropertiesSkill PropertiesSkill;
+
+        public CreatureSkill(Creature creature, Skill skill, PropertiesSkill propertiesSkill)
         {
             this.creature = creature;
-            this.BiotaPropertiesSkill = biotaPropertiesSkill;
-
-            Skill = (Skill)biotaPropertiesSkill.Type;
+            Skill = skill;
+            this.PropertiesSkill = propertiesSkill;
         }
 
         /// <summary>
@@ -30,19 +29,19 @@ namespace ACE.Server.WorldObjects.Entity
         /// </summary>
         public uint InitLevel
         {
-            get => BiotaPropertiesSkill.InitLevel;
-            set => BiotaPropertiesSkill.InitLevel = value;
+            get => PropertiesSkill.InitLevel;
+            set => PropertiesSkill.InitLevel = value;
         }
 
         public SkillAdvancementClass AdvancementClass
         {
-            get => (SkillAdvancementClass)BiotaPropertiesSkill.SAC;
+            get => PropertiesSkill.SAC;
             set
             {
-                if (BiotaPropertiesSkill.SAC != (uint)value)
+                if (PropertiesSkill.SAC != value)
                     creature.ChangesDetected = true;
 
-                BiotaPropertiesSkill.SAC = (uint)value;
+                PropertiesSkill.SAC = value;
             }
         }
 
@@ -70,13 +69,13 @@ namespace ACE.Server.WorldObjects.Entity
         /// </summary>
         public uint ExperienceSpent
         {
-            get => BiotaPropertiesSkill.PP;
+            get => PropertiesSkill.PP;
             set
             {
-                if (BiotaPropertiesSkill.PP != value)
+                if (PropertiesSkill.PP != value)
                     creature.ChangesDetected = true;
 
-                BiotaPropertiesSkill.PP = value;
+                PropertiesSkill.PP = value;
             }
         }
 
@@ -109,13 +108,13 @@ namespace ACE.Server.WorldObjects.Entity
         /// </summary>
         public ushort Ranks
         {
-            get => BiotaPropertiesSkill.LevelFromPP;
+            get => PropertiesSkill.LevelFromPP;
             set
             {
-                if (BiotaPropertiesSkill.LevelFromPP != value)
+                if (PropertiesSkill.LevelFromPP != value)
                     creature.ChangesDetected = true;
 
-                BiotaPropertiesSkill.LevelFromPP = value;
+                PropertiesSkill.LevelFromPP = value;
             }
         }
 
@@ -146,7 +145,7 @@ namespace ACE.Server.WorldObjects.Entity
                 total += InitLevel + Ranks;
 
                 if (creature is Player player)
-                    total += GetAugBonus(player, false);
+                    total += GetAugBonus_Base(player);
 
                 return total;
             }
@@ -163,32 +162,42 @@ namespace ACE.Server.WorldObjects.Entity
 
                 total += InitLevel + Ranks;
 
-                if (creature is Player player)
+                var player = creature as Player;
+
+                // base gets scaled by vitae
+                if (player != null)
+                    total += GetAugBonus_Base(player);
+
+                // apply multiplicative enchantments
+                var multiplier = creature.EnchantmentManager.GetSkillMod_Multiplier(Skill);
+
+                var fTotal = total * multiplier;
+
+                if (player != null)
                 {
                     var vitae = player.Vitae;
 
                     if (vitae != 1.0f)
-                        total = (uint)(total * vitae).Round();
+                        fTotal *= vitae;
 
                     // everything beyond this point does not get scaled by vitae
-                    total += GetAugBonus(player, true);
+                    fTotal += GetAugBonus_Current(player);
                 }
 
-                var skillMod = creature.EnchantmentManager.GetSkillMod(Skill);
+                var additives = creature.EnchantmentManager.GetSkillMod_Additives(Skill);
 
-                total = (uint)Math.Max(0, total + skillMod);    // skill level cannot be debuffed below 0
+                var iTotal = (fTotal + additives).Round();
 
-                return total;
+                iTotal = Math.Max(iTotal, 0);   // skill level cannot be debuffed below 0
+
+                return (uint)iTotal;
             }
         }
 
-        public uint GetAugBonus(Player player, bool current)
+        public uint GetAugBonus_Base(Player player)
         {
             // TODO: verify which of these are base, and which are current
             uint total = 0;
-
-            if (current && player.AugmentationJackOfAllTrades != 0)
-                total += (uint)(player.AugmentationJackOfAllTrades * 5);
 
             if (player.LumAugAllSkills != 0)
                 total += (uint)player.LumAugAllSkills;
@@ -200,24 +209,35 @@ namespace ACE.Server.WorldObjects.Entity
             else if (player.AugmentationSkilledMagic > 0 && Player.MagicSkills.Contains(Skill))
                 total += (uint)(player.AugmentationSkilledMagic * 10);
 
-            switch (Skill)
-            {
-                case Skill.ArmorTinkering:
-                case Skill.ItemTinkering:
-                case Skill.MagicItemTinkering:
-                case Skill.WeaponTinkering:
-                case Skill.Salvaging:
+            //switch (Skill)
+            //{
+            //    case Skill.ArmorTinkering:
+            //    case Skill.ItemTinkering:
+            //    case Skill.MagicItemTinkering:
+            //    case Skill.WeaponTinkering:
+            //    case Skill.Salvaging:
 
-                    if (player.LumAugSkilledCraft != 0)
-                        total += (uint)player.LumAugSkilledCraft;
-                    break;
-            }
+            //        if (player.LumAugSkilledCraft != 0)
+            //            total += (uint)player.LumAugSkilledCraft;
+            //        break;
+            //}
+
+            if (AdvancementClass >= SkillAdvancementClass.Trained && player.Enlightenment != 0)
+                total += (uint)player.Enlightenment;
+
+            return total;
+        }
+
+        public uint GetAugBonus_Current(Player player)
+        {
+            // TODO: verify which of these are base, and which are current
+            uint total = 0;
+
+            if (player.AugmentationJackOfAllTrades != 0)
+                total += (uint)(player.AugmentationJackOfAllTrades * 5);
 
             if (AdvancementClass == SkillAdvancementClass.Specialized && player.LumAugSkilledSpec != 0)
                 total += (uint)player.LumAugSkilledSpec * 2;
-
-            if (player.Enlightenment != 0)
-                total += (uint)player.Enlightenment;
 
             return total;
         }

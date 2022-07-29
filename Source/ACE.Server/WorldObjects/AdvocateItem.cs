@@ -5,8 +5,6 @@ using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Network.GameMessages.Messages;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     public class AdvocateItem : GenericObject

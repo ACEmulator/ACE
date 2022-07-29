@@ -296,7 +296,7 @@ namespace ACE.Server.Physics.Common
                     }
 
                     var cellBox = new BBox();
-                    cellBox.LocalToLocal(bbox, Pos, otherCell.Pos);
+                    cellBox.LocalToLocal(bbox, part.Pos, otherCell.Pos);
                     if (otherCell.CellStructure.box_intersects_cell(cellBox))
                     {
                         cellArray.add_cell(otherCell.ID, otherCell);
@@ -453,6 +453,11 @@ namespace ACE.Server.Physics.Common
                     return true;
             }
             return SeenOutside && blockDist <= 1;
+        }
+
+        public override bool handle_move_restriction(Transition transition)
+        {
+            return true;
         }
     }
 }

@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Common;
-using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
-using ACE.Server.Factories;
 using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
@@ -25,7 +24,7 @@ namespace ACE.Server.WorldObjects
         /// Returns TRUE if this object is a generator
         /// (spawns other world objects)
         /// </summary>
-        public bool IsGenerator { get => GeneratorProfiles.Count > 0; }
+        public bool IsGenerator { get => GeneratorProfiles != null && GeneratorProfiles.Count > 0; }
        
         //public List<string> History = new List<string>();
 
@@ -44,8 +43,11 @@ namespace ACE.Server.WorldObjects
             GeneratorProfiles = new List<GeneratorProfile>();
             uint i = 0;
 
-            foreach (var generator in Biota.BiotaPropertiesGenerator)
-                GeneratorProfiles.Add(new GeneratorProfile(this, generator, i++));
+            if (Biota.PropertiesGenerator != null)
+            {
+                foreach (var generator in Biota.PropertiesGenerator)
+                    GeneratorProfiles.Add(new GeneratorProfile(this, generator, i++));
+            }
         }
 
         /// <summary>
@@ -58,7 +60,7 @@ namespace ACE.Server.WorldObjects
             // defaulting to Max == Init for our purposes.
             if ((MaxGeneratedObjects <= 0 || MaxGeneratedObjects < InitGeneratedObjects) && InitGeneratedObjects > 0)
             {
-                log.Warn($"0x{Guid.Full.ToString()} {Name}.InitializeGenerator: {WeenieClassName} ({WeenieClassId}) MaxGeneratedObjects = {MaxGeneratedObjects} | InitGeneratedObjects = {InitGeneratedObjects}. Setting MaxGeneratedObjects = InitGeneratedObjects");
+                log.Warn($"[GENERATOR] 0x{Guid.Full.ToString()} {Name}.InitializeGenerator: {WeenieClassName} ({WeenieClassId}) MaxGeneratedObjects = {MaxGeneratedObjects} | InitGeneratedObjects = {InitGeneratedObjects}. Setting MaxGeneratedObjects = InitGeneratedObjects");
                 MaxGeneratedObjects = InitGeneratedObjects;
             }
 
@@ -72,7 +74,7 @@ namespace ACE.Server.WorldObjects
         public int CurrentCreate { get => GeneratorProfiles.Select(i => i.CurrentCreate).Sum(); }
 
         /// <summary>
-        /// A list of indices into GeneratorProfiles where CurrentCreate > 0
+        /// A list of indices into GeneratorProfiles where CurrentCreate > 0 or is on cooldown
         /// </summary>
         public List<int> GeneratorActiveProfiles
         {
@@ -83,7 +85,7 @@ namespace ACE.Server.WorldObjects
                 for (var i = 0; i < GeneratorProfiles.Count; i++)
                 {
                     var profile = GeneratorProfiles[i];
-                    if (profile.CurrentCreate > 0)
+                    if (profile.CurrentCreate > 0 || !profile.IsAvailable)
                         activeProfiles.Add(i);
                 }
                 return activeProfiles;
@@ -91,105 +93,31 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns TRUE if all generator profiles are at init objects created
+        /// Returns TRUE if all generator profiles are at max objects created
         /// </summary>
-        public bool AllProfilesInitted { get => GeneratorProfiles.Count(i => i.InitObjectsSpawned) == GeneratorProfiles.Count; }
+        public bool AllProfilesMaxed => !GeneratorProfiles.Any(i => !i.IsPlaceholder && !i.IsMaxed);
 
         /// <summary>
-        /// Retunrs TRUE if all generator profiles are at max objects created
+        /// Returns TRUE if all generator profiles are unavailable
         /// </summary>
-        public bool AllProfilesMaxed { get => GeneratorProfiles.Count(i => i.MaxObjectsSpawned) == GeneratorProfiles.Count; }
+        public bool AllProfilesUnavailable => !GeneratorProfiles.Any(i => !i.IsPlaceholder && i.IsAvailable);
 
         /// <summary>
-        /// Adds initial objects to the spawn queue based on RNG rolls
+        /// Adds object(s) to the spawn queue from a single RNG roll
         /// </summary>
-        public void SelectProfilesInit()
+        public void SelectAProfile()
         {
-            //History.Add($"[{DateTime.UtcNow}] - SelectProfilesInit()");
+            //History.Add($"[{DateTime.UtcNow}] - SelectAProfile()");
 
-            bool rng_selected = false;
+            //bool rng_selected = false;
 
-            var loopcount = 0;
+            if (GenStopSelectProfileConditions)
+                return;
 
-            while (true)
-            {
-                if (StopConditionsInit) return;
-
-                var totalProbability = rng_selected ? GetTotalProbability() : 1.0f;
-                var rng = ThreadSafeRandom.Next(0.0f, totalProbability);
-
-                for (var i = 0; i < GeneratorProfiles.Count; i++)
-                {
-                    var profile = GeneratorProfiles[i];
-
-                    // skip PlaceHolder objects
-                    if (profile.IsPlaceholder)
-                        continue;
-
-                    // is this profile already at its max_create?
-                    if (profile.MaxObjectsSpawned)
-                        continue;
-
-                    if (profile.RegenLocationType.HasFlag(RegenLocationType.Treasure))
-                    {
-                        if (profile.Biota.InitCreate > 1)
-                        {
-                            log.Warn($"0x{Guid} {Name}.SelectProfilesInit(): profile[{i}].RegenLocationType({profile.RegenLocationType}), profile.Biota.WCID({profile.Biota.WeenieClassId}), profile.Biota.InitCreate({profile.Biota.InitCreate}) > 1, set to 1. WCID: {WeenieClassId} - LOC: {Location.ToLOCString()}");
-                            profile.Biota.InitCreate = 1;
-                        }
-
-                        if (profile.Biota.MaxCreate > 1)
-                        {
-                            log.Warn($"0x{Guid} {Name}.SelectProfilesInit(): profile[{i}].RegenLocationType({profile.RegenLocationType}), profile.Biota.WCID({profile.Biota.WeenieClassId}), profile.Biota.MaxCreate({profile.Biota.MaxCreate}) > 1, set to 1. WCID: {WeenieClassId} - LOC: {Location.ToLOCString()}");
-                            profile.Biota.MaxCreate = 1;
-                        }
-                    }
-
-                    var probability = rng_selected ? GetAdjustedProbability(i) : profile.Biota.Probability;
-
-                    if (rng < probability || probability == -1)
-                    {
-                        var numObjects = GetInitObjects(profile);
-                        profile.Enqueue(numObjects);
-
-                        //var rng_str = probability == -1 ? "" : "RNG ";
-                        //History.Add($"[{DateTime.UtcNow}] - SelectProfilesInit() - {rng_str}selected slot {i} to spawn, adding {numObjects} objects ({profile.CurrentCreate}/{profile.MaxCreate})");
-
-                        // if RNG rolled, we are done with this roll
-                        if (profile.Biota.Probability != -1)
-                        {
-                            rng_selected = true;
-                            break;
-                        }
-
-                        // stop conditions
-                        if (StopConditionsInit) return;
-                    }
-                }
-
-                loopcount++;
-
-                if (loopcount > 1000)
-                {
-                    log.Warn($"0x{Guid} {Name}.SelectProfilesInit(): loopcount > 1000, aborted. WCID: {WeenieClassId} - LOC: {Location.ToLOCString()}");
-                    return;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Adds subsequent objects to the spawn queue based on RNG rolls
-        /// </summary>
-        public void SelectProfilesMax()
-        {
-            //History.Add($"[{DateTime.UtcNow}] - SelectProfilesMax()");
-
-            // stop conditions
-            if (StopConditionsMax) return;
-
-            // only roll once here?
-            var totalProbability = GetTotalProbability();
-            var rng = ThreadSafeRandom.Next(0.0f, totalProbability);
+            //var totalProbability = rng_selected ? GetTotalProbability() : 1.0f;
+            //var rng = ThreadSafeRandom.Next(0.0f, totalProbability);
+            //var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+            var rng = ThreadSafeRandom.Next(0.0f, GetTotalProbability());
 
             for (var i = 0; i < GeneratorProfiles.Count; i++)
             {
@@ -200,31 +128,58 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 // is this profile already at its max_create?
-                if (profile.MaxObjectsSpawned)
+                if (profile.IsMaxed)
                     continue;
 
+                // is this profile currently timed out?
+                if (!profile.IsAvailable)
+                    continue;
+
+                if (profile.RegenLocationType.HasFlag(RegenLocationType.Treasure))
+                {
+                    if (profile.Biota.InitCreate > 1)
+                    {
+                        log.Warn($"[GENERATOR] 0x{Guid} {Name}.SelectAProfile(): profile[{i}].RegenLocationType({profile.RegenLocationType}), profile.Biota.WCID({profile.Biota.WeenieClassId}), profile.Biota.InitCreate({profile.Biota.InitCreate}) > 1, set to 1. WCID: {WeenieClassId} - LOC: {Location.ToLOCString()}");
+                        profile.Biota.InitCreate = 1;
+                    }
+
+                    if (profile.Biota.MaxCreate > 1)
+                    {
+                        log.Warn($"[GENERATOR] 0x{Guid} {Name}.SelectAProfile(): profile[{i}].RegenLocationType({profile.RegenLocationType}), profile.Biota.WCID({profile.Biota.WeenieClassId}), profile.Biota.MaxCreate({profile.Biota.MaxCreate}) > 1, set to 1. WCID: {WeenieClassId} - LOC: {Location.ToLOCString()}");
+                        profile.Biota.MaxCreate = 1;
+                    }
+                }
+
+                //var probability = rng_selected ? GetAdjustedProbability(i) : profile.Biota.Probability;
+                //var probability = profile.Biota.Probability;
                 var probability = GetAdjustedProbability(i);
+
                 if (rng < probability || probability == -1)
                 {
-                    //var rng_str = probability == -1 ? "" : "RNG ";
-                    var numObjects = GetMaxObjects(profile);
+                    var numObjects = GetSpawnObjectsForProfile(profile);
                     profile.Enqueue(numObjects);
+                    //log.Info($"[GENERATOR] 0x{Guid} {Name}.SelectAProfile(): profile[{i}] Enqueued {numObjects} {profile.Biota.WeenieClassId} for spawning. MaxObjectsSpawned = {profile.MaxObjectsSpawned} | Exhusted = {profile.RemoveQueue.Count == profile.MaxCreate} | {profile.CurrentCreate} | {profile.MaxCreate} | {profile.Spawned.Count} | {profile.RemoveQueue.Count}");
 
-                    //History.Add($"[{DateTime.UtcNow}] - SelectProfilesMax() - {rng_str}selected slot {i} to spawn ({profile.CurrentCreate}/{profile.MaxCreate})");
+                    //var rng_str = probability == -1 ? "" : "RNG ";
+                    //History.Add($"[{DateTime.UtcNow}] - SelectAProfile() - {rng_str}selected slot {i} to spawn, adding {numObjects} objects ({profile.CurrentCreate}/{profile.MaxCreate})");
 
                     // if RNG rolled, we are done with this roll
                     if (profile.Biota.Probability != -1)
+                    {
+                        //rng_selected = true;
                         break;
+                    }
 
                     // stop conditions
-                    if (StopConditionsMax) return;
+                    if (GenStopSelectProfileConditions)
+                        return;
                 }
             }
         }
 
         /// <summary>
         /// Returns the total probability of all RNG profiles
-        /// which arent at max objects spawned yet
+        /// which arent at max objects spawned yet or on cooldown
         /// </summary>
         public float GetTotalProbability()
         {
@@ -237,12 +192,14 @@ namespace ACE.Server.WorldObjects
 
                 if (probability == -1)
                 {
-                    if (!profile.MaxObjectsSpawned)
+                    //if (!profile.IsMaxed)
+                    if (!profile.IsMaxed && profile.IsAvailable)
                         return 1.0f;
 
                     continue;
                 }
-                if (!profile.MaxObjectsSpawned)
+                //if (!profile.IsMaxed)
+                if (!profile.IsMaxed && profile.IsAvailable)
                 {
                     if (lastProbability > probability)
                         lastProbability = 0.0f;
@@ -276,7 +233,7 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// Returns the adjust probability for a generator profile index,
-        /// taking into account previous profile probabilities which are already at max objects spawned
+        /// taking into account previous profile probabilities which are already at max objects spawned or on cooldown
         /// </summary>
         public float GetAdjustedProbability(int index)
         {
@@ -304,7 +261,8 @@ namespace ACE.Server.WorldObjects
                 if (probability == -1)
                     continue;
 
-                if (!profile.MaxObjectsSpawned)
+                //if (!profile.IsMaxed)
+                if (!profile.IsMaxed && profile.IsAvailable)
                 {
                     if (lastProbability > probability)
                         lastProbability = 0.0f;
@@ -318,148 +276,64 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Get the current number of objects to spawn
-        /// for profile initialization
+        /// Get the current number of objects to spawn for a specific profile
         /// </summary>
-        public int GetInitObjects(GeneratorProfile profile)
+        public int GetSpawnObjectsForProfile(GeneratorProfile profile)
         {
             // get the number of objects to spawn for this profile
-            // usually profile.InitCreate, not to exceed generator.InitCreate
-            //var numObjects = profile.Biota.InitCreate;
-            var initCreate = profile.Biota.InitCreate;
-            var maxCreate = profile.Biota.MaxCreate;
+            // usually profile.InitCreate, must be at least profile.InitCreate while not to exceed generator.MaxCreate and profile.MaxCreate,
+            // -1 for profile.InitCreate == 1
+            // -1 for profile.MaxCreate == profile can be spawned infinitely as long as generator.MaxCreate has not been met.
+
+            var initCreate = profile.InitCreate;
+            var maxCreate = profile.MaxCreate;
             var numObjects = 0;
-            bool fillToInit = false;
-            bool fillToMax = false;
 
             if (initCreate == -1 || maxCreate == -1)
-            {
-                if (initCreate == -1)
-                    fillToInit = true;
-
-                if (maxCreate == -1)
-                    fillToMax = true;
-            }
-
-            if (fillToInit)
-                numObjects = InitCreate;
-            else if (fillToMax)
-                numObjects = MaxCreate;
+                numObjects = 1;
             else
                 numObjects = initCreate;
 
-            var leftObjects = InitCreate - CurrentCreate;
+            //Console.WriteLine($"INIT - 0x{Guid.ToString()} {Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.InitCreate = {profile.Biota.InitCreate} | profile.Biota.MaxCreate = {profile.Biota.MaxCreate} | InitCreate: {InitCreate} | MaxCreate: {MaxCreate} | initCreate: {initCreate} | maxCreate: {maxCreate} | leftObjects = {leftObjects} | numObjects: {numObjects}");            
 
-            //Console.WriteLine($"0x{Guid.ToString()} {Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.InitCreate = {profile.Biota.InitCreate} | profile.Biota.MaxCreate = {profile.Biota.MaxCreate} | InitCreate: {InitCreate} | MaxCreate: {MaxCreate} | initCreate: {initCreate} | maxCreate: {maxCreate} | fillToInit: {fillToInit} | fillToMax: {fillToMax} | leftObjects = {leftObjects} | numObjects: {numObjects}");
+            var genSlotsAvailable = MaxCreate - CurrentCreate;
+            var profileSlotsAvailable = profile.MaxCreate - profile.CurrentCreate;
 
-            if (numObjects > leftObjects && InitCreate != 0 && !fillToInit && !fillToMax)
-                return leftObjects;
+            if (genSlotsAvailable < numObjects)
+                numObjects = genSlotsAvailable;
 
-            return numObjects;
-        }
+            if (profile.MaxCreate != -1 && profileSlotsAvailable < numObjects)
+                numObjects = profileSlotsAvailable;
 
-        /// <summary>
-        /// Get the current number of objects to spawn
-        /// for profile max
-        /// </summary>
-        public int GetMaxObjects(GeneratorProfile profile)
-        {
-            // get the number of objects to spawn for this profile
-            // usually profile.MaxCreate, not to exceed generator.MaxCreate
-            var numObjects = profile.Biota.MaxCreate;
-
-            if (numObjects == -1)
-                numObjects = MaxCreate;
-
-            var leftObjects = MaxCreate - CurrentCreate;
-
-            if (numObjects > leftObjects && InitCreate != 0)
-                numObjects = leftObjects;
-
-            //Console.WriteLine($"CurrentCreate = {CurrentCreate} | profile.Biota.MaxCreate = {profile.Biota.MaxCreate} | MaxCreate: {MaxCreate} | numObjects: {numObjects}");
+            if (numObjects == 0 && initCreate == 0)
+                log.Warn($"[GENERATOR] 0x{Guid}:{WeenieClassId} {Name}.GetSpawnObjectsForProfile(profile[{profile.LinkId}]): profile.InitCreate = {profile.InitCreate} | profile.MaxCreate = {profile.MaxCreate} | profile.WeenieClassId = {profile.WeenieClassId} | Profile Init invalid, cannot spawn.");
+            else if (numObjects == 0)
+               log.Warn($"[GENERATOR] 0x{Guid}:{WeenieClassId} {Name}.GetSpawnObjectsForProfile(profile[{profile.LinkId}]): profile.InitCreate = {profile.InitCreate} | profile.MaxCreate = {profile.MaxCreate} | profile.WeenieClassId = {profile.WeenieClassId} | genSlotsAvailable = {genSlotsAvailable} | profileSlotsAvailable = {profileSlotsAvailable} | numObjects = {numObjects}, cannot spawn.");
 
             return numObjects;
         }
 
         /// <summary>
-        /// Get the current number of objects to spawn
-        /// for profile max
+        /// Returns TRUE if stop conditions have been reached for aborting generator profile selection
         /// </summary>
-        public int GetRNGInitToMaxObjects(GeneratorProfile profile)
-        {
-            // get the number of objects to spawn for this profile
-            var initCreate = profile.Biota.InitCreate;
-            var maxCreate = profile.Biota.MaxCreate;
-            var numObjects = 0;
-            bool fillToInit = false;
-            bool fillToMax = false;
-
-            if (initCreate == -1 || maxCreate == -1)
-            {
-                if (initCreate == -1)
-                    fillToInit = true;
-
-                if (maxCreate == -1)
-                    fillToMax = true;
-            }
-
-            if (initCreate <= 0)
-                initCreate = 1;
-
-            if (maxCreate < initCreate)
-                maxCreate = initCreate;
-
-            numObjects = ThreadSafeRandom.Next(initCreate, maxCreate);
-
-            if (fillToInit)
-                numObjects = InitCreate;
-
-            if (fillToMax)
-                numObjects = MaxCreate;
-
-            var leftObjects = MaxCreate - CurrentCreate;
-
-            //Console.WriteLine($"0x{Guid.ToString()} {Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.InitCreate = {profile.Biota.InitCreate} | profile.Biota.MaxCreate = {profile.Biota.MaxCreate} | InitCreate: {InitCreate} | MaxCreate: {MaxCreate} | initCreate: {initCreate} | maxCreate: {maxCreate} | fillToInit: {fillToInit} | fillToMax: {fillToMax} | leftObjects = {leftObjects} | numObjects: {numObjects}");
-
-            if (numObjects > leftObjects && InitCreate != 0)
-                return leftObjects;
-
-            return numObjects;
-        }
-
-        /// <summary>
-        /// Returns TRUE if stop conditions have been reached for initial generator spawn
-        /// </summary>
-        public bool StopConditionsInit
+        public bool GenStopSelectProfileConditions
         {
             get
             {
-                if (CurrentCreate >= InitCreate)
+                if (CurrentCreate >= MaxCreate)
                 {
                     //if (CurrentCreate > InitCreate)
-                        //log.Debug($"{WeenieClassId} - 0x{Guid}:{Name}.StopConditionsInit(): CurrentCreate({CurrentCreate}) > InitCreate({InitCreate})");
+                    //log.Debug($"{WeenieClassId} - 0x{Guid}:{Name}.StopConditionsInit(): CurrentCreate({CurrentCreate}) > InitCreate({InitCreate})");
 
                     return true;
                 }
-                return AllProfilesInitted || AllProfilesMaxed;
-            }
-        }
 
-        /// <summary>
-        /// Returns TRUE if stop conditions have been reached for subsequent generator spawn
-        /// </summary>
-        public bool StopConditionsMax
-        {
-            get
-            {
-                if (CurrentCreate >= MaxCreate && MaxCreate != 0)
+                if (CurrentlyPoweringUp && CurrentCreate >= InitCreate)
                 {
-                    //if (CurrentCreate > MaxCreate && MaxCreate != 0)
-                        //log.Debug($"{WeenieClassId} - 0x{Guid}:{Name}.StopConditionsMax(): CurrentCreate({CurrentCreate}) > MaxCreate({MaxCreate})");
-
                     return true;
                 }
-                return AllProfilesMaxed;
+
+                return AllProfilesUnavailable || AllProfilesMaxed;
             }
         }
 
@@ -532,7 +406,7 @@ namespace ACE.Server.WorldObjects
                 return;
 
             var enabled = EventManager.IsEventEnabled(GeneratorEvent);
-            var started = EventManager.IsEventStarted(GeneratorEvent);
+            var started = EventManager.IsEventStarted(GeneratorEvent, this, null);
 
             //GeneratorDisabled = !enabled || !started;
             //HandleStatus(prevState);
@@ -599,9 +473,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void StartGenerator()
         {
-            CurrentlyPoweringUp = true;
+            //Console.WriteLine($"{Name}.StartGenerator()");
 
-            SelectProfilesInit();
+            if (CurrentlyPoweringUp)
+                return;
+
+            CurrentlyPoweringUp = true;
 
             if (GeneratorInitialDelay > 0)
             {
@@ -610,11 +487,12 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                if (InitCreate > 0)
-                    Generator_Regeneration();
-            }
+                if (this is Container && this is not Creature || (!string.IsNullOrEmpty(GeneratorEvent) && RegenerationInterval == 0))
+                    Generator_Generate();
 
-            CurrentlyPoweringUp = false;
+                if (InitCreate == 0)
+                    CurrentlyPoweringUp = false;
+            }
         }
 
         private double GetNextRegenerationTime(double generatorInitialDelay)
@@ -626,61 +504,49 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Disables a generator, and destroys all of its spawned objects
+        /// Disables a generator and Processes GeneratorDestructionDirective
         /// </summary>
         public void DisableGenerator()
         {
-            // generator has been disabled, de-spawn everything in registry and reset back to defaults
+            // generator has been disabled, potentially destroy, kill or leave behind everything in registry and reset back to defaults
             ProcessGeneratorDestructionDirective(GeneratorEndDestructionType);
         }
 
         /// <summary>
-        /// Called upon death of a generator, and destroys all of its spawned objects
+        /// Called upon death of a generator and Processes GeneratorDestructionDirective
         /// </summary>
         public void OnGeneratorDeath()
         {
-            // generator has been killed, de-spawn everything in registry and reset back to defaults
+            // generator has been killed, potentially destroy, kill or leave behind everything in registry and reset back to defaults
             ProcessGeneratorDestructionDirective(GeneratorDestructionType);
         }
 
         /// <summary>
-        /// Destroys/Kills all of its spawned objects, if specifically indicated, and resets back to default
+        /// Called upon death of a generator and Processes GeneratorDestructionDirective
         /// </summary>
-        public void ProcessGeneratorDestructionDirective(GeneratorDestruct generatorDestructType)
+        public void OnGeneratorDestroy()
         {
-            //everything in registry and reset back to defaults
+            // generator has been destroyed, potentially destroy, kill or leave behind everything in registry and reset back to defaults
+            ProcessGeneratorDestructionDirective(GeneratorDestructionType);
+        }
+
+        /// <summary>
+        /// Destroys/Kills all of its spawned objects, if specifically directed, and resets back to default
+        /// </summary>
+        public void ProcessGeneratorDestructionDirective(GeneratorDestruct generatorDestructType, bool fromLandblockUnload = false)
+        {
             switch (generatorDestructType)
             {
                 case GeneratorDestruct.Kill:
                     foreach (var generator in GeneratorProfiles)
                     {
-                        foreach (var rNode in generator.Spawned.Values)
-                        {
-                            var wo = rNode.TryGetWorldObject();
-
-                            if (wo is Creature creature && !creature.IsDead)
-                                creature.Smite(this, true);
-                        }
-
-                        generator.Spawned.Clear();
-                        generator.SpawnQueue.Clear();
+                        generator.KillAll();
                     }
                     break;
                 case GeneratorDestruct.Destroy:
                     foreach (var generator in GeneratorProfiles)
                     {
-                        foreach (var rNode in generator.Spawned.Values)
-                        {
-                            var wo = rNode.TryGetWorldObject();
-
-                            if (wo != null && wo is Creature creature && !creature.IsDead)
-                                creature.Destroy();
-                            else if (wo != null)
-                                wo.Destroy();
-                        }
-
-                        generator.Spawned.Clear();
-                        generator.SpawnQueue.Clear();
+                        generator.DestroyAll(fromLandblockUnload);
                     }
                     break;
                 case GeneratorDestruct.Nothing:
@@ -695,24 +561,23 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void NotifyOfEvent(RegenerationType regenerationType)
         {
-            if (GeneratorId == null) return;
+            if (GeneratorId == null || Generator == null) return;
 
-            if (!Generator.GeneratorDisabled)
+            var generator = Generator.GeneratorProfiles.FirstOrDefault(g => g.Spawned.ContainsKey(Guid.Full));
+            generator?.NotifyGenerator(Guid, regenerationType);
+
+            if (Generator.GeneratorId > 0) // Generator is controlled by another generator.
             {
-                var removeQueueTotal = 0;
-
-                foreach (var generator in Generator.GeneratorProfiles)
-                {
-                    generator.NotifyGenerator(Guid, regenerationType);
-                    removeQueueTotal += generator.RemoveQueue.Count;
-                }
-
-                if (Generator.GeneratorId > 0) // Generator is controlled by another generator.
-                {
-                    if (!(Generator is Container) && Generator.InitCreate > 0 && (Generator.CurrentCreate - removeQueueTotal) == 0) // Parent generator is non-container (Container, Corpse, Chest, Slumlord, Storage, Hook, Creature) generator
-                        Generator.Destroy(); // Generator's complete spawn count has been wiped out
-                }
+                if ((!(Generator is Container) || Generator.GeneratorAutomaticDestruction) && Generator.InitCreate > 0 && Generator.CurrentCreate == 0) // Parent generator is non-container (Container, Corpse, Chest, Slumlord, Storage, Hook, Creature) generator
+                    Generator.Destroy(); // Generator's complete spawn count has been wiped out
             }
+            else if (Generator.GeneratorAutomaticDestruction && Generator.InitCreate > 0 && Generator.CurrentCreate == 0)
+            {
+                Generator.Destroy(); // Generator's complete spawn count has been wiped out
+            }
+
+            //if (!Generator.IsDestroyed)
+            //    Generator.SelectAProfile();
 
             Generator = null;
             GeneratorId = null;
@@ -733,7 +598,7 @@ namespace ACE.Server.WorldObjects
 
             foreach (var link in LinkedInstances)
             {
-                var profile = new BiotaPropertiesGenerator();
+                var profile = new PropertiesGenerator();
                 profile.WeenieClassId = link.WeenieClassId;
                 profile.ObjCellId = link.ObjCellId;
                 profile.OriginX = link.OriginX;
@@ -770,9 +635,6 @@ namespace ACE.Server.WorldObjects
             if (!FirstEnterWorldDone)
                 FirstEnterWorldDone = true;
 
-            //foreach (var generator in GeneratorProfiles)
-            //    generator.Maintenance_HeartBeat();
-
             CheckGeneratorStatus();
 
             if (!GeneratorEnteredWorld)
@@ -784,30 +646,40 @@ namespace ACE.Server.WorldObjects
 
                 GeneratorEnteredWorld = true;
             }
-            else
-            {
-                foreach (var profile in GeneratorProfiles)
-                    profile.Maintenance_HeartBeat();
-            }
         }
 
         /// <summary>
         /// Called every [RegenerationInterval] seconds<para />
         /// Also called from EmoteManager, Chest.Reset(), WorldObject.OnGenerate()
         /// </summary>
-        public void Generator_Regeneration()
+        public void Generator_Generate()
         {
-            //Console.WriteLine($"{Name}.Generator_Regeneration({RegenerationInterval})");
-
-            //foreach (var profile in GeneratorProfiles)
-            //    profile.Maintenance_HeartBeat();
+            //Console.WriteLine($"{Name}.Generator_Generate({RegenerationInterval})");
 
             if (!GeneratorDisabled)
             {
-                if (InitCreate > 0)
-                    SelectProfilesInit();
+                if (CurrentlyPoweringUp)
+                {
+                    //Console.WriteLine($"{Name}.Generator_Generate({RegenerationInterval}) SelectAProfile: Init={InitCreate} Current={CurrentCreate} Max={MaxCreate} GenStopSelectProfileConditions={GenStopSelectProfileConditions}");
+                    var genLoopCount = 0;
+                    while (!GenStopSelectProfileConditions)
+                    {
+                        SelectAProfile();
+                        genLoopCount++;
+
+                        if (genLoopCount > 1000)
+                        {
+                            log.Error($"[GENERATOR] 0x{Guid} {Name}.Generator_Generate(): genLoopCount > 1000, aborted init spawn. GenStopSelectProfileConditions: {GenStopSelectProfileConditions} | InitCreate: {InitCreate} | CurrentCreate: {CurrentCreate} | WCID: {WeenieClassId} - LOC: {Location.ToLOCString()}");
+                            break;
+                        }
+                    }
+                    CurrentlyPoweringUp = false;
+                }
                 else
-                    SelectProfilesMax();
+                {
+                    //Console.WriteLine($"{Name}.Generator_Generate({RegenerationInterval}) SelectAProfile: Init={InitCreate} Current={CurrentCreate} Max={MaxCreate}");
+                    SelectAProfile();
+                }
             }
 
             foreach (var profile in GeneratorProfiles)
@@ -818,22 +690,18 @@ namespace ACE.Server.WorldObjects
         {
             foreach (var generator in GeneratorProfiles)
             {
-                foreach (var rNode in generator.Spawned.Values)
-                {
-                    var wo = rNode.TryGetWorldObject();
-
-                    if (wo != null && !wo.IsGenerator)
-                        wo.Destroy();
-                    else if (wo != null && wo.IsGenerator)
-                    {
-                        wo.ResetGenerator();
-                        wo.Destroy();
-                    }
-                }
-
-                generator.Spawned.Clear();
-                generator.SpawnQueue.Clear();
+                generator.Reset();
             }
+        }
+
+        public uint? GetStaticGuid(uint dynamicGuid)
+        {
+            foreach (var profile in GeneratorProfiles)
+            {
+                if (profile.Spawned.ContainsKey(dynamicGuid))
+                    return profile.Id;
+            }
+            return null;
         }
     }
 }

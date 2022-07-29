@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#nullable disable
+
 namespace ACE.Database.Models.Auth
 {
     public partial class Accesslevel
@@ -14,6 +16,6 @@ namespace ACE.Database.Models.Auth
         public string Name { get; set; }
         public string Prefix { get; set; }
 
-        public ICollection<Account> Account { get; set; }
+        public virtual ICollection<Account> Account { get; set; }
     }
 }

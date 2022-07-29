@@ -104,12 +104,26 @@ namespace ACE.Server.Physics.Collision
         {
             Min = toPos.LocalToGlobal(fromPos, fromBox.Min);
             Max = toPos.LocalToGlobal(fromPos, fromBox.Max);
+
+            AdjustBBox(toPos.LocalToGlobal(fromPos, new Vector3(fromBox.Max.X, fromBox.Max.Y, fromBox.Min.Z)));
+            AdjustBBox(toPos.LocalToGlobal(fromPos, new Vector3(fromBox.Max.X, fromBox.Min.Y, fromBox.Max.Z)));
+            AdjustBBox(toPos.LocalToGlobal(fromPos, new Vector3(fromBox.Min.X, fromBox.Max.Y, fromBox.Max.Z)));
+            AdjustBBox(toPos.LocalToGlobal(fromPos, new Vector3(fromBox.Min.X, fromBox.Max.Y, fromBox.Min.Z)));
+            AdjustBBox(toPos.LocalToGlobal(fromPos, new Vector3(fromBox.Max.X, fromBox.Min.Y, fromBox.Min.Z)));
+            AdjustBBox(toPos.LocalToGlobal(fromPos, new Vector3(fromBox.Min.X, fromBox.Min.Y, fromBox.Max.Z)));
         }
 
         public void LocalToLocal(BBox fromBox, Position fromPos, Position toPos)
         {
             Min = toPos.LocalToLocal(fromPos, fromBox.Min);
             Max = toPos.LocalToLocal(fromPos, fromBox.Max);
+
+            AdjustBBox(toPos.LocalToLocal(fromPos, new Vector3(fromBox.Max.X, fromBox.Max.Y, fromBox.Min.Z)));
+            AdjustBBox(toPos.LocalToLocal(fromPos, new Vector3(fromBox.Max.X, fromBox.Min.Y, fromBox.Max.Z)));
+            AdjustBBox(toPos.LocalToLocal(fromPos, new Vector3(fromBox.Min.X, fromBox.Max.Y, fromBox.Max.Z)));
+            AdjustBBox(toPos.LocalToLocal(fromPos, new Vector3(fromBox.Min.X, fromBox.Max.Y, fromBox.Min.Z)));
+            AdjustBBox(toPos.LocalToLocal(fromPos, new Vector3(fromBox.Max.X, fromBox.Min.Y, fromBox.Min.Z)));
+            AdjustBBox(toPos.LocalToLocal(fromPos, new Vector3(fromBox.Min.X, fromBox.Min.Y, fromBox.Max.Z)));
         }
     }
 }

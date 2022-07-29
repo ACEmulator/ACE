@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#nullable disable
+
 namespace ACE.Database.Models.World
 {
     public partial class WeeniePropertiesPosition
@@ -17,6 +19,6 @@ namespace ACE.Database.Models.World
         public float AnglesY { get; set; }
         public float AnglesZ { get; set; }
 
-        public Weenie Object { get; set; }
+        public virtual Weenie Object { get; set; }
     }
 }

@@ -63,6 +63,7 @@ namespace ACE.Entity.Enum.Properties
         MinimumTimeSincePk             = 50,
         DeprecatedHousekeepingPriority = 51,
         AbuseLoggingTimestamp          = 52,
+        [Ephemeral]
         LastPortalTeleportTimestamp    = 53,
         UseRadius                      = 54,
         HomeRadius                     = 55,
@@ -87,7 +88,6 @@ namespace ACE.Entity.Enum.Properties
         ResistStaminaBoost             = 73,
         ResistManaDrain                = 74,
         ResistManaBoost                = 75,
-        [Ephemeral]
         Translucency                   = 76,
         PhysicsScriptIntensity         = 77,
         Friction                       = 78,
@@ -111,6 +111,7 @@ namespace ACE.Entity.Enum.Properties
         CheckpointTimestamp            = 96,
         SoldTimestamp                  = 97,
         UseTimestamp                   = 98,
+        [Ephemeral]
         UseLockTimestamp               = 99,
         HealkitMod                     = 100,
         FrozenTimestamp                = 101,

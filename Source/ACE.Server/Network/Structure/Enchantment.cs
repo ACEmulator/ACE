@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using ACE.Database.Models.Shard;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Managers;
@@ -60,9 +60,9 @@ namespace ACE.Server.Network.Structure
             EnchantmentMask = enchantmentMask;
         }
 
-        public Enchantment(WorldObject target, BiotaPropertiesEnchantmentRegistry entry)
+        public Enchantment(WorldObject target, PropertiesEnchantmentRegistry entry)
         {
-            if (entry.SpellCategory == EnchantmentManager.SpellCategory_Cooldown)
+            if (entry.SpellCategory == (SpellCategory)EnchantmentManager.SpellCategory_Cooldown)
             {
                 InitCooldown(target, entry);
                 return;
@@ -75,7 +75,7 @@ namespace ACE.Server.Network.Structure
             Duration = entry.Duration;      // item spells can have -1, overriding the spell duration
             CasterGuid = entry.CasterObjectId;
             StatModValue = entry.StatModValue;
-            SpellSetID = entry.SpellSetId;
+            SpellSetID = (uint)entry.SpellSetId;
 
             Target = target;
             EnchantmentMask = (EnchantmentMask)entry.EnchantmentCategory;
@@ -98,11 +98,11 @@ namespace ACE.Server.Network.Structure
             }
         }
 
-        public void InitCooldown(WorldObject target, BiotaPropertiesEnchantmentRegistry entry)
+        public void InitCooldown(WorldObject target, PropertiesEnchantmentRegistry entry)
         {
             SpellID = (ushort)entry.SpellId;
             Layer = entry.LayerId;
-            SpellCategory = entry.SpellCategory;
+            SpellCategory = (ushort)entry.SpellCategory;
             StartTime = entry.StartTime;
             Duration = entry.Duration;
             CasterGuid = entry.CasterObjectId;

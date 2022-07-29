@@ -265,7 +265,7 @@ namespace ACE.Server.Physics.Animation
             foreach (var hook in animFrame.Hooks)
             {
                 if (hook.Direction == AnimationHookDir.Both || hook.Direction == dir)
-                    HookObj.add_anim_hook(new AnimHook(hook));
+                    HookObj.add_anim_hook(hook);
             }
         }
 
@@ -276,15 +276,13 @@ namespace ACE.Server.Physics.Animation
 
         public void multiply_cyclic_animation_framerate(float rate)
         {
-            if (FirstCyclic == null) return;
-            var cyclic = false;
-            foreach (var animFrame in AnimList)
-            {
-                if (animFrame.Equals(FirstCyclic))
-                    cyclic = true;
+            var currNode = FirstCyclic;
 
-                if (cyclic)
-                    animFrame.multiply_framerate(rate);
+            while (currNode != null)
+            {
+                currNode.Value.multiply_framerate(rate);
+
+                currNode = currNode.Next;
             }
         }
 
@@ -434,10 +432,7 @@ namespace ACE.Server.Physics.Animation
             {
                 var node = AnimList.First;
                 if (!node.Equals(FirstCyclic))
-                {
-                    var animDoneHook = new AnimDoneHook();  // static?
-                    HookObj.add_anim_hook(animDoneHook);
-                }
+                    HookObj.add_anim_hook(AnimationHook.AnimDoneHook);
             }
 
             advance_to_next_animation(timeElapsed, ref animNode, ref frameNum, ref frame);

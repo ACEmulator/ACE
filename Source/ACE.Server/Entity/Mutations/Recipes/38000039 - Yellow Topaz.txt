@@ -1,0 +1,8 @@
+0x38000039 Mutation #1:
+
+Tier chances: 1
+
+    - Chance: 100%:
+        ImbuedEffect = MissileDefense
+        NumTimesTinkered (>= 1 ? add : set) 1
+

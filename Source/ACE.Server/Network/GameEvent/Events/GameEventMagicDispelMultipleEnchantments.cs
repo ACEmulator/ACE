@@ -1,5 +1,6 @@
 using System.Collections.Generic;
-using ACE.Database.Models.Shard;
+
+using ACE.Entity.Models;
 using ACE.Server.Network.Structure;
 
 namespace ACE.Server.Network.GameEvent.Events
@@ -15,7 +16,7 @@ namespace ACE.Server.Network.GameEvent.Events
             Writer.Write(spells);
         }
 
-        public GameEventMagicDispelMultipleEnchantments(Session session, List<BiotaPropertiesEnchantmentRegistry> enchantments)
+        public GameEventMagicDispelMultipleEnchantments(Session session, List<PropertiesEnchantmentRegistry> enchantments)
             : base(GameEventType.MagicDispelMultipleEnchantments, GameMessageGroup.UIQueue, session)
         {
             Writer.Write(enchantments);

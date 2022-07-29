@@ -123,6 +123,8 @@ namespace ACE.Database.SQLFormatters
                     return ((AetheriaBitfield)value).ToString();
                 case PropertyInt.AiAllowedCombatStyle:
                     return ((CombatStyle)value).ToString();
+                case PropertyInt.AppraisalLongDescDecoration:
+                    return ((AppraisalLongDescDecorations)value).ToString();
                 case PropertyInt.AttackType:
                     return ((AttackType)value).ToString();
                 case PropertyInt.ChannelsActive:
@@ -172,6 +174,15 @@ namespace ACE.Database.SQLFormatters
                     return ((Tolerance)value).ToString();
                 case PropertyInt.AiOptions:
                     return ((AiOption)value).ToString();
+                case PropertyInt.Faction1Bits:
+                case PropertyInt.Faction2Bits:
+                case PropertyInt.Faction3Bits:
+                case PropertyInt.Hatred1Bits:
+                case PropertyInt.Hatred2Bits:
+                case PropertyInt.Hatred3Bits:
+                    return ((FactionBits)value).ToString();
+                case PropertyInt.CharacterTitleId:
+                    return ((CharacterTitle)value).ToString();
             }
 
             return property.GetValueEnumName(value);
@@ -189,6 +200,7 @@ namespace ACE.Database.SQLFormatters
                 case PropertyDataId.OriginalPortal:
                 case PropertyDataId.UseCreateItem:
                 case PropertyDataId.VendorsClassId:
+                case PropertyDataId.PCAPPhysicsDIDDataTemplatedFrom:
                     if (WeenieNames != null)
                     {
                         WeenieNames.TryGetValue(value, out var propertyValueDescription);
@@ -209,40 +221,32 @@ namespace ACE.Database.SQLFormatters
                     break;
                 case PropertyDataId.WieldedTreasureType:
                     string treasureW = "";
-                    if (TreasureWielded != null)
+                    if (TreasureWielded != null && TreasureWielded.ContainsKey(value))
                     {
-                        if (TreasureWielded.ContainsKey(value))
+                        foreach (var item in TreasureWielded[value])
                         {
-                            foreach (var item in TreasureWielded[value])
-                            {
-                                treasureW += GetValueForTreasureDID(item);
-                            }
-                            return treasureW;
+                            treasureW += GetValueForTreasureDID(item);
                         }
+                        return treasureW;
                     }
-                    else if (TreasureDeath != null)
+                    else if (TreasureDeath != null && TreasureDeath.ContainsKey(value))
                     {
-                        if (TreasureDeath.ContainsKey(value))
-                            return $"Loot Tier: {TreasureDeath[value].Tier}";
+                        return $"Loot Tier: {TreasureDeath[value].Tier}";
                     }
                     break;
                 case PropertyDataId.DeathTreasureType:
                     string treasureD = "";
-                    if (TreasureDeath != null)
+                    if (TreasureDeath != null && TreasureDeath.ContainsKey(value))
                     {
-                        if (TreasureDeath.ContainsKey(value))
-                            return $"Loot Tier: {TreasureDeath[value].Tier}";
+                        return $"Loot Tier: {TreasureDeath[value].Tier}";
                     }
-                    else if  (TreasureWielded != null)
+                    else if (TreasureWielded != null && TreasureWielded.ContainsKey(value))
                     {
-                        if (TreasureWielded.ContainsKey(value))
+                        foreach (var item in TreasureWielded[value])
                         {
-                            foreach (var item in TreasureWielded[value])
-                            {
-                                treasureD += GetValueForTreasureDID(item);
-                            }
-                            return treasureD;
+                            treasureD += GetValueForTreasureDID(item, true);
                         }
+                        return treasureD;
                     }
                     break;
                 case PropertyDataId.PCAPRecordedObjectDesc:
@@ -258,11 +262,11 @@ namespace ACE.Database.SQLFormatters
             return property.GetValueEnumName(value);
         }
 
-        protected string GetValueForTreasureDID(TreasureWielded item)
+        protected string GetValueForTreasureDID(TreasureWielded item, bool isUsedInDeath = false)
         {
             string treasure = "";
 
-            treasure += Environment.NewLine + $"                                   Wield ";
+            treasure += Environment.NewLine + $"                                   {(isUsedInDeath ? " Drop" : "Wield")} ";
             if (item.StackSize > 1)
                 treasure += $"{item.StackSize}x ";
             treasure += $"{WeenieNames[item.WeenieClassId]} ({item.WeenieClassId})";
@@ -322,6 +326,21 @@ namespace ACE.Database.SQLFormatters
             }
 
             return label;
+        }
+
+        protected static float? TrimNegativeZero(float? input, int places = 6)
+        {
+            if (input == null)
+                return null;
+
+            var str = input.Value.ToString($"0.{new string('#', places)}");
+
+            if (str == $"-0.{new string('#', places)}" || str == "-0")
+                str = str.Substring(1, str.Length - 1);
+
+            var ret = float.Parse(str);
+
+            return ret;
         }
     }
 }

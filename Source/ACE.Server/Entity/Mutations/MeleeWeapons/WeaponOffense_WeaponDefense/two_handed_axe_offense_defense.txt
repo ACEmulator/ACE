@@ -1,0 +1,409 @@
+Axe (TwoHandedCombat) Mutation #1:
+
+Tier chances: 1, 0, 0, 0, 0, 0, 0, 0
+
+    - Chance: 5%:
+        WeaponOffense = 1.00
+
+    - Chance: 15%:
+        WeaponOffense = 1.01
+
+    - Chance: 30%:
+        WeaponOffense = 1.02
+
+    - Chance: 30%:
+        WeaponOffense = 1.03
+
+    - Chance: 15%:
+        WeaponOffense = 1.04
+
+    - Chance: 5%:
+        WeaponOffense = 1.05
+
+Axe (TwoHandedCombat) Mutation #2:
+
+Tier chances: 0, 1, 0, 0, 0, 0, 0, 0
+
+    - Chance: 5%:
+        WeaponOffense = 1.02
+
+    - Chance: 15%:
+        WeaponOffense = 1.03
+
+    - Chance: 30%:
+        WeaponOffense = 1.04
+
+    - Chance: 30%:
+        WeaponOffense = 1.05
+
+    - Chance: 15%:
+        WeaponOffense = 1.06
+
+    - Chance: 5%:
+        WeaponOffense = 1.07
+
+Axe (TwoHandedCombat) Mutation #3:
+
+Tier chances: 0, 0, 1, 0, 0, 0, 0, 0
+
+    - Chance: 2%:
+        WeaponOffense = 1.05
+
+    - Chance: 5%:
+        WeaponOffense = 1.06
+
+    - Chance: 15%:
+        WeaponOffense = 1.07
+
+    - Chance: 25%:
+        WeaponOffense = 1.08
+
+    - Chance: 30%:
+        WeaponOffense = 1.09
+
+    - Chance: 15%:
+        WeaponOffense = 1.10
+
+    - Chance: 5%:
+        WeaponOffense = 1.11
+
+    - Chance: 3%:
+        WeaponOffense = 1.12
+
+Axe (TwoHandedCombat) Mutation #4:
+
+Tier chances: 0, 0, 0, 1, 0, 0, 0, 0
+
+    - Chance: 5%:
+        WeaponOffense = 1.07
+
+    - Chance: 15%:
+        WeaponOffense = 1.08
+
+    - Chance: 25%:
+        WeaponOffense = 1.09
+
+    - Chance: 30%:
+        WeaponOffense = 1.10
+
+    - Chance: 15%:
+        WeaponOffense = 1.11
+
+    - Chance: 5%:
+        WeaponOffense = 1.12
+
+    - Chance: 3%:
+        WeaponOffense = 1.13
+
+    - Chance: 2%:
+        WeaponOffense = 1.14
+
+Axe (TwoHandedCombat) Mutation #5:
+
+Tier chances: 0, 0, 0, 0, 1, 0, 0, 0
+
+    - Chance: 10%:
+        WeaponOffense = 1.09
+
+    - Chance: 15%:
+        WeaponOffense = 1.10
+
+    - Chance: 25%:
+        WeaponOffense = 1.11
+
+    - Chance: 25%:
+        WeaponOffense = 1.12
+
+    - Chance: 15%:
+        WeaponOffense = 1.13
+
+    - Chance: 5%:
+        WeaponOffense = 1.14
+
+    - Chance: 3%:
+        WeaponOffense = 1.15
+
+    - Chance: 2%:
+        WeaponOffense = 1.16
+
+Axe (TwoHandedCombat) Mutation #6:
+
+Tier chances: 0, 0, 0, 0, 0, 1, 0, 0
+
+    - Chance: 10%:
+        WeaponOffense = 1.10
+
+    - Chance: 10%:
+        WeaponOffense = 1.11
+
+    - Chance: 15%:
+        WeaponOffense = 1.12
+
+    - Chance: 20%:
+        WeaponOffense = 1.13
+
+    - Chance: 20%:
+        WeaponOffense = 1.14
+
+    - Chance: 15%:
+        WeaponOffense = 1.15
+
+    - Chance: 5%:
+        WeaponOffense = 1.16
+
+    - Chance: 5%:
+        WeaponOffense = 1.17
+
+Axe (TwoHandedCombat) Mutation #7:
+
+Tier chances: 0, 0, 0, 0, 0, 0, 1, 0
+
+    - Chance: 25%:
+        WeaponOffense = 1.15
+
+    - Chance: 15%:
+        WeaponOffense = 1.16
+
+    - Chance: 20%:
+        WeaponOffense = 1.17
+
+    - Chance: 12.5%:
+        WeaponOffense = 1.18
+
+    - Chance: 12.5%:
+        WeaponOffense = 1.19
+
+    - Chance: 7.5%:
+        WeaponOffense = 1.20
+
+    - Chance: 5%:
+        WeaponOffense = 1.21
+
+    - Chance: 2.5%:
+        WeaponOffense = 1.22
+
+Axe (TwoHandedCombat) Mutation #8:
+
+Tier chances: 0, 0, 0, 0, 0, 0, 0, 1
+
+    - Chance: 25%:
+        WeaponOffense = 1.15
+
+    - Chance: 15%:
+        WeaponOffense = 1.16
+
+    - Chance: 20%:
+        WeaponOffense = 1.17
+
+    - Chance: 12.5%:
+        WeaponOffense = 1.18
+
+    - Chance: 12.5%:
+        WeaponOffense = 1.19
+
+    - Chance: 7.5%:
+        WeaponOffense = 1.20
+
+    - Chance: 5%:
+        WeaponOffense = 1.21
+
+    - Chance: 2.5%:
+        WeaponOffense = 1.22
+
+Axe (TwoHandedCombat) Mutation #9:
+
+Tier chances: 1, 0, 0, 0, 0, 0, 0, 0
+
+    - Chance: 50%:
+        WeaponDefense = 1.00
+
+    - Chance: 30%:
+        WeaponDefense = 1.01
+
+    - Chance: 15%:
+        WeaponDefense = 1.02
+
+    - Chance: 5%:
+        WeaponDefense = 1.03
+
+Axe (TwoHandedCombat) Mutation #10:
+
+Tier chances: 0, 1, 0, 0, 0, 0, 0, 0
+
+    - Chance: 20%:
+        WeaponDefense = 1.00
+
+    - Chance: 30%:
+        WeaponDefense = 1.01
+
+    - Chance: 30%:
+        WeaponDefense = 1.02
+
+    - Chance: 15%:
+        WeaponDefense = 1.03
+
+    - Chance: 5%:
+        WeaponDefense = 1.04
+
+Axe (TwoHandedCombat) Mutation #11:
+
+Tier chances: 0, 0, 1, 0, 0, 0, 0, 0
+
+    - Chance: 10%:
+        WeaponDefense = 1.02
+
+    - Chance: 15%:
+        WeaponDefense = 1.03
+
+    - Chance: 25%:
+        WeaponDefense = 1.04
+
+    - Chance: 25%:
+        WeaponDefense = 1.05
+
+    - Chance: 15%:
+        WeaponDefense = 1.06
+
+    - Chance: 10%:
+        WeaponDefense = 1.07
+
+Axe (TwoHandedCombat) Mutation #12:
+
+Tier chances: 0, 0, 0, 1, 0, 0, 0, 0
+
+    - Chance: 5%:
+        WeaponDefense = 1.03
+
+    - Chance: 15%:
+        WeaponDefense = 1.04
+
+    - Chance: 25%:
+        WeaponDefense = 1.05
+
+    - Chance: 30%:
+        WeaponDefense = 1.06
+
+    - Chance: 15%:
+        WeaponDefense = 1.07
+
+    - Chance: 5%:
+        WeaponDefense = 1.08
+
+    - Chance: 3%:
+        WeaponDefense = 1.09
+
+    - Chance: 2%:
+        WeaponDefense = 1.10
+
+Axe (TwoHandedCombat) Mutation #13:
+
+Tier chances: 0, 0, 0, 0, 1, 0, 0, 0
+
+    - Chance: 5%:
+        WeaponDefense = 1.05
+
+    - Chance: 15%:
+        WeaponDefense = 1.06
+
+    - Chance: 25%:
+        WeaponDefense = 1.07
+
+    - Chance: 30%:
+        WeaponDefense = 1.08
+
+    - Chance: 15%:
+        WeaponDefense = 1.09
+
+    - Chance: 5%:
+        WeaponDefense = 1.10
+
+    - Chance: 3%:
+        WeaponDefense = 1.11
+
+    - Chance: 2%:
+        WeaponDefense = 1.12
+
+Axe (TwoHandedCombat) Mutation #14:
+
+Tier chances: 0, 0, 0, 0, 0, 1, 0, 0
+
+    - Chance: 10%:
+        WeaponDefense = 1.06
+
+    - Chance: 15%:
+        WeaponDefense = 1.07
+
+    - Chance: 25%:
+        WeaponDefense = 1.08
+
+    - Chance: 25%:
+        WeaponDefense = 1.09
+
+    - Chance: 15%:
+        WeaponDefense = 1.10
+
+    - Chance: 5%:
+        WeaponDefense = 1.11
+
+    - Chance: 3%:
+        WeaponDefense = 1.12
+
+    - Chance: 2%:
+        WeaponDefense = 1.13
+
+Axe (TwoHandedCombat) Mutation #15:
+
+Tier chances: 0, 0, 0, 0, 0, 0, 1, 0
+
+    - Chance: 25%:
+        WeaponDefense = 1.11
+
+    - Chance: 15%:
+        WeaponDefense = 1.12
+
+    - Chance: 20%:
+        WeaponDefense = 1.13
+
+    - Chance: 12.5%:
+        WeaponDefense = 1.14
+
+    - Chance: 12.5%:
+        WeaponDefense = 1.15
+
+    - Chance: 7.5%:
+        WeaponDefense = 1.16
+
+    - Chance: 5%:
+        WeaponDefense = 1.17
+
+    - Chance: 2.5%:
+        WeaponDefense = 1.18
+
+Axe (TwoHandedCombat) Mutation #16:
+
+Tier chances: 0, 0, 0, 0, 0, 0, 0, 1
+
+    - Chance: 25%:
+        WeaponDefense = 1.11
+
+    - Chance: 15%:
+        WeaponDefense = 1.12
+
+    - Chance: 20%:
+        WeaponDefense = 1.13
+
+    - Chance: 12.5%:
+        WeaponDefense = 1.14
+
+    - Chance: 12.5%:
+        WeaponDefense = 1.15
+
+    - Chance: 7.5%:
+        WeaponDefense = 1.16
+
+    - Chance: 5%:
+        WeaponDefense = 1.17
+
+    - Chance: 2.5%:
+        WeaponDefense = 1.18
+

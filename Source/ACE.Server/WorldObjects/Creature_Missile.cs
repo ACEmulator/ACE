@@ -37,8 +37,8 @@ namespace ACE.Server.WorldObjects
                 var animSpeed = GetAnimSpeed();
                 //Console.WriteLine($"AnimSpeed: {animSpeed}");
 
-                animLength = EnqueueMotion(actionChain, MotionCommand.Reload, animSpeed);   // start pulling out next arrow
-                EnqueueMotion(actionChain, MotionCommand.Ready);    // finish reloading
+                animLength = EnqueueMotionPersist(actionChain, MotionCommand.Reload, animSpeed);   // start pulling out next arrow
+                EnqueueMotionPersist(actionChain, MotionCommand.Ready);    // finish reloading
             }
 
             // ensure ammo visibility for players
@@ -95,28 +95,33 @@ namespace ACE.Server.WorldObjects
             proj.ProjectileTarget = target;
 
             proj.ProjectileLauncher = weapon;
+            proj.ProjectileAmmo = ammo;
 
             proj.Location = new Position(Location);
             proj.Location.Pos = origin;
             proj.Location.Rotation = orientation;
 
-            proj.Velocity = velocity;
-
-            SetProjectilePhysicsState(proj, target);
+            SetProjectilePhysicsState(proj, target, velocity);
 
             var success = LandblockManager.AddObject(proj);
 
             if (!success || proj.PhysicsObj == null)
             {
-                if (!proj.HitMsg && player != null)
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("Your missile attack hit the environment.", ChatMessageType.Broadcast));
+                if (!proj.HitMsg)
+                {
+                    if (player != null)
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("Your missile attack hit the environment.", ChatMessageType.Broadcast));
+                }
 
+                proj.Destroy();
                 return null;
             }
 
             if (!IsProjectileVisible(proj))
             {
                 proj.OnCollideEnvironment();
+
+                proj.Destroy();
                 return null;
             }
 
@@ -192,36 +197,69 @@ namespace ACE.Server.WorldObjects
             if (!weenie.PropertiesFloat.TryGetValue(PropertyFloat.DefaultScale, out var scale))
                 scale = 1.0f;
 
-            return ProjectileRadiusCache[projectileWcid] = (float)(setup.Spheres[0].Radius * scale);
+            var result = (float)(setup.Spheres[0].Radius * scale);
+
+            ProjectileRadiusCache.TryAdd(projectileWcid, result);
+
+            return result;
         }
 
-        // todo: get correct speed from ammo launcher
-        public static readonly float ProjectileSpeed = 35.0f;
+        // lowest value found in data / for starter bows
+        public static readonly float DefaultProjectileSpeed = 20.0f;
 
-        public Vector3 GetAimVelocity(WorldObject target)
+        public float GetProjectileSpeed()
+        {
+            var missileLauncher = GetEquippedMissileWeapon();
+
+            var maxVelocity = missileLauncher?.MaximumVelocity ?? DefaultProjectileSpeed;
+
+            if (maxVelocity == 0.0f)
+            {
+                log.Warn($"{Name}.GetMissileSpeed() - {missileLauncher.Name} ({missileLauncher.Guid}) has speed 0");
+
+                maxVelocity = DefaultProjectileSpeed;
+            }
+
+            if (this is Player player && player.GetCharacterOption(CharacterOption.UseFastMissiles))
+            {
+                maxVelocity *= PropertyManager.GetDouble("fast_missile_modifier").Item;
+            }
+
+            // hard cap in physics engine
+            maxVelocity = Math.Min(maxVelocity, PhysicsGlobals.MaxVelocity);
+
+            //Console.WriteLine($"MaxVelocity: {maxVelocity}");
+
+            return (float)maxVelocity;
+        }
+
+        public Vector3 GetAimVelocity(WorldObject target, float projectileSpeed)
         {
             var crossLandblock = Location.Landblock != target.Location.Landblock;
 
             // eye level -> target point
             var origin = crossLandblock ? Location.ToGlobal(false) : Location.Pos;
-            origin.Z += target.Height * ProjSpawnHeight;
+            origin.Z += Height * ProjSpawnHeight;
 
             var dest = crossLandblock ? target.Location.ToGlobal(false) : target.Location.Pos;
             dest.Z += target.Height / GetAimHeight(target);
 
             var dir = Vector3.Normalize(dest - origin);
 
-            var velocity = GetProjectileVelocity(target, origin, dir, dest, ProjectileSpeed, out float time);
+            var velocity = GetProjectileVelocity(target, origin, dir, dest, projectileSpeed, out float time);
 
             return velocity;
         }
 
-        public Vector3 CalculateProjectileVelocity(Vector3 localOrigin, WorldObject target, out Vector3 origin, out Quaternion rotation)
+        public Vector3 CalculateProjectileVelocity(Vector3 localOrigin, WorldObject target, float projectileSpeed, out Vector3 origin, out Quaternion rotation)
         {
-            var crossLandblock = Location.Landblock != target.Location.Landblock;
+            var sourceLoc = PhysicsObj.Position.ACEPosition();
+            var targetLoc = target.PhysicsObj.Position.ACEPosition();
 
-            var startPos = crossLandblock ? Location.ToGlobal(false) : Location.Pos;
-            var endPos = crossLandblock ? target.Location.ToGlobal(false) : target.Location.Pos;
+            var crossLandblock = sourceLoc.Landblock != targetLoc.Landblock;
+
+            var startPos = crossLandblock ? sourceLoc.ToGlobal(false) : sourceLoc.Pos;
+            var endPos = crossLandblock ? targetLoc.ToGlobal(false) : targetLoc.Pos;
 
             var dir = Vector3.Normalize(endPos - startPos);
 
@@ -229,12 +267,12 @@ namespace ACE.Server.WorldObjects
 
             rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)angle);
 
-            origin = Location.Pos + Vector3.Transform(localOrigin, rotation);
+            origin = sourceLoc.Pos + Vector3.Transform(localOrigin, rotation);
 
             startPos += Vector3.Transform(localOrigin, rotation);
             endPos.Z += target.Height / GetAimHeight(target);
 
-            var velocity = GetProjectileVelocity(target, startPos, dir, endPos, ProjectileSpeed, out float time);
+            var velocity = GetProjectileVelocity(target, startPos, dir, endPos, projectileSpeed, out float time);
 
             return velocity;
         }
@@ -274,26 +312,44 @@ namespace ACE.Server.WorldObjects
             var gravity = useGravity ? -PhysicsGlobals.Gravity : 0.00001f;
 
             var targetVelocity = target.PhysicsObj.CachedVelocity;
+
             if (!targetVelocity.Equals(Vector3.Zero))
             {
-                // use movement quartic solver
-                var numSolutions = Trajectory.solve_ballistic_arc(origin, speed, dest, targetVelocity, gravity, out s0, out _, out time);
+                if (this is Player player && !player.GetCharacterOption(CharacterOption.LeadMissileTargets))
+                {
+                    // fall through
+                }
+                else
+                {
+                    // use movement quartic solver
+                    if (!PropertyManager.GetBool("trajectory_alt_solver").Item)
+                    {
+                        var numSolutions = Trajectory.solve_ballistic_arc(origin, speed, dest, targetVelocity, gravity, out s0, out _, out time);
 
-                if (numSolutions > 0)
-                    return s0;
+                        if (numSolutions > 0)
+                            return s0;
+                    }
+                    else
+                        return Trajectory2.CalculateTrajectory(origin, dest, targetVelocity, speed, useGravity);
+                }
             }
 
             // use stationary solver
-            Trajectory.solve_ballistic_arc(origin, speed, dest, gravity, out s0, out _, out t0, out _);
+            if (!PropertyManager.GetBool("trajectory_alt_solver").Item)
+            {
+                Trajectory.solve_ballistic_arc(origin, speed, dest, gravity, out s0, out _, out t0, out _);
 
-            time = t0;
-            return s0;
+                time = t0;
+                return s0;
+            }
+            else
+                return Trajectory2.CalculateTrajectory(origin, dest, Vector3.Zero, speed, useGravity);
         }
 
         /// <summary>
         /// Sets the physics state for a launched projectile
         /// </summary>
-        public void SetProjectilePhysicsState(WorldObject obj, WorldObject target)
+        public void SetProjectilePhysicsState(WorldObject obj, WorldObject target, Vector3 velocity)
         {
             obj.InitPhysicsObj();
 
@@ -308,13 +364,24 @@ namespace ACE.Server.WorldObjects
             var rotation = obj.Location.Rotation;
             obj.PhysicsObj.Position.Frame.Origin = pos;
             obj.PhysicsObj.Position.Frame.Orientation = rotation;
-            obj.Placement = ACE.Entity.Enum.Placement.MissileFlight;
+
+            if (obj.HasMissileFlightPlacement)
+                obj.Placement = ACE.Entity.Enum.Placement.MissileFlight;
+            else
+                obj.Placement = null;
+
             obj.CurrentMotionState = null;
 
-            var velocity = obj.Velocity;
-
-            obj.PhysicsObj.Velocity = velocity.Value;
+            obj.PhysicsObj.Velocity = velocity;
             obj.PhysicsObj.ProjectileTarget = target.PhysicsObj;
+
+            // Projectiles with RotationSpeed get omega values and "align path" turned off which
+            // creates the nice swirling animation
+            if ((obj.RotationSpeed ?? 0) != 0)
+            {
+                obj.AlignPath = false;
+                obj.PhysicsObj.Omega = new Vector3((float)(Math.PI * 2 * obj.RotationSpeed), 0, 0);
+            }
 
             obj.PhysicsObj.set_active(true);
         }
@@ -338,14 +405,15 @@ namespace ACE.Server.WorldObjects
 
         public float GetMaxMissileRange()
         {
-            var weapon = GetEquippedWeapon();
+            var weapon = GetEquippedMissileWeapon();
             var maxVelocity = weapon?.MaximumVelocity ?? DefaultMaxVelocity;
 
-            //var missileRange = (float)Math.Pow(maxVelocity, 2.0f) * 0.1020408163265306f;
-            var missileRange = (float)Math.Pow(maxVelocity, 2.0f) * 0.0682547266398198f;
+            var missileRange = (float)Math.Pow(maxVelocity, 2.0f) * 0.1020408163265306f;
+            //var missileRange = (float)Math.Pow(maxVelocity, 2.0f) * 0.0682547266398198f;
 
-            var strengthMod = SkillFormula.GetAttributeMod((int)Strength.Current);
-            var maxRange = Math.Min(missileRange * strengthMod, MissileRangeCap);
+            //var strengthMod = SkillFormula.GetAttributeMod((int)Strength.Current);
+            //var maxRange = Math.Min(missileRange * strengthMod, MissileRangeCap);
+            var maxRange = Math.Min(missileRange, MissileRangeCap);
 
             // any kind of other caps for monsters specifically?
             // throwing lugian rocks @ 85 yards seems a bit far...
@@ -357,7 +425,9 @@ namespace ACE.Server.WorldObjects
             if (maxRangeYards >= 10.0f)
                 maxRangeYards -= maxRangeYards % 5.0f;
             else
-                maxRangeYards = (float)Math.Ceiling(maxRangeYards);*/
+                maxRangeYards = (float)Math.Ceiling(maxRangeYards);
+
+            Console.WriteLine($"Max range: {maxRange} ({maxRangeYards} yds.)");*/
 
             return maxRange;
         }

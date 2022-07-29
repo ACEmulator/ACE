@@ -6,7 +6,7 @@ namespace ACE.Server.Network.GameMessages.Messages
 {
     public class GameMessageTurbineChat : GameMessage
     {
-        public GameMessageTurbineChat(ChatNetworkBlobType chatNetworkBlobType, uint channel, string senderName, string message, uint senderID, ChatType chatType)
+        public GameMessageTurbineChat(ChatNetworkBlobType chatNetworkBlobType, ChatNetworkBlobDispatchType chatNetworkBlobDispatchType, uint channel, string senderName, string message, uint senderID, ChatType chatType)
             : base(GameMessageOpcode.TurbineChat, GameMessageGroup.LoginQueue)
         {
             /*uint messageSize;       // the number of bytes that follow after this DWORD
@@ -81,7 +81,7 @@ namespace ACE.Server.Network.GameMessages.Messages
                 var firstSizePos = Writer.BaseStream.Position;
                 Writer.Write(0u); // Bytes to follow
                 Writer.Write((uint)chatNetworkBlobType);
-                Writer.Write(1u);
+                Writer.Write((uint)chatNetworkBlobDispatchType);
                 Writer.Write(1u);
                 Writer.Write(0x000B00B5); // Unique ID? Both ID's always match. These numbers change between 0x000B0000 - 0x000B00FF I think.
                 Writer.Write(1u);
@@ -108,6 +108,28 @@ namespace ACE.Server.Network.GameMessages.Messages
                 Writer.Write(senderID);
                 Writer.Write(0u);
                 Writer.Write((uint)chatType);
+
+                Writer.WritePosition((uint)(Writer.BaseStream.Position - firstSizePos + 4), firstSizePos);
+                Writer.WritePosition((uint)(Writer.BaseStream.Position - secondSizePos + 4), secondSizePos);
+            }
+            else if (chatNetworkBlobType == ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY)
+            {
+                var firstSizePos = Writer.BaseStream.Position;
+                Writer.Write(0u); // Bytes to follow
+                Writer.Write((uint)chatNetworkBlobType);
+                Writer.Write((uint)chatNetworkBlobDispatchType);
+                Writer.Write(1u);
+                Writer.Write(0x000B00B5); // Unique ID? Both ID's always match. These numbers change between 0x000B0000 - 0x000B00FF I think.
+                Writer.Write(1u);
+                Writer.Write(0x000B00B5); // Unique ID? Both ID's always match. These numbers change between 0x000B0000 - 0x000B00FF I think.
+                Writer.Write(0u);
+                var secondSizePos = Writer.BaseStream.Position;
+                Writer.Write(0u); // Bytes to follow
+
+                Writer.Write(channel);
+                Writer.Write(2u);
+                Writer.Write(2u);
+                Writer.Write(0u);
 
                 Writer.WritePosition((uint)(Writer.BaseStream.Position - firstSizePos + 4), firstSizePos);
                 Writer.WritePosition((uint)(Writer.BaseStream.Position - secondSizePos + 4), secondSizePos);

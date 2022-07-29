@@ -12,8 +12,6 @@ using ACE.Entity.Models;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     public class ManaStone : WorldObject
@@ -64,6 +62,12 @@ namespace ACE.Server.WorldObjects
 
             var useResult = WeenieError.None;
 
+            if (player.IsOlthoiPlayer)
+            {
+                player.SendUseDoneEvent(WeenieError.OlthoiCannotInteractWithThat);
+                return;
+            }
+
             if (player != target)
             {
                 invTarget = player.FindObject(target.Guid.Full, Player.SearchLocations.MyInventory | Player.SearchLocations.MyEquippedItems);
@@ -88,10 +92,11 @@ namespace ACE.Server.WorldObjects
                         useResult = WeenieError.ActionCancelled;
                     else
                     {
-                        if (!player.TryConsumeFromInventoryWithNetworking(target))
+                        if (!player.TryConsumeFromInventoryWithNetworking(target, 1) && !player.TryDequipObjectWithNetworking(target.Guid, out _, Player.DequipObjectAction.ConsumeItem))
                         {
                             log.Error($"Failed to remove {target.Name} from player inventory.");
                             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.ActionCancelled));
+                            return;
                         }
 
                         //The Mana Stone drains 5,253 points of mana from the Wand.
@@ -135,7 +140,15 @@ namespace ACE.Server.WorldObjects
                             ItemCurMana -= adjustedRation;
 
                             if (player.LumAugItemManaGain != 0)
+                            {
                                 adjustedRation = (int)Math.Round(adjustedRation * Creature.GetPositiveRatingMod(player.LumAugItemManaGain * 5));
+                                if (adjustedRation > manaNeededForTopoff)
+                                {
+                                    var diff = adjustedRation - manaNeededForTopoff;
+                                    adjustedRation = manaNeededForTopoff;
+                                    ItemCurMana += diff;
+                                }
+                            }
 
                             item.ItemCurMana += adjustedRation;
                             if (!itemsGivenMana.ContainsKey(item))
@@ -178,7 +191,9 @@ namespace ACE.Server.WorldObjects
                 }
                 else if (target.ItemMaxMana.HasValue && target.ItemMaxMana.Value > 0)
                 {
-                    if (target.ItemCurMana.Value >= target.ItemMaxMana.Value)
+                    var targetItemCurMana = target.ItemCurMana ?? 0;
+
+                    if (targetItemCurMana >= target.ItemMaxMana)
                     {
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {target.Name} is already full of mana.", ChatMessageType.Broadcast));
                     }
@@ -188,9 +203,16 @@ namespace ACE.Server.WorldObjects
 
                         // The Mana Stone gives 3,267 points of mana to the Protective Drudge Charm.
 
-                        var targetManaNeeded = target.ItemCurMana.HasValue ? (target.ItemMaxMana.Value - target.ItemCurMana.Value) : target.ItemMaxMana.Value;
+                        var targetManaNeeded = target.ItemMaxMana.Value - targetItemCurMana;
                         var manaToPour = Math.Min(targetManaNeeded, ItemCurMana.Value);
-                        target.ItemCurMana += manaToPour;
+
+                        if (player.LumAugItemManaGain != 0)
+                        {
+                            manaToPour = (int)Math.Round(manaToPour * Creature.GetPositiveRatingMod(player.LumAugItemManaGain * 5));
+                            manaToPour = Math.Min(targetManaNeeded, manaToPour);
+                        }
+
+                        target.ItemCurMana = targetItemCurMana + manaToPour;
                         var msg = $"The Mana Stone gives {manaToPour:N0} points of mana to the {target.Name}.";
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 

@@ -5,8 +5,9 @@ using System.Linq;
 using log4net;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
+using ACE.DatLoader.Entity.AnimationHooks;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
@@ -76,6 +77,7 @@ namespace ACE.Server.Entity
         public float RecklessnessMod;
         public float SneakAttackMod;
         public float HeritageMod;
+        public float PkDamageMod;
 
         public float DamageRatingMod;
 
@@ -84,6 +86,9 @@ namespace ACE.Server.Entity
         public float CriticalChance;
         public float CriticalDamageMod;
 
+        public float CriticalDamageRatingMod;
+        public float CriticalDamageResistanceRatingMod;
+
         public float DamageBeforeMitigation;
 
         public float ArmorMod;
@@ -91,13 +96,16 @@ namespace ACE.Server.Entity
         public float ShieldMod;
         public float WeaponResistanceMod;
 
+        public float DamageResistanceRatingBaseMod;
         public float DamageResistanceRatingMod;
+        public float PkDamageResistanceMod;
 
         public float DamageMitigated;
 
         // creature attacker
         public MotionCommand? AttackMotion;
-        public BiotaPropertiesBodyPart AttackPart;      // the body part this monster is attacking with
+        public AttackHook AttackHook;
+        public KeyValuePair<CombatBodyPart, PropertiesBodyPart> AttackPart;      // the body part this monster is attacking with
 
         // creature defender
         public Quadrant Quadrant;
@@ -114,7 +122,7 @@ namespace ACE.Server.Entity
         public List<WorldObject> Armor;
 
         // creature defender
-        public BiotaPropertiesBodyPart BiotaPropertiesBodyPart;
+        public KeyValuePair<CombatBodyPart, PropertiesBodyPart> PropertiesBodyPart;
         public Creature_BodyPart CreaturePart;
 
         public float Damage;
@@ -127,13 +135,22 @@ namespace ACE.Server.Entity
 
         public static HashSet<uint> AllowDamageTypeUndef = new HashSet<uint>()
         {
-            22545   // Obsidian Spines
+            22545,  // Obsidian Spines
+            35191,  // Thunder Chicken
+            38406,  // Blessed Moar
+            38587,  // Ardent Moar
+            38588,  // Blessed Moar
+            38586,  // Verdant Moar
+            40298,  // Ardent Moar
+            40300,  // Blessed Moar
+            40301,  // Verdant Moar
         };
 
-        public static DamageEvent CalculateDamage(Creature attacker, Creature defender, WorldObject damageSource, MotionCommand? attackMotion = null)
+        public static DamageEvent CalculateDamage(Creature attacker, Creature defender, WorldObject damageSource, MotionCommand? attackMotion = null, AttackHook attackHook = null)
         {
             var damageEvent = new DamageEvent();
             damageEvent.AttackMotion = attackMotion;
+            damageEvent.AttackHook = attackHook;
             if (damageSource == null)
                 damageSource = attacker;
 
@@ -149,14 +166,16 @@ namespace ACE.Server.Entity
             var playerAttacker = attacker as Player;
             var playerDefender = defender as Player;
 
+            var pkBattle = playerAttacker != null && playerDefender != null;
+
             Attacker = attacker;
             Defender = defender;
 
-            CombatType = damageSource.ProjectileSource == null ? attacker.GetCombatType() : CombatType.Missile;
+            CombatType = damageSource.ProjectileSource == null ? CombatType.Melee : CombatType.Missile;
 
             DamageSource = damageSource;
 
-            Weapon = damageSource.ProjectileSource == null ? attacker.GetEquippedWeapon() : damageSource.ProjectileLauncher;
+            Weapon = damageSource.ProjectileSource == null ? attacker.GetEquippedMeleeWeapon() : (damageSource.ProjectileLauncher ?? damageSource.ProjectileAmmo);
 
             AttackType = attacker.AttackType;
             AttackHeight = attacker.AttackHeight ?? AttackHeight.Medium;
@@ -191,12 +210,15 @@ namespace ACE.Server.Entity
             if (playerAttacker != null)
                 GetBaseDamage(playerAttacker);
             else
-                GetBaseDamage(attacker, AttackMotion ?? MotionCommand.Invalid);
+                GetBaseDamage(attacker, AttackMotion ?? MotionCommand.Invalid, AttackHook);
 
-            if (DamageType == DamageType.Undef && !AllowDamageTypeUndef.Contains(damageSource.WeenieClassId))
+            if (DamageType == DamageType.Undef)
             {
-                log.Error($"DamageEvent.DoCalculateDamage({attacker?.Name} ({attacker?.Guid}), {defender?.Name} ({defender?.Guid}), {damageSource?.Name} ({damageSource?.Guid})) - DamageType == DamageType.Undef");
-                GeneralFailure = true;
+                if ((attacker?.Guid.IsPlayer() ?? false) || (damageSource?.Guid.IsPlayer() ?? false))
+                {
+                    log.Error($"DamageEvent.DoCalculateDamage({attacker?.Name} ({attacker?.Guid}), {defender?.Name} ({defender?.Guid}), {damageSource?.Name} ({damageSource?.Guid})) - DamageType == DamageType.Undef");
+                    GeneralFailure = true;
+                }
             }
 
             if (GeneralFailure) return 0.0f;
@@ -204,7 +226,7 @@ namespace ACE.Server.Entity
             // get damage modifiers
             PowerMod = attacker.GetPowerMod(Weapon);
             AttributeMod = attacker.GetAttributeMod(Weapon);
-            SlayerMod = WorldObject.GetWeaponCreatureSlayerModifier(attacker, defender);
+            SlayerMod = WorldObject.GetWeaponCreatureSlayerModifier(Weapon, attacker, defender);
 
             // ratings
             DamageRatingBaseMod = Creature.GetPositiveRatingMod(attacker.GetDamageRating());
@@ -214,12 +236,26 @@ namespace ACE.Server.Entity
 
             DamageRatingMod = Creature.AdditiveCombine(DamageRatingBaseMod, RecklessnessMod, SneakAttackMod, HeritageMod);
 
+            if (pkBattle)
+            {
+                PkDamageMod = Creature.GetPositiveRatingMod(attacker.GetPKDamageRating());
+                DamageRatingMod = Creature.AdditiveCombine(DamageRatingMod, PkDamageMod);
+            }
+
             // damage before mitigation
             DamageBeforeMitigation = BaseDamage * AttributeMod * PowerMod * SlayerMod * DamageRatingMod;
 
             // critical hit?
             var attackSkill = attacker.GetCreatureSkill(attacker.GetCurrentWeaponSkill());
-            CriticalChance = WorldObject.GetWeaponCriticalChance(attacker, attackSkill, defender);
+            CriticalChance = WorldObject.GetWeaponCriticalChance(Weapon, attacker, attackSkill, defender);
+
+            // https://asheron.fandom.com/wiki/Announcements_-_2002/08_-_Atonement
+            // It should be noted that any time a character is logging off, PK or not, all physical attacks against them become automatically critical.
+            // (Note that spells do not share this behavior.) We hope this will stress the need to log off in a safe place.
+
+            if (playerDefender != null && (playerDefender.IsLoggingOut || playerDefender.PKLogout))
+                CriticalChance = 1.0f;
+
             if (CriticalChance > ThreadSafeRandom.Next(0.0f, 1.0f))
             {
                 if (playerDefender != null && playerDefender.AugmentationCriticalDefense > 0)
@@ -235,11 +271,19 @@ namespace ACE.Server.Entity
                 {
                     IsCritical = true;
 
-                    CriticalDamageMod = 1.0f + WorldObject.GetWeaponCritDamageMod(attacker, attackSkill, defender);
+                    // verify: CriticalMultiplier only applied to the additional crit damage,
+                    // whereas CD/CDR applied to the total damage (base damage + additional crit damage)
+                    CriticalDamageMod = 1.0f + WorldObject.GetWeaponCritDamageMod(Weapon, attacker, attackSkill, defender);
+
+                    CriticalDamageRatingMod = Creature.GetPositiveRatingMod(attacker.GetCritDamageRating());
 
                     // recklessness excluded from crits
                     RecklessnessMod = 1.0f;
-                    DamageRatingMod = Creature.AdditiveCombine(DamageRatingBaseMod, SneakAttackMod, HeritageMod);
+                    DamageRatingMod = Creature.AdditiveCombine(DamageRatingBaseMod, CriticalDamageRatingMod, SneakAttackMod, HeritageMod);
+
+                    if (pkBattle)
+                        DamageRatingMod = Creature.AdditiveCombine(DamageRatingMod, PkDamageMod);
+
                     DamageBeforeMitigation = BaseDamageMod.MaxDamage * AttributeMod * PowerMod * SlayerMod * DamageRatingMod * CriticalDamageMod;
                 }
             }
@@ -263,7 +307,7 @@ namespace ACE.Server.Entity
                 Armor = attacker.GetArmorLayers(playerDefender, BodyPart);
 
                 // get armor modifiers
-                ArmorMod = attacker.GetArmorMod(DamageType, Armor, Weapon, ignoreArmorMod);
+                ArmorMod = attacker.GetArmorMod(playerDefender, DamageType, Armor, Weapon, ignoreArmorMod);
             }
             else
             {
@@ -275,7 +319,7 @@ namespace ACE.Server.Entity
                 if (Evaded)
                     return 0.0f;
 
-                Armor = CreaturePart.GetArmorLayers((CombatBodyPart)BiotaPropertiesBodyPart.Key);
+                Armor = CreaturePart.GetArmorLayers(PropertiesBodyPart.Key);
 
                 // get target armor
                 ArmorMod = CreaturePart.GetArmorMod(DamageType, Armor, Attacker, Weapon, ignoreArmorMod);
@@ -285,7 +329,7 @@ namespace ACE.Server.Entity
                 ArmorMod = 1.0f;
 
             // get resistance modifiers
-            WeaponResistanceMod = WorldObject.GetWeaponResistanceModifier(attacker, attackSkill, DamageType);
+            WeaponResistanceMod = WorldObject.GetWeaponResistanceModifier(Weapon, attacker, attackSkill, DamageType);
 
             if (playerDefender != null)
             {
@@ -298,13 +342,28 @@ namespace ACE.Server.Entity
             }
 
             // damage resistance rating
-            DamageResistanceRatingMod = Creature.GetNegativeRatingMod(defender.GetDamageResistRating(CombatType));
+            DamageResistanceRatingMod = DamageResistanceRatingBaseMod = defender.GetDamageResistRatingMod(CombatType);
+
+            if (IsCritical)
+            {
+                CriticalDamageResistanceRatingMod = Creature.GetNegativeRatingMod(defender.GetCritDamageResistRating());
+
+                DamageResistanceRatingMod = Creature.AdditiveCombine(DamageResistanceRatingBaseMod, CriticalDamageResistanceRatingMod);
+            }
+
+            if (pkBattle)
+            {
+                PkDamageResistanceMod = Creature.GetNegativeRatingMod(defender.GetPKDamageResistRating());
+
+                DamageResistanceRatingMod = Creature.AdditiveCombine(DamageResistanceRatingMod, PkDamageResistanceMod);
+            }
 
             // get shield modifier
             ShieldMod = defender.GetShieldMod(attacker, DamageType, Weapon);
 
             // calculate final output damage
             Damage = DamageBeforeMitigation * ArmorMod * ShieldMod * ResistanceMod * DamageResistanceRatingMod;
+
             DamageMitigated = DamageBeforeMitigation - Damage;
 
             return Damage;
@@ -330,9 +389,9 @@ namespace ACE.Server.Entity
 
             EffectiveAttackSkill = attacker.GetEffectiveAttackSkill();
 
-            var attackType = attacker.GetCombatType();
+            //var attackType = attacker.GetCombatType();
 
-            EffectiveDefenseSkill = defender.GetEffectiveDefenseSkill(attackType);
+            EffectiveDefenseSkill = defender.GetEffectiveDefenseSkill(CombatType);
 
             var evadeChance = 1.0f - SkillCheck.GetSkillChance(EffectiveAttackSkill, EffectiveDefenseSkill);
             return (float)evadeChance;
@@ -357,7 +416,7 @@ namespace ACE.Server.Entity
                 }
             }
             else
-                DamageType = attacker.GetDamageType();
+                DamageType = attacker.GetDamageType(false, CombatType.Melee);
 
             // TODO: combat maneuvers for player?
             BaseDamageMod = attacker.GetBaseDamageMod(DamageSource);
@@ -367,27 +426,27 @@ namespace ACE.Server.Entity
                 BaseDamageMod.DamageBonus += Weapon.Damage ?? 0;
 
             if (DamageSource.ItemType == ItemType.MissileWeapon)
-                BaseDamageMod.ElementalBonus = WorldObject.GetMissileElementalDamageBonus(attacker, DamageType);
+                BaseDamageMod.ElementalBonus = WorldObject.GetMissileElementalDamageBonus(Weapon, attacker, DamageType);
 
-            BaseDamage = ThreadSafeRandom.Next(BaseDamageMod.MinDamage, BaseDamageMod.MaxDamage);
+            BaseDamage = (float)ThreadSafeRandom.Next(BaseDamageMod.MinDamage, BaseDamageMod.MaxDamage);
         }
 
         /// <summary>
         /// Returns the base damage for a non-player attacker
         /// </summary>
-        public void GetBaseDamage(Creature attacker, MotionCommand motionCommand)
+        public void GetBaseDamage(Creature attacker, MotionCommand motionCommand, AttackHook attackHook)
         {
-            AttackPart = attacker.GetAttackPart(motionCommand);
-            if (AttackPart == null)
+            AttackPart = attacker.GetAttackPart(motionCommand, attackHook);
+            if (AttackPart.Value == null)
             {
                 GeneralFailure = true;
                 return;
             }
 
-            BaseDamageMod = attacker.GetBaseDamage(AttackPart);
-            BaseDamage = ThreadSafeRandom.Next(BaseDamageMod.MinDamage, BaseDamageMod.MaxDamage);
+            BaseDamageMod = attacker.GetBaseDamage(AttackPart.Value);
+            BaseDamage = (float)ThreadSafeRandom.Next(BaseDamageMod.MinDamage, BaseDamageMod.MaxDamage);
 
-            DamageType = attacker.GetDamageType(AttackPart, CombatType);
+            DamageType = attacker.GetDamageType(AttackPart.Value, CombatType);
         }
 
         /// <summary>
@@ -422,7 +481,8 @@ namespace ACE.Server.Entity
 
             //Console.WriteLine($"AttackHeight: {AttackHeight}, Quadrant: {quadrant & FrontBack}{quadrant & LeftRight}, AttackPart: {bodyPart}");
 
-            BiotaPropertiesBodyPart = Defender.Biota.BiotaPropertiesBodyPart.FirstOrDefault(i => i.Key == (ushort)bodyPart);
+            defender.Biota.PropertiesBodyPart.TryGetValue(bodyPart, out var value);
+            PropertiesBodyPart = new KeyValuePair<CombatBodyPart, PropertiesBodyPart>(bodyPart, value);
 
             // select random body part @ current attack height
             /*BiotaPropertiesBodyPart = BodyParts.GetBodyPart(defender, attackHeight);
@@ -433,7 +493,7 @@ namespace ACE.Server.Entity
                 return;
             }*/
 
-            CreaturePart = new Creature_BodyPart(defender, BiotaPropertiesBodyPart);
+            CreaturePart = new Creature_BodyPart(defender, PropertiesBodyPart);
         }
 
         public void ShowInfo(Creature creature)
@@ -461,10 +521,13 @@ namespace ACE.Server.Entity
             info += $"AttackHeight: {AttackHeight}\n";
 
             // lifestone protection
-            info += $"LifestoneProtection: {LifestoneProtection}\n";
+            if (LifestoneProtection)
+                info += $"LifestoneProtection: {LifestoneProtection}\n";
 
             // evade
-            info += $"AccuracyMod: {AccuracyMod}\n";
+            if (AccuracyMod != 0.0f && AccuracyMod != 1.0f)
+                info += $"AccuracyMod: {AccuracyMod}\n";
+
             info += $"EffectiveAttackSkill: {EffectiveAttackSkill}\n";
             info += $"EffectiveDefenseSkill: {EffectiveDefenseSkill}\n";
 
@@ -478,8 +541,8 @@ namespace ACE.Server.Entity
             {
                 if (AttackMotion != null)
                     info += $"AttackMotion: {AttackMotion}\n";
-                if (AttackPart != null)
-                    info += $"AttackPart: {(CombatBodyPart)AttackPart.Key}\n";
+                if (AttackPart.Value != null)
+                    info += $"AttackPart: {AttackPart.Key}\n";
             }
 
             // base damage
@@ -491,30 +554,56 @@ namespace ACE.Server.Entity
 
             // damage modifiers
             info += $"AttributeMod: {AttributeMod}\n";
-            info += $"PowerMod: {PowerMod}\n";
-            info += $"SlayerMod: {SlayerMod}\n";
+
+            if (PowerMod != 0.0f && PowerMod != 1.0f)
+                info += $"PowerMod: {PowerMod}\n";
+
+            if (SlayerMod != 0.0f && SlayerMod != 1.0f)
+                info += $"SlayerMod: {SlayerMod}\n";
 
             if (BaseDamageMod != null)
             {
-                info += $"ElementalDamageBonus: {BaseDamageMod.ElementalBonus}\n";
-                info += $"MissileWeaponModifier: {BaseDamageMod.DamageMod}\n";
-                info += $"BloodDrinker/ThirstTotal: {BaseDamageMod.DamageBonus}\n";
+                if (BaseDamageMod.DamageBonus != 0)
+                    info += $"DamageBonus: {BaseDamageMod.DamageBonus}\n";
+
+                if (BaseDamageMod.DamageMod != 0.0f && BaseDamageMod.DamageMod != 1.0f)
+                    info += $"DamageMod: {BaseDamageMod.DamageMod}\n";
+
+                if (BaseDamageMod.ElementalBonus != 0)
+                    info += $"ElementalDamageBonus: {BaseDamageMod.ElementalBonus}\n";
             }
-
-            // damage ratings
-            if (!(Defender is Player))
-                info += $"DamageRatingBaseMod: {DamageRatingBaseMod}\n";
-
-            info += $"HeritageMod: {HeritageMod}\n";
-            info += $"RecklessnessMod: {RecklessnessMod}\n";
-            info += $"SneakAttackMod: {SneakAttackMod}\n";
-            info += $"DamageRatingMod: {DamageRatingMod}\n";
 
             // critical hit
             info += $"CriticalChance: {CriticalChance}\n";
             info += $"CriticalHit: {IsCritical}\n";
-            info += $"CriticalDefended: {CriticalDefended}\n";
-            info += $"CriticalDamageMod: {CriticalDamageMod}\n";
+
+            if (CriticalDefended)
+                info += $"CriticalDefended: {CriticalDefended}\n";
+
+            if (CriticalDamageMod != 0.0f && CriticalDamageMod != 1.0f)
+                info += $"CriticalDamageMod: {CriticalDamageMod}\n";
+
+            if (CriticalDamageRatingMod != 0.0f && CriticalDamageRatingMod != 1.0f)
+                info += $"CriticalDamageRatingMod: {CriticalDamageRatingMod}\n";
+
+            // damage ratings
+            if (DamageRatingBaseMod != 0.0f && DamageRatingBaseMod != 1.0f)
+                info += $"DamageRatingBaseMod: {DamageRatingBaseMod}\n";
+
+            if (HeritageMod != 0.0f && HeritageMod != 1.0f)
+                info += $"HeritageMod: {HeritageMod}\n";
+
+            if (RecklessnessMod != 0.0f && RecklessnessMod != 1.0f)
+                info += $"RecklessnessMod: {RecklessnessMod}\n";
+
+            if (SneakAttackMod != 0.0f && SneakAttackMod != 1.0f)
+                info += $"SneakAttackMod: {SneakAttackMod}\n";
+
+            if (PkDamageMod != 0.0f && PkDamageMod != 1.0f)
+                info += $"PkDamageMod: {PkDamageMod}\n";
+
+            if (DamageRatingMod != 0.0f && DamageRatingMod != 1.0f)
+                info += $"DamageRatingMod: {DamageRatingMod}\n";
 
             if (BodyPart != 0)
             {
@@ -529,17 +618,34 @@ namespace ACE.Server.Entity
             if (CreaturePart != null)
             {
                 // creature body part
-                info += $"BodyPart: {(CombatBodyPart)BiotaPropertiesBodyPart.Key}\n";
-                info += $"BaseArmor: {CreaturePart.Biota.BaseArmor}\n";
+                info += $"BodyPart: {PropertiesBodyPart.Key}\n";
+                info += $"BaseArmor: {CreaturePart.Biota.Value.BaseArmor}\n";
             }
 
             // damage mitigation
-            info += $"ArmorMod: {ArmorMod}\n";
-            info += $"ResistanceMod: {ResistanceMod}\n";
-            info += $"ShieldMod: {ShieldMod}\n";
-            info += $"WeaponResistanceMod: {WeaponResistanceMod}\n";
+            if (ArmorMod != 0.0f && ArmorMod != 1.0f)
+                info += $"ArmorMod: {ArmorMod}\n";
 
-            info += $"DamageResistanceRatingMod: {DamageResistanceRatingMod}\n";
+            if (ResistanceMod != 0.0f && ResistanceMod != 1.0f)
+                info += $"ResistanceMod: {ResistanceMod}\n";
+
+            if (ShieldMod != 0.0f && ShieldMod != 1.0f)
+                info += $"ShieldMod: {ShieldMod}\n";
+
+            if (WeaponResistanceMod != 0.0f && WeaponResistanceMod != 1.0f)
+                info += $"WeaponResistanceMod: {WeaponResistanceMod}\n";
+
+            if (DamageResistanceRatingBaseMod != 0.0f && DamageResistanceRatingBaseMod != 1.0f)
+                info += $"DamageResistanceRatingBaseMod: {DamageResistanceRatingBaseMod}\n";
+
+            if (CriticalDamageResistanceRatingMod != 0.0f && CriticalDamageResistanceRatingMod != 1.0f)
+                info += $"CriticalDamageResistanceRatingMod: {CriticalDamageResistanceRatingMod}\n";
+
+            if (PkDamageResistanceMod != 0.0f && PkDamageResistanceMod != 1.0f)
+                info += $"PkDamageResistanceMod: {PkDamageResistanceMod}\n";
+
+            if (DamageResistanceRatingMod != 0.0f && DamageResistanceRatingMod != 1.0f)
+                info += $"DamageResistanceRatingMod: {DamageResistanceRatingMod}\n";
 
             if (IgnoreMagicArmor)
                 info += $"IgnoreMagicArmor: {IgnoreMagicArmor}\n";
@@ -561,12 +667,10 @@ namespace ACE.Server.Entity
             if (attacker != null && (attacker.DebugDamage & Creature.DebugDamageType.Attacker) != 0)
             {
                 ShowInfo(attacker);
-                return;
             }
             if (defender != null && (defender.DebugDamage & Creature.DebugDamageType.Defender) != 0)
             {
                 ShowInfo(defender);
-                return;
             }
         }
 

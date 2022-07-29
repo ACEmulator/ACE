@@ -222,7 +222,7 @@ namespace ACE.Database.SQLFormatters.World
                 writer.WriteLine();
                 writer.WriteLine("INSERT INTO `recipe_mod` (`recipe_Id`, `executes_On_Success`, `health`, `stamina`, `mana`, `unknown_7`, `data_Id`, `unknown_9`, `instance_Id`)");
 
-                var output = $"VALUES ({recipeId}, {value.ExecutesOnSuccess}, {value.Health}, {value.Stamina}, {value.Mana}, {value.Unknown7}, {value.DataId}, {value.Unknown9}, {value.InstanceId});";
+                var output = $"VALUES ({recipeId}, {value.ExecutesOnSuccess}, {value.Health}, {value.Stamina}, {value.Mana}, {value.Unknown7}, {(value.DataId > 0 ? $"0x{value.DataId:X8}" : $"{value.DataId}")}, {value.Unknown9}, {value.InstanceId});";
 
                 output = FixNullFields(output);
 

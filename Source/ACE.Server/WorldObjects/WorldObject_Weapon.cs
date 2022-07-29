@@ -110,7 +110,17 @@ namespace ACE.Server.WorldObjects
             if (weapon == null)
                 return defaultModifier;
 
-            var defenseMod = (float)(weapon.WeaponDefense ?? defaultModifier) + weapon.EnchantmentManager.GetDefenseMod();
+            //var defenseMod = (float)(weapon.WeaponDefense ?? defaultModifier) + weapon.EnchantmentManager.GetDefenseMod();
+
+            // TODO: Resolve this issue a better way?
+            // Because of the way ACE handles default base values in recipe system (or rather the lack thereof)
+            // we need to check the following weapon properties to see if they're below expected minimum and adjust accordingly
+            // The issue is that the recipe system likely added 0.01 to 0 instead of 1, which is what *should* have happened.
+            var baseWepDef = (float)(weapon.WeaponDefense ?? defaultModifier);
+            if (weapon.WeaponDefense > 0 && weapon.WeaponDefense < 1 && ((weapon.GetProperty(PropertyInt.ImbueStackingBits) ?? 0) & 4) != 0)
+                baseWepDef += 1;
+
+            var defenseMod = baseWepDef + weapon.EnchantmentManager.GetDefenseMod();
 
             if (weapon.IsEnchantable)
                 defenseMod += wielder.EnchantmentManager.GetDefenseMod();
@@ -128,8 +138,19 @@ namespace ACE.Server.WorldObjects
             if (weapon == null || wielder.CombatMode == CombatMode.NonCombat)
                 return defaultModifier;
 
+            //// no enchantments?
+            //return (float)(weapon.WeaponMissileDefense ?? 1.0f);
+
+            var baseWepDef = (float)(weapon.WeaponMissileDefense ?? 1.0f);
+            // TODO: Resolve this issue a better way?
+            // Because of the way ACE handles default base values in recipe system (or rather the lack thereof)
+            // we need to check the following weapon properties to see if they're below expected minimum and adjust accordingly
+            // The issue is that the recipe system likely added 0.005 to 0 instead of 1, which is what *should* have happened.
+            if (weapon.WeaponMissileDefense > 0 && weapon.WeaponMissileDefense < 1 && ((weapon.GetProperty(PropertyInt.ImbueStackingBits) ?? 0) & 1) == 1)
+                baseWepDef += 1;
+
             // no enchantments?
-            return (float)(weapon.WeaponMissileDefense ?? 1.0f);
+            return baseWepDef;
         }
 
         /// <summary>
@@ -142,8 +163,19 @@ namespace ACE.Server.WorldObjects
             if (weapon == null || wielder.CombatMode == CombatMode.NonCombat)
                 return defaultModifier;
 
+            //// no enchantments?
+            //return (float)(weapon.WeaponMagicDefense ?? 1.0f);
+
+            var baseWepDef = (float)(weapon.WeaponMagicDefense ?? 1.0f);
+            // TODO: Resolve this issue a better way?
+            // Because of the way ACE handles default base values in recipe system (or rather the lack thereof)
+            // we need to check the following weapon properties to see if they're below expected minimum and adjust accordingly
+            // The issue is that the recipe system likely added 0.005 to 0 instead of 1, which is what *should* have happened.
+            if (weapon.WeaponMagicDefense > 0 && weapon.WeaponMagicDefense < 1 && ((weapon.GetProperty(PropertyInt.ImbueStackingBits) ?? 0) & 1) == 1)
+                baseWepDef += 1;
+
             // no enchantments?
-            return (float)(weapon.WeaponMagicDefense ?? 1.0f);
+            return baseWepDef;
         }
 
         /// <summary>
@@ -173,7 +205,20 @@ namespace ACE.Server.WorldObjects
 
         private static float GetWeaponOffenseModifier(Creature wielder, WorldObject weapon)
         {
-            if (weapon == null)
+            /* Excerpt from http://acpedia.org/wiki/Announcements_-_2002/07_-_Repercussions#Letter_to_the_Players
+             The second issue will, in some ways, be both more troubling and more inconsequential for players. HeartSeeker does not affect missile launchers.
+             It never has. Bows, crossbows, and atlatls get no benefit from the HeartSeeker spell or from innate attack bonuses (such as those found on the Singularity Bow).
+             The only variables that determine whether a missile character hits their target is their bow/xbow/tw skill, the missile defense of the target, and where they set their accuracy meter while they are attacking.
+             However, the Defender spell, as well as innate defensive bonuses, do work on missile launchers.
+             The AC Live team has been aware of this for the last several months. Once we knew the situation, the question became what to do about it. Should we “fix” an issue that probably isn't broken?
+             Almost no archer/atlatler complains about not being able to hit their target.
+             They have a built in “HeartSeeker” all the time.
+             If anything, most monsters' missile defense scores have historically been so low that many players regard archery as the fastest way to level a character up through the first 30-40 levels.
+             We did not feel that “fixing” such a system would improve the game balance for anyone in Asheron's Call, archer or no.
+             Ultimately, we decided to resolve the situation through our changes to the treasure system this month. From now on, missile launchers will have a chance of having an innate defensive bonus, but not an offensive one.
+             While many old quest weapons still retain their (useless) attack bonus, we will not be putting any new ones into the system.
+             */
+            if (weapon == null || weapon.IsRanged /* see note above */)
                 return defaultModifier;
 
             var offenseMod = (float)(weapon.WeaponOffense ?? defaultModifier) + weapon.EnchantmentManager.GetAttackMod();
@@ -246,12 +291,10 @@ namespace ACE.Server.WorldObjects
         private const float defaultPhysicalCritFrequency = 0.1f;    // 10% base chance
 
         /// <summary>
-        /// Returns the critical chance for the current weapon
+        /// Returns the critical chance for the attack weapon
         /// </summary>
-        public static float GetWeaponCriticalChance(Creature wielder, CreatureSkill skill, Creature target)
+        public static float GetWeaponCriticalChance(WorldObject weapon, Creature wielder, CreatureSkill skill, Creature target)
         {
-            WorldObject weapon = GetWeapon(wielder);
-
             var critRate = (float)(weapon?.CriticalFrequency ?? defaultPhysicalCritFrequency);
 
             if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.CriticalStrike))
@@ -271,19 +314,21 @@ namespace ACE.Server.WorldObjects
             return critRate;
         }
 
-        // http://acpedia.org/wiki/Announcements_-_2002/08_-_Atonement#Letter_to_the_Players
+        // http://acpedia.org/wiki/Announcements_-_2002/08_-_Atonement#Letter_to_the_Players - 2% originally
 
-        private const float defaultMagicCritFrequency = 0.02f;      // 2% base chance
+        // http://acpedia.org/wiki/Announcements_-_2002/11_-_The_Iron_Coast#Release_Notes
+        // The chance for causing a critical hit with magic, both with and without a Critical Strike wand, has been increased.
+        // what this was actually increased to for base, was never stated directly in the dev notes
+        // speculation is that it was 5%, to align with the minimum that CS magic scales from
+
+        private const float defaultMagicCritFrequency = 0.05f;
 
         /// <summary>
-        /// Returns the critical chance for the current magic weapon
+        /// Returns the critical chance for the caster weapon
         /// </summary>
-        public static float GetWeaponMagicCritFrequency(Creature wielder, CreatureSkill skill, Creature target)
+        public static float GetWeaponMagicCritFrequency(WorldObject weapon, Creature wielder, CreatureSkill skill, Creature target)
         {
             // TODO : merge with above function
-            // FIXME: do not use GetWeapon for spell projectiles
-
-            WorldObject weapon = GetWeapon(wielder as Player);
 
             if (weapon == null)
                 return defaultMagicCritFrequency;
@@ -311,12 +356,10 @@ namespace ACE.Server.WorldObjects
         private const float defaultCritDamageMultiplier = 1.0f;
 
         /// <summary>
-        /// Returns the critical damage multiplier for the current weapon
+        /// Returns the critical damage multiplier for the attack weapon
         /// </summary>
-        public static float GetWeaponCritDamageMod(Creature wielder, CreatureSkill skill, Creature target)
+        public static float GetWeaponCritDamageMod(WorldObject weapon, Creature wielder, CreatureSkill skill, Creature target)
         {
-            WorldObject weapon = GetWeapon(wielder);
-
             var critDamageMod = (float)(weapon?.GetProperty(PropertyFloat.CriticalMultiplier) ?? defaultCritDamageMultiplier);
 
             if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.CripplingBlow))
@@ -325,14 +368,6 @@ namespace ACE.Server.WorldObjects
 
                 critDamageMod = Math.Max(critDamageMod, cripplingBlowMod); 
             }
-
-            if (wielder != null)
-                critDamageMod += wielder.GetCritDamageRating() * 0.01f;
-
-            // mitigation
-            var critDamageResistRatingMod = Creature.GetNegativeRatingMod(target.GetCritDamageResistRating());
-            critDamageMod *= critDamageResistRatingMod;
-
             return critDamageMod;
         }
 
@@ -344,10 +379,8 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns a multiplicative elemental damage modifier for the magic caster weapon type
         /// </summary>
-        public static float GetCasterElementalDamageModifier(Creature wielder, Creature target, DamageType damageType)
+        public static float GetCasterElementalDamageModifier(WorldObject weapon, Creature wielder, Creature target, DamageType damageType)
         {
-            var weapon = GetWeapon(wielder as Player);
-
             if (wielder == null || !(weapon is Caster) || weapon.W_DamageType != damageType)
                 return 1.0f;
 
@@ -361,7 +394,7 @@ namespace ACE.Server.WorldObjects
 
             var modifier = (float)(elementalDamageMod + enchantments);
 
-            if (modifier > 1.0f && wielder is Player && target is Player)
+            if (modifier > 1.0f && target is Player)
                 modifier = 1.0f + (modifier - 1.0f) * ElementalDamageBonusPvPReduction;
 
             return modifier;
@@ -370,10 +403,8 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns an additive elemental damage bonus for the missile launcher weapon type
         /// </summary>
-        public static int GetMissileElementalDamageBonus(Creature wielder, DamageType damageType)
+        public static int GetMissileElementalDamageBonus(WorldObject weapon, Creature wielder, DamageType damageType)
         {
-            WorldObject weapon = GetWeapon(wielder as Player);
-
             if (weapon is MissileLauncher && weapon.ElementalDamageBonus != null)
             {
                 var elementalDamageType = weapon.W_DamageType;
@@ -397,13 +428,11 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the slayer damage multiplier for the current weapon
+        /// Returns the slayer damage multiplier for the attack weapon
         /// against a particular creature type
         /// </summary>
-        public static float GetWeaponCreatureSlayerModifier(Creature wielder, Creature target)
+        public static float GetWeaponCreatureSlayerModifier(WorldObject weapon, Creature wielder, Creature target)
         {
-            WorldObject weapon = GetWeapon(wielder as Player);
-
             if (weapon != null && weapon.SlayerCreatureType != null && weapon.SlayerDamageBonus != null &&
                 target != null && weapon.SlayerCreatureType == target.CreatureType)
             {
@@ -429,11 +458,9 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the resistance modifier or rending modifier
         /// </summary>
-        public static float GetWeaponResistanceModifier(Creature wielder, CreatureSkill skill, DamageType damageType)
+        public static float GetWeaponResistanceModifier(WorldObject weapon, Creature wielder, CreatureSkill skill, DamageType damageType)
         {
             float resistMod = defaultModifier;
-
-            WorldObject weapon = GetWeapon(wielder as Player);
 
             if (wielder == null || weapon == null)
                 return defaultModifier;
@@ -470,7 +497,7 @@ namespace ACE.Server.WorldObjects
 
         public bool HasImbuedEffect(ImbuedEffectType type)
         {
-            return (GetImbuedEffects() & type) != 0;
+            return ImbuedEffect.HasFlag(type);
         }
 
         public static ImbuedEffectType GetRendDamageType(DamageType damageType)
@@ -578,7 +605,7 @@ namespace ACE.Server.WorldObjects
         // Critical Strike for War Magic currently scales from 5% critical hit chance to 25% critical hit chance at maximum effectiveness.
         // In July, the maximum effectiveness will be increased to 50% chance.
 
-        public static float MinCriticalStrikeMagicMod = 0.05f;
+        //public static float MinCriticalStrikeMagicMod = 0.05f;
 
         public static float MaxCriticalStrikeMod = 0.5f;
 
@@ -629,12 +656,16 @@ namespace ACE.Server.WorldObjects
             // This code is checking if the player has reached the skill threshold for receiving the 5% bonus
             // (base skill 90 in PvE, base skill 120 in PvP)
 
-            var criticalStrikeMod = skillType == ImbuedSkillType.Magic ? defaultMagicCritFrequency : defaultPhysicalCritFrequency;
+            /*var criticalStrikeMod = skillType == ImbuedSkillType.Magic ? defaultMagicCritFrequency : defaultPhysicalCritFrequency;
 
             var minEffective = skillType == ImbuedSkillType.Magic ? MinCriticalStrikeMagicMod : defaultPhysicalCritFrequency;
 
             if (baseMod >= minEffective)
-                criticalStrikeMod = baseMod;
+                criticalStrikeMod = baseMod;*/
+
+            var defaultCritFrequency = skillType == ImbuedSkillType.Magic ? defaultMagicCritFrequency : defaultPhysicalCritFrequency;
+
+            var criticalStrikeMod = Math.Max(defaultCritFrequency, baseMod);
 
             //Console.WriteLine($"CriticalStrikeMod: {criticalStrikeMod}");
 
@@ -923,33 +954,39 @@ namespace ACE.Server.WorldObjects
             return HasProc && ProcSpell == spellID;
         }
 
-        public void TryProcItem(Creature wielder, Creature target)
+        public void TryProcItem(WorldObject attacker, Creature target)
         {
             // roll for a chance of casting spell
             var chance = ProcSpellRate ?? 0.0f;
 
             // special handling for aetheria
-            if (Aetheria.IsAetheria(WeenieClassId))
+            if (Aetheria.IsAetheria(WeenieClassId) && attacker is Creature wielder)
                 chance = Aetheria.CalcProcRate(this, wielder);
 
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-            if (rng > chance)
+            if (rng >= chance)
                 return;
 
             var spell = new Spell(ProcSpell.Value);
 
             if (spell.NotFound)
             {
-                if (wielder is Player player)
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
-
+                if (attacker is Player player)
+                {
+                    if (spell._spellBase == null)
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"SpellId {ProcSpell.Value} Invalid.", ChatMessageType.System));
+                    else
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                }
                 return;
             }
 
+            var itemCaster = this is Creature ? null : this;
+
             if (spell.NonComponentTargetType == ItemType.None)
-                wielder.TryCastSpell(spell, null, this);
+                attacker.TryCastSpell(spell, null, itemCaster, itemCaster, true, true);
             else
-                wielder.TryCastSpell(spell, target, this);
+                attacker.TryCastSpell(spell, target, itemCaster, itemCaster, true, true);
         }
 
         private bool? isMasterable;
@@ -969,7 +1006,28 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public static readonly float ThrustThreshold = 0.25f;
+        // from the Dark Majesty strategy guide, page 150:
+
+        // -   0 - 1/3 sec. Power-up Time = High Stab
+        // - 1/3 - 2/3 sec. Power-up Time = High Backhand
+        // -       2/3 sec+ Power-up Time = High Slash
+
+        public static readonly float ThrustThreshold = 0.33f;
+
+        /// <summary>
+        /// Returns TRUE if this is a thrust/slash weapon,
+        /// or if this weapon uses 2 different attack types based on the ThrustThreshold
+        /// </summary>
+        public bool IsThrustSlash
+        {
+            get
+            {
+                return W_AttackType.HasFlag(AttackType.Slash | AttackType.Thrust) ||
+                       W_AttackType.HasFlag(AttackType.DoubleSlash | AttackType.DoubleThrust) ||
+                       W_AttackType.HasFlag(AttackType.TripleSlash | AttackType.TripleThrust) ||
+                       W_AttackType.HasFlag(AttackType.DoubleSlash);  // stiletto
+            }
+        }
 
         public AttackType GetAttackType(MotionStance stance, float powerLevel, bool offhand)
         {
@@ -1000,45 +1058,19 @@ namespace ACE.Server.WorldObjects
                     else
                         attackType = AttackType.DoubleThrust;
                 }
-                // stiletto
+
+                // handle old bugged stilettos that only have DoubleThrust
+                // handle old bugged rapiers w/ Thrust, DoubleThrust
                 else if (attackType.HasFlag(AttackType.DoubleThrust))
                 {
-                    if (powerLevel >= ThrustThreshold)
+                    if (powerLevel >= ThrustThreshold || !attackType.HasFlag(AttackType.Thrust))
                         attackType = AttackType.DoubleThrust;
                     else
                         attackType = AttackType.Thrust;
                 }
-            }
-            else if (stance == MotionStance.SwordShieldCombat)
-            {
-                // force thrust animation when using a shield with a multi-strike weapon
-                if (attackType.HasFlag(AttackType.TripleThrust | AttackType.TripleSlash))
-                {
-                    if (powerLevel >= ThrustThreshold)
-                        attackType = AttackType.TripleThrust;
-                    else
-                        attackType = AttackType.Thrust;
-                }
-                else if ((attackType & (AttackType.DoubleThrust | AttackType.DoubleSlash)) != 0)
-                {
-                    if (powerLevel >= ThrustThreshold)
-                        attackType = AttackType.DoubleThrust;
-                    else
-                        attackType = AttackType.Thrust;
-                }
-            }
-            else if (stance == MotionStance.SwordCombat)
-            {
-                // force slash animation when using no shield with a multi-strike weapon
-                if (attackType.HasFlag(AttackType.TripleThrust | AttackType.TripleSlash))
-                {
-                    if (powerLevel >= ThrustThreshold)
-                        attackType = AttackType.TripleSlash;
-                    else
-                        attackType = AttackType.Thrust;
-                }
-                else if (attackType.HasFlag(AttackType.DoubleThrust | AttackType.DoubleSlash) ||
-                    attackType.HasFlag(AttackType.Thrust | AttackType.DoubleSlash))     // FIXME data
+
+                // handle old bugged poniards and newer tachis
+                else if (attackType.HasFlag(AttackType.Thrust | AttackType.DoubleSlash))
                 {
                     if (powerLevel >= ThrustThreshold)
                         attackType = AttackType.DoubleSlash;
@@ -1046,10 +1078,61 @@ namespace ACE.Server.WorldObjects
                         attackType = AttackType.Thrust;
                 }
 
-                // stiletto only has double thrust?
+                // gaerlan sword / py16 (iasparailaun)
+                else if (attackType.HasFlag(AttackType.Thrust | AttackType.TripleSlash))
+                {
+                    if (powerLevel >= ThrustThreshold)
+                        attackType = AttackType.TripleSlash;
+                    else
+                        attackType = AttackType.Thrust;
+                }
+            }
+            else if (stance == MotionStance.SwordShieldCombat)
+            {
+                // force thrust animation when using a shield with a multi-strike weapon
+                if (attackType.HasFlag(AttackType.TripleThrust))
+                {
+                    if (powerLevel >= ThrustThreshold || !attackType.HasFlag(AttackType.Thrust))
+                        attackType = AttackType.TripleThrust;
+                    else
+                        attackType = AttackType.Thrust;
+                }
+                else if (attackType.HasFlag(AttackType.DoubleThrust))
+                {
+                    if (powerLevel >= ThrustThreshold || !attackType.HasFlag(AttackType.Thrust))
+                        attackType = AttackType.DoubleThrust;
+                    else
+                        attackType = AttackType.Thrust;
+                }
+
+                // handle old bugged poniards and newer tachis w/ Thrust, DoubleSlash
+                // and gaerlan sword / py16 (iasparailaun) w/ Thrust, TripleSlash
+                else if (attackType.HasFlag(AttackType.Thrust) && (attackType & (AttackType.DoubleSlash | AttackType.TripleSlash)) != 0)
+                    attackType = AttackType.Thrust;
+            }
+            else if (stance == MotionStance.SwordCombat)
+            {
+                // force slash animation when using no shield with a multi-strike weapon
+                if (attackType.HasFlag(AttackType.TripleSlash))
+                {
+                    if (powerLevel >= ThrustThreshold || !attackType.HasFlag(AttackType.Thrust))
+                        attackType = AttackType.TripleSlash;
+                    else
+                        attackType = AttackType.Thrust;
+                }
+                else if (attackType.HasFlag(AttackType.DoubleSlash))
+                {
+                    if (powerLevel >= ThrustThreshold || !attackType.HasFlag(AttackType.Thrust))
+                        attackType = AttackType.DoubleSlash;
+                    else
+                        attackType = AttackType.Thrust;
+                }
+
+                // handle old bugged stilettos that only have DoubleThrust
                 else if (attackType.HasFlag(AttackType.DoubleThrust))
                     attackType = AttackType.Thrust;
             }
+
             if (attackType.HasFlag(AttackType.Thrust | AttackType.Slash))
             {
                 if (powerLevel >= ThrustThreshold)
@@ -1057,6 +1140,7 @@ namespace ACE.Server.WorldObjects
                 else
                     attackType = AttackType.Thrust;
             }
+
             return attackType;
         }
 
@@ -1084,14 +1168,35 @@ namespace ACE.Server.WorldObjects
                 else
                     attackType = AttackType.OffhandDoubleThrust;
             }
-            // stiletto
+
+            // handle old bugged stilettos that only have DoubleThrust
+            // handle old bugged rapiers w/ Thrust, DoubleThrust
             else if (attackType.HasFlag(AttackType.DoubleThrust))
             {
-                if (powerLevel >= ThrustThreshold)
+                if (powerLevel >= ThrustThreshold || !attackType.HasFlag(AttackType.Thrust))
                     attackType = AttackType.OffhandDoubleThrust;
                 else
                     attackType = AttackType.OffhandThrust;
             }
+
+            // handle old bugged poniards and newer tachis w/ Thrust, DoubleSlash
+            else if (attackType.HasFlag(AttackType.Thrust | AttackType.DoubleSlash))
+            {
+                if (powerLevel >= ThrustThreshold)
+                    attackType = AttackType.OffhandDoubleSlash;
+                else
+                    attackType = AttackType.OffhandThrust;
+            }
+
+            // gaerlan sword / py16 (iasparailaun) w/ Thrust, TripleSlash
+            else if (attackType.HasFlag(AttackType.Thrust | AttackType.TripleSlash))
+            {
+                if (powerLevel >= ThrustThreshold)
+                    attackType = AttackType.OffhandTripleSlash;
+                else
+                    attackType = AttackType.OffhandThrust;
+            }
+
             else if (attackType.HasFlag(AttackType.Thrust | AttackType.Slash))
             {
                 if (powerLevel >= ThrustThreshold)
