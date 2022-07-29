@@ -56,11 +56,11 @@ namespace ACE.Common
         /// </summary>
         public Assembly PluginAssembly { get; set; } = null;
         /// <summary>
-        /// The exposed classes in the assembly that implement IACEPlugin 
+        /// The exposed classes in the assembly that implement IACEPlugin
         /// </summary>
         public List<ACEPluginType> Types { get; set; } = new List<ACEPluginType>();
         /// <summary>
-        /// True indicates sucessful initialization
+        /// True indicates successful initialization
         /// False indicates a fault occured during outer initialization
         /// </summary>
         public bool StartupSuccess { get; set; } = false;
@@ -98,18 +98,18 @@ namespace ACE.Common
         }
         public Type Type { get; private set; } = null;
         /// <summary>
-        /// the plugin object instance, 
+        /// the plugin object instance,
         /// </summary>
         public IACEPlugin Instance { get; set; } = null;
         /// <summary>
-        /// True indicates sucessful initialization
+        /// True indicates successful initialization
         /// False indicates a fault occured during initialization
         /// Property is invalid until the result task result is set by the plugin during initialization or the plugin throws an exception during initialization
         /// </summary>
         public bool ResultOfInit => ResultOfInitSink.Task.Result;
         /// <summary>
         /// backing store for ResultOfInit passed to IACEPlugin type constructors
-        /// True indicates sucessful initialization
+        /// True indicates successful initialization
         /// False indicates a fault occured during initialization
         /// It's imperative that the plugin reliably set the task result no matter what
         /// </summary>
