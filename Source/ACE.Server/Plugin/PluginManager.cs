@@ -24,7 +24,7 @@ namespace ACE.Server.Plugin
         private static readonly List<Tuple<string, Assembly>> PluginDlls = new List<Tuple<string, Assembly>>();
         private static readonly List<Tuple<string, Assembly>> ACEDlls = new List<Tuple<string, Assembly>>();
         private static readonly List<Assembly> ReferencedAssemblies = new List<Assembly>();
-        public static string PathToACEFolder { get; } = new FileInfo(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath).Directory.FullName;
+        public static string PathToACEFolder { get; } = new FileInfo(new Uri(Assembly.GetExecutingAssembly().Location).LocalPath).Directory.FullName;
         private static string DpPlugins { get; } = Path.Combine(PathToACEFolder, PluginFolderName);
         public const string PluginFolderName = "Plugins";
 
