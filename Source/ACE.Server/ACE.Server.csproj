@@ -302,7 +302,7 @@
   </Target>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="modify and uncomment the following to aid in plugin development&#xD;&#xA;set src=$(TargetDir)&#xD;&#xA;set dst=E:\path.to\ACE\ACE-Plugins\Dependencies\ACE&#xD;&#xA;robocopy &quot;%src% &quot; &quot;%dst% &quot; &quot;*.*&quot; /XO /NJH /NP&#xD;&#xA;SET ERRORLEVEL = 0" />
+    <Exec Command="rem modify and uncomment the following to aid in plugin development&#xA;set src=$(TargetDir)&#xA;set dst=C:\projects\ace\ACE-Plugins\Dependencies\ACE&#xA;robocopy &quot;%src% &quot; &quot;%dst% &quot; &quot;*.*&quot; /XO /NJH /NP&#xA;SET ERRORLEVEL = 0" />
   </Target>
 
 </Project>

@@ -62,6 +62,54 @@ namespace ACE.Server.Command
             thread.Start();
         }
 
+        /// <summary>
+        /// consume and execute a command
+        /// </summary>
+        /// <param name="commandLine">the submitted command</param>
+        /// <returns></returns>
+        public static CommandOverallResult DigestCommand(string commandLine)
+        {
+            string command = null;
+            string[] parameters = null;
+            try
+            {
+                ParseCommand(commandLine, out command, out parameters);
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Exception while parsing command: {commandLine}", ex);
+                return new CommandOverallResult() { CommandResult = CommandDigestionResult.ParseError };
+            }
+            CommandHandlerResponse chr = CommandHandlerResponse.InvalidCommand;
+            CommandHandlerInfo commandHandler = null;
+            try
+            {
+                chr = GetCommandHandler(null, command, parameters, out commandHandler);
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Exception while getting command handler for: {commandLine}", ex);
+                return new CommandOverallResult() { CommandResult = CommandDigestionResult.CommandHandlerException };
+            }
+            if (chr == CommandHandlerResponse.Ok)
+            {
+                try
+                {
+                    // Add command to world manager's main thread...
+                    ((CommandHandler)commandHandler.Handler).Invoke(null, parameters);
+                    return new CommandOverallResult() { CommandResult = CommandDigestionResult.Success, CommandHandlerResponse = chr };
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"Exception while invoking command handler for: {commandLine}", ex);
+                    return new CommandOverallResult() { CommandResult = CommandDigestionResult.InvocationError, CommandHandlerResponse = chr };
+                }
+            }
+            else
+            {
+                return new CommandOverallResult() { CommandResult = CommandDigestionResult.CommandHandlerResponseError, CommandHandlerResponse = chr };
+            }
+        }
         private static void CommandThread()
         {
             Console.WriteLine("");
@@ -77,41 +125,7 @@ namespace ACE.Server.Command
                 string commandLine = Console.ReadLine();
                 if (string.IsNullOrWhiteSpace(commandLine))
                     continue;
-
-                string command = null;
-                string[] parameters = null;
-                try
-                {
-                    ParseCommand(commandLine, out command, out parameters);
-                }
-                catch (Exception ex)
-                {
-                    log.Error($"Exception while parsing command: {commandLine}", ex);
-                    return;
-                }
-                try
-                {
-                    if (GetCommandHandler(null, command, parameters, out var commandHandler) == CommandHandlerResponse.Ok)
-                    {
-                        try
-                        {
-                            if (commandHandler.Attribute.IncludeRaw)
-                            {
-                                parameters = StuffRawIntoParameters(commandLine, command, parameters);
-                            }
-                            // Add command to world manager's main thread...
-                            ((CommandHandler)commandHandler.Handler).Invoke(null, parameters);
-                        }
-                        catch (Exception ex)
-                        {
-                            log.Error($"Exception while invoking command handler for: {commandLine}", ex);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    log.Error($"Exception while getting command handler for: {commandLine}", ex);
-                }
+                DigestCommand(commandLine);
             }
         }
 
@@ -227,7 +241,7 @@ namespace ACE.Server.Command
             {
                 bool isAdvocate = session.Player.IsAdvocate;
                 bool isSentinel = session.Player.IsSentinel;
-                bool isEnvoy = session.Player.IsEnvoy; 
+                bool isEnvoy = session.Player.IsEnvoy;
                 bool isArch = session.Player.IsArch;
                 bool isAdmin = session.Player.IsAdmin;
 

@@ -232,17 +232,7 @@ namespace ACE.Server.Plugin
                 AssemblyRequestedCount = 1;
             }
 
-            IReadOnlyList<RuntimeLibrary> dependencies = DependencyContext.Default.RuntimeLibraries;
-            foreach (RuntimeLibrary library in dependencies)
-            {
-                if (library.Name == name.Name || library.Dependencies.Any(d => d.Name.StartsWith(name.Name)))
-                {
 
-                    Assembly assem = context.LoadFromAssemblyName(new AssemblyName(library.Name));
-                    CurrentPlugin?.RuntimeLibrarySuggestions.Add(new Tuple<AssemblyName, RuntimeLibrary, Assembly>(name, library, assem));
-                    return assem;
-                }
-            }
 
             // already loaded?
             Assembly[] curAsems = AppDomain.CurrentDomain.GetAssemblies();
@@ -253,7 +243,7 @@ namespace ACE.Server.Plugin
                 return asem;
             }
 
-            // resort to library files
+            // library files
             List<Tuple<string, Assembly>> filList = null;
             Tuple<string, Assembly> fil = GetFavoredDependencyDll(name, ref filList);
             if (fil != null && !string.IsNullOrWhiteSpace(fil.Item1))
@@ -269,9 +259,24 @@ namespace ACE.Server.Plugin
                 CurrentPlugin?.AssemblyResolutionSuggestions.Add(new Tuple<AssemblyName, string, Assembly>(name, fil.Item1, assem));
                 return assem;
             }
+
+            // default runtime libraries and their dependencies
+            IReadOnlyList<RuntimeLibrary> dependencies = DependencyContext.Default.RuntimeLibraries;
+            foreach (RuntimeLibrary library in dependencies)
+            {
+                if (library.Name == name.Name || library.Dependencies.Any(d => d.Name.StartsWith(name.Name)))
+                {
+
+                    Assembly assem = context.LoadFromAssemblyName(new AssemblyName(library.Name));
+                    CurrentPlugin?.RuntimeLibrarySuggestions.Add(new Tuple<AssemblyName, RuntimeLibrary, Assembly>(name, library, assem));
+                    return assem;
+                }
+            }
+
             log.Fatal($"dependency missing: {name}");
             return null;
         }
+
         private static AssemblyName LastRequestedAssembly = null;
         private static ushort AssemblyRequestedCount = 0;
 
