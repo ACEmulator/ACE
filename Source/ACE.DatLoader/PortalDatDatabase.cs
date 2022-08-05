@@ -7,7 +7,6 @@ namespace ACE.DatLoader
     {
         public PortalDatDatabase(string filename, bool keepOpen = false) : base(filename, keepOpen)
         {
-            TabooTable = ReadFromDat<TabooTable>(TabooTable.FILE_ID);
             BadData = ReadFromDat<BadData>(BadData.FILE_ID);
             ChatPoseTable = ReadFromDat<ChatPoseTable>(ChatPoseTable.FILE_ID);
             CharGen = ReadFromDat<CharGen>(CharGen.FILE_ID);
@@ -23,7 +22,6 @@ namespace ACE.DatLoader
             XpTable = ReadFromDat<XpTable>(XpTable.FILE_ID);
         }
 
-        public TabooTable TabooTable { get; }
         public BadData BadData { get; }
         public ChatPoseTable ChatPoseTable { get; }
         public CharGen CharGen { get; }
@@ -35,6 +33,7 @@ namespace ACE.DatLoader
         public SkillTable SkillTable { get; }
         public SpellComponentsTable SpellComponentsTable { get; }
         public SpellTable SpellTable { get; }
+        public TabooTable TabooTable { get; }
         public XpTable XpTable { get; }
     }
 }

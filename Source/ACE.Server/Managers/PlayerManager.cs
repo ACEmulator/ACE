@@ -116,7 +116,7 @@ namespace ACE.Server.Managers
 
             DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => { });
         }
-
+        
 
         /// <summary>
         /// This would be used when a new player is created after the server has started.
@@ -124,13 +124,18 @@ namespace ACE.Server.Managers
         /// </summary>
         public static void AddOfflinePlayer(Player player)
         {
-            var offlinePlayer = new OfflinePlayer(player.Biota);
+            playersLock.EnterWriteLock();
+            try
+            {
+                var offlinePlayer = new OfflinePlayer(player.Biota);
+                offlinePlayers[offlinePlayer.Guid.Full] = offlinePlayer;
+            }
+            finally
+            {
+                playersLock.ExitWriteLock();
+            }
         }
 
-        /// <summary>
-        /// This would be used when a new player is created after the server has started.
-        /// When a new Player is created, they're created in an offline state, and then set to online shortly after as the login sequence continues.
-        /// </summary>
         public static void AddOfflinePlayer(Biota playerBiota)
         {
             playersLock.EnterWriteLock();
