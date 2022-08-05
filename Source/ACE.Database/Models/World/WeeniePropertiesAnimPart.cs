@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#nullable disable
+
 namespace ACE.Database.Models.World
 {
     public partial class WeeniePropertiesAnimPart
@@ -10,6 +12,6 @@ namespace ACE.Database.Models.World
         public byte Index { get; set; }
         public uint AnimationId { get; set; }
 
-        public Weenie Object { get; set; }
+        public virtual Weenie Object { get; set; }
     }
 }

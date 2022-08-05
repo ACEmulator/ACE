@@ -17,8 +17,6 @@ using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.Network.Handlers
 {
     public static class CharacterHandler
@@ -33,6 +31,12 @@ namespace ACE.Server.Network.Handlers
             if (clientString != session.Account)
                 return;
 
+            if (ServerManager.ShutdownInProgress)
+            {
+                session.SendCharacterError(CharacterError.LogonServerFull);
+                return;
+            }
+
             if (WorldManager.WorldStatus == WorldManager.WorldStatusState.Open || session.AccessLevel > AccessLevel.Player)
                 CharacterCreateEx(message, session);
             else
@@ -43,20 +47,31 @@ namespace ACE.Server.Network.Handlers
         {
             var characterCreateInfo = new CharacterCreateInfo();
             characterCreateInfo.Unpack(message.Payload);
+            
+            if (PropertyManager.GetBool("taboo_table").Item && DatManager.PortalDat.TabooTable.ContainsBadWord(characterCreateInfo.Name.ToLowerInvariant()))
+            {
+                SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameBanned);
+                return;
+            }
 
-            // TODO: Check for Banned Name Here
-            //DatabaseManager.Shard.IsCharacterNameBanned(characterCreateInfo.Name, isBanned =>
-            //{
-            //    if (!isBanned)
-            //    {
-            //        SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameBanned);
-            //        return;
-            //    }
-            //});
+            if (PropertyManager.GetBool("creature_name_check").Item && DatabaseManager.World.IsCreatureNameInWorldDatabase(characterCreateInfo.Name))
+            {
+                SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameBanned);
+                return;
+            }
+
+            DatabaseManager.Shard.IsCharacterNameAvailable(characterCreateInfo.Name, isAvailable =>
+            {
+                if (!isAvailable)
+                {
+                    SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameInUse);
+                    return;
+                }
+            });
 
             // Disable OlthoiPlay characters for now. They're not implemented yet.
             // FIXME: Restore OlthoiPlay characters when properly handled.
-            if (characterCreateInfo.Heritage == (int)HeritageGroup.Olthoi || characterCreateInfo.Heritage == (int)HeritageGroup.OlthoiAcid)
+            if ((characterCreateInfo.Heritage == HeritageGroup.Olthoi || characterCreateInfo.Heritage == HeritageGroup.OlthoiAcid) && !PropertyManager.GetBool("olthoi_play_enabled").Item)
             {
                 SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Pending);
                 return;
@@ -72,19 +87,19 @@ namespace ACE.Server.Network.Handlers
                 else
                     weenie = DatabaseManager.World.GetCachedWeenie("human");
 
-                if (characterCreateInfo.Heritage == (int)HeritageGroup.Olthoi && weenie.WeenieType == WeenieType.Admin)
+                if (characterCreateInfo.Heritage == HeritageGroup.Olthoi && weenie.WeenieType == WeenieType.Admin)
                     weenie = DatabaseManager.World.GetCachedWeenie("olthoiadmin");
 
-                if (characterCreateInfo.Heritage == (int)HeritageGroup.OlthoiAcid && weenie.WeenieType == WeenieType.Admin)
+                if (characterCreateInfo.Heritage == HeritageGroup.OlthoiAcid && weenie.WeenieType == WeenieType.Admin)
                     weenie = DatabaseManager.World.GetCachedWeenie("olthoiacidadmin");
             }
             else
                 weenie = DatabaseManager.World.GetCachedWeenie("human");
 
-            if (characterCreateInfo.Heritage == (int)HeritageGroup.Olthoi && weenie.WeenieType == WeenieType.Creature)
+            if (characterCreateInfo.Heritage == HeritageGroup.Olthoi && weenie.WeenieType == WeenieType.Creature)
                 weenie = DatabaseManager.World.GetCachedWeenie("olthoiplayer");
 
-            if (characterCreateInfo.Heritage == (int)HeritageGroup.OlthoiAcid && weenie.WeenieType == WeenieType.Creature)
+            if (characterCreateInfo.Heritage == HeritageGroup.OlthoiAcid && weenie.WeenieType == WeenieType.Creature)
                 weenie = DatabaseManager.World.GetCachedWeenie("olthoiacidplayer");
 
             if (characterCreateInfo.IsSentinel && session.AccessLevel >= AccessLevel.Sentinel)
@@ -102,10 +117,6 @@ namespace ACE.Server.Network.Handlers
                 log.Error("Database does not contain the weenie for human (1). Characters cannot be created until the missing weenie is restored.");
                 return;
             }
-
-            // Removes the generic knife and buckler, hidden Javelin, 30 stack of arrows, and 5 stack of coins that are given to all characters
-            // Starter Gear from the JSON file are added to the character later in the CharacterCreateEx() process
-            weenie.PropertiesCreateList = null;
 
             var guid = GuidManager.NewPlayerGuid();
 
@@ -125,13 +136,13 @@ namespace ACE.Server.Network.Handlers
 
             if (result != PlayerFactory.CreateResult.Success || player == null)
             {
-                SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Corrupt);
-                return;
-            }
+                if (result == PlayerFactory.CreateResult.ClientServerSkillsMismatch)
+                {
+                    session.Terminate(SessionTerminationReason.ClientOutOfDate, new GameMessageBootAccount(" because your client is not the correct version for this server. Please visit http://play.emu.ac/ to update to latest client"));
+                    return;
+                }
 
-            if (PropertyManager.GetBool("taboo_table").Item && DatManager.PortalDat.TabooTable.ContainsBadWord(characterCreateInfo.Name.ToLowerInvariant()))
-            {
-                SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.NameBanned);
+                SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Corrupt);
                 return;
             }
 
@@ -174,6 +185,12 @@ namespace ACE.Server.Network.Handlers
         [GameMessage(GameMessageOpcode.CharacterEnterWorldRequest, SessionState.AuthConnected)]
         public static void CharacterEnterWorldRequest(ClientMessage message, Session session)
         {
+            if (ServerManager.ShutdownInProgress)
+            {
+                session.SendCharacterError(CharacterError.LogonServerFull);
+                return;
+            }
+
             if (WorldManager.WorldStatus == WorldManager.WorldStatusState.Open || session.AccessLevel > AccessLevel.Player)
                 session.Network.EnqueueSend(new GameMessageCharacterEnterWorldServerReady());
             else
@@ -186,6 +203,12 @@ namespace ACE.Server.Network.Handlers
             var guid = message.Payload.ReadUInt32();
 
             string clientString = message.Payload.ReadString16L();
+
+            if (ServerManager.ShutdownInProgress)
+            {
+                session.SendCharacterError(CharacterError.LogonServerFull);
+                return;
+            }
 
             if (clientString != session.Account)
             {
@@ -256,6 +279,12 @@ namespace ACE.Server.Network.Handlers
             string clientString = message.Payload.ReadString16L();
             uint characterSlot = message.Payload.ReadUInt32();
 
+            if (ServerManager.ShutdownInProgress)
+            {
+                session.SendCharacterError(CharacterError.Delete);
+                return;
+            }
+
             if (WorldManager.WorldStatus == WorldManager.WorldStatusState.Closed && session.AccessLevel < AccessLevel.Advocate)
             {
                 session.SendCharacterError(CharacterError.LogonServerFull);
@@ -306,6 +335,12 @@ namespace ACE.Server.Network.Handlers
         public static void CharacterRestore(ClientMessage message, Session session)
         {
             var guid = message.Payload.ReadUInt32();
+
+            if (ServerManager.ShutdownInProgress)
+            {
+                session.SendCharacterError(CharacterError.EnterGameCouldntPlaceCharacter);
+                return;
+            }
 
             if (WorldManager.WorldStatus == WorldManager.WorldStatusState.Closed && session.AccessLevel < AccessLevel.Advocate)
             {

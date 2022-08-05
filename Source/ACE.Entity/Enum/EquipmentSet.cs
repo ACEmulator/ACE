@@ -1,4 +1,4 @@
-﻿namespace ACE.Entity.Enum
+namespace ACE.Entity.Enum
 {
     // List of equipment sets for armor/weapons. Compiled from aclogview, and the client.
     public enum EquipmentSet
@@ -56,12 +56,12 @@
         CloakArcaneLore                  = 50,
         CloakArmorTinkering              = 51,
         CloakAssessPerson                = 52,
-        CloakAxe                         = 53,
-        CloakBow                         = 54,
+        CloakLightWeapons                = 53,
+        CloakMissileWeapons              = 54,
         CloakCooking                     = 55,
         CloakCreatureEnchantment         = 56,
         CloakCrossbow                    = 57,
-        CloakDagger                      = 58,
+        CloakFinesseWeapons              = 58,
         CloakDeception                   = 59,
         CloakFletching                   = 60,
         CloakHealing                     = 61,
@@ -79,7 +79,7 @@
         CloakSalvaging                   = 73,
         CloakSpear                       = 74,
         CloakStaff                       = 75,
-        CloakSword                       = 76,
+        CloakHeavyWeapons                = 76,
         CloakThrownWeapon                = 77,
         CloakTwoHandedCombat             = 78,
         CloakUnarmedCombat               = 79,
@@ -142,11 +142,8 @@
         PurpleSocietyBand                = 135,
         BlueSocietyBand                  = 136,
         GauntletGarb                     = 137,
-        // Possibly Paragon Missile Weapons
-        UNKNOWN_138                      = 138,
-        // Possibly Paragon Casters
-        UNKNOWN_139                      = 139,
-        // Possibly Paragon Melee Weapons
-        UNKNOWN_140                      = 140,
+        ParagonMissile                   = 138,
+        ParagonCaster                    = 139,
+        ParagonMelee                     = 140,
     }
 }

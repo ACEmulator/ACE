@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#nullable disable
+
 namespace ACE.Database.Models.World
 {
     public partial class RecipeRequirementsIID
@@ -13,6 +15,6 @@ namespace ACE.Database.Models.World
         public int Enum { get; set; }
         public string Message { get; set; }
 
-        public Recipe Recipe { get; set; }
+        public virtual Recipe Recipe { get; set; }
     }
 }

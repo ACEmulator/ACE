@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
@@ -58,14 +58,14 @@ namespace ACE.Server.Entity
             return parts.ToList()[ThreadSafeRandom.Next(0, parts.Count - 1)];
         }
 
-        public static BiotaPropertiesBodyPart GetBodyPart(WorldObject target, AttackHeight height)
+        public static PropertiesBodyPart GetBodyPart(WorldObject target, AttackHeight height)
         {
             var creature = target as Creature;
             if (creature == null) return null;
 
             // get all of the body parts for this creature
             // at this attack height
-            var heightParts = creature.Biota.BiotaPropertiesBodyPart.Where(b => b.BH == (int)height).ToList();
+            var heightParts = creature.Biota.PropertiesBodyPart.Values.Where(b => b.BH == (int)height).ToList();
             if (heightParts.Count == 0) return null;
 
             // get random body part

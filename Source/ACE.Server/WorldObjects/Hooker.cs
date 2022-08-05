@@ -6,8 +6,6 @@ using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Network.GameEvent.Events;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     public class Hooker : WorldObject
@@ -47,6 +45,10 @@ namespace ACE.Server.WorldObjects
                 return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.ItemOnlyUsableOnHook, Name));
 
             if (hook.HouseOwner == null || (!hook.House.OpenStatus && !hook.House.HasPermission(player)))
+                return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouAreNotPermittedToUseThatHook));
+
+            var myHookGroup = HookGroup ?? HookGroupType.Undef;
+            if ((myHookGroup == HookGroupType.PortalItems || myHookGroup == HookGroupType.SpellTeachingItems) && hook.House.HouseType != HouseType.Mansion)
                 return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouAreNotPermittedToUseThatHook));
 
             var baseRequirements = base.CheckUseRequirements(activator);

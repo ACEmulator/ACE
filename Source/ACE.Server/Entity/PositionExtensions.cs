@@ -1,10 +1,15 @@
 using System;
 using System.Numerics;
 
+using log4net;
+
+using ACE.DatLoader;
 using ACE.Entity;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Extensions;
 using ACE.Server.Physics.Util;
+using ACE.Server.WorldObjects;
 
 using Position = ACE.Entity.Position;
 
@@ -12,7 +17,9 @@ namespace ACE.Server.Entity
 {
     public static class PositionExtensions
     {
-        public static Vector3 ToGlobal(this Position p, bool skipIndoors = true)
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public static Vector3 ToGlobal(this Position p, bool skipIndoors = false)
         {
             // TODO: Is this necessary? It seemed to be loading rogue physics landblocks. Commented out 2019-04 Mag-nus
             //var landblock = LScape.get_landblock(p.LandblockId.Raw);
@@ -239,6 +246,29 @@ namespace ACE.Server.Entity
             }
         }
 
+        public static void Translate(this Position pos, uint blockCell)
+        {
+            var newBlockX = blockCell >> 24;
+            var newBlockY = (blockCell >> 16) & 0xFF;
+
+            var xDiff = (int)newBlockX - pos.LandblockX;
+            var yDiff = (int)newBlockY - pos.LandblockY;
+
+            //pos.Origin.X -= xDiff * 192;
+            pos.PositionX -= xDiff * 192;
+            //pos.Origin.Y -= yDiff * 192;
+            pos.PositionY -= yDiff * 192;
+
+            //pos.ObjCellID = blockCell;
+            pos.LandblockId = new LandblockId(blockCell);
+        }
+
+        public static void FindZ(this Position pos)
+        {
+            var envCell = DatManager.CellDat.ReadFromDat<DatLoader.FileTypes.EnvCell>(pos.Cell);
+            pos.PositionZ = envCell.Position.Origin.Z;
+        }
+
         public static float GetTerrainZ(this Position p)
         {
             var landblock = LScape.get_landblock(p.LandblockId.Raw);
@@ -283,6 +313,55 @@ namespace ACE.Server.Entity
             var cell = landblock.IsDungeon ? p.Cell : p.GetOutdoorCell();
 
             return HouseCell.HouseCells.ContainsKey(cell);
+        }
+
+        public static Position ACEPosition(this Physics.Common.Position pos)
+        {
+            return new Position(pos.ObjCellID, pos.Frame.Origin, pos.Frame.Orientation);
+        }
+
+        public static Physics.Common.Position PhysPosition(this Position pos)
+        {
+            return new Physics.Common.Position(pos.Cell, new Physics.Animation.AFrame(pos.Pos, pos.Rotation));
+        }
+
+
+        // differs from ac physics engine
+        public static readonly float RotationEpsilon = 0.0001f;
+
+        public static bool IsRotationValid(this Quaternion q)
+        {
+            if (q == Quaternion.Identity)
+                return true;
+
+            if (float.IsNaN(q.X) || float.IsNaN(q.Y) || float.IsNaN(q.Z) || float.IsNaN(q.W))
+                return false;
+
+            var length = q.Length();
+            if (float.IsNaN(length))
+                return false;
+
+            if (Math.Abs(1.0f - length) > RotationEpsilon)
+                return false;
+
+            return true;
+        }
+
+        public static bool AttemptToFixRotation(this Position pos, WorldObject wo, PositionType positionType)
+        {
+            log.Warn($"detected bad quaternion x y z w for {wo.Name} (0x{wo.Guid}) | WCID: {wo.WeenieClassId} | WeenieType: {wo.WeenieType} | PositionType: {positionType}");
+            log.Warn($"before fix: {pos.ToLOCString()}");
+
+            var normalized = Quaternion.Normalize(pos.Rotation);
+
+            var success = IsRotationValid(normalized);
+
+            if (success)
+                pos.Rotation = normalized;
+
+            log.Warn($" after fix: {pos.ToLOCString()}");
+
+            return success;
         }
     }
 }

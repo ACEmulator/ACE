@@ -44,6 +44,8 @@ namespace ACE.Server.WorldObjects
 
         public bool DebugSpell { get; set; }
 
+        public string DebugDamageBuffer { get; set; }
+
         public RecordCast RecordCast { get; set; }
 
         /// <summary>
@@ -75,13 +77,13 @@ namespace ACE.Server.WorldObjects
         /// Handles player targeted casting message
         /// </summary>
         /// <param name="builtInSpell">If TRUE, casting a built-in spell from a weapon</param>
-        public void HandleActionCastTargetedSpell(uint targetGuid, uint spellId, bool builtInSpell = false)
+        public void HandleActionCastTargetedSpell(uint targetGuid, uint spellId, WorldObject casterItem = null)
         {
             //Console.WriteLine($"{Name}.HandleActionCastTargetedSpell({targetGuid:X8}, {spellId}, {builtInSpell})");
 
             if (CombatMode != CombatMode.Magic)
             {
-                log.Error($"{Name}.HandleActionCastTargetedSpell({targetGuid:X8}, {spellId}, {builtInSpell}) - CombatMode mismatch {CombatMode}, LastCombatMode: {LastCombatMode}");
+                log.Error($"{Name}.HandleActionCastTargetedSpell({targetGuid:X8}, {spellId}, {casterItem?.Name}) - CombatMode mismatch {CombatMode}, LastCombatMode: {LastCombatMode}");
 
                 if (LastCombatMode == CombatMode.Magic)
                     CombatMode = CombatMode.Magic;
@@ -100,7 +102,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            if (IsJumping)
             {
                 SendUseDoneEvent(WeenieError.YouCantDoThatWhileInTheAir);
                 return;
@@ -114,7 +116,7 @@ namespace ACE.Server.WorldObjects
 
             if (IsBusy && MagicState.CanQueue)
             {
-                MagicState.CastQueue = new CastQueue(CastQueueType.Targeted, targetGuid, spellId, builtInSpell);
+                MagicState.CastQueue = new CastQueue(CastQueueType.Targeted, targetGuid, spellId, casterItem);
                 MagicState.CanQueue = false;
                 return;
             }
@@ -124,7 +126,7 @@ namespace ACE.Server.WorldObjects
 
             // verify spell is contained in player's spellbook,
             // or in the weapon's spellbook in the case of built-in spells
-            if (!VerifySpell(spellId, builtInSpell))
+            if (!VerifySpell(spellId, casterItem))
             {
                 SendUseDoneEvent(WeenieError.MagicInvalidSpellType);
                 return;
@@ -139,14 +141,16 @@ namespace ACE.Server.WorldObjects
             }
 
             MagicState.OnCastStart();
-            MagicState.SetWindupParams(targetGuid, spellId, builtInSpell);
+            MagicState.SetWindupParams(targetGuid, spellId, casterItem);
+
+            StartPos = new Physics.Common.Position(PhysicsObj.Position);
 
             if (RecordCast.Enabled)
                 RecordCast.OnCastTargetedSpell(new Spell(spellId), target);
 
             if (targetCategory != TargetCategory.WorldObject && targetCategory != TargetCategory.Wielded)
             {
-                if (!CreatePlayerSpell(target, targetCategory, spellId, builtInSpell))
+                if (!CreatePlayerSpell(target, targetCategory, spellId, casterItem))
                     MagicState.OnCastDone();
 
                 return;
@@ -175,7 +179,7 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    if (!CreatePlayerSpell(target, targetCategory, spellId, builtInSpell))
+                    if (!CreatePlayerSpell(target, targetCategory, spellId, casterItem))
                         MagicState.OnCastDone();
                 });
 
@@ -201,7 +205,7 @@ namespace ACE.Server.WorldObjects
 
             if (!checkAngle || IsWithinAngle(target))
             {
-                if (!CreatePlayerSpell(target, targetCategory, windupParams.SpellId, windupParams.BuiltInSpell))
+                if (!CreatePlayerSpell(target, targetCategory, windupParams.SpellId, windupParams.CasterItem))
                     MagicState.OnCastDone();
             }
             else
@@ -289,7 +293,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (FastTick && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            if (IsJumping)
             {
                 SendUseDoneEvent(WeenieError.YouCantDoThatWhileInTheAir);
                 return;
@@ -303,7 +307,7 @@ namespace ACE.Server.WorldObjects
 
             if (IsBusy && MagicState.CanQueue)
             {
-                MagicState.CastQueue = new CastQueue(CastQueueType.Untargeted, 0, spellId, false);
+                MagicState.CastQueue = new CastQueue(CastQueueType.Untargeted, 0, spellId, null);
                 MagicState.CanQueue = false;
                 return;
             }
@@ -321,6 +325,8 @@ namespace ACE.Server.WorldObjects
 
             MagicState.OnCastStart();
 
+            StartPos = new Physics.Common.Position(PhysicsObj.Position);
+
             if (!CreatePlayerSpell(spellId))
                 MagicState.OnCastDone();
         }
@@ -330,10 +336,10 @@ namespace ACE.Server.WorldObjects
         /// or in the weapon's spellbook in the case of built-in spells
         /// </summary>
         /// <param name="builtInSpell">If TRUE, casting a built-in spell from a weapon</param>
-        public bool VerifySpell(uint spellId, bool builtInSpell = false)
+        public bool VerifySpell(uint spellId, WorldObject casterItem = null)
         {
-            if (builtInSpell)
-                return IsWeaponSpell(spellId);
+            if (casterItem != null)
+                return IsWeaponSpell(spellId, casterItem);
             else
                 return SpellIsKnown(spellId);
 
@@ -344,9 +350,13 @@ namespace ACE.Server.WorldObjects
         /// Returns TRUE if the currently equipped casting implement
         /// has a built-in spell
         /// </summary>
-        public bool IsWeaponSpell(uint spellId)
+        public bool IsWeaponSpell(uint spellId, WorldObject casterItem)
         {
             var caster = GetEquippedWand();
+
+            if (casterItem != null)
+                caster = casterItem;
+
             if (caster == null || caster.SpellDID == null)
                 return false;
 
@@ -365,7 +375,7 @@ namespace ACE.Server.WorldObjects
 
         public bool VerifyBusy()
         {
-            if (IsBusy || Teleporting)
+            if (IsBusy || Teleporting || suicideInProgress)
             {
                 SendUseDoneEvent(WeenieError.YoureTooBusy);
                 return false;
@@ -402,13 +412,70 @@ namespace ACE.Server.WorldObjects
 
         public bool VerifySpellTarget(Spell spell, WorldObject target)
         {
-            if (IsInvalidTarget(this, spell, target))
+            if (IsInvalidTarget(spell, target))
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"{spell.Name} cannot be cast on {target.Name}."));
                 SendUseDoneEvent(WeenieError.None);
                 return false;
             }
             return true;
+        }
+
+        /// <summary>
+        /// Determines whether the target for the spell being cast is invalid
+        /// </summary>
+        protected bool IsInvalidTarget(Spell spell, WorldObject target)
+        {
+            var targetPlayer = target as Player;
+            var targetCreature = target as Creature;
+
+            // ensure target is enchantable
+            if (!target.IsEnchantable) return true;
+
+            // Self targeted spells should have a target of self
+            if (spell.Flags.HasFlag(SpellFlags.SelfTargeted) && target != this)
+                return true;
+
+            // Invalidate non Item Enchantment spells cast against non Creatures or Players
+            if (spell.School != MagicSchool.ItemEnchantment && targetCreature == null)
+                return true;
+
+            // Invalidate beneficial spells against Creature/Non-player targets
+            if (targetCreature != null && targetPlayer == null && spell.IsBeneficial)
+                return true;
+
+            // check item spells
+            if (targetCreature == null && target.WielderId != null)
+            {
+                var parent = CurrentLandblock.GetObject(target.WielderId.Value) as Player;
+
+                // Invalidate beneficial spells against monster wielded items
+                if (parent == null && spell.IsBeneficial)
+                    return true;
+
+                // Invalidate harmful spells against player wielded items, depending on pk status
+                if (parent != null && spell.IsHarmful && CheckPKStatusVsTarget(parent, spell) != null)
+                    return true;
+            }
+
+            // verify target type for item enchantment
+            if (spell.School == MagicSchool.ItemEnchantment && !VerifyNonComponentTargetType(spell, target))
+            {
+                if (spell.DispelSchool != MagicSchool.ItemEnchantment || !PropertyManager.GetBool("item_dispel").Item)
+                    return true;
+            }
+
+            // brittlemail / lure / other negative item spells cannot be cast with player as target
+
+            // TODO: by end of retail, players couldn't cast any negative spells on themselves
+            // this feature is currently in ace for dev testing...
+            if (target == this && spell.IsNegativeRedirectable)
+                return true;
+
+            if (targetCreature != null && targetCreature != this && spell.NonComponentTargetType == ItemType.Creature && !CanDamage(targetCreature))
+                return true;
+
+            return false;
         }
 
         public bool VerifySpellRange(WorldObject target, TargetCategory targetCategory, Spell spell, uint magicSkill)
@@ -488,7 +555,7 @@ namespace ACE.Server.WorldObjects
             return castingPreCheckStatus;
         }
 
-        public bool CalculateManaUsage(CastingPreCheckStatus castingPreCheckStatus, Spell spell, WorldObject target, bool isWeaponSpell, out uint manaUsed)
+        public bool CalculateManaUsage(CastingPreCheckStatus castingPreCheckStatus, Spell spell, WorldObject target, WorldObject casterItem, out uint manaUsed)
         {
             manaUsed = 0;
             if (castingPreCheckStatus == CastingPreCheckStatus.Success)
@@ -497,10 +564,10 @@ namespace ACE.Server.WorldObjects
                 manaUsed = 5;   // todo: verify with retail
 
             var currentMana = Mana.Current;
-            if (isWeaponSpell)
+            if (casterItem != null)
             {
-                var caster = GetEquippedWand();
-                currentMana = (uint)(caster.ItemCurMana ?? 0);
+                //var caster = GetEquippedWand();
+                currentMana = (uint)(casterItem.ItemCurMana ?? 0);
             }
 
             if (manaUsed > currentMana)
@@ -520,10 +587,10 @@ namespace ACE.Server.WorldObjects
 
             var spellWords = spell._spellBase.GetSpellWords(DatManager.PortalDat.SpellComponentsTable);
             if (!string.IsNullOrWhiteSpace(spellWords) && !isWeaponSpell)
-                EnqueueBroadcast(new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Spellcasting), LocalBroadcastRange, ChatMessageType.Spellcasting);
+                EnqueueBroadcast(new GameMessageHearSpeech(spellWords, GetNameWithSuffix(), Guid.Full, ChatMessageType.Spellcasting), LocalBroadcastRange, ChatMessageType.Spellcasting);
         }
 
-        public static new float CastSpeed = 2.0f;       // from retail pcaps, player animation speed for windup / first half of cast gesture
+        public static float CastSpeed = 2.0f;       // from retail pcaps, player animation speed for windup / first half of cast gesture
 
         public void DoWindupGestures(Spell spell, bool isWeaponSpell, ActionChain castChain)
         {
@@ -568,15 +635,15 @@ namespace ACE.Server.WorldObjects
                 windupTime = EnqueueMotionAction(castChain, spell.Formula.WindupGestures, CastSpeed, MotionStance.Magic);
         }
 
-        public void DoCastGesture(Spell spell, bool isWeaponSpell, ActionChain castChain)
+        public void DoCastGesture(Spell spell, WorldObject casterItem, ActionChain castChain)
         {
             MagicState.CastGesture = spell.Formula.CastGesture;
 
-            if (isWeaponSpell)
+            if (casterItem != null)
             {
-                var caster = GetEquippedWand();
-                if (caster.UseUserAnimation != 0)
-                    MagicState.CastGesture = caster.UseUserAnimation;
+                //var caster = GetEquippedWand();
+                if (casterItem.UseUserAnimation != 0)
+                    MagicState.CastGesture = casterItem.UseUserAnimation;
             }
 
             if (RecordCast.Enabled)
@@ -632,7 +699,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            DoCastSpell(state.Spell, state.IsWeaponSpell, state.MagicSkill, state.ManaUsed, state.Target, state.Status, checkAngle);
+            DoCastSpell(state.Spell, state.Caster, state.MagicSkill, state.ManaUsed, state.Target, state.Status, checkAngle);
         }
 
         public bool IsWithinAngle(WorldObject target)
@@ -664,7 +731,7 @@ namespace ACE.Server.WorldObjects
             return angle <= maxAngle;
         }
 
-        public void DoCastSpell(Spell spell, bool isWeaponSpell, uint magicSkill, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus, bool checkAngle = true)
+        public void DoCastSpell(Spell spell, WorldObject caster, uint magicSkill, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus, bool checkAngle = true)
         {
             if (target != null)
             {
@@ -688,7 +755,7 @@ namespace ACE.Server.WorldObjects
 
                         var actionChain = new ActionChain();
                         actionChain.AddDelaySeconds(rotateTime);
-                        actionChain.AddAction(this, () => DoCastSpell(spell, isWeaponSpell, magicSkill, manaUsed, target, castingPreCheckStatus, false));
+                        actionChain.AddAction(this, () => DoCastSpell(spell, caster, magicSkill, manaUsed, target, castingPreCheckStatus, false));
                         actionChain.EnqueueChain();
                     }
                     else
@@ -716,7 +783,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            DoCastSpell_Inner(spell, isWeaponSpell, manaUsed, target, castingPreCheckStatus);
+            DoCastSpell_Inner(spell, caster, manaUsed, target, castingPreCheckStatus);
         }
 
         public WorldObject TurnTarget;
@@ -738,10 +805,14 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
+                // verify cast radius before every automatic TurnTo after windup
+                if (!VerifyCastRadius())
+                    return;
+
                 var stopCompletely = !MagicState.CastMotionDone;
                 //var stopCompletely = true;
 
-                CreateTurnToChain2(target, null, stopCompletely, MagicState.AlwaysTurn);
+                CreateTurnToChain2(target, null, null, stopCompletely, MagicState.AlwaysTurn);
 
                 MagicState.AlwaysTurn = false;
             }
@@ -749,7 +820,7 @@ namespace ACE.Server.WorldObjects
 
         public Physics.Common.Position StartPos { get; set; }
 
-        public void DoCastSpell_Inner(Spell spell, bool isWeaponSpell, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus, bool finishCast = true)
+        public void DoCastSpell_Inner(Spell spell, WorldObject casterItem, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus, bool finishCast = true)
         {
             if (RecordCast.Enabled)
                 RecordCast.Log($"DoCastSpell_Inner()");
@@ -764,13 +835,20 @@ namespace ACE.Server.WorldObjects
             }
 
             // consume mana
-            WorldObject caster = this;
+            var caster = casterItem ?? GetEquippedWand();  // TODO: persist this from the beginning, since this is done with delay
+
+            var isWeaponSpell = casterItem != null;
+
+            var itemCaster = isWeaponSpell ? caster : null;
+
             if (!isWeaponSpell)
                 UpdateVitalDelta(Mana, -(int)manaUsed);
             else
             {
-                caster = GetEquippedWand();     // TODO: persist this from the beginning, since this is done with delay
-                caster.ItemCurMana -= (int)manaUsed;
+                if (itemCaster != null)
+                    itemCaster.ItemCurMana -= (int)manaUsed;
+                else
+                    castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
             }
 
             // consume spell components
@@ -778,19 +856,23 @@ namespace ACE.Server.WorldObjects
                 TryBurnComponents(spell);
 
             // check windup move distance cap
-            var endPos = new Physics.Common.Position(PhysicsObj.Position);
-            var dist = StartPos.Distance(endPos);
-
-            bool movedTooFar = false;
+            var dist = StartPos.Distance(PhysicsObj.Position);
 
             // only PKs affected by these caps?
             if (dist > Windup_MaxMove && PlayerKillerStatus != PlayerKillerStatus.NPK)
             {
-                castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
-                movedTooFar = true;
+                //player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveMovedTooFar));
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted spell casting!", ChatMessageType.Magic));
+
+                EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Fizzle, 0.5f));
+
+                if (finishCast)
+                    FinishCast();
+
+                return;
             }
 
-            var pk_error = CheckPKStatusVsTarget(this, target, spell);
+            var pk_error = CheckPKStatusVsTarget(target, spell);
             if (pk_error != null)
                 castingPreCheckStatus = CastingPreCheckStatus.InvalidPKStatus;
 
@@ -809,27 +891,14 @@ namespace ACE.Server.WorldObjects
 
                     // handle self procs
                     if (spell.IsHarmful && target != this)
-                        TryProcEquippedItems(this, true);
+                        TryProcEquippedItems(this, this, true, caster);
 
                     break;
 
                 case CastingPreCheckStatus.InvalidPKStatus:
 
                     if (spell.NumProjectiles > 0)
-                    {
-                        switch (spell.School)
-                        {
-                            case MagicSchool.WarMagic:
-                                WarMagic(target, spell, caster);
-                                break;
-                            case MagicSchool.VoidMagic:
-                                VoidMagic(target, spell, caster);
-                                break;
-                            case MagicSchool.LifeMagic:
-                                LifeMagic(spell, out uint damage, out bool critical, out var enchantmentStatus, target, caster);
-                                break;
-                        }
-                    }
+                        HandleCastSpell(spell, target, itemCaster, caster, isWeaponSpell);
                     break;
 
                 default:
@@ -845,12 +914,6 @@ namespace ACE.Server.WorldObjects
 
                 if (target is Player targetPlayer)
                     targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(targetPlayer.Session, pk_error[1], Name));
-            }
-
-            if (movedTooFar)
-            {
-                //player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveMovedTooFar));
-                Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted spell casting!", ChatMessageType.Magic));
             }
 
             if (finishCast)
@@ -922,11 +985,11 @@ namespace ACE.Server.WorldObjects
         /// Method used for handling player targeted spell casts
         /// </summary>
         /// <param name="builtInSpell">If TRUE, casting a built-in spell from a weapon</param>
-        public bool CreatePlayerSpell(WorldObject target, TargetCategory targetCategory, uint spellId, bool builtInSpell = false)
+        public bool CreatePlayerSpell(WorldObject target, TargetCategory targetCategory, uint spellId, WorldObject casterItem)
         {
             var creatureTarget = target as Creature;
 
-            var spell = ValidateSpell(spellId, builtInSpell);
+            var spell = ValidateSpell(spellId, casterItem != null);
             if (spell == null)
                 return false;
 
@@ -935,8 +998,8 @@ namespace ACE.Server.WorldObjects
 
             // if casting implement has spell built in,
             // use spellcraft from the item, instead of player's magic skill?
-            var caster = GetEquippedWand();
-            var isWeaponSpell = builtInSpell && IsWeaponSpell(spell.Id);
+            var caster = casterItem ?? GetEquippedWand();
+            var isWeaponSpell = casterItem != null && IsWeaponSpell(spell.Id, casterItem);
 
             // Grab player's skill level in the spell's Magic School
             var magicSkill = GetCreatureSkill(spell.School).Current;
@@ -951,22 +1014,22 @@ namespace ACE.Server.WorldObjects
             var castingPreCheckStatus = GetCastingPreCheckStatus(spell, magicSkill, isWeaponSpell);
 
             // calculate mana usage
-            if (!CalculateManaUsage(castingPreCheckStatus, spell, target, isWeaponSpell, out var manaUsed))
+            if (!CalculateManaUsage(castingPreCheckStatus, spell, target, casterItem, out var manaUsed))
                 return false;
 
             // spell words
             DoSpellWords(spell, isWeaponSpell);
 
             var spellChain = new ActionChain();
-            StartPos = new Physics.Common.Position(PhysicsObj.Position);
+            //StartPos = new Physics.Common.Position(PhysicsObj.Position);
 
             // do wind-up gestures: fastcast has no windup (creature enchantments)
             DoWindupGestures(spell, isWeaponSpell, spellChain);
 
             // cast spell
-            DoCastGesture(spell, isWeaponSpell, spellChain);
+            DoCastGesture(spell, casterItem, spellChain);
 
-            MagicState.SetCastParams(spell, isWeaponSpell, magicSkill, manaUsed, target, castingPreCheckStatus);
+            MagicState.SetCastParams(spell, casterItem, magicSkill, manaUsed, target, castingPreCheckStatus);
 
             if (!FastTick)
                 spellChain.AddAction(this, () => DoCastSpell(MagicState));
@@ -989,15 +1052,12 @@ namespace ACE.Server.WorldObjects
             var targetCreature = target as Creature;
             var targetPlayer = target as Player;
 
-            bool targetDeath;
-            var enchantmentStatus = new EnchantmentStatus(spell);
-
             LastSuccessCast_School = spell.School;
             LastSuccessCast_Time = Time.GetUnixTime();
 
-            WorldObject caster = this;
-            if (isWeaponSpell)
-                caster = GetEquippedWand();
+            var caster = GetEquippedWand();
+
+            var itemCaster = isWeaponSpell ? caster : null;
 
             // verify after windup, still consumes mana
             if (spell.MetaSpellType == SpellType.Dispel && !VerifyDispelPKStatus(this, target))
@@ -1005,221 +1065,9 @@ namespace ACE.Server.WorldObjects
 
             switch (spell.School)
             {
-                case MagicSchool.WarMagic:
-                    WarMagic(target, spell, caster);
-                    break;
-                case MagicSchool.VoidMagic:
-                    VoidMagic(target, spell, caster);
-                    break;
-
-                case MagicSchool.CreatureEnchantment:
-
-                    if (targetPlayer == null)
-                        OnAttackMonster(targetCreature);
-
-                    if (TryResistSpell(target, spell, caster))
-                        break;
-
-                    if (targetCreature != null && targetCreature.NonProjectileMagicImmune)
-                    {
-                        Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {targetCreature.Name} with {spell.Name}", ChatMessageType.Magic));
-                        break;
-                    }
-
-                    EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-                    enchantmentStatus = CreatureMagic(target, spell);
-                    if (enchantmentStatus.Message != null)
-                        Session.Network.EnqueueSend(enchantmentStatus.Message);
-
-                    if (spell.IsHarmful)
-                    {
-                        if (targetCreature != null)
-                            Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.CreatureEnchantment), targetCreature.GetCreatureSkill(Skill.MagicDefense).Current);
-
-                        // handle target procs
-                        if (targetCreature != null && targetCreature != this)
-                            TryProcEquippedItems(targetCreature, false);
-
-                        if (targetPlayer != null)
-                            UpdatePKTimers(this, targetPlayer);
-                    }
-                    else
-                        Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.CreatureEnchantment), spell.PowerMod);
-
-                    break;
-
-                case MagicSchool.LifeMagic:
-
-                    if (targetPlayer == null)
-                        OnAttackMonster(targetCreature);
-
-                    if (TryResistSpell(target, spell, caster))
-                        break;
-
-                    if (spell.MetaSpellType != SpellType.LifeProjectile)
-                    {
-                        if (targetCreature != null && targetCreature.NonProjectileMagicImmune)
-                        {
-                            Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {targetCreature.Name} with {spell.Name}", ChatMessageType.Magic));
-                            break;
-                        }
-                    }
-
-                    if (target != null)
-                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-
-                    targetDeath = LifeMagic(spell, out uint damage, out bool critical, out enchantmentStatus, target, caster);
-
-                    if (spell.MetaSpellType != SpellType.LifeProjectile)
-                    {
-                        if (spell.IsHarmful)
-                        {
-                            if (targetCreature != null)
-                                Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.LifeMagic), targetCreature.GetCreatureSkill(Skill.MagicDefense).Current);
-
-                            // handle target procs
-                            if (targetCreature != null && targetCreature != this)
-                                TryProcEquippedItems(targetCreature, false);
-
-                            if (targetPlayer != null)
-                                UpdatePKTimers(this, targetPlayer);
-                        }
-                        else
-                            Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.LifeMagic), spell.PowerMod);
-                    }
-
-                    if (targetDeath == true)
-                    {
-                        targetCreature.OnDeath(new DamageHistoryInfo(this), DamageType.Health, false);
-                        targetCreature.Die();
-                    }
-                    else
-                    {
-                        if (enchantmentStatus.Message != null)
-                            Session.Network.EnqueueSend(enchantmentStatus.Message);
-                    }
-                    break;
-
                 case MagicSchool.ItemEnchantment:
 
-                    // if negative item spell, can be resisted by the wielder
-                    if (spell.IsHarmful)
-                    {
-                        var targetResist = targetCreature;
-
-                        if (targetResist == null && target?.WielderId != null)
-                            targetResist = CurrentLandblock?.GetObject(target.WielderId.Value) as Creature;
-
-                        if (targetResist != null && TryResistSpell(targetResist, spell, caster))
-                            break;
-                    }
-
-                    if (spell.IsImpenBaneType)
-                    {
-                        // impen / bane / brittlemail / lure
-
-                        // a lot of these will already be filtered out by IsInvalidTarget()
-                        if (targetCreature == null)
-                        {
-                            // targeting an individual item / wo
-                            enchantmentStatus = ItemMagic(target, spell);
-
-                            if (target != null)
-                                EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-
-                            if (enchantmentStatus.Message != null)
-                                Session.Network.EnqueueSend(enchantmentStatus.Message);
-                        }
-                        else
-                        {
-                            // targeting a creature
-                            if (targetPlayer == this)
-                            {
-                                // targeting self
-                                var items = EquippedObjects.Values.Where(i => (i.WeenieType == WeenieType.Clothing || i.IsShield) && i.IsEnchantable);
-
-                                foreach (var item in items)
-                                {
-                                    enchantmentStatus = ItemMagic(item, spell);
-                                    if (enchantmentStatus.Message != null)
-                                        Session.Network.EnqueueSend(enchantmentStatus.Message);
-                                }
-                                if (items.Count() > 0)
-                                    EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
-                            }
-                            else
-                            {
-                                // targeting another player or monster
-                                var item = targetCreature.EquippedObjects.Values.FirstOrDefault(i => i.IsShield && i.IsEnchantable);
-
-                                if (item != null)
-                                {
-                                    enchantmentStatus = ItemMagic(item, spell);
-                                    EnqueueBroadcast(new GameMessageScript(item.Guid, spell.TargetEffect, spell.Formula.Scale));
-                                    if (enchantmentStatus.Message != null)
-                                        Session.Network.EnqueueSend(enchantmentStatus.Message);
-                                }
-                                else
-                                {
-                                    // 'fails to affect'?
-                                    if (targetCreature != null)
-                                        Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {targetCreature.Name} with {spell.Name}", ChatMessageType.Magic));
-
-                                    if (targetPlayer != null && !targetPlayer.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic))
-                                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} fails to affect you with {spell.Name}", ChatMessageType.Magic));
-                                }
-                            }
-                        }
-                    }
-                    else if (spell.IsOtherNegativeRedirectable)
-                    {
-                        // blood loather, spirit loather, lure blade, turn blade, leaden weapon, hermetic void
-                        if (targetCreature == null)
-                        {
-                            // targeting an individual item / wo
-                            enchantmentStatus = ItemMagic(target, spell);
-
-                            if (target != null)
-                                EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-
-                            if (enchantmentStatus.Message != null)
-                                Session.Network.EnqueueSend(enchantmentStatus.Message);
-                        }
-                        else
-                        {
-                            // targeting a creature, try to redirect to primary weapon
-                            var weapon = targetCreature.GetEquippedWeapon() ?? targetCreature.GetEquippedWand();
-
-                            if (weapon != null && weapon.IsEnchantable)
-                            {
-                                enchantmentStatus = ItemMagic(weapon, spell);
-
-                                EnqueueBroadcast(new GameMessageScript(weapon.Guid, spell.TargetEffect, spell.Formula.Scale));
-
-                                if (enchantmentStatus.Message != null)
-                                    Session.Network.EnqueueSend(enchantmentStatus.Message);
-                            }
-                            else
-                            {
-                                // 'fails to affect'?
-                                Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {targetCreature.Name} with {spell.Name}", ChatMessageType.Magic));
-
-                                if (targetPlayer != null && !targetPlayer.SquelchManager.Squelches.Contains(this, ChatMessageType.Magic))
-                                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} fails to affect you with {spell.Name}", ChatMessageType.Magic));
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // all other item spells, cast directly on target
-                        enchantmentStatus = ItemMagic(target, spell);
-
-                        if (target != null)
-                            EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-
-                        if (enchantmentStatus.Message != null)
-                            Session.Network.EnqueueSend(enchantmentStatus.Message);
-                    }
+                    TryCastItemEnchantment_WithRedirects(spell, target, itemCaster);
 
                     // use target resistance?
                     Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.ItemEnchantment), spell.PowerMod);
@@ -1233,6 +1081,45 @@ namespace ACE.Server.WorldObjects
                         if (playerRedirect != null)
                             UpdatePKTimers(this, playerRedirect);
                     }
+                    break;
+
+                default:
+
+                    if (!spell.IsProjectile)
+                    {
+                        if (targetPlayer == null)
+                            OnAttackMonster(targetCreature);
+
+                        if (TryResistSpell(target, spell, itemCaster))
+                            break;
+
+                        if (targetCreature != null && targetCreature.NonProjectileMagicImmune)
+                        {
+                            Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {targetCreature.Name} with {spell.Name}", ChatMessageType.Magic));
+                            break;
+                        }
+                    }
+
+                    HandleCastSpell(spell, target, itemCaster, caster, isWeaponSpell);
+
+                    if (!spell.IsProjectile)
+                    {
+                        if (spell.IsHarmful)
+                        {
+                            if (targetCreature != null)
+                                Proficiency.OnSuccessUse(this, GetCreatureSkill(spell.School), targetCreature.GetCreatureSkill(Skill.MagicDefense).Current);
+
+                            // handle target procs
+                            if (targetCreature != null && targetCreature != this)
+                                TryProcEquippedItems(this, targetCreature, false, caster);
+
+                            if (targetPlayer != null)
+                                UpdatePKTimers(this, targetPlayer);
+                        }
+                        else
+                            Proficiency.OnSuccessUse(this, GetCreatureSkill(spell.School), spell.PowerMod);
+                    }
+
                     break;
             }
         }
@@ -1252,7 +1139,7 @@ namespace ACE.Server.WorldObjects
             var castingPreCheckStatus = GetCastingPreCheckStatus(spell, magicSkill, false);
 
             // calculate mana usage
-            if (!CalculateManaUsage(castingPreCheckStatus, spell, null, false, out var manaUsed))
+            if (!CalculateManaUsage(castingPreCheckStatus, spell, null, null, out var manaUsed))
                 return false;
 
             // begin spellcasting
@@ -1260,16 +1147,16 @@ namespace ACE.Server.WorldObjects
 
             var spellChain = new ActionChain();
 
-            StartPos = new Physics.Common.Position(PhysicsObj.Position);
+            //StartPos = new Physics.Common.Position(PhysicsObj.Position);
 
             // do wind-up gestures: fastcast has no windup (creature enchantments)
             DoWindupGestures(spell, false, spellChain);
 
             // do cast gesture
-            DoCastGesture(spell, false, spellChain);
+            DoCastGesture(spell, null, spellChain);
 
             // cast untargeted spell
-            MagicState.SetCastParams(spell, false, magicSkill, manaUsed, null, castingPreCheckStatus);
+            MagicState.SetCastParams(spell, null, magicSkill, manaUsed, null, castingPreCheckStatus);
 
             if (!FastTick)
                 spellChain.AddAction(this, () => DoCastSpell(MagicState));
@@ -1281,7 +1168,8 @@ namespace ACE.Server.WorldObjects
 
         public void TryBurnComponents(Spell spell)
         {
-            if (SafeSpellComponents) return;
+            if (SafeSpellComponents || PropertyManager.GetBool("safe_spell_comps").Item)
+                return;
 
             var burned = spell.TryBurnComponents(this);
             if (burned.Count == 0) return;
@@ -1303,7 +1191,7 @@ namespace ACE.Server.WorldObjects
                 var item = GetInventoryItemsOfWCID(wcid).FirstOrDefault();
                 if (item == null)
                 {
-                    if (SpellComponentsRequired)
+                    if (SpellComponentsRequired && PropertyManager.GetBool("require_spell_comps").Item)
                         log.Warn($"{Name}.TryBurnComponents({spellComponent.Name}): not found in inventory");
                     else
                         burned.RemoveAt(i);
@@ -1319,92 +1207,6 @@ namespace ACE.Server.WorldObjects
             // send message to player
             var msg = Spell.GetConsumeString(burned);
             Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Magic));
-        }
-
-        /// <summary>
-        /// Handles equipping an item casting a spell on a player
-        /// </summary>
-        public override EnchantmentStatus CreateItemSpell(WorldObject item, uint spellID)
-        {
-            var spell = new Spell(spellID);
-
-            if (spell.NotFound)
-            {
-                if (spell._spellBase == null)
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellID {spellID} Invalid."));
-                else
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
-
-                return new EnchantmentStatus(false);
-            }
-
-            var enchantmentStatus = base.CreateItemSpell(item, spellID);
-
-            if (enchantmentStatus.Message != null)
-                Session.Network.EnqueueSend(enchantmentStatus.Message);
-
-            return enchantmentStatus;
-        }
-
-        /// <summary>
-        /// Called from consumables or sentinel buffs
-        /// </summary>
-        /// <returns>TRUE if cast success, or FALSE is spell doesn't exist on server</returns>
-        public bool CreateSingleSpell(uint spellId)
-        {
-            var player = this;
-            var spell = new Spell(spellId);
-
-            if (spell.NotFound)
-            {
-                if (spell._spellBase == null)
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellId {spellId} Invalid."));
-                else
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
-
-                return false;
-            }
-
-            var enchantmentStatus = new EnchantmentStatus(spell);
-
-            switch (spell.School)
-            {
-                case MagicSchool.CreatureEnchantment:
-
-                    enchantmentStatus = CreatureMagic(player, spell);
-                    if (enchantmentStatus.Message != null)
-                        EnqueueBroadcast(new GameMessageScript(player.Guid, spell.TargetEffect, spell.Formula.Scale));
-                    break;
-
-                case MagicSchool.LifeMagic:
-
-                    LifeMagic(spell, out uint damage, out bool critical, out enchantmentStatus, player);
-                    if (enchantmentStatus.Message != null)
-                        EnqueueBroadcast(new GameMessageScript(player.Guid, spell.TargetEffect, spell.Formula.Scale));
-                    break;
-
-                case MagicSchool.ItemEnchantment:
-
-                    if (spell.IsPortalSpell)
-                    {
-                        var playScript = spell.CasterEffect > 0 ? spell.CasterEffect : spell.TargetEffect;
-                        EnqueueBroadcast(new GameMessageScript(player.Guid, playScript, spell.Formula.Scale));
-                        enchantmentStatus = ItemMagic(player, spell);
-                    }
-                    else
-                    {
-                        if (spell.HasItemCategory)
-                            enchantmentStatus = ItemMagic(player, spell);
-
-                        EnqueueBroadcast(new GameMessageScript(player.Guid, spell.TargetEffect, spell.Formula.Scale));
-                    }
-                    break;
-
-                default:
-                    Console.WriteLine("Unknown magic school: " + spell.School);
-                    break;
-            }
-            return true;
         }
 
         /// <summary>
@@ -1500,7 +1302,7 @@ namespace ACE.Server.WorldObjects
 
             if (parms != null && tryFizzle)
             {
-                DoCastSpell_Inner(parms.Spell, parms.IsWeaponSpell, parms.ManaUsed, parms.Target, CastingPreCheckStatus.CastFailed, false);
+                DoCastSpell_Inner(parms.Spell, parms.Caster, parms.ManaUsed, parms.Target, CastingPreCheckStatus.CastFailed, false);
 
                 werror = WeenieError.YourSpellFizzled;
             }
@@ -1519,8 +1321,27 @@ namespace ACE.Server.WorldObjects
                 DoCastSpell(MagicState, true);
         }
 
+        public bool VerifyCastRadius()
+        {
+            if (MagicState.CastGestureStartTime != DateTime.MinValue)
+            {
+                var dist = StartPos.Distance(PhysicsObj.Position);
+
+                if (dist > Windup_MaxMove && PlayerKillerStatus != PlayerKillerStatus.NPK)
+                {
+                    FailCast();
+                    return false;
+                }
+            }
+            return true;
+        }
+
         public void CheckTurn()
         {
+            // verify cast radius while manually moving after windup
+            if (!VerifyCastRadius())
+                return;
+
             if (TurnTarget != null && IsWithinAngle(TurnTarget))
             {
                 if (MagicState.PendingTurnRelease)
@@ -1537,10 +1358,69 @@ namespace ACE.Server.WorldObjects
             if (MagicState.CastQueue != null)
             {
                 if (MagicState.CastQueue.Type == CastQueueType.Targeted)
-                    HandleActionCastTargetedSpell(MagicState.CastQueue.TargetGuid, MagicState.CastQueue.SpellId, MagicState.CastQueue.BuiltInSpell);
+                    HandleActionCastTargetedSpell(MagicState.CastQueue.TargetGuid, MagicState.CastQueue.SpellId, MagicState.CastQueue.CasterItem);
                 else
                     HandleActionMagicCastUnTargetedSpell(MagicState.CastQueue.SpellId);
             }
+        }
+
+        public static bool VerifyNonComponentTargetType(Spell spell, WorldObject target)
+        {
+            // untargeted spell projectiles
+            if (target == null)
+                return spell.NonComponentTargetType == ItemType.None;
+
+            switch (spell.NonComponentTargetType)
+            {
+                case ItemType.Creature:
+                    return target is Creature;
+
+                // banes / lures
+                case ItemType.Vestements:
+                    //return target is Clothing || target.IsShield;
+                    return target is Creature || target is Clothing || target.IsShield;
+
+                case ItemType.Weapon:
+                    //return target is MeleeWeapon || target is MissileLauncher;
+                    return target is Creature || target is MeleeWeapon || target is MissileLauncher;
+
+                case ItemType.Caster:
+                    //return target is Caster;
+                    return target is Creature || target is Caster;
+
+                case ItemType.WeaponOrCaster:
+                    //return target is MeleeWeapon || target is MissileLauncher || target is Caster;
+                    return target is Creature || target is MeleeWeapon || target is MissileLauncher || target is Caster;
+
+                case ItemType.Portal:
+
+                    if (spell.MetaSpellType == SpellType.PortalRecall || spell.MetaSpellType == SpellType.PortalSummon)
+                        return target is Creature;
+                    else
+                        return target is Portal;
+
+                case ItemType.LockableMagicTarget:
+                    return target is Door || target is Chest;
+
+                // Essence Lull?
+                case ItemType.Item:
+                    return !(target is Creature);
+
+                case ItemType.LifeStone:
+                    return target is Lifestone;
+            }
+
+            log.Error($"VerifyNonComponentTargetType({spell.Id} - {spell.Name}, {target.Name}) - unexpected NonComponentTargetType {spell.NonComponentTargetType}");
+            return false;
+        }
+
+        /// <summary>
+        /// Sends a chat message with respect to SquelchManager
+        /// </summary>
+        public void SendChatMessage(WorldObject source, string msg, ChatMessageType msgType)
+        {
+            if (!SquelchManager.Squelches.Contains(source, msgType))
+                Session.Network.EnqueueSend(new GameMessageSystemChat(msg, msgType));
         }
     }
 }

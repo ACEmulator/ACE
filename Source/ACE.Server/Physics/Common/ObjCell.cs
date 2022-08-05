@@ -4,11 +4,12 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 
-using log4net;
-
 using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Combat;
+using ACE.Server.Physics.Managers;
+
+using log4net;
 
 namespace ACE.Server.Physics.Common
 {
@@ -32,7 +33,13 @@ namespace ACE.Server.Physics.Common
         public List<DatLoader.Entity.Stab> VisibleCells;
         public bool SeenOutside;
         public List<uint> VoyeurTable;
+
         public Landblock CurLandblock;
+
+        /// <summary>
+        /// Returns TRUE if this is a house cell that can be protected by a housing barrier
+        /// </summary>
+        public bool IsCellRestricted => RestrictionObj != 0;
 
         /// <summary>
         /// TODO: This is a temporary locking mechanism, Mag-nus 2019-10-20
@@ -43,6 +50,8 @@ namespace ACE.Server.Physics.Common
         /// TODO: The above solution should remove the need for ObjCell access locking, and also increase performance
         /// </summary>
         private readonly ReaderWriterLockSlim readerWriterLockSlim = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
+
+        public static readonly ObjCell EmptyCell = new ObjCell();
 
         public ObjCell(): base()
         {
@@ -276,13 +285,51 @@ namespace ACE.Server.Physics.Common
 
         public TransitionState check_entry_restrictions(Transition transition)
         {
-            var objInfo = transition.ObjectInfo;
+            // custom - acclient checks for entry restrictions (housing barriers)
+            // for each tick in the transition, regardless if there is a cell change
 
-            if (objInfo.Object == null) return TransitionState.Collided;
-            if (objInfo.Object.WeenieObj == null) return TransitionState.OK;
+            // optimizing for server here, to only check unverified cell changes
 
-            // check against world object
+            if (!transition.ObjectInfo.Object.IsPlayer || transition.CollisionInfo.VerifiedRestrictions || transition.SpherePath.BeginCell?.ID == ID)
+            {
+                return TransitionState.OK;
+            }
+
+            if (transition.ObjectInfo.Object == null)
+                return TransitionState.Collided;
+
+            var weenieObj = transition.ObjectInfo.Object.WeenieObj;
+
+            // TODO: handle DatObject
+            if (weenieObj != null)
+            {
+                //if (transition.ObjectInfo.State.HasFlag(ObjectInfoState.IsPlayer))
+                if (transition.ObjectInfo.Object.IsPlayer)
+                {
+                    if (RestrictionObj != 0 && !weenieObj.CanBypassMoveRestrictions())
+                    {
+                        var restrictionObj = ServerObjectManager.GetObjectA(RestrictionObj);
+
+                        if (restrictionObj?.WeenieObj == null)
+                            return TransitionState.Collided;
+
+                        if (!restrictionObj.WeenieObj.CanMoveInto(weenieObj))
+                        {
+                            handle_move_restriction(transition);
+                            return TransitionState.Collided;
+                        }
+                        else
+                            transition.CollisionInfo.VerifiedRestrictions = true;
+                    }
+                }
+            }
             return TransitionState.OK;
+        }
+
+        public virtual bool handle_move_restriction(Transition transition)
+        {
+            // empty base?
+            return false;
         }
 
         public static void find_cell_list(Position position, int numSphere, List<Sphere> sphere, CellArray cellArray, ref ObjCell currCell, SpherePath path)
@@ -349,41 +396,19 @@ namespace ACE.Server.Physics.Common
 
                     var found = false;
 
-                    if (visibleCell is EnvCell envCell)
+                    foreach (var stab in ((EnvCell)visibleCell).VisibleCells.Values)
                     {
-                        if (envCell.VisibleCells == null)
-                        {
-                            log.Error(Environment.StackTrace);
-                            log.Error($"ObjCell.find_cell_list: visible cells is null for {visibleCell.ID:X8}");
+                        if (stab == null)
                             continue;
-                        }
 
-                        foreach (var kvp in envCell.VisibleCells)
+                        if (cell.ID == stab.ID)
                         {
-                            var stab = kvp.Value;
-
-                            if (stab == null)
-                            {
-                                log.Error(Environment.StackTrace);
-                                log.Error($"ObjCell.find_cell_list: stab is null for {visibleCell.ID:X8} -> {kvp.Key:X8}");
-                                continue;
-                            }
-
-                            if (cell.ID == stab.ID)
-                            {
-                                found = true;
-                                break;
-                            }
+                            found = true;
+                            break;
                         }
-                        if (!found)
-                            cellArray.remove_cell(cell);
                     }
-                    else
-                    {
-                        log.Error(Environment.StackTrace);
-                        log.Error($"ObjCell.find_cell_list: visible cell is not an EnvCell for {visibleCell.ID:X8}");
-                        continue;
-                    }
+                    if (!found)
+                        cellArray.remove_cell(cell);
                 }
             }
         }
@@ -441,8 +466,8 @@ namespace ACE.Server.Physics.Common
         {
             if (CurLandblock != null)
                 return CurLandblock.WaterType;
-            else
-                return LandDefs.WaterType.NotWater;
+
+            return LandDefs.WaterType.NotWater;
         }
 
         public float get_water_depth(Vector3 point)
@@ -455,8 +480,8 @@ namespace ACE.Server.Physics.Common
 
             if (CurLandblock != null)
                 return CurLandblock.calc_water_depth(ID, point);
-            else
-                return 0.1f;
+
+            return 0.1f;
         }
 
         public void hide_object(PhysicsObj obj)
@@ -482,6 +507,12 @@ namespace ACE.Server.Physics.Common
         public virtual bool point_in_cell(Vector3 point)
         {
             return false;
+        }
+
+        public void release_shadow_objs()
+        {
+            foreach (var shadowObj in ShadowObjectList)
+                shadowObj.PhysicsObj.ShadowObjects.Remove(ID);
         }
 
         public void release_objects()

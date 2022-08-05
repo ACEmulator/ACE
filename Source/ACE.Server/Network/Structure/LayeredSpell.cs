@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
-using ACE.Database.Models.Shard;
+
+using ACE.Entity.Models;
 
 namespace ACE.Server.Network.Structure
 {
@@ -17,7 +18,7 @@ namespace ACE.Server.Network.Structure
             Layer = layer;
         }
 
-        public LayeredSpell(BiotaPropertiesEnchantmentRegistry enchantment)
+        public LayeredSpell(PropertiesEnchantmentRegistry enchantment)
         {
             SpellId = (ushort)enchantment.SpellId;
             Layer = enchantment.LayerId;
@@ -48,13 +49,13 @@ namespace ACE.Server.Network.Structure
                 writer.Write(spell);
         }
 
-        public static void Write(this BinaryWriter writer, BiotaPropertiesEnchantmentRegistry enchantment)
+        public static void Write(this BinaryWriter writer, PropertiesEnchantmentRegistry enchantment)
         {
             writer.Write((ushort)enchantment.SpellId);
             writer.Write(enchantment.LayerId);
         }
 
-        public static void Write(this BinaryWriter writer, List<BiotaPropertiesEnchantmentRegistry> enchantments)
+        public static void Write(this BinaryWriter writer, List<PropertiesEnchantmentRegistry> enchantments)
         {
             writer.Write(enchantments.Count);
             foreach (var enchantment in enchantments)

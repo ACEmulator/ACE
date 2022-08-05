@@ -14,7 +14,7 @@ namespace ACE.Common
         public string DatFilesDirectory { get; set; }
 
         /// <summary>
-        /// The ammount of seconds to wait before turning off the server. Default value is 60 (for 1 minute).
+        /// The amount of seconds to wait before turning off the server. Default value is 60 (for 1 minute).
         /// </summary>
         [System.ComponentModel.DefaultValue(60)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -25,6 +25,20 @@ namespace ACE.Common
         public bool ServerPerformanceMonitorAutoStart { get; set; }
 
         public ThreadConfiguration Threading { get; set; } = new ThreadConfiguration();
+
+        /// <summary>
+        /// The amount of minutes to keep a player object from shard database in memory. Default value is 31 minutes.
+        /// </summary>
+        [System.ComponentModel.DefaultValue(31)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public uint ShardPlayerBiotaCacheTime { get; set; }
+
+        /// <summary>
+        /// The amount of minutes to keep a non player object from shard database in memory. Default value is 11 minutes.
+        /// </summary>
+        [System.ComponentModel.DefaultValue(11)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public uint ShardNonPlayerBiotaCacheTime { get; set; }
 
         [System.ComponentModel.DefaultValue(false)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
@@ -10,8 +11,6 @@ using ACE.Server.Entity;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects.Entity;
-
-using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.WorldObjects
 {
@@ -81,10 +80,22 @@ namespace ACE.Server.WorldObjects
             if (!VerifyRequirements(player, skill, skillBase))
                 return;
 
-            // confirmation dialog only for spec?
-            if (!confirmed && TypeOfAlteration == SkillAlterationType.Specialize)
+            if (!confirmed)
             {
-                player.ConfirmationManager.EnqueueSend(new Confirmation_AlterSkill(player.Guid, Guid), $"This action will specialize your {skill.Skill.ToSentence()} skill and cost {skillBase.UpgradeCostFromTrainedToSpecialized} credits.");
+                var msg = "This action will ";
+                switch (TypeOfAlteration)
+                {
+                    case SkillAlterationType.Specialize:
+                        msg += $"specialize your {skill.Skill.ToSentence()} skill and cost {skillBase.UpgradeCostFromTrainedToSpecialized} credits.";
+                        break;
+                    case SkillAlterationType.Lower:
+                        msg += $"lower your {skill.Skill.ToSentence()} skill from {(skill.AdvancementClass == SkillAdvancementClass.Specialized ? "specialized to trained" : "trained to untrained")} and refund the skill credits and experience invested in this skill.";
+                        break;
+                }
+
+                if (!player.ConfirmationManager.EnqueueSend(new Confirmation_AlterSkill(player.Guid, Guid), msg))
+                    player.SendWeenieError(WeenieError.ConfirmationInProgress);
+
                 return;
             }
 
@@ -113,7 +124,18 @@ namespace ACE.Server.WorldObjects
                     }
 
                     // ensure player won't exceed limit of 70 specialized credits after operation
-                    if (GetTotalSpecializedCredits(player) + skillBase.UpgradeCostFromTrainedToSpecialized > 70)
+                    var specializedCost = skillBase.SpecializedCost;
+
+                    if (DatManager.PortalDat.CharGen.HeritageGroups.TryGetValue((uint)player.Heritage, out var heritageGroup))
+                    {
+                        // check for adjusted costs of Specialization due to player's heritage (e.g. Arcane Lore)
+                        var heritageAdjustedCost = heritageGroup.Skills.FirstOrDefault(i => i.SkillNum == (int)skill.Skill);
+
+                        if (heritageAdjustedCost != null)
+                            specializedCost = heritageAdjustedCost.PrimaryCost;
+                    }
+
+                    if (GetTotalSpecializedCredits(player) + specializedCost > 70)
                     {
                         player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.TooManyCreditsInSpecializedSkills, skill.Skill.ToSentence()));
                         return false;
@@ -127,39 +149,6 @@ namespace ACE.Server.WorldObjects
                     if (skill.AdvancementClass < SkillAdvancementClass.Trained)
                     {
                         player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_SkillIsAlreadyUntrained, skill.Skill.ToSentence()));
-                        return false;
-                    }
-
-                    // salvage / tinkering skills specialized via augmentations
-                    // cannot be untrained or unspecialized
-                    bool specAug = false;
-
-                    switch (skill.Skill)
-                    {
-                        case Skill.ArmorTinkering:
-                            specAug = player.AugmentationSpecializeArmorTinkering > 0;
-                            break;
-
-                        case Skill.ItemTinkering:
-                            specAug = player.AugmentationSpecializeItemTinkering > 0;
-                            break;
-
-                        case Skill.MagicItemTinkering:
-                            specAug = player.AugmentationSpecializeMagicItemTinkering > 0;
-                            break;
-
-                        case Skill.WeaponTinkering:
-                            specAug = player.AugmentationSpecializeWeaponTinkering > 0;
-                            break;
-
-                        case Skill.Salvaging:
-                            specAug = player.AugmentationSpecializeSalvaging > 0;
-                            break;
-                    }
-
-                    if (specAug)
-                    {
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot lower your {skill.Skill.ToSentence()} augmented skill.", ChatMessageType.Broadcast));
                         return false;
                     }
 
@@ -202,13 +191,16 @@ namespace ACE.Server.WorldObjects
                     // specialized => trained
                     if (skill.AdvancementClass == SkillAdvancementClass.Specialized)
                     {
+                        var specializedViaAugmentation = player.IsSkillSpecializedViaAugmentation(skill.Skill, out var playerHasAugmentation) && playerHasAugmentation;
+
                         if (player.UnspecializeSkill(skill.Skill, skillBase.UpgradeCostFromTrainedToSpecialized))
                         {
                             var updateSkill = new GameMessagePrivateUpdateSkill(player, skill);
                             var availableSkillCredits = new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AvailableSkillCredits, player.AvailableSkillCredits ?? 0);
-                            var msg = new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouHaveSucceededUnspecializing_Skill, skill.Skill.ToSentence());
+                            var msg = specializedViaAugmentation ? WeenieErrorWithString.YouSucceededRecoveringXPFromSkill_AugmentationNotUntrainable : WeenieErrorWithString.YouHaveSucceededUnspecializing_Skill;
+                            var message = new GameEventWeenieErrorWithString(player.Session, msg, skill.Skill.ToSentence());
 
-                            player.Session.Network.EnqueueSend(updateSkill, availableSkillCredits, msg);
+                            player.Session.Network.EnqueueSend(updateSkill, availableSkillCredits, message);
 
                             player.TryConsumeFromInventoryWithNetworking(this, 1);
                         }
@@ -248,9 +240,12 @@ namespace ACE.Server.WorldObjects
             {
                 if (kvp.Value.AdvancementClass == SkillAdvancementClass.Specialized)
                 {
-                    // exclude aug specs
                     switch (kvp.Key)
                     {
+                        // exclude None/Undef skill
+                        case Skill.None:
+
+                        // exclude aug specs
                         case Skill.ArmorTinkering:
                         case Skill.ItemTinkering:
                         case Skill.MagicItemTinkering:
@@ -261,7 +256,17 @@ namespace ACE.Server.WorldObjects
 
                     var skill = DatManager.PortalDat.SkillTable.SkillBaseHash[(uint)kvp.Key];
 
-                    specializedCreditsTotal += skill.UpgradeCostFromTrainedToSpecialized;
+                    var specializedCost = skill.SpecializedCost;
+
+                    if (DatManager.PortalDat.CharGen.HeritageGroups.TryGetValue((uint)player.Heritage, out var heritageGroup))
+                    {
+                        // check for adjusted costs of Specialization due to player's heritage (e.g. Arcane Lore)
+                        var heritageAdjustedCost = heritageGroup.Skills.FirstOrDefault(i => i.SkillNum == (int)kvp.Key);
+
+                        if (heritageAdjustedCost != null)
+                            specializedCost = heritageAdjustedCost.PrimaryCost;
+                    }
+                    specializedCreditsTotal += specializedCost;
                 }
             }
 

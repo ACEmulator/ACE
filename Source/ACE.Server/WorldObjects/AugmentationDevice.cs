@@ -8,8 +8,6 @@ using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Network.GameMessages.Messages;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     public class AugmentationDevice: WorldObject
@@ -61,8 +59,9 @@ namespace ACE.Server.WorldObjects
 
             if (!confirmed)
             {
-                player.ConfirmationManager.EnqueueSend(new Confirmation_Augmentation(player.Guid, Guid),
-                    $"This action will augment your character with {Name} and will cost {AugmentationCost:N0} available experience.");
+                if (!player.ConfirmationManager.EnqueueSend(new Confirmation_Augmentation(player.Guid, Guid),
+                    $"This action will augment your character with {Name} and will cost {AugmentationCost:N0} available experience."))
+                    player.SendWeenieError(WeenieError.ConfirmationInProgress);
 
                 return;
             }
@@ -96,7 +95,7 @@ namespace ACE.Server.WorldObjects
             {
                 var playerSkill = player.GetCreatureSkill(AugTypeHelper.GetSkill(type));
                 playerSkill.AdvancementClass = SkillAdvancementClass.Specialized;
-                playerSkill.InitLevel += 5;
+                playerSkill.InitLevel = 10;
                 // adjust rank?
                 // handle overages?
                 // if trained skill is maxed, there will be a ~103m xp overage...
@@ -142,6 +141,12 @@ namespace ACE.Server.WorldObjects
         {
             var availableXP = player.AvailableExperience ?? 0;
             var augCost = AugmentationCost ?? 0;
+
+            if (AugmentationCost == null)
+            {
+                player.EnqueueBroadcast(new GameMessageSystemChat($"{Name} is missing AugmentationCost", ChatMessageType.System));
+                return false;
+            }
 
             if (availableXP < augCost)
             {

@@ -11,8 +11,8 @@ namespace ACE.Entity
 
         public SpellBarPositions(uint spellBarId, uint spellBarPositionId, uint spellId)
         {
-            SpellBarId = spellBarId;
-            SpellBarPositionId = spellBarPositionId;
+            SpellBarId = spellBarId - 1;
+            SpellBarPositionId = spellBarPositionId - 1;
             SpellId = spellId;
         }
     }

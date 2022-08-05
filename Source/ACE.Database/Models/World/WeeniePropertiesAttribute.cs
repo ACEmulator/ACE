@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#nullable disable
+
 namespace ACE.Database.Models.World
 {
     public partial class WeeniePropertiesAttribute
@@ -12,6 +14,6 @@ namespace ACE.Database.Models.World
         public uint LevelFromCP { get; set; }
         public uint CPSpent { get; set; }
 
-        public Weenie Object { get; set; }
+        public virtual Weenie Object { get; set; }
     }
 }

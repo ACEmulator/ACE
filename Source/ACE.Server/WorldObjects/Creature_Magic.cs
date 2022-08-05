@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 
 using ACE.Common;
-using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Network.GameEvent.Events;
@@ -12,76 +11,6 @@ namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
-        /// <summary>
-        /// Method used for handling creature targeted spell casts
-        /// </summary>
-        public void CreateCreatureSpell(ObjectGuid guidTarget, uint spellId)
-        {
-            Creature creature = CurrentLandblock?.GetObject(Guid) as Creature;
-
-            if (creature.IsBusy == true)
-                return;
-
-            creature.IsBusy = true;
-
-            var spell = new Spell(spellId);
-
-            if (spell.NotFound)
-            {
-                creature.IsBusy = false;
-                return;
-            }
-
-            // originally was using spell.RangeConstant, bug?
-            // is this floor required?
-            bool targetSelf = Math.Floor(spell.BaseRangeConstant) == 0;
-            var target = targetSelf ? this : CurrentLandblock?.GetObject(guidTarget);
-
-            switch (spell.School)
-            {
-                case MagicSchool.ItemEnchantment:
-                    // if (!targetSelf && ResistSpell(Skill.CreatureEnchantment)) break;
-                    ItemMagic(target, spell);
-                    EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-                    break;
-                case MagicSchool.LifeMagic:
-
-                    break;
-                case MagicSchool.CreatureEnchantment:
-
-                    break;
-                case MagicSchool.WarMagic:
-
-                    break;
-            }
-
-            creature.IsBusy = false;
-            return;
-        }
-
-        /// <summary>
-        /// Method used for handling creature untargeted spell casts
-        /// </summary>
-        public void CreateCreatureSpell(uint spellId)
-        {
-            // does this function even do anything??
-            var creature = CurrentLandblock?.GetObject(Guid) as Creature;
-
-            if (creature == null || creature.IsBusy) return;
-
-            creature.IsBusy = true;
-
-            var spell = new Spell(spellId);
-
-            if (spell.NotFound)
-            {
-                creature.IsBusy = false;
-                return;
-            }
-
-            creature.IsBusy = false;
-        }
-
         public uint CalculateManaUsage(Creature caster, Spell spell, WorldObject target = null)
         {
             var baseCost = spell.BaseMana;
@@ -109,12 +38,14 @@ namespace ACE.Server.WorldObjects
                 baseCost += spell.ManaMod * (uint)numFellows;
             }
 
-            if (spell.Flags.HasFlag(SpellFlags.IgnoresManaConversion))
+            var manaConversion = caster.GetCreatureSkill(Skill.ManaConversion);
+
+            if (manaConversion.AdvancementClass < SkillAdvancementClass.Trained || spell.Flags.HasFlag(SpellFlags.IgnoresManaConversion))
                 return baseCost;
 
             var difficulty = spell.PowerMod;   // modified power difficulty
 
-            var mana_conversion_skill = (uint)Math.Round(caster.GetCreatureSkill(Skill.ManaConversion).Current * GetWeaponManaConversionModifier(caster));
+            var mana_conversion_skill = (uint)Math.Round(manaConversion.Current * GetWeaponManaConversionModifier(caster));
 
             var manaCost = GetManaCost(difficulty, baseCost, mana_conversion_skill);
 
@@ -139,7 +70,7 @@ namespace ACE.Server.WorldObjects
             //   so players will always have a level of "luck" in manacost if they make skill checks
             var luck = ThreadSafeRandom.Next(0.0f, 1.0f);
 
-            if (roll <= successChance)
+            if (roll < successChance)
             {
                 manaCost = (uint)Math.Round(manaCost * (1.0f - (successChance - (roll * luck))));
             }
@@ -154,7 +85,7 @@ namespace ACE.Server.WorldObjects
                 successChance = SkillCheck.GetSkillChance(manaConv, difficulty);
                 roll = ThreadSafeRandom.Next(0.0f, 1.0f);
 
-                if (roll <= successChance)
+                if (roll < successChance)
                     manaCost = (uint)Math.Round(manaCost * (1.0f - (successChance - (roll * luck))));
             }
 
@@ -164,46 +95,42 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Handles equipping an item casting a spell on player or creature
         /// </summary>
-        public virtual EnchantmentStatus CreateItemSpell(WorldObject item, uint spellID)
+        public bool CreateItemSpell(WorldObject item, uint spellID)
         {
-            var enchantmentStatus = new EnchantmentStatus(spellID);
-
-            var spell = enchantmentStatus.Spell;
+            var spell = new Spell(spellID);
 
             if (spell.NotFound)
-                return enchantmentStatus;
+            {
+                if (this is Player player)
+                {
+                    if (spell._spellBase == null)
+                        player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"SpellID {spellID} Invalid."));
+                    else
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                }
+                return false;
+            }
 
+            // TODO: look into condensing this
             switch (spell.School)
             {
                 case MagicSchool.CreatureEnchantment:
-
-                    enchantmentStatus = CreatureMagic(this, spell, item, true);
-                    if (enchantmentStatus.Message != null)
-                        EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
-
-                    break;
-
                 case MagicSchool.LifeMagic:
 
-                    LifeMagic(spell, out uint damage, out bool critical, out enchantmentStatus, this, item, true);
-                    if (enchantmentStatus.Message != null)
-                        EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
-
+                    HandleCastSpell(spell, this, item, equip: true);
                     break;
 
                 case MagicSchool.ItemEnchantment:
 
                     if (spell.HasItemCategory || spell.IsPortalSpell)
-                        enchantmentStatus = ItemMagic(this, spell, item, true);
+                        HandleCastSpell(spell, this, item, item, equip: true);
                     else
-                        enchantmentStatus = ItemMagic(item, spell, item, true);
-
-                    var playScript = spell.IsPortalSpell && spell.CasterEffect > 0 ? spell.CasterEffect : spell.TargetEffect;
-                    EnqueueBroadcast(new GameMessageScript(Guid, playScript, spell.Formula.Scale));
+                        HandleCastSpell(spell, item, item, item, equip: true);
 
                     break;
             }
-            return enchantmentStatus;
+
+            return true;
         }
 
         /// <summary>
@@ -223,15 +150,18 @@ namespace ACE.Server.WorldObjects
 
                 return;
             }
+
             var target = spell.School == MagicSchool.ItemEnchantment && !spell.HasItemCategory ? item : this;
 
             // Retrieve enchantment on target and remove it, if present
-            if (target.EnchantmentManager.HasSpell(spellId))
+            var propertiesEnchantmentRegistry = target.EnchantmentManager.GetEnchantment(spellId, item.Guid.Full);
+
+            if (propertiesEnchantmentRegistry != null)
             {
                 if (!silent)
-                    target.EnchantmentManager.Remove(target.EnchantmentManager.GetEnchantment(spellId, item.Guid.Full));
+                    target.EnchantmentManager.Remove(propertiesEnchantmentRegistry);
                 else
-                    target.EnchantmentManager.Dispel(target.EnchantmentManager.GetEnchantment(spellId, item.Guid.Full));
+                    target.EnchantmentManager.Dispel(propertiesEnchantmentRegistry);
             }
         }
 

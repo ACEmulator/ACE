@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#nullable disable
+
 namespace ACE.Database.Models.World
 {
     public partial class LandblockInstance
@@ -24,6 +26,6 @@ namespace ACE.Database.Models.World
         public bool IsLinkChild { get; set; }
         public DateTime LastModified { get; set; }
 
-        public ICollection<LandblockInstanceLink> LandblockInstanceLink { get; set; }
+        public virtual ICollection<LandblockInstanceLink> LandblockInstanceLink { get; set; }
     }
 }

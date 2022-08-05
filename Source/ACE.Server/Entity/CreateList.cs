@@ -1,26 +1,26 @@
 using System.Collections.Generic;
 
-using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 
 namespace ACE.Server.Entity
 {
     public class CreateList
     {
-        public List<BiotaPropertiesCreateList> Items;
+        public List<PropertiesCreateList> Items;
 
         public List<CreateListSet> Sets;    // only for items w/ Treasure flag and probability
 
         public List<int> ItemSets;  // item index -> set index
 
-        public CreateList(List<BiotaPropertiesCreateList> createList)
+        public CreateList(List<PropertiesCreateList> createList)
         {
             Items = createList;
 
             BuildSets(createList);
         }
 
-        public void BuildSets(List<BiotaPropertiesCreateList> createList)
+        public void BuildSets(List<PropertiesCreateList> createList)
         {
             Sets = new List<CreateListSet>();
             ItemSets = new List<int>();

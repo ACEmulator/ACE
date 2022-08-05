@@ -87,7 +87,10 @@ namespace ACE.Server.WorldObjects
 
             if (!confirmed)
             {
-                patron.ConfirmationManager.EnqueueSend(new Confirmation_SwearAllegiance(patron.Guid, Guid), Name);
+                if (!patron.ConfirmationManager.EnqueueSend(new Confirmation_SwearAllegiance(patron.Guid, Guid), Name))
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{patron.Name} is busy.", ChatMessageType.Broadcast));
+                }
                 return;
             }
 
@@ -130,7 +133,8 @@ namespace ACE.Server.WorldObjects
             // refresh ui panel
             Session.Network.EnqueueSend(new GameEventAllegianceUpdate(Session, Allegiance, AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(Session));
 
-            UpdateChatChannels();
+            if (GetCharacterOption(CharacterOption.ListenToAllegianceChat) && Allegiance != null)
+                JoinTurbineChatChannel("Allegiance");
         }
 
         /// <summary>
@@ -269,7 +273,18 @@ namespace ACE.Server.WorldObjects
             if (player.CheckHouse())
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat("You have been booted from the allegiance house.", ChatMessageType.Broadcast));
 
-            player.UpdateChatChannels();
+            if (player.GetCharacterOption(CharacterOption.ListenToAllegianceChat))
+            {
+                if (player.Allegiance != null)
+                {
+                    player.LeaveTurbineChatChannel("Allegiance", true);
+                    player.JoinTurbineChatChannel("Allegiance");
+                }
+                else
+                    player.LeaveTurbineChatChannel("Allegiance");
+            }
+            else
+                player.SendTurbineChatChannels();
         }
 
         //public static float Allegiance_MaxSwearDistance = 4.0f;
@@ -282,6 +297,21 @@ namespace ACE.Server.WorldObjects
         {
             // the client doesn't seem to display most of these werrors,
             // so we also send similar messages as text
+
+            // An Olthoi player cannot swear allegiance to another player
+            if (IsOlthoiPlayer)
+            {
+                //Session.Network.EnqueueSend(new GameMessageSystemChat($"The Olthoi only have an allegiance to the Olthoi Queen!", ChatMessageType.Broadcast));
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.OlthoiCannotJoinAllegiance));
+                return false;
+            }
+
+            if (target.IsOlthoiPlayer)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"The Olthoi have loyalty only to their Olthoi Queen!", ChatMessageType.Broadcast));
+                SendWeenieError(WeenieError.None);
+                return false;
+            }
 
             // check ignore allegiance requests
             if (target.GetCharacterOption(CharacterOption.IgnoreAllegianceRequests))
@@ -947,11 +977,11 @@ namespace ACE.Server.WorldObjects
                 var list = "Approved vassals:";
                 foreach (var entity in Allegiance.ApprovedVassals)
                 {
-                    var approvedVassal = PlayerManager.FindByGuid(entity.CharacterId);
+                    var approvedVassal = PlayerManager.FindByGuid(entity.Key);
                     if (approvedVassal == null)
                     {
                         // automatically remove?
-                        log.Warn($"{Name}.HandleActionDoAllegianceLockAction({action}): couldn't find approved vassal {entity.CharacterId:X8}");
+                        log.Warn($"{Name}.HandleActionDoAllegianceLockAction({action}): couldn't find approved vassal {entity.Key:X8}");
                         continue;
                     }
 
@@ -971,7 +1001,7 @@ namespace ACE.Server.WorldObjects
             if (action == AllegianceLockAction.ClearApproved)
             {
                 foreach (var entity in Allegiance.ApprovedVassals)
-                    Allegiance.RemoveApprovedVassal(entity.CharacterId);
+                    Allegiance.RemoveApprovedVassal(entity.Key);
 
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"The approved vassals list has been cleared.", ChatMessageType.Broadcast));
                 return;
@@ -1264,12 +1294,12 @@ namespace ACE.Server.WorldObjects
             var list = "Allegiance ban list:";
             foreach (var entity in banList)
             {
-                var player = PlayerManager.FindByGuid(entity.CharacterId);
+                var player = PlayerManager.FindByGuid(entity.Key);
 
                 if (player == null)
                 {
                     // automatically remove?
-                    log.Warn($"{Name}.HandleActionListAllegianceBans(): couldn't find banned player {entity.CharacterId:X8}");
+                    log.Warn($"{Name}.HandleActionListAllegianceBans(): couldn't find banned player {entity.Key:X8}");
                     continue;
                 }
 

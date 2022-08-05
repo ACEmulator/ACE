@@ -6,6 +6,11 @@ namespace ACE.Entity.Models
 {
     public class PropertiesEmoteAction
     {
+        /// <summary>
+        /// This is only used to tie this property back to a specific database row
+        /// </summary>
+        public uint DatabaseRecordId { get; set; }
+
         public uint Type { get; set; }
         public float Delay { get; set; }
         public float Extent { get; set; }

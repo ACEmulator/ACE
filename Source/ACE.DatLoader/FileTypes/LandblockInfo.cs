@@ -38,7 +38,7 @@ namespace ACE.DatLoader.FileTypes
         public List<BuildInfo> Buildings { get; } = new List<BuildInfo>();
 
         /// <summary>
-        /// The specicic landblock/cell controlled by a specific guid that controls access (e.g. housing barrier)
+        /// The specific landblock/cell controlled by a specific guid that controls access (e.g. housing barrier)
         /// </summary>
         public Dictionary<uint, uint> RestrictionTables { get; } = new Dictionary<uint, uint>();
 

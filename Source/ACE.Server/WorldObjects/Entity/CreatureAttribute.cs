@@ -1,10 +1,10 @@
 using System;
-using System.Linq;
 
-using ACE.Database.Models.Shard;
+using ACE.Common.Extensions;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 
 namespace ACE.Server.WorldObjects.Entity
 {
@@ -15,7 +15,7 @@ namespace ACE.Server.WorldObjects.Entity
         public readonly PropertyAttribute Attribute;
 
         // the underlying database record
-        private readonly BiotaPropertiesAttribute biotaPropertiesAttribute;
+        private readonly PropertiesAttribute propertiesAttribute;
 
         /// <summary>
         /// If the creature's biota does not contain this attribute, a new record will be created.
@@ -25,12 +25,10 @@ namespace ACE.Server.WorldObjects.Entity
             this.creature = creature;
             Attribute = attribute;
 
-            biotaPropertiesAttribute = creature.Biota.BiotaPropertiesAttribute.FirstOrDefault(x => x.Type == (uint)Attribute);
-
-            if (biotaPropertiesAttribute == null)
+            if (!creature.Biota.PropertiesAttribute.TryGetValue(attribute, out propertiesAttribute))
             {
-                biotaPropertiesAttribute = new BiotaPropertiesAttribute { ObjectId = creature.Biota.Id, Type = (ushort)Attribute };
-                creature.Biota.BiotaPropertiesAttribute.Add(biotaPropertiesAttribute);
+                propertiesAttribute = new PropertiesAttribute();
+                creature.Biota.PropertiesAttribute[attribute] = propertiesAttribute;
             }
         }
 
@@ -39,8 +37,8 @@ namespace ACE.Server.WorldObjects.Entity
         /// </summary>
         public uint StartingValue
         {
-            get => biotaPropertiesAttribute.InitLevel;
-            set => biotaPropertiesAttribute.InitLevel = value;
+            get => propertiesAttribute.InitLevel;
+            set => propertiesAttribute.InitLevel = value;
         }
 
         /// <summary>
@@ -48,8 +46,8 @@ namespace ACE.Server.WorldObjects.Entity
         /// </summary>
         public uint ExperienceSpent
         {
-            get => biotaPropertiesAttribute.CPSpent;
-            set => biotaPropertiesAttribute.CPSpent = value;
+            get => propertiesAttribute.CPSpent;
+            set => propertiesAttribute.CPSpent = value;
         }
 
         /// <summary>
@@ -72,8 +70,8 @@ namespace ACE.Server.WorldObjects.Entity
         /// </summary>
         public uint Ranks
         {
-            get => biotaPropertiesAttribute.LevelFromCP;
-            set => biotaPropertiesAttribute.LevelFromCP = value;
+            get => propertiesAttribute.LevelFromCP;
+            set => propertiesAttribute.LevelFromCP = value;
         }
 
         /// <summary>
@@ -138,28 +136,33 @@ namespace ACE.Server.WorldObjects.Entity
             }
         }
 
-        public uint Current
+        public uint Current => GetCurrent(true);
+
+        public uint GetCurrent(bool enchanted)
         {
-            get
-            {
-                var total = (int)Base;
+            var multipliers = enchanted ? creature.EnchantmentManager.GetAttributeMod_Multiplier(Attribute) : 1.0f;
+            var additives = enchanted ? creature.EnchantmentManager.GetAttributeMod_Additive(Attribute) : 0;
 
-                var attributeMod = creature.EnchantmentManager.GetAttributeMod(Attribute);
-                total += attributeMod;
+            var total = (int)Base * multipliers + additives;
 
-                return (uint)Math.Max(total, 10);    // minimum value for an attribute: 10
-            }
+            total = total.Round();
+
+            // attributes cannot be debuffed below 10 normally,
+            // or 1 for creatures with very low starting attributes
+            var minimumAttribute = Base >= 10 ? 10 : 1;
+
+            return (uint)Math.Max(minimumAttribute, total);
         }
 
         public ModifierType ModifierType
         {
             get
             {
-                var attrMod = creature.EnchantmentManager.GetAttributeMod(Attribute);
+                var diff = (int)GetCurrent(true) - (int)GetCurrent(false);
 
-                if (attrMod > 0)
+                if (diff > 0)
                     return ModifierType.Buffed;
-                else if (attrMod < 0)
+                else if (diff < 0)
                     return ModifierType.Debuffed;
                 else
                     return ModifierType.None;

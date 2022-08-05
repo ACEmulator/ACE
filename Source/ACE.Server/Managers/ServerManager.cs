@@ -6,7 +6,9 @@ using log4net;
 using ACE.Common;
 using ACE.Database;
 using ACE.Entity.Enum;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Managers;
 
 namespace ACE.Server.Managers
 {
@@ -28,6 +30,11 @@ namespace ACE.Server.Managers
         /// Indicates advanced warning if the applcation will unload.
         /// </summary>
         public static bool ShutdownInitiated { get; private set; }
+
+        /// <summary>
+        /// Indicates server shutting down.
+        /// </summary>
+        public static bool ShutdownInProgress { get; private set; }
 
         /// <summary>
         /// The amount of seconds that the server will wait before unloading the application.
@@ -100,12 +107,12 @@ namespace ACE.Server.Managers
                 if (!ShutdownInitiated)
                 {
                     // reset shutdown details
-                    string shutdownText = $"The server has canceled the shutdown procedure @ {DateTime.UtcNow} UTC";
+                    string shutdownText = $"The server shut down has been cancelled @ {DateTime.Now} ({DateTime.UtcNow} UTC)";
                     log.Info(shutdownText);
 
                     // special text
                     foreach (var player in PlayerManager.GetAllOnline())
-                        player.Session.WorldBroadcast(shutdownText);
+                        player.Session.WorldBroadcast($"Broadcast from System> ATTENTION - This Asheron's Call Server shut down has been cancelled.");
 
                     // break function
                     return;
@@ -116,20 +123,57 @@ namespace ACE.Server.Managers
                 Thread.Sleep(10);
             }
 
+            ShutdownInProgress = true;
+
             PropertyManager.ResyncVariables();
             PropertyManager.StopUpdating();
 
-            log.Debug("Logging off all players...");
+            WorldManager.EnqueueAction(new ActionEventDelegate(() =>
+            {
+                log.Debug("Logging off all players...");
 
-            // logout each player
-            foreach (var player in PlayerManager.GetAllOnline())
-                player.Session.LogOffPlayer(true);
+                // logout each player
+                foreach (var player in PlayerManager.GetAllOnline())
+                    player.Session.LogOffPlayer(true);
+            }));
 
-            log.Info("Waiting for all players to log off...");
-
-            // wait 10 seconds for log-off
-            while (PlayerManager.GetOnlineCount() > 0)
+            // Wait for all players to log out
+            var logUpdateTS = DateTime.MinValue;
+            int playerCount;
+            var playerLogoffStart = DateTime.UtcNow;
+            while ((playerCount = PlayerManager.GetOnlineCount()) > 0)
+            {
+                logUpdateTS = LogStatusUpdate(logUpdateTS, $"Waiting for {playerCount} player{(playerCount > 1 ? "s" : "")} to log off...");
                 Thread.Sleep(10);
+                if (playerCount > 0 && DateTime.UtcNow - playerLogoffStart > TimeSpan.FromMinutes(5))
+                {
+                    playerLogoffStart = DateTime.UtcNow;
+                    log.Warn($"5 minute log off failsafe reached and there are {playerCount} player{(playerCount > 1 ? "s" : "")} still online.");
+                    foreach (var player in PlayerManager.GetAllOnline())
+                    {
+                        log.Warn($"Player {player.Name} (0x{player.Guid}) appears to be stuck in world and unable to log off normally. Requesting Forced Logoff...");
+                        player.ForcedLogOffRequested = true;
+                        player.ForceLogoff();
+                    }    
+                }
+            }
+
+            WorldManager.EnqueueAction(new ActionEventDelegate(() =>
+            {
+                log.Debug("Disconnecting all sessions...");
+
+                // disconnect each session
+                NetworkManager.DisconnectAllSessionsForShutdown();
+            }));
+
+            // Wait for all sessions to drop out
+            logUpdateTS = DateTime.MinValue;
+            int sessionCount;
+            while ((sessionCount = NetworkManager.GetAuthenticatedSessionCount()) > 0)
+            {
+                logUpdateTS = LogStatusUpdate(logUpdateTS, $"Waiting for {sessionCount} authenticated session{(sessionCount > 1 ? "s" : "")} to disconnect...");
+                Thread.Sleep(10);
+            }
 
             log.Debug("Adding all landblocks to destruction queue...");
 
@@ -137,36 +181,56 @@ namespace ACE.Server.Managers
             // The actual unloading will happen in WorldManager.UpdateGameWorld
             LandblockManager.AddAllActiveLandblocksToDestructionQueue();
 
-            log.Info("Waiting for all active landblocks to unload...");
-
-            while (LandblockManager.GetLoadedLandblocks().Count > 0)
+            // Wait for all landblocks to unload
+            logUpdateTS = DateTime.MinValue;
+            int landblockCount;
+            while ((landblockCount = LandblockManager.GetLoadedLandblocks().Count) > 0)
+            {
+                logUpdateTS = LogStatusUpdate(logUpdateTS, $"Waiting for {landblockCount} loaded landblock{(landblockCount > 1 ? "s" : "")} to unload...");
                 Thread.Sleep(10);
+            }
 
             log.Debug("Stopping world...");
 
             // Disabled thread update loop
             WorldManager.StopWorld();
 
-            log.Info("Waiting for world to stop...");
-
             // Wait for world to end
+            logUpdateTS = DateTime.MinValue;
             while (WorldManager.WorldActive)
+            {
+                logUpdateTS = LogStatusUpdate(logUpdateTS, "Waiting for world to stop...");
                 Thread.Sleep(10);
+            }
 
             log.Info("Saving OfflinePlayers that have unsaved changes...");
             PlayerManager.SaveOfflinePlayersWithChanges();
 
-            log.Info("Waiting for database queue to empty...");
-
             // Wait for the database queue to empty
-            while (DatabaseManager.Shard.QueueCount > 0)
+            logUpdateTS = DateTime.MinValue;
+            int shardQueueCount;
+            while ((shardQueueCount = DatabaseManager.Shard.QueueCount) > 0)
+            {
+                logUpdateTS = LogStatusUpdate(logUpdateTS, $"Waiting for database queue ({shardQueueCount}) to empty...");
                 Thread.Sleep(10);
+            }
 
             // Write exit to console/log
             log.Info($"Exiting at {DateTime.UtcNow}");
 
             // System exit
             Environment.Exit(Environment.ExitCode);
+        }
+
+        private static DateTime LogStatusUpdate(DateTime logUpdateTS, string logMessage)
+        {
+            if (logUpdateTS == DateTime.MinValue || DateTime.UtcNow > logUpdateTS.ToUniversalTime())
+            {
+                log.Info(logMessage);
+                logUpdateTS = DateTime.UtcNow.AddSeconds(10);
+            }
+
+            return logUpdateTS;
         }
 
         private static DateTime NotifyPlayersOfPendingShutdown(DateTime lastNoticeTime, DateTime shutdownTime)
@@ -213,6 +277,25 @@ namespace ACE.Server.Managers
             }
             else
                 return lastNoticeTime;
+        }
+
+        public static void StartupAbort()
+        {
+            ShutdownInitiated = true;
+        }
+
+        public static string ShutdownNoticeText()
+        {
+            var sdt = ShutdownTime - DateTime.UtcNow;
+
+            var timeToShutdown = $"{(sdt.Hours > 0 ? $"{sdt.Hours} hour{(sdt.Hours > 1 ? "s" : "")}" : "")}";
+            timeToShutdown += $"{(timeToShutdown.Length > 0 ? ", " : "")}{(sdt.Minutes > 0 ? $"{sdt.Minutes} minute{(sdt.Minutes > 1 ? "s" : "")}" : "")}";
+            timeToShutdown += $"{(timeToShutdown.Length > 0 ? " and " : "")}{(sdt.Seconds > 0 ? $"{sdt.Seconds} second{(sdt.Seconds > 1 ? "s" : "")}" : "")}";
+
+            if (sdt.TotalSeconds > 10)
+               return $"Broadcast from System> {(sdt.TotalMinutes > 1.5 ? "ATTENTION" : "WARNING")} - This Asheron's Call Server is shutting down in {timeToShutdown}.{(sdt.TotalMinutes <= 3 ? " Please log out." : "")}";
+            else
+               return $"Broadcast from System> ATTENTION - This Asheron's Call Server is shutting down NOW!!!!";
         }
     }
 }

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using ACE.Common;
-using ACE.Database.Models.Shard;
+using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
@@ -18,58 +18,45 @@ namespace ACE.Server.WorldObjects
     /// </summary>
     partial class Creature
     {
+        private bool AiUsesMana
+        {
+            get => GetProperty(PropertyBool.AiUsesMana) ?? true;    // default true?
+            set { if (!value) RemoveProperty(PropertyBool.AiUsesMana); else SetProperty(PropertyBool.AiUsesMana, value); }
+        }
+
         /// <summary>
-        /// Returns TRUE if monster is a spell caster
+        /// Very specific monsters will be set to use the human casting animations,
+        /// ie. the windup and casting gestures from the spell
         /// </summary>
-        public bool IsCaster { get => Biota.BiotaPropertiesSpellBook.Count > 0; }
+        private bool AiUseHumanMagicAnimations
+        {
+            get => GetProperty(PropertyBool.AiUseHumanMagicAnimations) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.AiUseHumanMagicAnimations); else SetProperty(PropertyBool.AiUseHumanMagicAnimations, value); }
+        }
+
+        /// <summary>
+        /// The amount of time a monster waits to cast a magic spell
+        /// defined as seconds from the start of the previous attack
+        /// the most common value in the db is 3s
+        /// some other common values include 2s and 1s, with some mobs having values up to 1m
+        /// </summary>
+        private double? AiUseMagicDelay
+        {
+            get => GetProperty(PropertyFloat.AiUseMagicDelay);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.AiUseMagicDelay); else SetProperty(PropertyFloat.AiUseMagicDelay, value.Value); }
+        }
+
+        /// <summary>
+        /// Returns TRUE if monster has known spells
+        /// </summary>
+        private bool HasKnownSpells => Biota.HasKnownSpell(BiotaDatabaseLock);
 
         /// <summary>
         /// The next spell the monster will attempt to cast
         /// </summary>
-        public BiotaPropertiesSpellBook CurrentSpell { get; set; }
+        private Spell CurrentSpell { get; set; }
 
-        /// <summary>
-        /// The delay after casting a magic spell
-        /// </summary>
-        public static readonly float MagicDelay = 2.0f;
-
-        /// <summary>
-        /// Returns the monster's current magic skill
-        /// for the school containing the current spell
-        /// </summary>
-        public uint GetMagicSkill()
-        {
-            var currentSpell = GetCurrentSpell();
-            return GetCreatureSkill(currentSpell.School).Current;
-        }
-
-        /// <summary>
-        /// Returns the magic skill level used for spell range checks.
-        /// (initial points + points due to directly raising the skill)
-        /// </summary>
-        /// <returns></returns>
-        public uint GetMagicSkillForRangeCheck()
-        {
-            var currentSpell = GetCurrentSpell();
-            var skill = GetCreatureSkill(currentSpell.School);
-            return skill.InitLevel + skill.Ranks;
-        }
-
-        public float GetProbabilityAny()
-        {
-            var probabilities = new List<float>();
-
-            foreach (var spell in Biota.BiotaPropertiesSpellBook)
-            {
-                var probability = spell.Probability > 2.0f ? spell.Probability - 2.0f : spell.Probability / 100.0f;
-
-                probabilities.Add(probability);
-            }
-
-            return Probability.GetProbabilityAny(probabilities);
-        }
-
-        public Spell TryRollSpell()
+        private bool TryRollSpell()
         {
             CurrentSpell = null;
 
@@ -81,61 +68,73 @@ namespace ACE.Server.WorldObjects
             // much less common, some monsters will have spells with just base 2.0 probability
             // there were probably other criteria used to select these spells (emote responses, monster ai responses)
             // for now, 2.0 base just becomes a 2% chance
-            foreach (var spell in Biota.BiotaPropertiesSpellBook)
+
+            if (Biota.PropertiesSpellBook == null)
+                return false;
+
+            // We don't use thread safety here. Monster spell books aren't mutated cross-threads.
+            // This reduces memory consumption by not cloning the spell book every single TryRollSpell()
+            //foreach (var spell in Biota.CloneSpells(BiotaDatabaseLock)) // Thread-safe
+            foreach (var spell in Biota.PropertiesSpellBook) // Not thread-safe
             {
-                var probability = spell.Probability > 2.0f ? spell.Probability - 2.0f : spell.Probability / 100.0f;
+                var probability = spell.Value > 2.0f ? spell.Value - 2.0f : spell.Value / 100.0f;
 
                 var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+
                 if (rng < probability)
                 {
-                    CurrentSpell = spell;
-                    return new Spell(spell.Spell);
+                    CurrentSpell = new Spell(spell.Key);
+                    return true;
                 }
             }
-            return null;
-        }
-
-        // todo: monster spellcasting anim speed?
-        public static float CastSpeed = 1.5f;
-
-        /// <summary>
-        /// Perform the first part of monster spell casting animation - spreading arms out
-        /// </summary>
-        public float PreCastMotion(WorldObject target)
-        {
-            var motion = new Motion(this, MotionCommand.CastSpell, CastSpeed);
-            motion.MotionState.TurnSpeed = 2.25f;
-            //motion.HasTarget = true;
-            //motion.TargetGuid = target.Guid;
-            CurrentMotionState = motion;
-
-            EnqueueBroadcastMotion(motion);
-
-            return MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, CastSpeed);
+            return false;
         }
 
         /// <summary>
-        /// Perform the animations after casting a spell,
-        /// ie. moving arms back in, returning to previous stance
+        /// Returns the probability of this monster casting a spell for an attack
         /// </summary>
-        public float PostCastMotion()
+        private float GetProbabilityAny()
         {
-            var motion = new Motion(this, MotionCommand.Ready, CastSpeed);
-            motion.MotionState.TurnSpeed = 2.25f;
-            //motion.HasTarget = true;
-            //motion.TargetGuid = target.Guid;
-            CurrentMotionState = motion;
+            var probabilities = new List<float>();
 
-            EnqueueBroadcastMotion(motion);
+            foreach (var spell in Biota.GetKnownSpellsProbabilities(BiotaDatabaseLock))
+            {
+                var probability = spell > 2.0f ? spell - 2.0f : spell / 100.0f;
 
-            return MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, MotionCommand.Ready, CastSpeed);
+                probabilities.Add(probability);
+            }
+
+            return Probability.GetProbabilityAny(probabilities);
+        }
+
+        /// <summary>
+        /// Returns the maximum range for the current spell
+        /// </summary>
+        private float GetSpellMaxRange()
+        {
+            var skill = GetMagicSkillForRangeCheck();
+
+            var maxRange = Math.Min(CurrentSpell.BaseRangeConstant + skill * CurrentSpell.BaseRangeMod, Player.MaxRadarRange_Outdoors);
+
+            if (maxRange == 0.0f)
+                maxRange = float.PositiveInfinity;
+
+            return maxRange;
+        }
+
+        private bool IsSelfCast()
+        {
+            if (CurrentAttack != CombatType.Magic)
+                return false;
+
+            return GetSpellMaxRange() == float.PositiveInfinity;
         }
 
         /// <summary>
         /// Performs the monster windup spell animation,
         /// casts the spell, and returns to attack stance
         /// </summary>
-        public void MagicAttack()
+        private void MagicAttack()
         {
             var target = AttackTarget as Creature;
 
@@ -145,12 +144,18 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var spell = GetCurrentSpell();
-            //Console.WriteLine(spell.Name);
-            //Console.WriteLine($"BaseRangeConstant: {spell.BaseRangeConstant}, BaseRangeMod: {spell.BaseRangeMod}");
-            //Console.WriteLine($"MaxRange: {GetSpellMaxRange()}");
+            var spell = CurrentSpell;
 
+            // turn to?
             if (AiUsesMana && !UseMana()) return;
+
+            // spell words
+            if (AiUseHumanMagicAnimations)
+            {
+                var spellWords = spell._spellBase.GetSpellWords(DatManager.PortalDat.SpellComponentsTable);
+                if (!string.IsNullOrWhiteSpace(spellWords))
+                    EnqueueBroadcast(new GameMessageHearSpeech(spellWords, Name, Guid.Full, ChatMessageType.Spellcasting), LocalBroadcastRange, ChatMessageType.Spellcasting);
+            }
 
             var preCastTime = PreCastMotion(AttackTarget);
 
@@ -162,17 +167,101 @@ namespace ACE.Server.WorldObjects
                     return;
 
                 CastSpell(spell);
+
                 PostCastMotion();
             });
             actionChain.EnqueueChain();
 
-            var postCastTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, MotionCommand.Ready, 1.5f);
+            var postCastTime = GetPostCastTime(spell);
             var animTime = preCastTime + postCastTime;
 
             //Console.WriteLine($"{Name}.MagicAttack(): preCastTime({preCastTime}), postCastTime({postCastTime})");
 
-            NextAttackTime = Timers.RunningTime + animTime + MagicDelay;
-            NextMoveTime = NextAttackTime - 1.0f;
+            // slight variation here
+            PrevAttackTime = Timers.RunningTime + preCastTime;
+            var powerupTime = (float)(PowerupTime ?? 1.0f);
+
+            var postDelay = ThreadSafeRandom.Next(0.0f, powerupTime);
+
+            NextMoveTime = NextAttackTime = PrevAttackTime + postCastTime + postDelay;
+        }
+
+        private bool UseMana()
+        {
+            // do any monsters have mana conversion?
+            var target = GetSpellMaxRange() < float.PositiveInfinity ? AttackTarget : this;
+
+            var manaUsed = CalculateManaUsage(this, CurrentSpell, target);
+
+            if (manaUsed > Mana.Current)
+                return false;
+
+            Mana.Current -= manaUsed;
+            return true;
+        }
+
+        private static readonly float PreCastSpeed = 2.0f;
+        private static readonly float PostCastSpeed = 1.0f;
+        private static readonly float PostCastSpeed_Ranged = 1.66f;  // ??
+
+        /// <summary>
+        /// Perform the first part of monster spell casting animation - spreading arms out
+        /// </summary>
+        public float PreCastMotion(WorldObject target, bool fallback = false)
+        {
+            if (AiUseHumanMagicAnimations && !fallback)
+                return PreCastMotion_Human(target);
+
+            var motion = new Motion(this, MotionCommand.CastSpell, PreCastSpeed);
+            motion.MotionState.TurnSpeed = 2.25f;
+            //motion.HasTarget = true;
+            //motion.TargetGuid = target.Guid;
+            CurrentMotionState = motion;
+
+            EnqueueBroadcastMotion(motion);
+
+            return MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, PreCastSpeed);
+        }
+
+        /// <summary>
+        /// For monsters with AiUseHumanMagicAnimations = true,
+        /// performs the windup gestures from the spell scarabs
+        /// 
+        /// <returns>The amount of time for the windup gestures to complete</returns>
+        private float PreCastMotion_Human(WorldObject target)
+        {
+            // todo: play each motion at the proper time,
+            // ensuring the monster is still alive at each step
+            CurrentSpell.Formula.GetMonsterFormula();
+
+            // FIXME: data
+            var castAnimTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, CurrentSpell.Formula.CastGesture, PreCastSpeed);
+
+            if (castAnimTime == 0)
+                return PreCastMotion(target, true);
+
+            var animTime = 0.0f;
+
+            foreach (var windupGesture in CurrentSpell.Formula.WindupGestures)
+            {
+                var motion = new Motion(this, windupGesture, PreCastSpeed);
+                motion.MotionState.TurnSpeed = 2.25f;
+                CurrentMotionState = motion;
+
+                EnqueueBroadcastMotion(motion);
+
+                animTime += MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, windupGesture, PreCastSpeed);
+            }
+
+            var castMotion = new Motion(this, CurrentSpell.Formula.CastGesture, PreCastSpeed);
+            castMotion.MotionState.TurnSpeed = 2.25f;
+            CurrentMotionState = castMotion;
+
+            EnqueueBroadcastMotion(castMotion);
+
+            animTime += castAnimTime;
+
+            return animTime;
         }
 
         /// <summary>
@@ -191,100 +280,148 @@ namespace ACE.Server.WorldObjects
             else if (targetSelf)
                 target = this;
 
-            // try to resist spell, if applicable
-            if (TryResistSpell(target, spell))
+            var caster = GetEquippedWand();
+
+            // handle self procs
+            if (spell.IsHarmful && target != this)
+                TryProcEquippedItems(this, this, true, caster);
+
+            // If the target is too far away, don't cast. This checks to see of this monster and the target are on separate landblock groups, and potentially separate threads.
+            // This also fixes cross-threading issues
+            if (target != null && (CurrentLandblock == null || target.CurrentLandblock == null || CurrentLandblock.CurrentLandblockGroup != target.CurrentLandblock.CurrentLandblockGroup))
                 return;
 
+            // try to resist spell, if applicable
+            if (TryResistSpell(target, spell))
+            {
+                TryHandleFactionMob(target);
+                return;
+            }
+
+            var targetCreature = target as Creature;
+
+            // TODO: see if this can be coalesced
             switch (spell.School)
             {
-                case MagicSchool.WarMagic:
+                case MagicSchool.CreatureEnchantment:
 
-                    WarMagic(target, spell, this);
+                    HandleCastSpell(spell, target);
+
+                    if (spell.IsHarmful)
+                    {
+                        // handle target procs
+                        if (targetCreature != null && targetCreature != this)
+                            TryProcEquippedItems(this, targetCreature, false, caster);
+                    }
+                    break;
+
+                case MagicSchool.ItemEnchantment:
+
+                    TryCastItemEnchantment_WithRedirects(spell, target);
                     break;
 
                 case MagicSchool.LifeMagic:
 
-                    var targetDeath = LifeMagic(spell, out uint damage, out bool critical, out var msg, target);
-                    if (targetDeath && target is Creature targetCreature)
+                    HandleCastSpell(spell, target, null, caster);
+
+                    if (spell.MetaSpellType != SpellType.LifeProjectile)
                     {
-                        targetCreature.OnDeath(new DamageHistoryInfo(this), DamageType.Health, false);
-                        targetCreature.Die();
+                        TryHandleFactionMob(target);
+
+                        if (spell.IsHarmful)
+                        {
+                            // handle target procs
+                            if (targetCreature != null && targetCreature != this)
+                                TryProcEquippedItems(this, targetCreature, false, caster);
+                        }
                     }
-                    if (target != null)
-                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-
                     break;
 
-                case MagicSchool.CreatureEnchantment:
-
-                    CreatureMagic(target, spell);
-
-                    if (target != null)
-                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-
-                    break;
-
+                case MagicSchool.WarMagic:
                 case MagicSchool.VoidMagic:
 
-                    VoidMagic(target, spell, this);
-
-                    if (spell.NumProjectiles == 0 && target != null)
-                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-
+                    HandleCastSpell(spell, target, caster);
                     break;
             }
         }
 
         /// <summary>
-        /// Returns the maximum range for the current spell
+        /// Perform the animations after casting a spell,
+        /// ie. moving arms back in, returning to previous stance
         /// </summary>
-        public float GetSpellMaxRange()
+        public void PostCastMotion()
         {
-            var spell = GetCurrentSpell();
-            var skill = GetMagicSkillForRangeCheck();
+            var animSpeed = IsRanged ? PostCastSpeed_Ranged : PostCastSpeed;
 
-            var maxRange = spell.BaseRangeConstant + skill * spell.BaseRangeMod;
-            if (maxRange == 0.0f)
-                maxRange = float.PositiveInfinity;
+            var motion = new Motion(this, MotionCommand.Ready, animSpeed);
+            motion.MotionState.TurnSpeed = 2.25f;
+            //motion.HasTarget = true;
+            //motion.TargetGuid = target.Guid;
+            CurrentMotionState = motion;
 
-            return maxRange;
+            EnqueueBroadcastMotion(motion);
+        }
+
+        public float GetPostCastTime(Spell spell, bool fallback = false)
+        {
+            if (AiUseHumanMagicAnimations && !fallback)
+                return GetPostCastTime_Human(spell);
+
+            var animSpeed = IsRanged ? PostCastSpeed_Ranged : PostCastSpeed;
+
+            return MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, MotionCommand.Ready, animSpeed);
+        }
+
+        private float GetPostCastTime_Human(Spell spell)
+        {
+            var animSpeed = IsRanged ? PostCastSpeed_Ranged : PostCastSpeed;
+
+            var animTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, spell.Formula.CastGesture, MotionCommand.Ready, animSpeed);
+
+            // FIXME: data
+            if (animTime == 0.0f)
+                return GetPostCastTime(spell, true);
+
+            return animTime;
         }
 
         /// <summary>
-        /// Returns the current Spell for the monster
+        /// Returns the magic skill level used for spell range checks.
+        /// (initial points + points due to directly raising the skill)
         /// </summary>
-        public Spell GetCurrentSpell()
+        /// <returns></returns>
+        private uint GetMagicSkillForRangeCheck()
         {
-            return new Spell(CurrentSpell.Spell);
+            var skill = GetCreatureSkill(CurrentSpell.School);
+
+            // verify this - should it be using base?
+            // seems like it could be off, player formula uses current + cap?
+
+            return skill.InitLevel + skill.Ranks;
         }
 
-        public bool UseMana()
+        public void TryHandleFactionMob(WorldObject target)
         {
-            // do any monsters have mana conversion?
-            var currentSpell = GetCurrentSpell();
+            if (target == this || target is Player)
+                return;
 
-            var target = GetSpellMaxRange() < float.PositiveInfinity ? AttackTarget : this;
+            var creatureTarget = target as Creature;
 
-            var manaUsed = CalculateManaUsage(this, currentSpell, target);
-            if (manaUsed > Mana.Current)
-                return false;
+            if (creatureTarget == null || !AllowFactionCombat(creatureTarget) && !PotentialFoe(creatureTarget))
+                return;
 
-            Mana.Current -= manaUsed;
-            return true;
+            MonsterOnAttackMonster(creatureTarget);
         }
-
-        public bool AiUsesMana
+        /// <summary>
+        /// Checks for AiUseHumanMagicAnimations and if true, sets CurrentSpell and sets combat mode to Magic
+        /// </summary>
+        public void CheckForHumanPreCast(Spell spell)
         {
-            get => GetProperty(PropertyBool.AiUsesMana) ?? true;    // default?
-            set { if (!value) RemoveProperty(PropertyBool.AiUsesMana); else SetProperty(PropertyBool.AiUsesMana, value); }
-        }
-
-        public bool IsSelfCast()
-        {
-            if (CurrentAttack != CombatType.Magic)
-                return false;
-
-            return GetSpellMaxRange() == float.PositiveInfinity;
+            if (AiUseHumanMagicAnimations)
+            {
+                CurrentSpell = new Spell(spell.Id);
+                SetCombatMode(CombatMode.Magic);
+            }
         }
     }
 }

@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+
 using ACE.DatLoader.Entity;
 using ACE.Server.Physics.Animation;
 
@@ -131,8 +133,10 @@ namespace ACE.Server.Physics.Common
 
             var minZ = float.MaxValue;
 
-            foreach (var buildingCell in BuildingCells)
+            foreach (var buildingCell in BuildingCells.Where(i => i.Environment != null))
             {
+                if (buildingCell.Environment == null) continue;
+
                 foreach (var cellStruct in buildingCell.Environment.Cells.Values)
                 {
                     foreach (var vertex in cellStruct.VertexArray.Vertices.Values)

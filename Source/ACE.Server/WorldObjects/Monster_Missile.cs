@@ -19,14 +19,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns TRUE if monster has physical ranged attacks
         /// </summary>
-        public new bool IsRanged
-        {
-            get
-            {
-                var weapon = GetEquippedMissileWeapon();
-                return weapon != null;
-            }
-        }
+        public new bool IsRanged => GetEquippedMissileWeapon() != null;
 
         /// <summary>
         /// Starts a monster missile attack
@@ -69,8 +62,16 @@ namespace ACE.Server.WorldObjects
             var ammo = weapon.IsAmmoLauncher ? GetEquippedAmmo() : weapon;
             if (ammo == null) return;
 
-            // ensure direct line of sight
-            if (!IsDirectVisible(AttackTarget))
+            var launcher = GetEquippedMissileLauncher();
+
+            /*if (!IsDirectVisible(AttackTarget))
+            {
+                // ensure direct line of sight
+                //NextAttackTime = Timers.RunningTime + 1.0f;
+                SwitchToMeleeAttack();
+                return;
+            }*/
+            if (SwitchWeaponsPending)
             {
                 NextAttackTime = Timers.RunningTime + 1.0f;
                 return;
@@ -85,15 +86,17 @@ namespace ACE.Server.WorldObjects
             if (DebugMove)
                 Console.WriteLine($"[{Timers.RunningTime}] - {Name} ({Guid}) - LaunchMissile");
 
+            var projectileSpeed = GetProjectileSpeed();
+
             // get z-angle for aim motion
-            var aimVelocity = GetAimVelocity(AttackTarget);
+            var aimVelocity = GetAimVelocity(AttackTarget, projectileSpeed);
 
             var aimLevel = GetAimLevel(aimVelocity);
 
             // calculate projectile spawn pos and velocity
             var localOrigin = GetProjectileSpawnOrigin(ammo.WeenieClassId, aimLevel);
 
-            var velocity = CalculateProjectileVelocity(localOrigin, AttackTarget, out Vector3 origin, out Quaternion orientation);
+            var velocity = CalculateProjectileVelocity(localOrigin, AttackTarget, projectileSpeed, out Vector3 origin, out Quaternion orientation);
 
             //Console.WriteLine($"Velocity: {velocity}");
 
@@ -107,6 +110,9 @@ namespace ACE.Server.WorldObjects
             {
                 if (IsDead) return;
 
+                // handle self-procs
+                TryProcEquippedItems(this, this, true, weapon);
+
                 var sound = GetLaunchMissileSound(weapon);
                 EnqueueBroadcast(new GameMessageSound(Guid, sound, 1.0f));
 
@@ -114,7 +120,7 @@ namespace ACE.Server.WorldObjects
 
                 if (AttackTarget != null)
                 {
-                    var projectile = LaunchProjectile(weapon, ammo, AttackTarget, origin, orientation, velocity);
+                    var projectile = LaunchProjectile(launcher, ammo, AttackTarget, origin, orientation, velocity);
                     UpdateAmmoAfterLaunch(ammo);
                 }
             });
@@ -136,29 +142,33 @@ namespace ACE.Server.WorldObjects
             // reset for next projectile
             EnqueueMotion(actionChain, MotionCommand.Ready);
 
-            var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Reload, MotionCommand.Ready);
+            var linkAnim = reloadTime > 0 ? MotionCommand.Reload : aimLevel;
+
+            var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, linkAnim, MotionCommand.Ready);
 
             if (weapon.IsThrownWeapon)
             {
-                actionChain.EnqueueChain();
+                if (reloadTime > 0)
+                {
+                    actionChain.EnqueueChain();
+                    actionChain = new ActionChain();
+                }
 
-                actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(linkTime);
             }
-            //Console.WriteLine($"Reload time: launchTime({launchTime}) + reloadTime({reloadTime}) + linkTime({linkTime})");
 
-            actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo, ACE.Entity.Enum.ParentLocation.RightHand,
-                    ACE.Entity.Enum.Placement.RightHandCombat)));
+            //log.Info($"{Name}.Reload time: launchTime({launchTime}) + reloadTime({reloadTime}) + linkTime({linkTime})");
+
+            actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo,
+                ACE.Entity.Enum.ParentLocation.RightHand, ACE.Entity.Enum.Placement.RightHandCombat)));
 
             actionChain.EnqueueChain();
 
+            PrevAttackTime = Timers.RunningTime;
+
             var timeOffset = launchTime + reloadTime + linkTime;
 
-            var missileDelay = MissileDelay;
-            if (!weapon.IsAmmoLauncher)
-                missileDelay *= 1.5f;
-
-            NextMoveTime = NextAttackTime = Timers.RunningTime + timeOffset + missileDelay;
+            NextMoveTime = NextAttackTime = PrevAttackTime + timeOffset + MissileDelay;
         }
 
         /// <summary>
@@ -186,15 +196,32 @@ namespace ACE.Server.WorldObjects
                 SwitchToMeleeAttack();*/
 
             if (MonsterProjectile_OnCollideEnvironment_Counter >= 3)
+                TrySwitchToMeleeAttack();
+        }
+
+        public bool SwitchWeaponsPending;
+
+        public void TrySwitchToMeleeAttack()
+        {
+            // 24139 - Invisible Assailant never switches to melee?
+            if (AiAllowedCombatStyle == CombatStyle.StubbornMissile || Visibility) return;
+
+            SwitchWeaponsPending = true;
+
+            if (NextMoveTime > Timers.RunningTime)
+            {
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(NextMoveTime - Timers.RunningTime);
+                actionChain.AddAction(this, () => SwitchToMeleeAttack());
+                actionChain.EnqueueChain();
+            }
+            else
                 SwitchToMeleeAttack();
         }
 
         public void SwitchToMeleeAttack()
         {
-            // 24139 - Invisible Assailant never switches to melee?
-            if (Visibility) return;
-
-            //Console.WriteLine($"{Name}.SwitchToMeleeAttack()");
+            if (IsDead) return;
 
             var weapon = GetEquippedMissileWeapon();
             var ammo = GetEquippedAmmo();
@@ -202,34 +229,75 @@ namespace ACE.Server.WorldObjects
             if (weapon == null && ammo == null)
                 return;
 
-            // actually destroys the missile weapon + ammo here,
-            // to ensure they can't be re-selected from inventory
-            if (weapon != null)
-            {
-                TryUnwieldObjectWithBroadcasting(weapon.Guid, out _, out _);
-                weapon.Destroy();
-            }
-
-            if (ammo != null)
-            {
-                TryUnwieldObjectWithBroadcasting(ammo.Guid, out _, out _);
-                ammo.Destroy();
-            }
-
-            EquipInventoryItems(true);
-            DoAttackStance();
-            CurrentAttack = null;
-
-            // this is an unfortunate hack to fix the following scenario:
-
-            // since this function can be called at any point in time now,
-            // including when LaunchMissile -> EnqueueMotion is in the middle of an action queue,
-            // CurrentMotionState.Stance can get reset to the previous combat stance if that happens
-
-            var combatStance = GetCombatStance();
             var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(2.0f);
-            actionChain.AddAction(this, () => CurrentMotionState.Stance = combatStance);
+
+            EnqueueMotion_Force(actionChain, MotionStance.NonCombat, MotionCommand.Ready, (MotionCommand)CurrentMotionState.Stance);
+
+            EnqueueMotion_Force(actionChain, MotionStance.HandCombat, MotionCommand.Ready, MotionCommand.NonCombat);
+
+            actionChain.AddAction(this, () =>
+            {
+                if (IsDead) return;
+
+                // actually destroys the missile weapon + ammo here,
+                // to ensure they can't be re-selected from inventory
+                if (weapon != null)
+                {
+                    TryUnwieldObjectWithBroadcasting(weapon.Guid, out _, out _);
+                    weapon.Destroy();
+                }
+
+                if (ammo != null)
+                {
+                    TryUnwieldObjectWithBroadcasting(ammo.Guid, out _, out _);
+                    ammo.Destroy();
+                }
+
+                EquipInventoryItems(true);
+
+                var innerChain = new ActionChain();
+
+                EnqueueMotion_Force(innerChain, MotionStance.NonCombat, MotionCommand.Ready, (MotionCommand)CurrentMotionState.Stance);
+
+                innerChain.AddAction(this, () =>
+                {
+                    if (IsDead) return;
+
+                    //DoAttackStance();
+
+                    // inlined DoAttackStance() / slightly modified -- do not rely on SetCombatMode() for stance swapping time in 1 action,
+                    // as it doesn't support that anymore
+
+                    var newStanceTime = SetCombatMode(CombatMode.Melee);
+
+                    NextMoveTime = NextAttackTime = Timers.RunningTime + newStanceTime;
+
+                    PrevAttackTime = NextMoveTime - (AiUseMagicDelay ?? 3.0f);
+
+                    PhysicsObj.StartTimer();
+
+                    // end inline
+
+                    ResetAttack();
+
+                    SwitchWeaponsPending = false;
+
+                    // this is an unfortunate hack to fix the following scenario:
+
+                    // since this function can be called at any point in time now,
+                    // including when LaunchMissile -> EnqueueMotion is in the middle of an action queue,
+                    // CurrentMotionState.Stance can get reset to the previous combat stance if that happens
+
+                    var newStance = CurrentMotionState.Stance;
+
+                    var swapChain = new ActionChain();
+                    swapChain.AddDelaySeconds(2.0f);
+                    swapChain.AddAction(this, () => CurrentMotionState.Stance = newStance);
+                    swapChain.EnqueueChain();
+
+                });
+                innerChain.EnqueueChain();
+            });
             actionChain.EnqueueChain();
         }
     }

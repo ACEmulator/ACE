@@ -25,8 +25,8 @@ namespace ACE.Entity.Models
         public static List<PropertiesTextureMap> Clone(this IList<PropertiesTextureMap> value, ReaderWriterLockSlim rwLock)
         {
             if (value == null)
-
                 return null;
+
             rwLock.EnterReadLock();
             try
             {
@@ -38,18 +38,20 @@ namespace ACE.Entity.Models
             }
         }
 
-
-        public static void Add(this IList<PropertiesTextureMap> value, IList<PropertiesTextureMap> entries, ReaderWriterLockSlim rwLock)
+        public static void CopyTo(this IList<PropertiesTextureMap> value, ICollection<PropertiesTextureMap> destination, ReaderWriterLockSlim rwLock)
         {
-            rwLock.EnterWriteLock();
+            if (value == null)
+                return;
+
+            rwLock.EnterReadLock();
             try
             {
-                foreach (var entry in entries)
-                    value.Add(entry);
+                foreach (var entry in value)
+                    destination.Add(entry);
             }
             finally
             {
-                rwLock.ExitWriteLock();
+                rwLock.ExitReadLock();
             }
         }
     }

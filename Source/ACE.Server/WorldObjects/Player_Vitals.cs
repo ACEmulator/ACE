@@ -203,5 +203,25 @@ namespace ACE.Server.WorldObjects
 
             return vitalUpdate;
         }
+
+        /// <summary>
+        /// Called when a player equips/dequips an item w/ GearMaxHealth
+        /// </summary>
+        public void HandleMaxHealthUpdate()
+        {
+            var gearMaxHealth = GetGearMaxHealth();
+
+            if (gearMaxHealth == 0)
+                GearMaxHealth = null;
+            else
+                GearMaxHealth = gearMaxHealth;
+
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.GearMaxHealth, gearMaxHealth));
+
+            if (Health.Current > Health.MaxValue)
+                Health.Current = Health.MaxValue;
+
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, Health.Current));
+        }
     }
 }

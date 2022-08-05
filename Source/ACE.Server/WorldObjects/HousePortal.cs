@@ -10,8 +10,6 @@ using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Network.GameEvent.Events;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     public sealed class HousePortal : Portal
@@ -38,6 +36,18 @@ namespace ACE.Server.WorldObjects
 
         public override void SetLinkProperties(WorldObject wo)
         {
+            if (House == null)
+            {
+                log.Warn($"[HOUSE] HousePortal.SetLinkProperties({(wo != null ? $"{wo.Name}:0x{wo.Guid}:{wo.WeenieClassId}" : "null")}): House is null for HousePortal 0x{Guid} at {Location.ToLOCString()}");
+                return;
+            }
+
+            if (wo == null)
+            {
+                log.Warn($"[HOUSE] HousePortal.SetLinkProperties(null): WorldObject is null for HousePortal 0x{Guid} at {Location.ToLOCString()} | {(House != null ? $"House = {House.Name}:0x{House.Guid}:{House.WeenieClassId}" : "House is null")}");
+                return;
+            }
+
             // get properties from parent?
             wo.HouseId = House.HouseId;
             wo.HouseOwner = House.HouseOwner;
@@ -53,8 +63,22 @@ namespace ACE.Server.WorldObjects
                 }
                 var i = housePortals[0];
 
-                if (i.ObjCellId == Location.Cell && housePortals.Count > 1)
-                    i = housePortals[1];
+                if (i.ObjCellId == Location.Cell)
+                {
+                    if (housePortals.Count > 1)
+                        i = housePortals[1];
+                    else
+                    { // there are some houses that for some reason, don't have return locations, so we'll fake the entry with a reference to the root house portal location mimicking other database entries.
+                        i = new Database.Models.World.HousePortal { ObjCellId = House.RootHouse.HousePortal.Location.Cell,
+                                                                      OriginX = House.RootHouse.HousePortal.Location.PositionX,
+                                                                      OriginY = House.RootHouse.HousePortal.Location.PositionY,
+                                                                      OriginZ = House.RootHouse.HousePortal.Location.PositionZ,
+                                                                      AnglesX = House.RootHouse.HousePortal.Location.RotationX,
+                                                                      AnglesY = House.RootHouse.HousePortal.Location.RotationY,
+                                                                      AnglesZ = House.RootHouse.HousePortal.Location.RotationZ,
+                                                                      AnglesW = House.RootHouse.HousePortal.Location.RotationW };
+                    }
+                }
 
                 var destination = new Position(i.ObjCellId, new Vector3(i.OriginX, i.OriginY, i.OriginZ), new Quaternion(i.AnglesX, i.AnglesY, i.AnglesZ, i.AnglesW));
 
@@ -79,6 +103,9 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return new ActivationResult(false);
 
+            if (player.IsOlthoiPlayer)
+                return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.OlthoiMayNotUsePortal));
+
             if (player.CurrentLandblock.IsDungeon && Destination.LandblockId != player.CurrentLandblock.Id)
                 return new ActivationResult(true);   // allow escape to overworld always
 
@@ -88,9 +115,10 @@ namespace ACE.Server.WorldObjects
             var houseOwner = rootHouse.HouseOwner;
 
             if (houseOwner == null)
-                return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouMustBeHouseGuestToUsePortal));
+                //return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouMustBeHouseGuestToUsePortal));
+                return new ActivationResult(true);
 
-            if (rootHouse.IsOpen)
+            if (rootHouse.OpenToEveryone)
                 return new ActivationResult(true);
 
             if (!rootHouse.HasPermission(player))

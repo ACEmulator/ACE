@@ -1,5 +1,8 @@
 using System;
 using System.Net;
+
+using log4net;
+
 using ACE.Database;
 using ACE.Database.Models.Auth;
 using ACE.Entity.Enum;
@@ -9,6 +12,8 @@ namespace ACE.Server.Command.Handlers
 {
     public static class AccountCommands
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         // accountcreate username password (accesslevel)
         [CommandHandler("accountcreate", AccessLevel.Admin, CommandHandlerFlag.None, 2,
             "Creates a new account.",
@@ -50,6 +55,9 @@ namespace ACE.Server.Command.Handlers
                 try
                 {
                     var account = DatabaseManager.Authentication.CreateAccount(parameters[0].ToLower(), parameters[1], accessLevel, IPAddress.Parse("127.0.0.1"));
+
+                    if (DatabaseManager.AutoPromoteNextAccountToAdmin && accessLevel == AccessLevel.Admin)
+                        DatabaseManager.AutoPromoteNextAccountToAdmin = false;
 
                     message = ("Account successfully created for " + account.AccountName + " (" + account.AccountId + ") with access rights as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
                 }
@@ -112,6 +120,9 @@ namespace ACE.Server.Command.Handlers
 
             DatabaseManager.Authentication.UpdateAccountAccessLevel(accountId, accessLevel);
 
+            if (DatabaseManager.AutoPromoteNextAccountToAdmin && accessLevel == AccessLevel.Admin)
+                DatabaseManager.AutoPromoteNextAccountToAdmin = false;
+
             CommandHandlerHelper.WriteOutputInfo(session, "Account " + accountName + " updated with access rights set as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".", ChatMessageType.Broadcast);
         }
 
@@ -145,6 +156,11 @@ namespace ACE.Server.Command.Handlers
             CommandHandlerHelper.WriteOutputInfo(session, $"Account password for {accountName} successfully changed.", ChatMessageType.Broadcast);
         }
 
+        /// <summary>
+        /// Rate limiter for /passwd command
+        /// </summary>
+        private static readonly TimeSpan PasswdInterval = TimeSpan.FromSeconds(5);
+
         // passwd oldpassword newpassword
         [CommandHandler("passwd", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 2,
             "Change your account password.",
@@ -156,6 +172,17 @@ namespace ACE.Server.Command.Handlers
                 CommandHandlerHelper.WriteOutputInfo(session, "This command is run from ingame client only", ChatMessageType.Broadcast);
                 return;
             }
+
+            log.Debug($"{session.Player.Name} is changing their password");
+
+            var currentTime = DateTime.UtcNow;
+
+            if (currentTime - session.LastPassTime < PasswdInterval)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"This command may only be run once every {PasswdInterval.TotalSeconds} seconds.", ChatMessageType.Broadcast);
+                return;
+            }
+            session.LastPassTime = currentTime;
 
             if (parameters.Length <= 0)
             {

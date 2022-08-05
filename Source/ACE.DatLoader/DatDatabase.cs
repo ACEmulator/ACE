@@ -17,6 +17,8 @@ namespace ACE.DatLoader
 
         public string FilePath { get; }
 
+        public int Iteration { get { return GetIteration(); } }
+
         private FileStream stream { get; }
 
         private static readonly object streamMutex = new object();
@@ -128,6 +130,33 @@ namespace ACE.DatLoader
                 DatReader dr = GetReaderForFile(entry.Value.ObjectId);
 
                 File.WriteAllBytes(thisFile, dr.Buffer);
+            }
+        }
+
+        /// <summary>
+        /// Gets the latest iteration from the dat file (basically, it functions like internal versioning system)
+        ///
+        /// Per InterrogationResponse generate by the client:
+        /// PORTAL.DAT is 2072
+        /// client_English.dat (idDatFile.Type = 1, idDatFile.Id = 3) = 994
+        /// Cell.dat is 982
+        ///
+        /// For final end-of-retail dat files, this returns:
+        /// Cell: 982
+        /// portal: 2072
+        /// highres: 497
+        /// Language: 994
+        /// </summary>
+        /// <returns>The iteration from the dat file, or 0 if there was an error</returns>
+        private int GetIteration()
+        {
+            var iteration = ReadFromDat<Iteration>(FileTypes.Iteration.FILE_ID);
+            if (iteration.Ints.Count > 0)
+                return iteration.Ints[0];
+            else
+            {
+                log.Error($"Unable to read iteration from {FilePath}");
+                return 0;
             }
         }
     }

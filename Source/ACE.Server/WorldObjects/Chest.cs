@@ -8,9 +8,9 @@ using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-
-using Biota = ACE.Database.Models.Shard.Biota;
 
 namespace ACE.Server.WorldObjects
 {
@@ -29,6 +29,15 @@ namespace ACE.Server.WorldObjects
                 return GetProperty(PropertyBool.ChestRegenOnClose) ?? false;
             }
             set { if (!value) RemoveProperty(PropertyBool.ChestRegenOnClose); else SetProperty(PropertyBool.ChestRegenOnClose, value); }
+        }
+
+        /// <summary>
+        /// This is used for things like Dirty Old Crate
+        /// </summary>
+        public bool ChestClearedWhenClosed
+        {
+            get => GetProperty(PropertyBool.ChestClearedWhenClosed) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.ChestClearedWhenClosed); else SetProperty(PropertyBool.ChestClearedWhenClosed, value); }
         }
 
         /// <summary>
@@ -99,20 +108,34 @@ namespace ACE.Server.WorldObjects
                 return new ActivationResult(false);
             }
 
+            if (UseLockTimestamp != null && activator.Guid.Full != LastUnlocker)
+            {
+                var currentTime = Time.GetUnixTime();
+
+                // prevent ninja looting
+                if (UseLockTimestamp.Value + PropertyManager.GetDouble("unlocker_window").Item > currentTime)
+                {
+                    player.SendTransientError(InUseMessage);
+                    return new ActivationResult(false);
+                }
+            }
+
             if (IsOpen)
             {
-                // player has this chest open, close it
                 if (Viewer == player.Guid.Full)
+                {
+                    // current player has this chest open, close it
                     Close(player);
-
-                // else another player has this chest open - send error message?
+                }
                 else
                 {
+                    // another player has this chest open -- ensure they are within range
                     var currentViewer = CurrentLandblock.GetObject(Viewer) as Player;
 
-                    // current viewer not found, close it
                     if (currentViewer == null)
-                        Close(null);
+                        Close(null);    // current viewer not found, close it
+                    else
+                        player.SendTransientError(InUseMessage);
                 }
 
                 return new ActivationResult(false);
@@ -122,12 +145,12 @@ namespace ACE.Server.WorldObjects
             if (Quest != null)
             {
                 if (!player.QuestManager.HasQuest(Quest))
-                    player.QuestManager.Update(Quest);
+                    EmoteManager.OnQuest(player);
                 else
                 {
                     if (player.QuestManager.CanSolve(Quest))
                     {
-                        player.QuestManager.Update(Quest);
+                        EmoteManager.OnQuest(player);
                     }
                     else
                     {
@@ -170,6 +193,8 @@ namespace ACE.Server.WorldObjects
 
                 ResetMessagePending = true;
             }
+
+            UseLockTimestamp = null;
         }
 
         public override void Close(Player player)
@@ -188,12 +213,28 @@ namespace ACE.Server.WorldObjects
                 Reset(ResetTimestamp);
         }
 
+        public override void FinishClose(Player player)
+        {
+            base.FinishClose(player);
+
+            if (ChestClearedWhenClosed && InitCreate > 0)
+            {
+                if (CurrentCreate == 0)
+                    FadeOutAndDestroy(); // Chest's complete generated inventory count has been wiped out
+                    //Destroy(); // Chest's complete generated inventory count has been wiped out
+            }
+        }
+
         public void Reset(double? resetTimestamp)
         {
             if (resetTimestamp != ResetTimestamp)
                 return;     // already cleared by previous reset
 
             // TODO: if 'ResetInterval' style, do we want to ensure a minimum amount of time for the last viewer?
+
+            // should only be an edge case with reload-landblock
+            if (CurrentLandblock == null)
+                return;
 
             var player = CurrentLandblock.GetObject(Viewer) as Player;
 
@@ -206,68 +247,33 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked));
             }
 
+            ClearUnmanagedInventory();
+
             if (IsGenerator)
             {
                 ResetGenerator();
+                CurrentlyPoweringUp = true;
                 if (InitCreate > 0)
-                    Generator_Regeneration();
+                    Generator_Generate();
             }
 
             ResetTimestamp = Time.GetUnixTime();
             ResetMessagePending = false;
         }
-
-        public override void ResetGenerator()
-        {
-            foreach (var generator in GeneratorProfiles)
-            {
-                var profileReset = false;
-
-                foreach (var rNode in generator.Spawned.Values)
-                {
-                    var wo = rNode.TryGetWorldObject();
-
-                    if (wo != null)
-                    {
-                        if (TryRemoveFromInventory(wo.Guid)) // only affect contained items.
-                        {
-                            wo.Destroy();
-                        }
-
-                        if (!(wo is Creature))
-                            profileReset = true;
-                    }
-                }
-
-                if (profileReset)
-                {
-                    generator.Spawned.Clear();
-                    generator.SpawnQueue.Clear();
-                }
-            }
-
-            if (GeneratedTreasureItem)
-            {
-                var items = new List<WorldObject>();
-                foreach (var item in Inventory.Values)
-                    items.Add(item);
-                foreach (var item in items)
-                {
-                    if (TryRemoveFromInventory(item.Guid))
-                        item.Destroy();
-                }
-                GeneratedTreasureItem = false;
-            }
-        }
-
         protected override float DoOnOpenMotionChanges()
         {
-            return ExecuteMotion(motionOpen);
+            if (MotionTableId != 0)
+                return ExecuteMotion(motionOpen);
+            else
+                return 0;
         }
 
         protected override float DoOnCloseMotionChanges()
         {
-            return ExecuteMotion(motionClosed);
+            if (MotionTableId != 0)
+                return ExecuteMotion(motionClosed);
+            else
+                return 0;
         }
 
         public string LockCode
@@ -285,8 +291,10 @@ namespace ACE.Server.WorldObjects
             var result = LockHelper.Unlock(this, playerLockpickSkillLvl, ref difficulty);
 
             if (result == UnlockResults.UnlockSuccess)
+            {
                 LastUnlocker = unlockerGuid;
-
+                UseLockTimestamp = Time.GetUnixTime();
+            }
             return result;
         }
 
@@ -298,8 +306,10 @@ namespace ACE.Server.WorldObjects
             var result = LockHelper.Unlock(this, key, keyCode);
 
             if (result == UnlockResults.UnlockSuccess)
+            {
                 LastUnlocker = unlockerGuid;
-
+                UseLockTimestamp = Time.GetUnixTime();
+            }
             return result;
         }
     }

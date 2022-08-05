@@ -12,8 +12,6 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     public class SlumLord : Container
@@ -116,7 +114,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public List<WorldObject> GetBuyItems()
         {
-            return GetCreateList(DestinationType.HouseBuy);
+            var buyList = GetCreateListForSlumLord(DestinationType.HouseBuy);
+
+            buyList.ForEach(item => item.Destroy(false));
+
+            return buyList;
         }
 
         /// <summary>
@@ -124,7 +126,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public List<WorldObject> GetRentItems()
         {
-            return GetCreateList(DestinationType.HouseRent);
+            var rentList = GetCreateListForSlumLord(DestinationType.HouseRent);
+
+            rentList.ForEach(item => item.Destroy(false));
+
+            return rentList;
         }
 
         /// <summary>
@@ -160,7 +166,7 @@ namespace ACE.Server.WorldObjects
             if (allegianceMinLevel == -1)
                 allegianceMinLevel = AllegianceMinLevel.Value;
 
-            if (player.Allegiance == null || player.AllegianceNode.Rank < allegianceMinLevel)
+            if (allegianceMinLevel > 0 && (player.Allegiance == null || player.AllegianceNode.Rank < allegianceMinLevel))
             {
                 Console.WriteLine($"{Name}.HasRequirements({player.Name}) - allegiance rank {player.AllegianceNode?.Rank ?? 0} < {allegianceMinLevel}");
                 return false;

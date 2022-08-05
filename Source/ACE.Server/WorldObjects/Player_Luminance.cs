@@ -14,11 +14,17 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void EarnLuminance(long amount, XpType xpType, ShareType shareType = ShareType.All)
         {
+            if (IsOlthoiPlayer)
+                return;
+
             // following the same model as Player_Xp
 
             var modifier = PropertyManager.GetDouble("luminance_modifier").Item;
 
-            var m_amount = (long)Math.Round(amount * modifier);
+            // should this be passed upstream to fellowship?
+            var enchantment = GetXPAndLuminanceModifier(xpType);
+
+            var m_amount = (long)Math.Round(amount * enchantment * modifier);
 
             GrantLuminance(m_amount, xpType, shareType);
         }
@@ -28,6 +34,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void GrantLuminance(long amount, XpType xpType, ShareType shareType = ShareType.All)
         {
+            if (IsOlthoiPlayer)
+                return;
+
             if (Fellowship != null && Fellowship.ShareXP && shareType.HasFlag(ShareType.Fellowship))
             {
                 // this will divy up the luminance, and re-call this function

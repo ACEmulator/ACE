@@ -33,10 +33,20 @@ namespace ACE.Server.WorldObjects
 
             NextMonsterTickTime = currentUnixTime + monsterTickInterval;
 
-            if (!IsAwake && MonsterState == State.Return)
-                MonsterState = State.Idle;
+            if (!IsAwake)
+            {
+                if (MonsterState == State.Return)
+                    MonsterState = State.Idle;
 
-            if (!IsAwake || IsDead) return;
+                if (IsFactionMob || HasFoeType)
+                    FactionMob_CheckMonsters();
+
+                return;
+            }
+
+            if (IsDead) return;
+
+            if (EmoteManager.IsBusy) return;
 
             HandleFindTarget();
 
@@ -105,12 +115,12 @@ namespace ACE.Server.WorldObjects
                 //MaxRange = MaxMeleeRange;   // FIXME: server position sync
             }
 
+            if (PhysicsObj.IsSticky)
+                UpdatePosition(false);
+
             // get distance to target
             var targetDist = GetDistanceToTarget();
             //Console.WriteLine($"{Name} ({Guid}) - Dist: {targetDist}");
-
-            if (Sticky)
-                UpdatePosition();
 
             if (CurrentAttack != CombatType.Missile)
             {
@@ -154,7 +164,7 @@ namespace ACE.Server.WorldObjects
 
                     // should ranged mobs only get CurrentTargets within MaxRange?
                     //Console.WriteLine($"{Name}.MissileAttack({AttackTarget.Name}): targetDist={targetDist}, MaxRange={MaxRange}, switching to melee");
-                    SwitchToMeleeAttack();
+                    TrySwitchToMeleeAttack();
                 }
             }
 

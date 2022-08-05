@@ -19,12 +19,6 @@ namespace ACE.Server.WorldObjects
     partial class Creature
     {
         /// <summary>
-        /// Determines when a monster wakes up from idle state
-        /// </summary>
-        public const float RadiusAwareness = 35.0f;
-        public const float RadiusAwarenessSquared = RadiusAwareness * RadiusAwareness;
-
-        /// <summary>
         /// Monsters wake up when players are in visual range
         /// </summary>
         public bool IsAwake = false;
@@ -63,6 +57,8 @@ namespace ACE.Server.WorldObjects
             MonsterState = State.Idle;
 
             PhysicsObj.CachedVelocity = Vector3.Zero;
+
+            ClearRetaliateTargets();
         }
 
         public Tolerance Tolerance
@@ -246,11 +242,32 @@ namespace ACE.Server.WorldObjects
             foreach (var creature in PhysicsObj.ObjMaint.GetVisibleTargetsValuesOfTypeCreature())
             {
                 // ensure attackable
-                if (!creature.Attackable || creature.Teleporting) continue;
+                if (!creature.Attackable && creature.TargetingTactic == TargetingTactic.None || creature.Teleporting) continue;
 
                 // ensure within 'detection radius' ?
-                var chaseDistSq = creature == AttackTarget ? MaxChaseRangeSq : RadiusAwarenessSquared;
-                if (Location.SquaredDistanceTo(creature.Location) >= chaseDistSq)
+                var chaseDistSq = creature == AttackTarget ? MaxChaseRangeSq : VisualAwarenessRangeSq;
+
+                /*if (Location.SquaredDistanceTo(creature.Location) > chaseDistSq)
+                    continue;*/
+
+                if (PhysicsObj.get_distance_sq_to_object(creature.PhysicsObj, true) > chaseDistSq)
+                    continue;
+
+                // if this monster belongs to a faction,
+                // ensure target does not belong to the same faction
+                if (SameFaction(creature))
+                {
+                    // unless they have been provoked
+                    if (!PhysicsObj.ObjMaint.RetaliateTargetsContainsKey(creature.Guid.Full))
+                        continue;
+                }
+
+                // cannot switch AttackTargets with Tolerance.Target
+                if (Tolerance.HasFlag(Tolerance.Target) && creature != AttackTarget)
+                    continue;
+
+                // can only target other monsters with Tolerance.Monster -- cannot target players or combat pets
+                if (Tolerance.HasFlag(Tolerance.Monster) && (creature is Player || creature is CombatPet))
                     continue;
 
                 visibleTargets.Add(creature);
@@ -262,12 +279,13 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the list of potential attack targets, sorted by closest distance 
         /// </summary>
-        public List<TargetDistance> BuildTargetDistance(List<Creature> targets)
+        public List<TargetDistance> BuildTargetDistance(List<Creature> targets, bool distSq = false)
         {
             var targetDistance = new List<TargetDistance>();
 
             foreach (var target in targets)
-                targetDistance.Add(new TargetDistance(target, Location.DistanceTo(target.Location)));
+                //targetDistance.Add(new TargetDistance(target, distSq ? Location.SquaredDistanceTo(target.Location) : Location.DistanceTo(target.Location)));
+                targetDistance.Add(new TargetDistance(target, distSq ? (float)PhysicsObj.get_distance_sq_to_object(target.PhysicsObj, true) : (float)PhysicsObj.get_distance_to_object(target.PhysicsObj, true)));
 
             return targetDistance.OrderBy(i => i.Distance).ToList();
         }
@@ -297,7 +315,7 @@ namespace ACE.Server.WorldObjects
             {
                 invRatio += 1.0f - (targetDistance.Distance / distSum);
 
-                if (rng <= invRatio)
+                if (rng < invRatio)
                     return targetDistance.Target;
             }
             // precision error?
@@ -306,11 +324,17 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// If one of these fields is set, monster scanning for targets when it first spawns in
+        /// is terminated immediately
+        /// </summary>
+        private static readonly Tolerance ExcludeSpawnScan = Tolerance.NoAttack | Tolerance.Appraise | Tolerance.Provoke | Tolerance.Retaliate;
+
+        /// <summary>
         /// Called when a monster is first spawning in
         /// </summary>
         public void CheckTargets()
         {
-            if (!Attackable && TargetingTactic == TargetingTactic.None || Tolerance != Tolerance.None)
+            if (!Attackable && TargetingTactic == TargetingTactic.None || (Tolerance & ExcludeSpawnScan) != 0)
                 return;
 
             var actionChain = new ActionChain();
@@ -329,18 +353,33 @@ namespace ACE.Server.WorldObjects
                 if (creature is Player player && (!player.Attackable || player.Teleporting || (player.Hidden ?? false)))
                     continue;
 
-                var distSq = Location.SquaredDistanceTo(creature.Location);
+                if (Tolerance.HasFlag(Tolerance.Monster) && (creature is Player || creature is CombatPet))
+                    continue;
+
+                //var distSq = Location.SquaredDistanceTo(creature.Location);
+                var distSq = PhysicsObj.get_distance_sq_to_object(creature.PhysicsObj, true);
                 if (distSq < closestDistSq)
                 {
-                    closestDistSq = distSq;
+                    closestDistSq = (float)distSq;
                     closestTarget = creature;
                 }
             }
-            if (closestTarget == null || closestDistSq > RadiusAwarenessSquared)
+            if (closestTarget == null || closestDistSq > VisualAwarenessRangeSq)
                 return;
 
             closestTarget.AlertMonster(this);
         }
+
+        /// <summary>
+        /// The most common value from retail
+        /// Some other common values are in the range of 12-25
+        /// </summary>
+        public static readonly float VisualAwarenessRange_Default = 18.0f;
+
+        /// <summary>
+        /// The highest value found in the current database
+        /// </summary>
+        public static readonly float VisualAwarenessRange_Highest = 75.0f;
 
         public double? VisualAwarenessRange
         {
@@ -354,44 +393,128 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.AuralAwarenessRange); else SetProperty(PropertyFloat.AuralAwarenessRange, value.Value); }
         }
 
-        /// <summary>
-        /// Monsters can only alert other monsters once?
-        /// </summary>
-        public bool Alerted = false;
+        private float? _visualAwarenessRangeSq;
 
-        public static float AlertRadius = 12.0f;    // TODO: find alert radius from retail
-        public static float AlertRadiusSq = AlertRadius * AlertRadius;
+        public float VisualAwarenessRangeSq
+        {
+            get
+            {
+                if (_visualAwarenessRangeSq == null)
+                {
+                    var visualAwarenessRange = (float)((VisualAwarenessRange ?? VisualAwarenessRange_Default) * PropertyManager.GetDouble("mob_awareness_range").Item);
+
+                    _visualAwarenessRangeSq = visualAwarenessRange * visualAwarenessRange;
+                }
+
+                return _visualAwarenessRangeSq.Value;
+            }
+        }
+
+        /// <summary>
+        /// A monster can only alert friendly mobs to the presence of each attack target
+        /// once every AlertThreshold
+        /// </summary>
+        private static readonly TimeSpan AlertThreshold = TimeSpan.FromMinutes(2);
+
+        /// <summary>
+        /// AttackTarget => last alerted time
+        /// </summary>
+        private Dictionary<uint, DateTime> Alerted;
 
         public void AlertFriendly()
         {
-            if (Alerted) return;
+            // if current attacker has already alerted this monster recently,
+            // don't re-alert friendlies
+            if (Alerted != null && Alerted.TryGetValue(AttackTarget.Guid.Full, out var lastAlertTime) && DateTime.UtcNow - lastAlertTime < AlertThreshold)
+                return;
 
             var visibleObjs = PhysicsObj.ObjMaint.GetVisibleObjects(PhysicsObj.CurCell);
+
+            var targetCreature = AttackTarget as Creature;
+
+            var alerted = false;
 
             foreach (var obj in visibleObjs)
             {
                 var nearbyCreature = obj.WeenieObj.WorldObject as Creature;
-                if (nearbyCreature == null || nearbyCreature.IsAwake/* || nearbyCreature.IsAlerted*/ || !nearbyCreature.Attackable)
+                if (nearbyCreature == null || nearbyCreature.IsAwake || !nearbyCreature.Attackable && nearbyCreature.TargetingTactic == TargetingTactic.None)
+                    continue;
+
+                if ((nearbyCreature.Tolerance & AlertExclude) != 0)
                     continue;
 
                 if (CreatureType != null && CreatureType == nearbyCreature.CreatureType ||
                       FriendType != null && FriendType == nearbyCreature.CreatureType)
                 {
-                    // clamp radius if outdoors
-                    /*if ((Location.Cell & 0xFFFF) < 0x100)
-                    {
-                        var distSq = Vector3.DistanceSquared(Location.ToGlobal(), nearbyCreature.Location.ToGlobal());
-                        if (distSq > AlertRadiusSq)
-                            continue;
-                    }*/
-                    var dist = Location.DistanceTo(nearbyCreature.Location);
-                    if (dist > (nearbyCreature.VisualAwarenessRange ?? AlertRadius))
+                    //var distSq = Location.SquaredDistanceTo(nearbyCreature.Location);
+                    var distSq = PhysicsObj.get_distance_sq_to_object(nearbyCreature.PhysicsObj, true);
+                    if (distSq > nearbyCreature.VisualAwarenessRangeSq)
                         continue;
 
-                    Alerted = true;
+                    // scenario: spawn a faction mob, and then spawn a non-faction mob next to it, of the same CreatureType
+                    // the spawning mob will become alerted by the faction mob, and will then go to alert its friendly types
+                    // the faction mob happens to be a friendly type, so it in effect becomes alerted to itself
+                    // this is to prevent the faction mob from adding itself to its retaliate targets / visible targets,
+                    // and setting itself to its AttackTarget
+                    if (nearbyCreature == AttackTarget)
+                        continue;
+
+                    if (nearbyCreature.SameFaction(targetCreature))
+                        nearbyCreature.AddRetaliateTarget(AttackTarget);
+
+                    if (PotentialFoe(targetCreature))
+                    {
+                        if (nearbyCreature.PotentialFoe(targetCreature))
+                            nearbyCreature.AddRetaliateTarget(AttackTarget);
+                        else
+                            continue;
+                    }
+
+                    alerted = true;
+
                     nearbyCreature.AttackTarget = AttackTarget;
                     nearbyCreature.WakeUp(false);
                 }
+            }
+            // only set alerted if monsters were actually alerted
+            if (alerted)
+            {
+                if (Alerted == null)
+                    Alerted = new Dictionary<uint, DateTime>();
+
+                Alerted[AttackTarget.Guid.Full] = DateTime.UtcNow;
+            }
+        }
+
+        /// <summary>
+        /// Wakes up a faction monster from any non-faction monsters wandering within range
+        /// </summary>
+        public void FactionMob_CheckMonsters()
+        {
+            if (MonsterState != State.Idle) return;
+
+            var creatures = PhysicsObj.ObjMaint.GetVisibleTargetsValuesOfTypeCreature();
+
+            foreach (var creature in creatures)
+            {
+                // ensure type isn't already handled elsewhere
+                if (creature is Player || creature is CombatPet)
+                    continue;
+
+                // ensure attackable
+                if (creature.IsDead || !creature.Attackable && creature.TargetingTactic == TargetingTactic.None || creature.Teleporting)
+                    continue;
+
+                // ensure another faction
+                if (SameFaction(creature) && !PotentialFoe(creature))
+                    continue;
+
+                // ensure within detection range
+                if (PhysicsObj.get_distance_sq_to_object(creature.PhysicsObj, true) > VisualAwarenessRangeSq)
+                    continue;
+
+                creature.AlertMonster(this);
+                break;
             }
         }
     }

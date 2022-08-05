@@ -1,0 +1,9 @@
+0x38000035 Mutation #1:
+
+Tier chances: 1
+
+    - Chance: 100%:
+        ItemSkillLimit = MeleeDefense
+        ItemSkillLevelLimit /= 0.7
+        NumTimesTinkered (>= 1 ? add : set) 1
+

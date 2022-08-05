@@ -35,7 +35,6 @@ namespace ACE.DatLoader
         public SkillTable SkillTable { get; }
         public SpellComponentsTable SpellComponentsTable { get; }
         public SpellTable SpellTable { get; }
-        public TabooTable TabooTable { get; }
         public XpTable XpTable { get; }
     }
 }

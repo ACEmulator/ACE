@@ -165,7 +165,7 @@ namespace ACE.Database.SQLFormatters.World
             if (input.WeeniePropertiesSpellBook != null && input.WeeniePropertiesSpellBook.Count > 0)
             {
                 writer.WriteLine();
-                CreateSQLINSERTStatement(input.ClassId, input.WeeniePropertiesSpellBook.OrderBy(r => r.Spell).ToList(), writer);
+                CreateSQLINSERTStatement(input.ClassId, input.WeeniePropertiesSpellBook.ToList(), writer);
             }
 
             if (input.WeeniePropertiesEventFilter != null && input.WeeniePropertiesEventFilter.Count > 0)
@@ -260,7 +260,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `weenie_properties_float` (`object_Id`, `type`, `value`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{weenieClassID}, {input[i].Type.ToString().PadLeft(3)}, {input[i].Value.ToString(CultureInfo.InvariantCulture).PadLeft(7)}) /* {Enum.GetName(typeof(PropertyFloat), input[i].Type)} */");
+            var lineGenerator = new Func<int, string>(i => $"{weenieClassID}, {input[i].Type.ToString().PadLeft(3)}, {input[i].Value.ToString("0.###", CultureInfo.InvariantCulture).PadLeft(7)}) /* {Enum.GetName(typeof(PropertyFloat), input[i].Type)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -286,7 +286,7 @@ namespace ACE.Database.SQLFormatters.World
                 if (propertyValueDescription != null)
                     comment += " - " + propertyValueDescription;
 
-                return $"{weenieClassID}, {input[i].Type.ToString().PadLeft(3)}, {input[i].Value.ToString().PadLeft(10)}) /* {comment} */";
+                return $"{weenieClassID}, {input[i].Type.ToString().PadLeft(3)}, {(((PropertyDataId)input[i].Type).IsHexData() ? $"{("0x" + input[i].Value.ToString("X8")).PadLeft(10)}" : $"{input[i].Value.ToString().PadLeft(10)}")}) /* {comment} */";
             });
 
             ValuesWriter(input.Count, lineGenerator, writer);
@@ -296,7 +296,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `weenie_properties_position` (`object_Id`, `position_Type`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{weenieClassID}, {(uint)input[i].PositionType}, {input[i].ObjCellId}, {input[i].OriginX}, {input[i].OriginY}, {input[i].OriginZ}, {input[i].AnglesW}, {input[i].AnglesX}, {input[i].AnglesY}, {input[i].AnglesZ}) /* {Enum.GetName(typeof(PositionType), input[i].PositionType)} */" + Environment.NewLine + $"/* @teleloc 0x{input[i].ObjCellId:X8} [{input[i].OriginX:F6} {input[i].OriginY:F6} {input[i].OriginZ:F6}] {input[i].AnglesW:F6} {input[i].AnglesX:F6} {input[i].AnglesY:F6} {input[i].AnglesZ:F6} */");
+            var lineGenerator = new Func<int, string>(i => $"{weenieClassID}, {(uint)input[i].PositionType}, 0x{input[i].ObjCellId:X8}, {TrimNegativeZero(input[i].OriginX):0.######}, {TrimNegativeZero(input[i].OriginY):0.######}, {TrimNegativeZero(input[i].OriginZ):0.######}, {TrimNegativeZero(input[i].AnglesW):0.######}, {TrimNegativeZero(input[i].AnglesX):0.######}, {TrimNegativeZero(input[i].AnglesY):0.######}, {TrimNegativeZero(input[i].AnglesZ):0.######}) /* {Enum.GetName(typeof(PositionType), input[i].PositionType)} */" + Environment.NewLine + $"/* @teleloc 0x{input[i].ObjCellId:X8} [{TrimNegativeZero(input[i].OriginX):F6} {TrimNegativeZero(input[i].OriginY):F6} {TrimNegativeZero(input[i].OriginZ):F6}] {TrimNegativeZero(input[i].AnglesW):F6} {TrimNegativeZero(input[i].AnglesX):F6} {TrimNegativeZero(input[i].AnglesY):F6} {TrimNegativeZero(input[i].AnglesZ):F6} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -305,7 +305,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `weenie_properties_i_i_d` (`object_Id`, `type`, `value`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{weenieClassID}, {input[i].Type.ToString().PadLeft(3)}, {input[i].Value.ToString().PadLeft(10)}) /* {Enum.GetName(typeof(PropertyInstanceId), input[i].Type)} */");
+            var lineGenerator = new Func<int, string>(i => $"{weenieClassID}, {input[i].Type.ToString().PadLeft(3)}, {("0x" + input[i].Value.ToString("X8")).PadLeft(10)}) /* {Enum.GetName(typeof(PropertyInstanceId), input[i].Type)} */");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -398,7 +398,7 @@ namespace ACE.Database.SQLFormatters.World
                 if (SpellNames != null)
                     SpellNames.TryGetValue((uint)input[i].Spell, out label);
 
-                return $"{weenieClassID}, {input[i].Spell.ToString().PadLeft(5)}, {input[i].Probability.ToString(CultureInfo.InvariantCulture).PadLeft(6)})  /* {label} */";
+                return $"{weenieClassID}, {input[i].Spell.ToString().PadLeft(5)}, {input[i].Probability.ToString("0.######", CultureInfo.InvariantCulture).PadLeft(6)})  /* {label} */";
             });
 
             ValuesWriter(input.Count, lineGenerator, writer);
@@ -467,14 +467,14 @@ namespace ACE.Database.SQLFormatters.World
                 var output = "VALUES (" +
                              $"{weenieClassID}, " +
                              $"{value.Category.ToString().PadLeft(2)}{categoryLabel}, " +
-                             $"{value.Probability.ToString(CultureInfo.InvariantCulture).PadLeft(6)}, " +
+                             $"{value.Probability.ToString("0.######", CultureInfo.InvariantCulture).PadLeft(6)}, " +
                              $"{value.WeenieClassId}{weenieClassIdLabel}, " +
-                             $"{value.Style}{styleLabel}, " +
-                             $"{value.Substyle}{substyleLabel}, " +
+                             $"{(value.Style.HasValue ? "0x" : "")}{value.Style:X8}{styleLabel}, " +
+                             $"{(value.Substyle.HasValue ? "0x" : "")}{value.Substyle:X8}{substyleLabel}, " +
                              $"{GetSQLString(value.Quest)}, " +
                              $"{value.VendorType}{vendorTypeLabel}, " +
-                             $"{value.MinHealth}, " +
-                             $"{value.MaxHealth}" +
+                             $"{value.MinHealth:0.######}, " +
+                             $"{value.MaxHealth:0.######}" +
                              ");";
 
                 output = FixNullFields(output);
@@ -555,16 +555,117 @@ namespace ACE.Database.SQLFormatters.World
                 string telelocLabel = null;
                 if (input[i].ObjCellId.HasValue && input[i].ObjCellId.Value > 0)
                 {
-                    telelocLabel = $" /* @teleloc 0x{input[i].ObjCellId.Value:X8} [{input[i].OriginX.Value:F6} {input[i].OriginY.Value:F6} {input[i].OriginZ.Value:F6}] {input[i].AnglesW.Value:F6} {input[i].AnglesX.Value:F6} {input[i].AnglesY.Value:F6} {input[i].AnglesZ.Value:F6} */";
+                    telelocLabel = $" /* @teleloc 0x{input[i].ObjCellId.Value:X8} [{TrimNegativeZero(input[i].OriginX.Value):F6} {TrimNegativeZero(input[i].OriginY.Value):F6} {TrimNegativeZero(input[i].OriginZ.Value):F6}] {TrimNegativeZero(input[i].AnglesW.Value):F6} {TrimNegativeZero(input[i].AnglesX.Value):F6} {TrimNegativeZero(input[i].AnglesY.Value):F6} {TrimNegativeZero(input[i].AnglesZ.Value):F6} */";
+                }
+
+                string statLabel = null;
+                if (input[i].Stat.HasValue)
+                {
+                    switch ((EmoteType)input[i].Type)
+                    {
+                        case EmoteType.AwardLevelProportionalSkillXP:
+                        case EmoteType.AwardSkillPoints:
+                        case EmoteType.AwardSkillXP:
+
+                        case EmoteType.InqSkillStat:
+                        case EmoteType.InqRawSkillStat:
+                        case EmoteType.InqSkillTrained:
+                        case EmoteType.InqSkillSpecialized:
+                        case EmoteType.UntrainSkill:
+                            statLabel = $" /* Skill.{(Skill)input[i].Stat.Value} */";
+                            break;
+
+                        case EmoteType.DecrementIntStat:
+                        case EmoteType.IncrementIntStat:
+                        case EmoteType.InqIntStat:
+                        case EmoteType.SetIntStat:
+                            statLabel = $" /* PropertyInt.{(PropertyInt)input[i].Stat.Value} */";
+                            break;
+
+                        case EmoteType.InqAttributeStat:
+                        case EmoteType.InqRawAttributeStat:
+                            statLabel = $" /* PropertyAttribute.{(PropertyAttribute)input[i].Stat.Value} */";
+                            break;
+
+                        case EmoteType.InqBoolStat:
+                        case EmoteType.SetBoolStat:
+                            statLabel = $" /* PropertyBool.{(PropertyBool)input[i].Stat.Value} */";
+                            break;
+
+                        case EmoteType.InqFloatStat:
+                        case EmoteType.SetFloatStat:
+                            statLabel = $" /* PropertyFloat.{(PropertyFloat)input[i].Stat.Value} */";
+                            break;
+
+                        case EmoteType.InqInt64Stat:
+                        case EmoteType.SetInt64Stat:
+                            statLabel = $" /* PropertyInt64.{(PropertyInt64)input[i].Stat.Value} */";
+                            break;
+
+                        case EmoteType.InqSecondaryAttributeStat:
+                        case EmoteType.InqRawSecondaryAttributeStat:
+                            statLabel = $" /* PropertyAttribute2nd.{(PropertyAttribute2nd)input[i].Stat.Value} */";
+                            break;
+
+                        case EmoteType.InqStringStat:
+                            statLabel = $" /* PropertyString.{(PropertyString)input[i].Stat.Value} */";
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+
+                string amountLabel = null;
+                if (input[i].Amount.HasValue)
+                {
+                    switch ((EmoteType)input[i].Type)
+                    {
+                        case EmoteType.AddCharacterTitle:
+                            amountLabel = $" /* {(CharacterTitle)input[i].Amount.Value} */";
+                            break;
+
+                        case EmoteType.AddContract:
+                        case EmoteType.RemoveContract:
+                            amountLabel = $" /* {(ContractId)input[i].Amount.Value} */";
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+
+                string treasureClassLabel = null;
+                if (input[i].TreasureClass.HasValue)
+                {
+                    treasureClassLabel = Enum.GetName(typeof(TreasureClass), input[i].TreasureClass.Value);
+                    if (treasureClassLabel != null)
+                        treasureClassLabel = $" /* {treasureClassLabel} */";
+                }
+
+                string treasureTypeLabel = null;
+                if (input[i].TreasureType.HasValue)
+                {
+                    treasureTypeLabel = Enum.GetName(typeof(TreasureType), input[i].TreasureType.Value);
+                    if (treasureTypeLabel != null)
+                        treasureTypeLabel = $" /* {treasureTypeLabel} */";
+                }
+
+                string paletteLabel = null;
+                if (input[i].Palette.HasValue)
+                {
+                    paletteLabel = Enum.GetName(typeof(PaletteTemplate), input[i].Palette.Value);
+                    if (paletteLabel != null)
+                        paletteLabel = $" /* {paletteLabel} */";
                 }
 
                 return
                     "@parent_id, " +
                     $"{input[i].Order.ToString().PadLeft(2)}, " +
                     $"{input[i].Type.ToString().PadLeft(3)}{typeLabel}, " +
-                    $"{input[i].Delay}, " +
-                    $"{input[i].Extent}, " +
-                    $"{input[i].Motion}{motionLabel}, " +
+                    $"{input[i].Delay:0.######}, " +
+                    $"{input[i].Extent:0.######}, " +
+                    $"{(input[i].Motion.HasValue ? "0x" : "")}{input[i].Motion:X8}{motionLabel}, " +
                     $"{GetSQLString(input[i].Message)}, " +
                     $"{GetSQLString(input[i].TestString)}, " +
                     $"{input[i].Min}, " +
@@ -573,32 +674,32 @@ namespace ACE.Database.SQLFormatters.World
                     $"{input[i].Max64}, " +
                     $"{input[i].MinDbl}, " +
                     $"{input[i].MaxDbl}, " +
-                    $"{input[i].Stat}, " +
+                    $"{input[i].Stat}{statLabel}, " +
                     $"{input[i].Display}, " +
-                    $"{input[i].Amount}, " +
+                    $"{input[i].Amount}{amountLabel}, " +
                     $"{input[i].Amount64}, " +
                     $"{input[i].HeroXP64}, " +
                     $"{input[i].Percent}, " +
                     $"{input[i].SpellId}{spellIdLabel}, " +
                     $"{input[i].WealthRating}, " +
-                    $"{input[i].TreasureClass}, " +
-                    $"{input[i].TreasureType}, " +
+                    $"{input[i].TreasureClass}{treasureClassLabel}, " +
+                    $"{input[i].TreasureType}{treasureTypeLabel}, " +
                     $"{input[i].PScript}{pScriptLabel}, " +
                     $"{input[i].Sound}{soundLabel}, " +
                     $"{input[i].DestinationType}{destinationTypeLabel}, " +
                     $"{input[i].WeenieClassId}{weenieClassIdLabel}, " +
                     $"{input[i].StackSize}, " +
-                    $"{input[i].Palette}, " +
-                    $"{input[i].Shade}, " +
+                    $"{input[i].Palette}{paletteLabel}, " +
+                    $"{input[i].Shade:0.######}, " +
                     $"{input[i].TryToBond}, " +
-                    $"{input[i].ObjCellId}{telelocLabel}, " +
-                    $"{input[i].OriginX}, " +
-                    $"{input[i].OriginY}, " +
-                    $"{input[i].OriginZ}, " +
-                    $"{input[i].AnglesW}, " +
-                    $"{input[i].AnglesX}, " +
-                    $"{input[i].AnglesY}, " +
-                    $"{input[i].AnglesZ})";
+                    $"{(input[i].ObjCellId.HasValue ? "0x" : "")}{input[i].ObjCellId:X8}{telelocLabel}, " +
+                    $"{TrimNegativeZero(input[i].OriginX):0.######}, " +
+                    $"{TrimNegativeZero(input[i].OriginY):0.######}, " +
+                    $"{TrimNegativeZero(input[i].OriginZ):0.######}, " +
+                    $"{TrimNegativeZero(input[i].AnglesW):0.######}, " +
+                    $"{TrimNegativeZero(input[i].AnglesX):0.######}, " +
+                    $"{TrimNegativeZero(input[i].AnglesY):0.######}, " +
+                    $"{TrimNegativeZero(input[i].AnglesZ):0.######})";
             });
 
             ValuesWriter(input.Count, lineGenerator, writer);
@@ -623,7 +724,7 @@ namespace ACE.Database.SQLFormatters.World
                     label = "nothing";
                 }
 
-                return $"{weenieClassID}, {input[i].DestinationType}, {input[i].WeenieClassId.ToString().PadLeft(5)}, {input[i].StackSize.ToString().PadLeft(2)}, {input[i].Palette}, {input[i].Shade}, {input[i].TryToBond}) /* Create {label ?? "Unknown"} for {Enum.GetName(typeof(DestinationType), input[i].DestinationType)} */";
+                return $"{weenieClassID}, {input[i].DestinationType}, {input[i].WeenieClassId.ToString().PadLeft(5)}, {input[i].StackSize.ToString().PadLeft(2)}, {input[i].Palette}, {input[i].Shade:0.######}, {input[i].TryToBond}) /* Create {label ?? "Unknown"} for {Enum.GetName(typeof(DestinationType), input[i].DestinationType)} */";
             });
 
             ValuesWriter(input.Count, lineGenerator, writer);
@@ -640,7 +741,7 @@ namespace ACE.Database.SQLFormatters.World
         {
             writer.WriteLine("INSERT INTO `weenie_properties_book_page_data` (`object_Id`, `page_Id`, `author_Id`, `author_Name`, `author_Account`, `ignore_Author`, `page_Text`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{weenieClassID}, {input[i].PageId}, {input[i].AuthorId}, {GetSQLString(input[i].AuthorName)}, {GetSQLString(input[i].AuthorAccount)}, {input[i].IgnoreAuthor}, {GetSQLString(input[i].PageText)})");
+            var lineGenerator = new Func<int, string>(i => $"{weenieClassID}, {input[i].PageId}, 0x{input[i].AuthorId:X8}, {GetSQLString(input[i].AuthorName)}, {GetSQLString(input[i].AuthorAccount)}, {input[i].IgnoreAuthor}, {GetSQLString(input[i].PageText)})");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }
@@ -666,24 +767,24 @@ namespace ACE.Database.SQLFormatters.World
                 }
 
                 return  $"{weenieClassID}, " +
-                        $"{input[i].Probability}, " +
+                        $"{input[i].Probability:0.######}, " +
                         $"{input[i].WeenieClassId}, " +
-                        $"{input[i].Delay}, " +
+                        $"{input[i].Delay:0.######}, " +
                         $"{input[i].InitCreate}, " +
                         $"{input[i].MaxCreate}, " +
                         $"{input[i].WhenCreate}, " +
                         $"{input[i].WhereCreate}, " +
                         $"{input[i].StackSize}, " +
                         $"{input[i].PaletteId}, " +
-                        $"{input[i].Shade}, " +
-                        $"{input[i].ObjCellId}, " +
-                        $"{input[i].OriginX}, " +
-                        $"{input[i].OriginY}, " +
-                        $"{input[i].OriginZ}, " +
-                        $"{input[i].AnglesW}, " +
-                        $"{input[i].AnglesX}, " +
-                        $"{input[i].AnglesY}, " +
-                        $"{input[i].AnglesZ})" +
+                        $"{input[i].Shade:0.######}, " +
+                        $"{(input[i].ObjCellId > 0 ? $"0x{input[i].ObjCellId:X8}" : $"{input[i].ObjCellId}")}, " +
+                        $"{TrimNegativeZero(input[i].OriginX):0.######}, " +
+                        $"{TrimNegativeZero(input[i].OriginY):0.######}, " +
+                        $"{TrimNegativeZero(input[i].OriginZ):0.######}, " +
+                        $"{TrimNegativeZero(input[i].AnglesW):0.######}, " +
+                        $"{TrimNegativeZero(input[i].AnglesX):0.######}, " +
+                        $"{TrimNegativeZero(input[i].AnglesY):0.######}, " +
+                        $"{TrimNegativeZero(input[i].AnglesZ):0.######})" +
                         $" /* Generate {label} (x{input[i].InitCreate:N0} up to max of {input[i].MaxCreate:N0}) - Regenerate upon {Enum.GetName(typeof(RegenerationType), input[i].WhenCreate)} - Location to (re)Generate: {Enum.GetName(typeof(RegenLocationType), input[i].WhereCreate)} */";
             });
             ValuesWriter(input.Count, lineGenerator, writer);

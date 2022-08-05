@@ -23,16 +23,27 @@ namespace ACE.Server.Entity
             // ie., can monsters still level up from skill usage, or killing players?
             // it was possible on release, but i think they might have removed that feature?
 
+            if (player.IsOlthoiPlayer)
+                return;
+
             // ensure skill is at least trained
             if (skill.AdvancementClass < SkillAdvancementClass.Trained)
                 return;
 
-            var last_difficulty = skill.BiotaPropertiesSkill.ResistanceAtLastCheck;
-            var last_used_time = skill.BiotaPropertiesSkill.LastUsedTime;
+            var last_difficulty = skill.PropertiesSkill.ResistanceAtLastCheck;
+            var last_used_time = skill.PropertiesSkill.LastUsedTime;
 
             var currentTime = Time.GetUnixTime();
 
             var timeDiff = currentTime - last_used_time;
+
+            if (timeDiff < 0)
+            {
+                // can happen if server clock is rewound back in time
+                log.Warn($"Proficiency.OnSuccessUse({player.Name}, {skill.Skill}, {difficulty}) - timeDiff: {timeDiff}");
+                skill.PropertiesSkill.LastUsedTime = currentTime;       // update to prevent log spam
+                return;
+            }
 
             var difficulty_check = difficulty > last_difficulty;
             var time_check = timeDiff >= FullTime.TotalSeconds;
@@ -51,8 +62,8 @@ namespace ACE.Server.Entity
                     // any rng involved?
                 }
 
-                skill.BiotaPropertiesSkill.ResistanceAtLastCheck = difficulty;
-                skill.BiotaPropertiesSkill.LastUsedTime = currentTime;
+                skill.PropertiesSkill.ResistanceAtLastCheck = difficulty;
+                skill.PropertiesSkill.LastUsedTime = currentTime;
 
                 player.ChangesDetected = true;
 
@@ -63,7 +74,7 @@ namespace ACE.Server.Entity
 
                 if (totalXPGranted > 10000)
                 {
-                    log.Warn($"Proficiency.OnSuccessUse({player.Name}, {skill.Skill}, {difficulty})");
+                    log.Warn($"Proficiency.OnSuccessUse({player.Name}, {skill.Skill}, {difficulty}) - totalXPGranted: {totalXPGranted:N0}");
                 }
 
                 var maxLevel = Player.GetMaxLevel();

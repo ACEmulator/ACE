@@ -1,9 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -26,8 +30,39 @@ namespace ACE.Server.WorldObjects
         private const double ageUpdateInterval = 7;
         private double nextAgeUpdateTime;
 
+        private double houseRentWarnTimestamp;
+        private const double houseRentWarnInterval = 3600;
+
         public void Player_Tick(double currentUnixTime)
         {
+            if (CharacterSaveFailed)
+            {
+                // Boot the player as their Character object is not saving properly
+                if (!IsLoggingOut)
+                {
+                    log.Error($"{Session.Player.Name} | 0x{Guid} | Account: {Account.AccountName} - disconnected for CharacterSaveFailed");
+                    //Session.SendCharacterError(CharacterError.AccountLogin); // forces client to error screen
+                    Session.Terminate(SessionTerminationReason.CharacterSaveFailed, new GameMessageCharacterError(CharacterError.AccountLogin));
+                    //Session.LogOffPlayer(true);
+                    CharacterSaveFailed = false;
+                }
+                return;
+            }
+
+            if (BiotaSaveFailed)
+            {
+                // Boot the player as their Biota object is not saving properly
+                if (!IsLoggingOut)
+                {
+                    log.Error($"{Session.Player.Name} | 0x{Guid} | Account: {Account.AccountName} - disconnected for BiotaSaveFailed");
+                    //Session.SendCharacterError(CharacterError.AccountLogin); // forces client to error screen
+                    Session.Terminate(SessionTerminationReason.BiotaSaveFailed, new GameMessageCharacterError(CharacterError.AccountLogin));
+                    //Session.LogOffPlayer(true);
+                    BiotaSaveFailed = false;
+                }
+                return;
+            }
+
             actionQueue.RunActions();
 
             if (nextAgeUpdateTime <= currentUnixTime)
@@ -50,6 +85,22 @@ namespace ACE.Server.WorldObjects
             {
                 Fellowship.OnVitalUpdate(this);
                 FellowVitalUpdate = false;
+            }
+
+            if (House != null && PropertyManager.GetBool("house_rent_enabled").Item)
+            {
+                if (houseRentWarnTimestamp > 0 && currentUnixTime > houseRentWarnTimestamp)
+                {
+                    HouseManager.GetHouse(House.Guid.Full, (house) =>
+                    {
+                        if (house != null && house.HouseStatus == HouseStatus.Active && !house.SlumLord.IsRentPaid())
+                            Session.Network.EnqueueSend(new GameMessageSystemChat($"Warning!  You have not paid your maintenance costs for the last {(house.IsApartment ? "90" : "30")} day maintenance period.  Please pay these costs by this deadline or you will lose your house, and all your items within it.", ChatMessageType.Broadcast));
+                    });
+
+                    houseRentWarnTimestamp = Time.GetFutureUnixTime(houseRentWarnInterval);
+                }
+                else if (houseRentWarnTimestamp == 0)
+                    houseRentWarnTimestamp = Time.GetFutureUnixTime(houseRentWarnInterval);
             }
         }
 
@@ -95,7 +146,7 @@ namespace ACE.Server.WorldObjects
         public static float MaxSpeed = 50;
         public static float MaxSpeedSq = MaxSpeed * MaxSpeed;
 
-        public static bool DebugPlayerMoveToStatePhysics = false;
+        public static bool DebugPlayerMoveToStatePhysics { get; set; } = false;
 
         /// <summary>
         /// Flag indicates if player is doing full physics simulation
@@ -255,8 +306,13 @@ namespace ACE.Server.WorldObjects
                     RequestedLocation = null;
                 }
 
-                if (FastTick && PhysicsObj.IsMovingOrAnimating)
+                if (FastTick && PhysicsObj.IsMovingOrAnimating || PhysicsObj.Velocity != Vector3.Zero)
+                {
                     UpdatePlayerPhysics();
+
+                    if (MoveToParams?.Callback != null && !PhysicsObj.IsMovingOrAnimating)
+                        HandleMoveToCallback();
+                }
 
                 InUpdate = false;
 
@@ -286,25 +342,50 @@ namespace ACE.Server.WorldObjects
             // sync ace position?
             Location.Rotation = PhysicsObj.Position.Frame.Orientation;
 
+            if (!FastTick) return;
+
+            // ensure PKLogout position is synced up for other players
+            if (PKLogout)
+            {
+                EnqueueBroadcast(new GameMessageUpdateMotion(this, new Motion(MotionStance.NonCombat, MotionCommand.Ready)));
+                PhysicsObj.StopCompletely(true);
+
+                if (!PhysicsObj.IsMovingOrAnimating)
+                {
+                    SyncLocation();
+                    EnqueueBroadcast(new GameMessageUpdatePosition(this));
+                }
+            }
+
             // this fixes some differences between client movement (DoMotion/StopMotion) and server movement (apply_raw_movement)
             //
             // scenario: start casting a self-spell, and then immediately start holding the run forward key during the windup
             // on client: player will start running forward after the cast has completed
             // on server: player will stand still
-            //
-            if (!PhysicsObj.IsMovingOrAnimating && LastMoveToState != null)
+
+            // this block of code can improve the sync between these 2 methods,
+            // however there are some bugs that originate in acclient that cannot be resolved on the server
+            // for example, equip a wand, and then start running forward in non-combat mode. switch to magic combat mode, and then release forward during the stance swap
+            // the client will never send a 'client released forward' MoveToState in this scenario unfortunately.
+            // because of this, it's better to have the 'client blip forward' bug without it, than to have the client invisibly running forward on the server.
+            // commenting out this block because of this...
+
+            /*if (!PhysicsObj.IsMovingOrAnimating && LastMoveToState != null)
             {
                 // apply latest MoveToState, if applicable
                 //if ((LastMoveToState.RawMotionState.Flags & (RawMotionFlags.ForwardCommand | RawMotionFlags.SideStepCommand | RawMotionFlags.TurnCommand)) != 0)
-                if ((LastMoveToState.RawMotionState.Flags & RawMotionFlags.ForwardCommand) != 0)
+                if ((LastMoveToState.RawMotionState.Flags & RawMotionFlags.ForwardCommand) != 0 && LastMoveToState.RawMotionState.ForwardHoldKey == HoldKey.Invalid)
                 {
                     if (DebugPlayerMoveToStatePhysics)
                         Console.WriteLine("Re-applying movement: " + LastMoveToState.RawMotionState.Flags);
 
                     OnMoveToState(LastMoveToState);
+
+                    // re-broadcast MoveToState to other clients only
+                    EnqueueBroadcast(false, new GameMessageUpdateMotion(this, CurrentMovementData));
                 }
                 LastMoveToState = null;
-            }
+            }*/
 
             if (MagicState.IsCasting && MagicState.PendingTurnRelease)
                 CheckTurn();
@@ -338,7 +419,7 @@ namespace ACE.Server.WorldObjects
             // pre-validate movement
             if (!ValidateMovement(newPosition))
             {
-                log.Error($"{Name}.UpdatePlayerPhysics() - movement pre-validation failed from {Location} to {newPosition}");
+                log.Error($"{Name}.UpdatePlayerPosition() - movement pre-validation failed from {Location} to {newPosition}");
                 return false;
             }
 
@@ -396,18 +477,25 @@ namespace ACE.Server.WorldObjects
                                 PhysicsObj.CurCell = curCell;
                             }
 
-                            if (verifyContact && !PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+                            if (verifyContact && IsJumping)
                             {
-                                log.Warn($"z-pos hacking detected for {Name}, lastGroundPos: {LastGroundPos.ToLOCString()} - requestPos: {newPosition.ToLOCString()}");
-                                Location = new ACE.Entity.Position(LastGroundPos);
-                                Sequences.GetNextSequence(SequenceType.ObjectForcePosition);
-                                SendUpdatePosition();
-                                return false;
+                                var blockDist = PhysicsObj.GetBlockDist(newPosition.Cell, LastGroundPos.Cell);
+
+                                if (blockDist <= 1)
+                                {
+                                    log.Warn($"z-pos hacking detected for {Name}, lastGroundPos: {LastGroundPos.ToLOCString()} - requestPos: {newPosition.ToLOCString()}");
+                                    Location = new ACE.Entity.Position(LastGroundPos);
+                                    Sequences.GetNextSequence(SequenceType.ObjectForcePosition);
+                                    SendUpdatePosition();
+                                    return false;
+                                }
                             }
 
                             CheckMonsters();
                         }
                     }
+                    else
+                        PhysicsObj.Position.Frame.Orientation = newPosition.Rotation;
                 }
 
                 // double update path: landblock physics update -> updateplayerphysics() -> update_object_server() -> Teleport() -> updateplayerphysics() -> return to end of original branch
@@ -438,13 +526,19 @@ namespace ACE.Server.WorldObjects
                 {
                     var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
                     ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Player_Tick_UpdateObjectPhysics, elapsedSeconds);
-                    if (elapsedSeconds >= 1) // Yea, that ain't good....
-                        log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPhysics() at loc: {Location}");
+                    if (elapsedSeconds >= 0.100) // Yea, that ain't good....
+                        log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPosition() at loc: {Location}");
                     else if (elapsedSeconds >= 0.010)
-                        log.Debug($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPhysics() at loc: {Location}");
+                        log.Debug($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPosition() at loc: {Location}");
                 }
             }
         }
+
+        private static HashSet<uint> buggedCells = new HashSet<uint>()
+        {
+            0xD6990112,
+            0xD599012C
+        };
 
         public bool ValidateMovement(ACE.Entity.Position newPosition)
         {
@@ -454,7 +548,10 @@ namespace ACE.Server.WorldObjects
             if (!Teleporting && Location.Landblock != newPosition.Cell >> 16)
             {
                 if ((Location.Cell & 0xFFFF) >= 0x100 && (newPosition.Cell & 0xFFFF) >= 0x100)
-                    return false;
+                {
+                    if (!buggedCells.Contains(Location.Cell) || !buggedCells.Contains(newPosition.Cell))
+                        return false;
+                }
 
                 if (CurrentLandblock.IsDungeon)
                 {
@@ -526,101 +623,92 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void ManaConsumersTick()
         {
-            if (!EquippedObjectsLoaded)
-                return;
+            if (!EquippedObjectsLoaded) return;
 
-            var EquippedManaConsumers = EquippedObjects.Where(k =>
-                (k.Value.IsAffecting ?? false) &&
-                //k.Value.ManaRate.HasValue &&
-                k.Value.ItemMaxMana.HasValue &&
-                k.Value.ItemCurMana.HasValue &&
-                k.Value.ItemCurMana.Value > 0).ToList();
-
-            foreach (var k in EquippedManaConsumers)
+            foreach (var item in EquippedObjects.Values)
             {
-                var item = k.Value;
-
-                // this was a bug in lootgen until 7/11/2019, mostly for clothing/armor/shields
-                // tons of existing items on servers are in this bugged state, where they aren't ticking mana.
-                // this retroactively fixes them when equipped
-                // items such as Impious Staff are excluded from this via IsAffecting
-
-                if (item.ManaRate == null)
-                {
-                    item.ManaRate = LootGenerationFactory.GetManaRate(item);
-                    log.Warn($"{Name}.ManaConsumersTick(): {k.Value.Name} ({k.Value.Guid}) fixed missing ManaRate");
-                }
-
-                var rate = item.ManaRate.Value;
-
-                if (LumAugItemManaUsage != 0)
-                    rate *= GetNegativeRatingMod(LumAugItemManaUsage * 5);
-
-                if (!item.ItemManaConsumptionTimestamp.HasValue) item.ItemManaConsumptionTimestamp = DateTime.UtcNow;
-                DateTime mostRecentBurn = item.ItemManaConsumptionTimestamp.Value;
-
-                var timePerBurn = -1 / rate;
-
-                var secondsSinceLastBurn = (DateTime.UtcNow - mostRecentBurn).TotalSeconds;
-
-                var delta = secondsSinceLastBurn / timePerBurn;
-
-                var deltaChopped = (int)Math.Floor(delta);
-                var deltaExtra = delta - deltaChopped;
-
-                if (deltaChopped <= 0)
+                if (!item.IsAffecting)
                     continue;
 
-                var timeToAdd = (int)Math.Floor(deltaChopped * timePerBurn);
-                item.ItemManaConsumptionTimestamp = mostRecentBurn + new TimeSpan(0, 0, timeToAdd);
-                var manaToBurn = Math.Min(item.ItemCurMana.Value, deltaChopped);
-                deltaChopped = Math.Clamp(deltaChopped, 0, 10);
-                item.ItemCurMana -= deltaChopped;
+                if (item.ItemCurMana == null || item.ItemMaxMana == null || item.ManaRate == null)
+                    continue;
 
-                if (item.ItemCurMana < 1 || item.ItemCurMana == null)
-                {
-                    item.IsAffecting = false;
-                    var msg = new GameMessageSystemChat($"Your {item.Name} is out of Mana.", ChatMessageType.Magic);
-                    var sound = new GameMessageSound(Guid, Sound.ItemManaDepleted);
-                    Session.Network.EnqueueSend(msg, sound);
-                    if (item.WielderId != null)
-                    {
-                        if (item.Biota.BiotaPropertiesSpellBook != null)
-                        {
-                            // unsure if these messages / sounds were ever sent in retail,
-                            // or if it just purged the enchantments invisibly
-                            // doing a delay here to prevent 'SpellExpired' sounds from overlapping with 'ItemManaDepleted'
-                            var actionChain = new ActionChain();
-                            actionChain.AddDelaySeconds(2.0f);
-                            actionChain.AddAction(this, () =>
-                            {
-                                for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
-                                {
-                                    RemoveItemSpell(item, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
-                                }
-                            });
-                            actionChain.EnqueueChain();
-                        }
-                    }
-                }
+                var burnRate = -item.ManaRate.Value;
+
+                if (LumAugItemManaUsage != 0)
+                    burnRate *= GetNegativeRatingMod(LumAugItemManaUsage * 5);
+
+                item.ItemManaRateAccumulator += (float)(burnRate * CachedHeartbeatInterval);
+
+                if (item.ItemManaRateAccumulator < 1)
+                    continue;
+
+                var manaToBurn = (int)Math.Floor(item.ItemManaRateAccumulator);
+
+                if (manaToBurn > item.ItemCurMana)
+                    manaToBurn = item.ItemCurMana.Value;
+
+                item.ItemCurMana -= manaToBurn;
+
+                item.ItemManaRateAccumulator -= manaToBurn;
+
+                if (item.ItemCurMana > 0)
+                    CheckLowMana(item, burnRate);
                 else
-                {
-                    // get time until empty
-                    var secondsUntilEmpty = ((item.ItemCurMana - deltaExtra) * timePerBurn);
-                    if (secondsUntilEmpty <= 120 && (!item.ItemManaDepletionMessageTimestamp.HasValue || (DateTime.UtcNow - item.ItemManaDepletionMessageTimestamp.Value).TotalSeconds > 120))
-                    {
-                        item.ItemManaDepletionMessageTimestamp = DateTime.UtcNow;
-                        Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {item.Name} is low on Mana.", ChatMessageType.Magic));
-                    }
-                }
+                    HandleManaDepleted(item);
             }
+        }
+
+        private bool CheckLowMana(WorldObject item, double burnRate)
+        {
+            const int lowManaWarningSeconds = 120;
+
+            var secondsUntilEmpty = item.ItemCurMana / burnRate;
+
+            if (secondsUntilEmpty > lowManaWarningSeconds)
+            {
+                item.ItemManaDepletionMessage = false;
+                return false;
+            }
+            if (!item.ItemManaDepletionMessage)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {item.Name} is low on Mana.", ChatMessageType.Magic));
+                item.ItemManaDepletionMessage = true;
+            }
+            return true;
+        }
+
+        private void HandleManaDepleted(WorldObject item)
+        {
+            var msg = new GameMessageSystemChat($"Your {item.Name} is out of Mana.", ChatMessageType.Magic);
+            var sound = new GameMessageSound(Guid, Sound.ItemManaDepleted);
+            Session.Network.EnqueueSend(msg, sound);
+
+            // unsure if these messages / sounds were ever sent in retail,
+            // or if it just purged the enchantments invisibly
+            // doing a delay here to prevent 'SpellExpired' sounds from overlapping with 'ItemManaDepleted'
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(2.0f);
+            actionChain.AddAction(this, () =>
+            {
+                foreach (var spellId in item.Biota.GetKnownSpellsIds(item.BiotaDatabaseLock))
+                    RemoveItemSpell(item, (uint)spellId);
+            });
+            actionChain.EnqueueChain();
+
+            item.OnSpellsDeactivated();
         }
 
         public override void HandleMotionDone(uint motionID, bool success)
         {
             //Console.WriteLine($"{Name}.HandleMotionDone({(MotionCommand)motionID}, {success})");
 
-            if (FastTick && MagicState.IsCasting)
+            if (!FastTick) return;
+
+            if (FoodState.IsChugging)
+                HandleMotionDone_UseConsumable(motionID, success);
+
+            if (MagicState.IsCasting)
                 HandleMotionDone_Magic(motionID, success);
         }
     }

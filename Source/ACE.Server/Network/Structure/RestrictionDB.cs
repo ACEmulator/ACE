@@ -15,7 +15,7 @@ namespace ACE.Server.Network.Structure
     {
         public uint HouseOwner;
         public uint Version = 0x10000002;   // If high word is not 0, this value indicates the version of the message.
-        public uint OpenStatus;             // 0 = private dwelling, 1 = open to public
+        public bool OpenStatus;             // 0 = private dwelling, 1 = open to public
         public ObjectGuid MonarchID;        // Allegiance monarch (if allegiance access granted)
         public Dictionary<ObjectGuid, uint> Table;  // Set of permissions on a per user basis. Key is the character id,
                                                     // value is 0 = dwelling access only, 1 = storage access as well
@@ -34,7 +34,7 @@ namespace ACE.Server.Network.Structure
 
             HouseOwner = house.HouseOwner ?? 0;
 
-            OpenStatus = Convert.ToUInt32(house.OpenStatus);
+            OpenStatus = house.OpenStatus;
 
             if (house.MonarchId != null)
                 MonarchID = new ObjectGuid(house.MonarchId.Value);      // for allegiance guest/storage access
@@ -60,7 +60,12 @@ namespace ACE.Server.Network.Structure
             var accountPlayers = Player.GetAccountPlayers(owner.Account.AccountId);
 
             foreach (var accountPlayer in accountPlayers)
+            {
+                if (accountPlayer.Guid.Full == HouseOwner)
+                    continue;
+
                 Table.TryAdd(accountPlayer.Guid, 1);
+            }
         }
     }
 
@@ -69,30 +74,33 @@ namespace ACE.Server.Network.Structure
         public static void Write(this BinaryWriter writer, RestrictionDB restrictions)
         {
             writer.Write(restrictions.Version);
-            writer.Write(restrictions.OpenStatus);
+            writer.Write(Convert.ToUInt32(restrictions.OpenStatus));
             writer.Write(restrictions.MonarchID.Full);
             writer.Write(restrictions.Table);
         }
 
+        private static readonly ushort headerNumBuckets = 768;  // this # of buckets was sent over the wire in retail header
+                                                                // however, this value ends up being unused, and the "real" # of buckets originates
+                                                                // from a hardcoded value in g_bucketSizeArray in the client constant data
+
+        private static readonly ushort actualNumBuckets = 89;   // in RestrictionDB constructor in acclient,
+                                                                // client uses PHashTable for this (as opposed to the typical PackableHashTable)
+
+                                                                // which inits an IntrusiveHashTable with size 64
+                                                                // this gets bumped up to the next largest value in a hardcoded g_bucketSizeArray, which is 89
+
+        private static readonly GuidComparer guidComparer = new GuidComparer(actualNumBuckets);
+
         public static void Write(this BinaryWriter writer, Dictionary<ObjectGuid, uint> db)
         {
-            //PHashTable.WriteHeader(writer, db.Count);
+            PackableHashTable.WriteHeader(writer, db.Count, headerNumBuckets);
 
-            writer.Write((ushort)db.Count);
-            writer.Write((ushort)768);  // from retail pcaps, TODO: determine how this is calculated
+            var sorted = new SortedDictionary<ObjectGuid, uint>(db, guidComparer);
 
-            // reorder
-            var _db = new List<Tuple<ObjectGuid, uint>>();
-            foreach (var entry in db)
-                _db.Add(new Tuple<ObjectGuid, uint>(entry.Key, entry.Value));
-
-            // sort by client function - hashKey % tableSize - how it gets tableSize 89 from 768, no idea
-            _db = _db.OrderBy(i => i.Item1.Full % 89).ToList();
-
-            foreach (var entry in _db)
+            foreach (var kvp in sorted)
             {
-                writer.Write(entry.Item1.Full);
-                writer.Write(entry.Item2);
+                writer.Write(kvp.Key.Full);
+                writer.Write(kvp.Value);
             }
         }
     }

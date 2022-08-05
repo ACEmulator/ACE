@@ -109,13 +109,13 @@ namespace ACE.Server.Physics.Common
                 // todo: Instead of ACE.Server.Entity.Landblock.Unload() calling this function, it should be calling PhysicsLandblock.Unload()
                 // todo: which would then call AdjustCell.AdjustCells.Remove()
 
-                AdjustCell.AdjustCells.Remove(landblockID >> 16);
+                AdjustCell.AdjustCells.TryRemove(landblockID >> 16, out _);
                 return true;
             }
 
             var result = Landblocks.TryRemove(landblockID, out _);
             // todo: Like mentioned above, the following function should be moved to ACE.Server.Physics.Common.Landblock.Unload()
-            AdjustCell.AdjustCells.Remove(landblockID >> 16);
+            AdjustCell.AdjustCells.TryRemove(landblockID >> 16, out _);
             return result;
         }
 

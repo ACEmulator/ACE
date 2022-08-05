@@ -14,6 +14,14 @@ namespace ACE.DatLoader.Entity
         public AnimationHookType HookType { get; private set; }
         public AnimationHookDir Direction { get; private set; }
 
+        public static AnimationHook AnimDoneHook;
+
+        static AnimationHook()
+        {
+            AnimDoneHook = new AnimationHook();
+            AnimDoneHook.HookType = AnimationHookType.AnimationDone;
+        }
+
         /// <summary>
         /// WARNING: If you're reading a hook from the dat, you should use AnimationHook.ReadHook(reader).
         /// If you read a hook from the dat using this function, it is likely you will not read all the data correctly.

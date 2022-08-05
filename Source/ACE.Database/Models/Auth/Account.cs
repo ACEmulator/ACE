@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#nullable disable
+
 namespace ACE.Database.Models.Auth
 {
     public partial class Account
@@ -21,6 +23,6 @@ namespace ACE.Database.Models.Auth
         public DateTime? BanExpireTime { get; set; }
         public string BanReason { get; set; }
 
-        public Accesslevel AccessLevelNavigation { get; set; }
+        public virtual Accesslevel AccessLevelNavigation { get; set; }
     }
 }

@@ -18,12 +18,16 @@ namespace ACE.Server.Entity
 
         public bool IsPlayer => Guid.IsPlayer();
 
+        public readonly bool IsOlthoiPlayer;
+
         public DamageHistoryInfo(WorldObject attacker, float totalDamage = 0.0f)
         {
             Attacker = new WeakReference<WorldObject>(attacker);
 
             Guid = attacker.Guid;
             Name = attacker.Name;
+
+            IsOlthoiPlayer = attacker is Player player && player.IsOlthoiPlayer;
 
             TotalDamage = totalDamage;
 
@@ -43,6 +47,14 @@ namespace ACE.Server.Entity
             PetOwner.TryGetTarget(out var petOwner);
 
             return petOwner;
+        }
+
+        public WorldObject TryGetPetOwnerOrAttacker()
+        {
+            if (PetOwner != null)
+                return TryGetPetOwner();
+            else
+                return TryGetAttacker();
         }
     }
 }

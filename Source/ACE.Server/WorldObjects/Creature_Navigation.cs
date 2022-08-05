@@ -124,12 +124,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sends a TurnToObject command to the client
         /// </summary>
-        public void TurnToObject(WorldObject target, bool stopCompletely = false)
+        public void TurnToObject(WorldObject target, bool stopCompletely = true)
         {
             var turnToMotion = new Motion(this, target, MovementType.TurnToObject);
 
-            if (stopCompletely)
-                turnToMotion.MoveToParameters.MovementParameters |= MovementParams.StopCompletely;
+            if (!stopCompletely)
+                turnToMotion.MoveToParameters.MovementParameters &= ~MovementParams.StopCompletely;
 
             EnqueueBroadcastMotion(turnToMotion);
         }
@@ -163,10 +163,12 @@ namespace ACE.Server.WorldObjects
                 if (target == null || target.Location == null)
                     return;
 
-                var matchIndoors = Location.Indoors == target.Location.Indoors;
+                //var matchIndoors = Location.Indoors == target.Location.Indoors;
 
-                var globalLoc = matchIndoors ? Location.ToGlobal() : Location.Pos;
-                var targetLoc = matchIndoors ? target.Location.ToGlobal() : target.Location.Pos;
+                //var globalLoc = matchIndoors ? Location.ToGlobal() : Location.Pos;
+                //var targetLoc = matchIndoors ? target.Location.ToGlobal() : target.Location.Pos;
+                var globalLoc = Location.ToGlobal();
+                var targetLoc = target.Location.ToGlobal();
 
                 var targetDir = GetDirection(globalLoc, targetLoc);
 
@@ -230,6 +232,7 @@ namespace ACE.Server.WorldObjects
             {
                 var targetDir = position.GetCurrentDir();
                 Location.Rotate(targetDir);
+                PhysicsObj.Position.Frame.Orientation = Location.Rotation;
             });
             actionChain.EnqueueChain();
 
@@ -301,10 +304,8 @@ namespace ACE.Server.WorldObjects
         public Motion GetMoveToMotion(WorldObject target, float runRate)
         {
             var motion = new Motion(this, target, MovementType.MoveToObject);
-            motion.MoveToParameters.MovementParameters |= MovementParams.CanCharge | MovementParams.FailWalk | MovementParams.UseFinalHeading | MovementParams.Sticky | MovementParams.MoveAway | MovementParams.StopCompletely;
+            motion.MoveToParameters.MovementParameters |= MovementParams.CanCharge | MovementParams.FailWalk | MovementParams.UseFinalHeading | MovementParams.Sticky | MovementParams.MoveAway;
             motion.MoveToParameters.WalkRunThreshold = 1.0f;
-
-            // TODO: check distanceToObject sync
 
             if (runRate > 0)
                 motion.RunRate = runRate;
@@ -339,17 +340,52 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void MoveTo(Position position, float runRate = 1.0f, bool setLoc = true, float? walkRunThreshold = null, float? speed = null)
         {
+            // build and send MoveToPosition message to client
             var motion = GetMoveToPosition(position, runRate, walkRunThreshold, speed);
-
-            // todo: use physics MoveToManager
-            // todo: handle landblock updates
-            if (setLoc)
-            {
-                Location = new Position(position);
-                PhysicsObj.SetPositionSimple(new Physics.Common.Position(position), true);
-            }
-
             EnqueueBroadcastMotion(motion);
+
+            if (!setLoc) return;
+
+            // start executing MoveTo iterator on server
+            if (!PhysicsObj.IsMovingOrAnimating)
+                PhysicsObj.UpdateTime = Physics.Common.PhysicsTimer.CurrentTime;
+
+            var mvp = new MovementParameters(motion.MoveToParameters);
+            PhysicsObj.MoveToPosition(new Physics.Common.Position(position), mvp);
+
+            AddMoveToTick();
+        }
+
+        private void AddMoveToTick()
+        {
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(monsterTickInterval);
+            actionChain.AddAction(this, () =>
+            {
+                if (!IsDead && PhysicsObj?.MovementManager?.MoveToManager != null && PhysicsObj.IsMovingTo())
+                {
+                    PhysicsObj.update_object();
+                    UpdatePosition_SyncLocation();
+                    SendUpdatePosition();
+
+                    if (PhysicsObj?.MovementManager?.MoveToManager?.FailProgressCount < 5)
+                    {
+                        AddMoveToTick();
+                    }
+                    else
+                    {
+                        if (PhysicsObj?.MovementManager?.MoveToManager != null)
+                        {
+                            PhysicsObj.MovementManager.MoveToManager.CancelMoveTo(WeenieError.ActionCancelled);
+                            PhysicsObj.MovementManager.MoveToManager.FailProgressCount = 0;
+                        }
+                        EnqueueBroadcastMotion(new Motion(CurrentMotionState.Stance, MotionCommand.Ready));
+                    }
+
+                    //Console.WriteLine($"{Name}.Position: {Location}");
+                }
+            });
+            actionChain.EnqueueChain();
         }
 
         public Motion GetMoveToPosition(Position position, float runRate = 1.0f, float? walkRunThreshold = null, float? speed = null)
@@ -376,6 +412,40 @@ namespace ACE.Server.WorldObjects
                 motion.MoveToParameters.MovementParameters &= ~MovementParams.CanRun;
 
             return motion;
+        }
+
+        /// <summary>
+        /// For monsters only -- blips to a new position within the same landblock
+        /// </summary>
+        public void FakeTeleport(Position _newPosition)
+        {
+            var newPosition = new Position(_newPosition);
+
+            newPosition.PositionZ += 0.005f * (ObjScale ?? 1.0f);
+
+            if (Location.Landblock != newPosition.Landblock)
+            {
+                log.Error($"{Name} tried to teleport from {Location} to a different landblock {newPosition}");
+                return;
+            }
+
+            // force out of hotspots
+            PhysicsObj.report_collision_end(true);
+
+            //HandlePreTeleportVisibility(newPosition);
+
+            // do the physics teleport
+            var setPosition = new Physics.Common.SetPosition();
+            setPosition.Pos = new Physics.Common.Position(newPosition);
+            setPosition.Flags = Physics.Common.SetPositionFlags.SendPositionEvent | Physics.Common.SetPositionFlags.Slide | Physics.Common.SetPositionFlags.Placement | Physics.Common.SetPositionFlags.Teleport;
+
+            PhysicsObj.SetPosition(setPosition);
+
+            // update ace location
+            SyncLocation();
+
+            // broadcast blip to new position
+            SendUpdatePosition(true);
         }
     }
 }

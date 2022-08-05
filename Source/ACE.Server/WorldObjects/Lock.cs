@@ -1,6 +1,8 @@
 using System;
 using System.Diagnostics;
 
+using log4net;
+
 using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Entity.Enum;
@@ -28,33 +30,86 @@ namespace ACE.Server.WorldObjects
     }
     public class UnlockerHelper
     {
-        public static void ConsumeUnlocker(Player player, WorldObject unlocker)
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public static void ConsumeUnlocker(Player player, WorldObject unlocker, WorldObject target, bool success)
         {
             // is Sonic Screwdriver supposed to be consumed on use?
             // it doesn't have a Structure, and it doesn't have PropertyBool.UnlimitedUse
-            if (unlocker.Structure == null || (unlocker.GetProperty(PropertyBool.UnlimitedUse) ?? false))
+
+            var unlimitedUses = unlocker.Structure == null || (unlocker.GetProperty(PropertyBool.UnlimitedUse) ?? false);
+            var isLockpick = unlocker.WeenieType == WeenieType.Lockpick;
+
+            var msg = "";
+            if (isLockpick)
             {
-                player.SendUseDoneEvent();
-                return;
+                if (success)
+                    msg = "You have successfully picked the lock!  It is now unlocked.\n ";
+                else
+                    msg = "You have failed to pick the lock.  It is still locked.  ";
             }
-
-            unlocker.Structure--;
-            if (unlocker.Structure < 1)
-                player.TryConsumeFromInventoryWithNetworking(unlocker, 1);
-
-            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
-            player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(unlocker, PropertyInt.Structure, (int)unlocker.Structure));
-
-            var unlockerType = unlocker is Lockpick ? "lockpick" : "key";
-            if (unlocker.Structure < 1)
+            else if (success)
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {unlockerType} is used up.", ChatMessageType.Broadcast));
+                msg = $"The {target.Name} has been unlocked.\n";
             }
             else
             {
-                var usePlural = unlocker.Structure == 1 ? "use" : "uses";
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {unlockerType} has {unlocker.Structure} {usePlural} left.", ChatMessageType.Broadcast));
+                msg = $"The {target.Name} is still locked.\n";
             }
+
+            if (!unlimitedUses)
+            {
+                msg += $"Your {(isLockpick ? "lockpicks" : "key")} ";
+
+                if (unlocker.Structure > 0)
+                    unlocker.Structure--;
+                else
+                    unlocker.Structure = 0;
+
+                if (unlocker.Structure == 0)
+                {
+                    msg += $"{(isLockpick ? "are" : "is")} used up.";
+                }
+                else
+                {
+                    msg += $"{(isLockpick ? "have" : "has")} {unlocker.Structure} use{(unlocker.Structure > 1 ? "s" : "")} left.";
+                }
+            }
+
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+            if (!unlimitedUses)
+            {
+                if (unlocker.Structure == 0)
+                {
+                    if (!player.TryConsumeFromInventoryWithNetworking(unlocker, 1))
+                        log.Warn($"UnlockerHelper.ConsumeUnlocker: TryConsumeFromInventoryWithNetworking failed for {unlocker.Name} (0x{unlocker.Guid}:{unlocker.WeenieClassId}), used on {target.Name} (0x{target.Guid}:{target.WeenieClassId}) and used by {player.Name} (0x{player.Guid})");
+                }
+                else
+                {
+                    player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(unlocker, PropertyInt.Structure, (int)unlocker.Structure));
+                }
+            }
+            player.SendUseDoneEvent();
+        }
+        public static uint GetEffectiveLockpickSkill(Player player, WorldObject unlocker)
+        {
+            var lockpickSkill = player.GetCreatureSkill(Skill.Lockpick).Current;
+
+            var additiveBonus = unlocker.GetProperty(PropertyInt.LockpickMod) ?? 0;
+            var multiplicativeBonus = unlocker.GetProperty(PropertyFloat.LockpickMod) ?? 1.0f;
+
+            // is this really 10x bonus, or +10% bonus?
+            if (multiplicativeBonus > 1.0f)
+                multiplicativeBonus = 1.0f + multiplicativeBonus * 0.01f;
+
+            var effectiveSkill = (int)Math.Round(lockpickSkill * multiplicativeBonus + additiveBonus);
+
+            effectiveSkill = Math.Max(0, effectiveSkill);
+
+            //Console.WriteLine($"Base skill: {lockpickSkill}");
+            //Console.WriteLine($"Effective skill: {effectiveSkill}");
+
+            return (uint)effectiveSkill;
         }
         public static void UseUnlocker(Player player, WorldObject unlocker, WorldObject target)
         {
@@ -74,7 +129,10 @@ namespace ACE.Server.WorldObjects
                     UnlockResults result = UnlockResults.IncorrectKey;
                     var difficulty = 0;
                     if (unlocker.WeenieType == WeenieType.Lockpick)
-                        result = @lock.Unlock(player.Guid.Full, player.Skills[Skill.Lockpick].Current, ref difficulty);
+                    {
+                        var effectiveLockpickSkill = GetEffectiveLockpickSkill(player, unlocker);
+                        result = @lock.Unlock(player.Guid.Full, effectiveLockpickSkill, ref difficulty);
+                    }
                     else if (unlocker is Key woKey)
                     {
                         if (target is Door woDoor)
@@ -94,17 +152,15 @@ namespace ACE.Server.WorldObjects
 
                             if (unlocker.WeenieType == WeenieType.Lockpick)
                             {
-                                player.HandleActionApplySoundEffect(Sound.Lockpicking);// Sound.Lockpicking doesn't work via EnqueueBroadcastSound for some reason.
-
-                                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully picked the lock! It is now unlocked.", ChatMessageType.Broadcast));
+                                // the source guid for this sound must be the player, else the sound will not play
+                                // which differs from PicklockFail and LockSuccess being in the target sound table
+                                player.EnqueueBroadcast(new GameMessageSound(player.Guid, Sound.Lockpicking, 1.0f));
 
                                 var lockpickSkill = player.GetCreatureSkill(Skill.Lockpick);
                                 Proficiency.OnSuccessUse(player, lockpickSkill, difficulty);
                             }
-                            else
-                                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} has been unlocked.", ChatMessageType.Broadcast));
 
-                            ConsumeUnlocker(player, unlocker);
+                            ConsumeUnlocker(player, unlocker, target, true);
                             break;
 
                         case UnlockResults.Open:
@@ -115,7 +171,7 @@ namespace ACE.Server.WorldObjects
                             break;
                         case UnlockResults.PickLockFailed:
                             target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.PicklockFail, 1.0f));
-                            ConsumeUnlocker(player, unlocker);
+                            ConsumeUnlocker(player, unlocker, target, false);
                             break;
                         case UnlockResults.CannotBePicked:
                             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouCannotLockOrUnlockThat));
@@ -242,7 +298,7 @@ namespace ACE.Server.WorldObjects
 #endif
 
             var dice = ThreadSafeRandom.Next(0.0f, 1.0f);
-            if (dice > pickChance)
+            if (dice >= pickChance)
                 return UnlockResults.PickLockFailed;
 
             target.IsLocked = false;

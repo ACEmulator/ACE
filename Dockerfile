@@ -1,10 +1,8 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /Source
 
-# copy csproj and restore as distinct layers (credit: https://code-maze.com/aspnetcore-app-dockerfiles/)
+# copy csproj and restore as distinct layers
 COPY ./Source/*.sln ./
-#COPY ./Source/*/*.csproj ./
-#RUN for file in $(ls *.csproj); do mkdir -p ./${file%.*}/ && mv $file ./${file%.*}/; done
 COPY ./Source/ACE.Adapter/*.csproj ./ACE.Adapter/
 COPY ./Source/ACE.Common/*.csproj ./ACE.Common/
 COPY ./Source/ACE.Database/*.csproj ./ACE.Database/
@@ -22,7 +20,7 @@ COPY . ../.
 RUN dotnet publish ./ACE.Server/ACE.Server.csproj -c release -o /ace --no-restore
 
 # final stage/image
-FROM mcr.microsoft.com/dotnet/core/runtime:3.1-buster-slim
+FROM mcr.microsoft.com/dotnet/runtime:6.0-bullseye-slim
 ARG DEBIAN_FRONTEND="noninteractive"
 WORKDIR /ace
 

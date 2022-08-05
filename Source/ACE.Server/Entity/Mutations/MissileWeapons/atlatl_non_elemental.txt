@@ -1,0 +1,203 @@
+Atlatl (MissileWeapons) Mutation #1 (383 samples):
+
+Tier chances: 1, 0, 0, 0, 0, 0, 0, 0
+
+    - Chance: 8%:
+        DamageMod = 1.7
+
+    - Chance: 10%:
+        DamageMod = 1.8
+
+    - Chance: 25%:
+        DamageMod = 1.9
+
+    - Chance: 20%:
+        DamageMod = 2
+
+    - Chance: 15%:
+        DamageMod = 2.1
+
+    - Chance: 12%:
+        DamageMod = 2.2
+
+    - Chance: 10%:
+        DamageMod = 2.3
+
+Atlatl (MissileWeapons) Mutation #2 (671 samples):
+
+Tier chances: 0, 1, 0, 0, 0, 0, 0, 0
+
+    - Chance: 5%:
+        DamageMod = 1.8
+
+    - Chance: 7%:
+        DamageMod = 1.9
+
+    - Chance: 12%:
+        DamageMod = 2
+
+    - Chance: 13%:
+        DamageMod = 2.1
+
+    - Chance: 8%:
+        DamageMod = 2.2
+
+    - Chance: 5%:
+        DamageMod = 2.3
+
+    - Chance: 10%:
+        DamageMod = 2.33
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 20%:
+        DamageMod = 2.35
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 15%:
+        DamageMod = 2.37
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 5%:
+        DamageMod = 2.4
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+Atlatl (MissileWeapons) Mutation #3 (608 samples):
+
+Tier chances: 0, 0, 1, 0, 0, 0, 0, 0
+
+    - Chance: 10%:
+        DamageMod = 2.33
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 20%:
+        DamageMod = 2.35
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 15%:
+        DamageMod = 2.37
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 5%:
+        DamageMod = 2.4
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 10%:
+        DamageMod = 2.43
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 270
+
+    - Chance: 20%:
+        DamageMod = 2.45
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 270
+
+    - Chance: 15%:
+        DamageMod = 2.47
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 270
+
+    - Chance: 5%:
+        DamageMod = 2.5
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 270
+
+Atlatl (MissileWeapons) Mutation #4 (1,370 samples):
+
+Tier chances: 0, 0, 0, 1, 0, 0, 0, 0
+
+    - Chance: 10%:
+        DamageMod = 2.43
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 270
+
+    - Chance: 20%:
+        DamageMod = 2.45
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 270
+
+    - Chance: 15%:
+        DamageMod = 2.47
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 270
+
+    - Chance: 5%:
+        DamageMod = 2.5
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 270
+
+    - Chance: 10%:
+        DamageMod = 2.53
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 290
+
+    - Chance: 20%:
+        DamageMod = 2.55
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 290
+
+    - Chance: 15%:
+        DamageMod = 2.57
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 290
+
+    - Chance: 5%:
+        DamageMod = 2.6
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 290
+
+Atlatl (MissileWeapons) Mutation #5 (1,267 samples):
+
+Tier chances: 0, 0, 0, 0, 1, 1, 1, 1
+
+    - Chance: 15%:
+        DamageMod = 2.53
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 290
+
+    - Chance: 35%:
+        DamageMod = 2.55
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 290
+
+    - Chance: 35%:
+        DamageMod = 2.57
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 290
+
+    - Chance: 15%:
+        DamageMod = 2.6
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 290
+

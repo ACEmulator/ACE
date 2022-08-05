@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using log4net;
+
 using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
@@ -53,17 +55,6 @@ namespace ACE.Server.Managers
             }
         }
 
-        public ICollection<CharacterPropertiesQuestRegistry> Quests
-        {
-            get
-            {
-                if (Creature is Player player)
-                    return player.Character.CharacterPropertiesQuestRegistry;
-                else
-                    return runtimeQuests;
-            }
-        }
-
         public static bool Debug = false;
 
         /// <summary>
@@ -80,6 +71,20 @@ namespace ACE.Server.Managers
         public QuestManager(Fellowship fellowship)
         {
             Fellowship = fellowship;
+        }
+
+        /// <summary>
+        /// This will return a clone of the quests collection. You should not mutate the results.
+        /// This is mostly used for information/debugging
+        /// </summary>
+        /// <returns></returns>
+        public ICollection<CharacterPropertiesQuestRegistry> GetQuests()
+        {
+            if (Creature is Player player)
+                return player.Character.GetQuests(player.CharacterDatabaseLock);
+
+            // Not a player
+            return runtimeQuests;
         }
 
         /// <summary>
@@ -129,40 +134,61 @@ namespace ACE.Server.Managers
         /// </summary>
         public CharacterPropertiesQuestRegistry GetQuest(string questName)
         {
-            return Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
+            if (Creature is Player player)
+                return player.Character.GetQuest(questName, player.CharacterDatabaseLock);
+
+            // Not a player
+            return runtimeQuests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private CharacterPropertiesQuestRegistry GetOrCreateQuest(string questName, out bool questRegistryWasCreated)
+        {
+            if (Creature is Player player)
+                return player.Character.GetOrCreateQuest(questName, player.CharacterDatabaseLock, out questRegistryWasCreated);
+
+            // Not a player
+            var existing = runtimeQuests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
+
+            if (existing == null)
+            {
+                existing = new CharacterPropertiesQuestRegistry
+                {
+                    QuestName = questName,
+                };
+
+                runtimeQuests.Add(existing);
+
+                questRegistryWasCreated = true;
+            }
+            else
+                questRegistryWasCreated = false;
+
+            return existing;
         }
 
         /// <summary>
         /// Adds or updates a quest completion to the player's registry
         /// </summary>
-        public void Update(string quest)
+        public void Update(string questFormat)
         {
-            var questName = GetQuestName(quest);
+            var questName = GetQuestName(questFormat);
 
-            var existing = Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
+            var quest = GetOrCreateQuest(questName, out var questRegistryWasCreated);
 
-            if (existing == null)
+            if (questRegistryWasCreated)
             {
-                // add new quest entry
-                var info = new CharacterPropertiesQuestRegistry
-                {
-                    QuestName = questName,
-                    //CharacterId = Player.Guid.Full,
-                    LastTimeCompleted = (uint)Time.GetUnixTime(),
-                    NumTimesCompleted = 1   // initial add / first solve
-                };
+                quest.LastTimeCompleted = (uint) Time.GetUnixTime();
+                quest.NumTimesCompleted = 1; // initial add / first solve
 
-                info.CharacterId = IDtoUseForQuestRegistry;
+                quest.CharacterId = IDtoUseForQuestRegistry;
 
                 if (Debug) Console.WriteLine($"{Name}.QuestManager.Update({quest}): added quest");
-
-                Quests.Add(info);
 
                 if (Creature is Player player)
                 {
                     player.CharacterChangesDetected = true;
 
-                    player.ContractManager.NotifyOfQuestUpdate(info.QuestName);
+                    player.ContractManager.NotifyOfQuestUpdate(quest.QuestName);
                 }
             }
             else
@@ -174,16 +200,16 @@ namespace ACE.Server.Managers
                 }
 
                 // update existing quest
-                existing.LastTimeCompleted = (uint)Time.GetUnixTime();
-                existing.NumTimesCompleted++;
+                quest.LastTimeCompleted = (uint)Time.GetUnixTime();
+                quest.NumTimesCompleted++;
 
-                if (Debug) Console.WriteLine($"{Name}.QuestManager.Update({quest}): updated quest ({existing.NumTimesCompleted})");
+                if (Debug) Console.WriteLine($"{Name}.QuestManager.Update({quest}): updated quest ({quest.NumTimesCompleted})");
 
                 if (Creature is Player player)
                 {
                     player.CharacterChangesDetected = true;
 
-                    player.ContractManager.NotifyOfQuestUpdate(existing.QuestName);
+                    player.ContractManager.NotifyOfQuestUpdate(quest.QuestName);
                 }
             }
         }
@@ -199,45 +225,37 @@ namespace ACE.Server.Managers
 
             var numTimesCompleted = maxSolves > -1 ? Math.Min(questCompletions, maxSolves) : Math.Abs(questCompletions);
 
-            var existing = Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
+            var quest = GetOrCreateQuest(questName, out var questRegistryWasCreated);
 
-            if (existing == null)
+            if (questRegistryWasCreated)
             {
-                // add new quest entry
-                var info = new CharacterPropertiesQuestRegistry
-                {
-                    QuestName = questName,
-                    //CharacterId = Player.Guid.Full,
-                    LastTimeCompleted = (uint)Time.GetUnixTime(),
-                    NumTimesCompleted = numTimesCompleted   // initialize the quest to the given completions
-                };
+                quest.LastTimeCompleted = (uint) Time.GetUnixTime();
+                quest.NumTimesCompleted = numTimesCompleted; // initialize the quest to the given completions
 
-                info.CharacterId = IDtoUseForQuestRegistry;
+                quest.CharacterId = IDtoUseForQuestRegistry;
 
-                if (Debug) Console.WriteLine($"{Name}.QuestManager.SetQuestCompletions({questFormat}): initialized quest to {info.NumTimesCompleted}");
-
-                Quests.Add(info);
+                if (Debug) Console.WriteLine($"{Name}.QuestManager.SetQuestCompletions({questFormat}): initialized quest to {quest.NumTimesCompleted}");
 
                 if (Creature is Player player)
                 {
                     player.CharacterChangesDetected = true;
 
-                    player.ContractManager.NotifyOfQuestUpdate(info.QuestName);
+                    player.ContractManager.NotifyOfQuestUpdate(quest.QuestName);
                 }
             }
             else
             {
                 // update existing quest
-                existing.LastTimeCompleted = (uint)Time.GetUnixTime();
-                existing.NumTimesCompleted = numTimesCompleted;
+                quest.LastTimeCompleted = (uint)Time.GetUnixTime();
+                quest.NumTimesCompleted = numTimesCompleted;
 
-                if (Debug) Console.WriteLine($"{Name}.QuestManager.SetQuestCompletions({questFormat}): initialized quest to {existing.NumTimesCompleted}");
+                if (Debug) Console.WriteLine($"{Name}.QuestManager.SetQuestCompletions({questFormat}): initialized quest to {quest.NumTimesCompleted}");
 
                 if (Creature is Player player)
                 {
                     player.CharacterChangesDetected = true;
 
-                    player.ContractManager.NotifyOfQuestUpdate(existing.QuestName);
+                    player.ContractManager.NotifyOfQuestUpdate(quest.QuestName);
                 }
             }
         }
@@ -299,6 +317,18 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Some quests we do not want to scale MinDelta if "quest_mindelta_rate" has been set.
+        /// They may be things that are races against time, like Colo
+        /// </summary>
+        public static bool CanScaleQuestMinDelta(Database.Models.World.Quest quest)
+        {
+            if (quest.Name.StartsWith("ColoArena"))
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
         /// Returns the time remaining until the player can solve this quest again
         /// </summary>
         public TimeSpan GetNextSolveTime(string questFormat)
@@ -317,7 +347,12 @@ namespace ACE.Server.Managers
                 return TimeSpan.MaxValue;   // cannot solve this quest again - max solves reached / exceeded
 
             var currentTime = (uint)Time.GetUnixTime();
-            var nextSolveTime = playerQuest.LastTimeCompleted + (uint)(quest.MinDelta * PropertyManager.GetDouble("quest_mindelta_rate", 1).Item);
+            uint nextSolveTime;
+
+            if (CanScaleQuestMinDelta(quest))
+                nextSolveTime = playerQuest.LastTimeCompleted + (uint)(quest.MinDelta * PropertyManager.GetDouble("quest_mindelta_rate", 1).Item);
+            else
+                nextSolveTime = playerQuest.LastTimeCompleted + quest.MinDelta;
 
             if (currentTime >= nextSolveTime)
                 return TimeSpan.MinValue;   // can solve again now - next solve time expired
@@ -329,32 +364,32 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Increment the number of times completed for a quest
         /// </summary>
-        public void Increment(string questName)
+        public void Increment(string questName, int amount = 1)
         {
-            // kill task / append # to quest name?
-            Update(questName);
+            for (var i = 0; i < amount; i++)
+                Update(questName);
         }
 
         /// <summary>
         /// Decrement the number of times completed for a quest
         /// </summary>
-        public void Decrement(string quest)
+        public void Decrement(string quest, int amount = 1)
         {
             var questName = GetQuestName(quest);
 
-            var existing = Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
+            var existing = GetQuest(questName);
 
             if (existing != null)
             {
-                if (existing.NumTimesCompleted == 0)
-                {
-                    if (Debug) Console.WriteLine($"{Name}.QuestManager.Decrement({quest}): can not Decrement existing quest. {questName}.NumTimesCompleted is already 0.");
-                    return;
-                }
+                //if (existing.NumTimesCompleted == 0)
+                //{
+                //    if (Debug) Console.WriteLine($"{Name}.QuestManager.Decrement({quest}): can not Decrement existing quest. {questName}.NumTimesCompleted is already 0.");
+                //    return;
+                //}
 
                 // update existing quest
                 existing.LastTimeCompleted = (uint)Time.GetUnixTime();
-                existing.NumTimesCompleted--;
+                existing.NumTimesCompleted -= amount;
 
                 if (Debug) Console.WriteLine($"{Name}.QuestManager.Decrement({quest}): updated quest ({existing.NumTimesCompleted})");
 
@@ -376,17 +411,21 @@ namespace ACE.Server.Managers
 
             var questName = GetQuestName(questFormat);
 
-            var quests = Quests.Where(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase)).ToList();
-            foreach (var quest in quests)
+            if (Creature is Player player)
             {
-                Quests.Remove(quest);
-
-                if (Creature is Player player)
+                if (player.Character.EraseQuest(questName, player.CharacterDatabaseLock))
                 {
                     player.CharacterChangesDetected = true;
 
-                    player.ContractManager.NotifyOfQuestUpdate(quest.QuestName);
+                    player.ContractManager.NotifyOfQuestUpdate(questName);
                 }
+            }
+            else
+            {
+                // Not a player
+                var quests = runtimeQuests.Where(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase)).ToList();
+                foreach (var quest in quests)
+                    runtimeQuests.Remove(quest);
             }
         }
 
@@ -398,16 +437,22 @@ namespace ACE.Server.Managers
             if (Debug)
                 Console.WriteLine($"{Name}.QuestManager.EraseAll");
 
-            var quests = Quests.ToList();
-            foreach (var quest in quests)
+            if (Creature is Player player)
             {
-                Quests.Remove(quest);
+                player.Character.EraseAllQuests(out var questNamesErased, player.CharacterDatabaseLock);
 
-                if (Creature is Player player)
+                if (questNamesErased.Count > 0)
                 {
                     player.CharacterChangesDetected = true;
-                    player.ContractManager.NotifyOfQuestUpdate(quest.QuestName);
+
+                    foreach (var questName in questNamesErased)
+                        player.ContractManager.NotifyOfQuestUpdate(questName);
                 }
+            }
+            else
+            {
+                // Not a player
+                runtimeQuests.Clear();
             }
         }
 
@@ -418,12 +463,15 @@ namespace ACE.Server.Managers
         {
             Console.WriteLine("ShowQuests");
 
-            if (Quests.Count == 0)
+            var quests = GetQuests();
+
+            if (quests.Count == 0)
             {
                 Console.WriteLine("No quests in progress for " + Name);
                 return;
             }
-            foreach (var quest in Quests)
+
+            foreach (var quest in quests)
             {
                 Console.WriteLine("Quest Name: " + quest.QuestName);
                 Console.WriteLine("Times Completed: " + quest.NumTimesCompleted);
@@ -530,9 +578,9 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Increments the counter for a kill task, and optionally shares with fellowship
+        /// Increments the counter for a kill task for a player
         /// </summary>
-        public void HandleKillTask(string killQuestName, WorldObject killedCreature, bool shareable = true)
+        public void HandleKillTask(string killQuestName, WorldObject killedCreature)
         {
             var player = Creature as Player;
             if (player == null) return;
@@ -554,44 +602,28 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            if (HasQuest(questName))
+            if (!HasQuest(questName))
+                return;
+
+            Stamp(killQuestName);
+
+            var playerQuest = GetQuest(questName);
+
+            if (playerQuest == null)
             {
-                Stamp(killQuestName);
-
-                var playerQuest = Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
-
-                if (playerQuest == null)
-                {
-                    // this should be impossible
-                    log.Error($"{Name}.QuestManager.HandleKillTask({killQuestName}): couldn't find kill task {questName} in player quests");
-                    return;
-                }
-
-                var msg = $"You have killed {playerQuest.NumTimesCompleted} {killedCreature.GetPluralName()}!";
-
-                if (IsMaxSolves(questName))
-                    msg += $" Your task is complete.";
-                else
-                    msg += $" You must kill {quest.MaxSolves} to complete your task.";
-
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
-            }
-            else if (PropertyManager.GetBool("fellow_kt_killer").Item)
-            {
-                // if this option is enabled (retail default), the killer is required to have kill task
-                // for it to share with fellowship
+                // this should be impossible
+                log.Error($"{Name}.QuestManager.HandleKillTask({killQuestName}): couldn't find kill task {questName} in player quests");
                 return;
             }
 
-            // is player in fellowship?
-            if (player.Fellowship != null && shareable)
-            {
-                // if so, share with fellows within range
-                var fellows = player.Fellowship.WithinRange(player);
+            var msg = $"You have killed {playerQuest.NumTimesCompleted} {killedCreature.GetPluralName()}!";
 
-                foreach (var fellow in fellows)
-                    fellow.QuestManager.HandleKillTask(killQuestName, killedCreature, false);
-            }
+            if (IsMaxSolves(questName))
+                msg += $" Your task is complete!";
+            else
+                msg += $" You must kill {quest.MaxSolves} to complete your task.";
+
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
         }
 
         /// <summary>
@@ -599,15 +631,57 @@ namespace ACE.Server.Managers
         /// </summary>
         public void OnDeath(WorldObject killer)
         {
-            var player = killer as Player;
-            if (player == null) return;
+        }
 
-            if (Creature.KillQuest != null)
-                player.QuestManager.HandleKillTask(Creature.KillQuest, Creature);
-            if (Creature.KillQuest2 != null)
-                player.QuestManager.HandleKillTask(Creature.KillQuest2, Creature);
-            if (Creature.KillQuest3 != null)
-                player.QuestManager.HandleKillTask(Creature.KillQuest3, Creature);
+        public bool HasQuestBits(string questFormat, int bits)
+        {
+            var questName = GetQuestName(questFormat);
+
+            var quest = GetQuest(questName);
+            if (quest == null) return false;
+
+            var hasQuestBits = (quest.NumTimesCompleted & bits) == bits;
+
+            if (Debug)
+                Console.WriteLine($"{Name}.QuestManager.HasQuestBits({questFormat}, 0x{bits:X}): {hasQuestBits}");
+
+            return hasQuestBits;
+        }
+
+        public bool HasNoQuestBits(string questFormat, int bits)
+        {
+            var questName = GetQuestName(questFormat);
+
+            var quest = GetQuest(questName);
+            if (quest == null) return true;
+
+            var hasNoQuestBits = (quest.NumTimesCompleted & bits) == 0;
+
+            if (Debug)
+                Console.WriteLine($"{Name}.QuestManager.HasNoQuestBits({questFormat}, 0x{bits:X}): {hasNoQuestBits}");
+
+            return hasNoQuestBits;
+        }
+
+        public void SetQuestBits(string questFormat, int bits, bool on = true)
+        {
+            var questName = GetQuestName(questFormat);
+
+            var quest = GetQuest(questName);
+
+            var questBits = 0;
+
+            if (quest != null) questBits = quest.NumTimesCompleted;
+
+            if (on)
+                questBits |= bits;
+            else
+                questBits &= ~bits;
+
+            if (Debug)
+                Console.WriteLine($"{Name}.QuestManager.SetQuestBits({questFormat}, 0x{bits:X}): {on}");
+
+            SetQuestCompletions(questFormat, questBits);
         }
     }
 }

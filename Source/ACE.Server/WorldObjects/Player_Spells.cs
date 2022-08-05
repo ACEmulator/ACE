@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
@@ -19,7 +21,7 @@ namespace ACE.Server.WorldObjects
     {
         public bool SpellIsKnown(uint spellId)
         {
-            return Biota.SpellIsKnown((int)spellId, BiotaDatabaseLock, BiotaPropertySpells);
+            return Biota.SpellIsKnown((int)spellId, BiotaDatabaseLock);
         }
 
         /// <summary>
@@ -27,7 +29,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool AddKnownSpell(uint spellId)
         {
-            Biota.GetOrAddKnownSpell((int)spellId, BiotaDatabaseLock, BiotaPropertySpells, out var spellAdded);
+            Biota.GetOrAddKnownSpell((int)spellId, BiotaDatabaseLock, out var spellAdded);
 
             if (spellAdded)
                 ChangesDetected = true;
@@ -40,7 +42,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool RemoveKnownSpell(uint spellId)
         {
-            return Biota.TryRemoveKnownSpell((int)spellId, out _, BiotaDatabaseLock, BiotaPropertySpells);
+            return Biota.TryRemoveKnownSpell((int)spellId, BiotaDatabaseLock);
         }
 
         public void LearnSpellWithNetworking(uint spellId, bool uiOutput = true)
@@ -56,16 +58,19 @@ namespace ACE.Server.WorldObjects
 
             if (!AddKnownSpell(spellId))
             {
-                GameMessageSystemChat errorMessage = new GameMessageSystemChat("That spell is already known", ChatMessageType.Broadcast);
-                Session.Network.EnqueueSend(errorMessage);
+                if (uiOutput)
+                {
+                    GameMessageSystemChat errorMessage = new GameMessageSystemChat("You already know that spell!", ChatMessageType.Broadcast);
+                    Session.Network.EnqueueSend(errorMessage);
+                }
                 return;
             }
 
             GameEventMagicUpdateSpell updateSpellEvent = new GameEventMagicUpdateSpell(Session, (ushort)spellId);
             Session.Network.EnqueueSend(updateSpellEvent);
 
-            //Check to see if we echo output to the client
-            if (uiOutput == true)
+            // Check to see if we echo output to the client text area and do playscript animation
+            if (uiOutput)
             {
                 // Always seems to be this SkillUpPurple effect
                 ApplyVisualEffects(PlayScript.SkillUpPurple);
@@ -73,6 +78,10 @@ namespace ACE.Server.WorldObjects
                 string message = $"You learn the {spells.Spells[spellId].Name} spell.\n";
                 GameMessageSystemChat learnMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
                 Session.Network.EnqueueSend(learnMessage);
+            }
+            else
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You have learned a new spell."));
             }
         }
 
@@ -103,7 +112,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionMagicRemoveSpellId(uint spellId)
         {
-            if (!Biota.TryRemoveKnownSpell((int)spellId, BiotaDatabaseLock, BiotaPropertySpells))
+            if (!Biota.TryRemoveKnownSpell((int)spellId, BiotaDatabaseLock))
             {
                 log.Error("Invalid spellId passed to Player.RemoveSpellFromSpellBook");
                 return;
@@ -130,7 +139,7 @@ namespace ACE.Server.WorldObjects
             EquipDequipItemFromSet(item, spells, prevSpells);
         }
 
-        public void EquipDequipItemFromSet(WorldObject item, List<Spell> spells, List<Spell> prevSpells)
+        public void EquipDequipItemFromSet(WorldObject item, List<Spell> spells, List<Spell> prevSpells, WorldObject surrogateItem = null)
         {
             // compare these 2 spell sets -
             // see which spells are being added, and which are being removed
@@ -143,8 +152,10 @@ namespace ACE.Server.WorldObjects
             foreach (var spell in removeSpells)
                 EnchantmentManager.Dispel(EnchantmentManager.GetEnchantment(spell.Id, item.EquipmentSetId.Value));
 
+            var addItem = surrogateItem ?? item;
+
             foreach (var spell in addSpells)
-                CreateItemSpell(item, spell.Id);
+                CreateItemSpell(addItem, spell.Id);
         }
 
         public void DequipItemFromSet(WorldObject item)
@@ -153,13 +164,25 @@ namespace ACE.Server.WorldObjects
 
             var setItems = EquippedObjects.Values.Where(i => i.HasItemSet && i.EquipmentSetId == item.EquipmentSetId).ToList();
 
+            // for better bookkeeping, and to avoid a rarish error with AuditItemSpells detecting -1 duration item enchantments where
+            // the CasterGuid is no longer in the player's possession
+            var surrogateItem = setItems.LastOrDefault();
+
             var spells = GetSpellSet(setItems);
 
             // get the spells from before / with this item
             setItems.Add(item);
             var prevSpells = GetSpellSet(setItems);
 
-            EquipDequipItemFromSet(item, spells, prevSpells);
+            if (surrogateItem == null)
+            {
+                var addSpells = spells.Except(prevSpells);
+
+                if (addSpells.Count() != 0)
+                    log.Error($"{Name}.DequipItemFromSet({item.Name}) -- last item in set dequipped, but addSpells still contains {string.Join(", ", addSpells.Select(i => i.Name))} -- this shouldn't happen!");
+            }
+
+            EquipDequipItemFromSet(item, spells, prevSpells, surrogateItem);
         }
 
         public void OnItemLevelUp(WorldObject item, int prevItemLevel)
@@ -241,20 +264,17 @@ namespace ACE.Server.WorldObjects
                     var critterBuffsForPlayer = buffsForPlayer.Where(k => k.Spell.School == MagicSchool.CreatureEnchantment).ToList();
                     var itemBuffsForPlayer = buffsForPlayer.Where(k => k.Spell.School == MagicSchool.ItemEnchantment).ToList();
 
-                    bool crit = false;
-                    uint dmg = 0;
-                    EnchantmentStatus ec;
                     lifeBuffsForPlayer.ForEach(spl =>
                     {
-                        bool casted = targetPlayer.LifeMagic(spl.Spell, out dmg, out crit, out ec, targetPlayer, this);
+                        CreateEnchantmentSilent(spl.Spell, targetPlayer);
                     });
                     critterBuffsForPlayer.ForEach(spl =>
                     {
-                        ec = targetPlayer.CreatureMagic(targetPlayer, spl.Spell, this);
+                        CreateEnchantmentSilent(spl.Spell, targetPlayer);
                     });
                     itemBuffsForPlayer.ForEach(spl =>
                     {
-                        ec = targetPlayer.ItemMagic(targetPlayer, spl.Spell, this);
+                        CreateEnchantmentSilent(spl.Spell, targetPlayer);
                     });
                 }
                 if (buffMessages.Any(k => k.Bane))
@@ -267,16 +287,26 @@ namespace ACE.Server.WorldObjects
                         foreach (var item in items)
                         {
                             if ((item.WeenieType == WeenieType.Clothing || item.IsShield) && item.IsEnchantable)
-                            {
-                                itemBuff.SetLandblockMessage(item.Guid);
-                                var enchantmentStatus = targetPlayer.ItemMagic(item, itemBuff.Spell, this);
-                                targetPlayer?.EnqueueBroadcast(itemBuff.LandblockMessage);
-                            }
+                                CreateEnchantmentSilent(itemBuff.Spell, item);
                         }
                     }
                 }
             });
         }
+
+        private void CreateEnchantmentSilent(Spell spell, WorldObject target)
+        {
+            var addResult = target.EnchantmentManager.Add(spell, this, null);
+
+            if (target is Player targetPlayer)
+            {
+                targetPlayer.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(targetPlayer.Session, new Enchantment(targetPlayer, addResult.Enchantment)));
+
+                targetPlayer.HandleSpellHooks(spell);
+            }
+        }
+
+        // TODO: switch this over to SpellProgressionTables
         private static string[] Buffs = new string[] {
 #region spells
             // @ indicates impenetrability or a bane
@@ -289,14 +319,18 @@ namespace ACE.Server.WorldObjects
             "ManaRenewal",
             "Impregnability",
             "MagicResistance",
-            "AxeMastery",    // light weapons
-            "DaggerMastery", // finesse weapons
+            //"AxeMastery",    // light weapons
+            "LightWeaponsMastery",
+            //"DaggerMastery", // finesse weapons
+            "FinesseWeaponsMastery",
             //"MaceMastery",
             //"SpearMastery",
             //"StaffMastery",
-            "SwordMastery",  // heavy weapons
+            //"SwordMastery",  // heavy weapons
+            "HeavyWeaponsMastery",
             //"UnarmedCombatMastery",
-            "BowMastery",    // missile weapons
+            //"BowMastery",    // missile weapons
+            "MissileWeaponsMastery",
             //"CrossbowMastery",
             //"ThrownWeaponMastery",
             "AcidProtection",
@@ -502,20 +536,22 @@ namespace ACE.Server.WorldObjects
             // cleans up bugged chars with dangling item set spells
             // from previous bugs
 
-            var allPossessions = GetAllPossessions().ToDictionary(i => i.Guid.Full, i => i);
+            var allPossessions = GetAllPossessions().ToDictionary(i => i.Guid, i => i);
 
             // this is a legacy method, but is still a decent failsafe to catch any existing issues
 
             // get active item enchantments
-            var enchantments = Biota.GetEnchantments(BiotaDatabaseLock).Where(i => i.Duration == -1 && i.SpellId != (int)SpellId.Vitae).ToList();
+            var enchantments = Biota.PropertiesEnchantmentRegistry.Clone(BiotaDatabaseLock).Where(i => i.Duration == -1 && i.SpellId != (int)SpellId.Vitae).ToList();
 
             foreach (var enchantment in enchantments)
             {
+                var table = enchantment.HasSpellSetId ? allPossessions : EquippedObjects;
+
                 // if this item is not equipped, remove enchantment
-                if (!allPossessions.TryGetValue(enchantment.CasterObjectId, out var item))
+                if (!table.TryGetValue(new ObjectGuid(enchantment.CasterObjectId), out var item))
                 {
                     var spell = new Spell(enchantment.SpellId, false);
-                    log.Error($"{Name}.AuditItemSpells(): removing spell {spell.Name} from non-equipped item");
+                    log.Error($"{Name}.AuditItemSpells(): removing spell {spell.Name} from {(enchantment.HasSpellSetId ? "non-possessed" : "non-equipped")} item");
 
                     EnchantmentManager.Dispel(enchantment);
                     continue;
@@ -540,7 +576,7 @@ namespace ACE.Server.WorldObjects
                 // remove any item set spells that shouldn't be active
                 foreach (var inactiveSpell in inactiveSpells)
                 {
-                    var removeSpells = enchantments.Where(i => i.SpellSetId == (uint)item.EquipmentSetId && i.SpellId == inactiveSpell.Id).ToList();
+                    var removeSpells = enchantments.Where(i => i.SpellSetId == item.EquipmentSetId && i.SpellId == inactiveSpell.Id).ToList();
 
                     foreach (var removeSpell in removeSpells)
                     {

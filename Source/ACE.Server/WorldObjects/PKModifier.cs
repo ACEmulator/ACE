@@ -13,8 +13,6 @@ using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     public class PKModifier : WorldObject
@@ -53,6 +51,12 @@ namespace ACE.Server.WorldObjects
         {
             if (!(activator is Player player))
                 return new ActivationResult(false);
+
+            if (player.IsOlthoiPlayer)
+            {
+                player.SendWeenieError(WeenieError.OlthoiCannotInteractWithThat);
+                return new ActivationResult(false);
+            }
 
             if (player.PkLevel > PKLevel.PK || PropertyManager.GetBool("pk_server").Item || PropertyManager.GetBool("pkl_server").Item)
             {

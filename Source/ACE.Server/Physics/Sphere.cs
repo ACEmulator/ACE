@@ -328,7 +328,7 @@ namespace ACE.Server.Physics
                 return TransitionState.OK;
             }
 
-            if (!isCreature)
+            if (isCreature)
                 return TransitionState.OK;
 
             if (!CollidesWithSphere(disp, radsum))
@@ -354,7 +354,7 @@ namespace ACE.Server.Physics
                 t = diff * 2 - t;
             var time = (float)t / lenSq;
             var timecheck = (1 - time) * transition.SpherePath.WalkInterp;
-            if (timecheck < transition.SpherePath.WalkableAllowance && timecheck < -0.1f)
+            if (timecheck >= transition.SpherePath.WalkInterp || timecheck < -0.1f)
                 return TransitionState.Collided;
 
             movement *= time;
@@ -411,10 +411,11 @@ namespace ACE.Server.Physics
 
             var contactPlane = collisions.ContactPlaneValid ? collisions.ContactPlane : collisions.LastKnownContactPlane;
             var skid_dir = contactPlane.Normal;
-            var direction = Vector3.Cross(skid_dir, collisionNormal);
+            //var direction = Vector3.Cross(skid_dir, collisionNormal);
+            var direction = Vector3.Cross(collisionNormal, skid_dir);
 
             var blockOffset = LandDefs.GetBlockOffset(path.CurPos.ObjCellID, path.CheckPos.ObjCellID);
-            var globOffset = globSphere.Center - Center + blockOffset;
+            var globOffset = globSphere.Center - path.GlobalCurrCenter[sphereNum].Center + blockOffset;
             var dirLenSq = direction.LengthSquared();
             if (dirLenSq >= PhysicsGlobals.EPSILON)
             {
@@ -427,7 +428,8 @@ namespace ACE.Server.Physics
                 direction = skid_dir;
 
                 // only x?
-                if (direction.X * direction.X < PhysicsGlobals.EPSILON)
+                //if (direction.X * direction.X < PhysicsGlobals.EPSILON)
+                if (direction.LengthSquared() < PhysicsGlobals.EPSILON)
                     return TransitionState.Collided;
 
                 direction -= globOffset;
@@ -535,7 +537,7 @@ namespace ACE.Server.Physics
             radsum += PhysicsGlobals.EPSILON;
             var val = Math.Sqrt(radsum * radsum - (disp.X * disp.X + disp.Y * disp.Y));
             var scaledStep = (float)(val - disp.Z) / stepDown;
-            var timecheck = -scaledStep * path.WalkInterp;
+            var timecheck = (1.0f - scaledStep) * path.WalkInterp;
             if (timecheck >= path.WalkInterp || timecheck < -0.1f)
                 return TransitionState.Collided;
 

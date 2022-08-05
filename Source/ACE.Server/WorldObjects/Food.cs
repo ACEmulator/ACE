@@ -8,8 +8,6 @@ using ACE.Server.Entity;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics;
 
-using Biota = ACE.Database.Models.Shard.Biota;
-
 namespace ACE.Server.WorldObjects
 {
     public class Food : Stackable
@@ -46,13 +44,13 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return;
 
-            if (player.IsBusy || player.Teleporting)
+            if (player.IsBusy || player.Teleporting || player.suicideInProgress)
             {
                 player.SendWeenieError(WeenieError.YoureTooBusy);
                 return;
             }
 
-            if (player.FastTick && !player.PhysicsObj.TransientState.HasFlag(TransientStateFlags.OnWalkable))
+            if (player.IsJumping)
             {
                 player.SendWeenieError(WeenieError.YouCantDoThatWhileInTheAir);
                 return;
@@ -70,6 +68,16 @@ namespace ACE.Server.WorldObjects
         public void ApplyConsumable(Player player)
         {
             if (player.IsDead) return;
+
+            // trying to use a dispel potion while pk timer is active
+            // send error message and cancel - do not consume item
+            if (SpellDID != null)
+            {
+                var spell = new Spell(SpellDID.Value);
+
+                if (spell.MetaSpellType == SpellType.Dispel && !VerifyDispelPKStatus(this, player))
+                    return;
+            }
 
             if (BoosterEnum != PropertyAttribute2nd.Undef)
             {
@@ -130,7 +138,11 @@ namespace ACE.Server.WorldObjects
 
                 return;
             }
-            TryCastSpell(spell, player);
+
+            // should be 'You cast', instead of 'Item cast'
+            // omitting the item caster here, so player is also used for enchantment registry caster,
+            // which could prevent some scenarios with spamming enchantments from multiple food sources to protect against dispels
+            player.TryCastSpell(spell, player, this, tryResist: false);
         }
 
         public Sound GetUseSound()

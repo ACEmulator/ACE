@@ -2,13 +2,13 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
 using ACE.Common;
 using ACE.Database.Adapter;
 using ACE.Database.Models.World;
+using ACE.Database.Extensions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
@@ -24,7 +24,7 @@ namespace ACE.Database
 
         private readonly ConcurrentDictionary<string /* Class Name */, uint /* WCID */> weenieClassNameToClassIdCache = new ConcurrentDictionary<string, uint>();
 
-         /// <summary>
+        /// <summary>
         /// This will populate all sub collections except the following: LandblockInstances, PointsOfInterest<para />
         /// This will also update the weenie cache.
         /// </summary>
@@ -44,25 +44,32 @@ namespace ACE.Database
             return weenie;
         }
 
+        /// <summary>
+        /// This will populate all sub collections except the following: LandblockInstances, PointsOfInterest<para />
+        /// This will also update the weenie cache.
+        /// </summary>
+        public override List<Weenie> GetAllWeenies()
+        {
+            var weenies = base.GetAllWeenies();
+
+            // Add the weenies to the cache
+            foreach (var weenie in weenies)
+            {
+                weenieCache[weenie.ClassId] = WeenieConverter.ConvertToEntityWeenie(weenie);
+                weenieClassNameToClassIdCache[weenie.ClassName.ToLower()] = weenie.ClassId;
+            }
+
+            return weenies;
+        }
+
 
         /// <summary>
         /// This will make sure every weenie in the database has been read and cached.<para />
-        /// This function may take 2+ minutes to complete.
+        /// This function may take 10+ seconds to complete.
         /// </summary>
-        public void CacheAllWeeniesInParallel()
+        public void CacheAllWeenies()
         {
-            using (var context = new WorldDbContext())
-            {
-                var results = context.Weenie
-                    .AsNoTracking()
-                    .ToList();
-
-                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
-                {
-                    if (!weenieCache.ContainsKey(result.ClassId))
-                        GetWeenie(result.ClassId); // This will add the result into the caches
-                });
-            }
+            GetAllWeenies();
 
             PopulateWeenieSpecificCaches();
         }
@@ -173,13 +180,14 @@ namespace ACE.Database
                             .Where(r => r.Type == weenieTypeId)
                             .ToList();
 
-                        var rand = new Random();
-
                         weenies = new List<ACE.Entity.Models.Weenie>();
+
+                        if (results.Count == 0)
+                            return weenies;
 
                         for (int i = 0; i < count; i++)
                         {
-                            var index = rand.Next(0, results.Count - 1);
+                            var index = ThreadSafeRandom.Next(0, results.Count - 1);
 
                             var weenie = GetCachedWeenie(results[index].ClassId);
 
@@ -198,13 +206,11 @@ namespace ACE.Database
                 return new List<ACE.Entity.Models.Weenie>();
 
             {
-                var rand = new Random();
-
                 var results = new List<ACE.Entity.Models.Weenie>();
 
                 for (int i = 0; i < count; i++)
                 {
-                    var index = rand.Next(0, weenies.Count - 1);
+                    var index = ThreadSafeRandom.Next(0, weenies.Count - 1);
 
                     var weenie = GetCachedWeenie(weenies[index].WeenieClassId);
 
@@ -230,6 +236,8 @@ namespace ACE.Database
 
                         var result = query.FirstOrDefault();
 
+                        if (result == null) return null;
+
                         weenie = WeenieConverter.ConvertToEntityWeenie(result);
 
                         scrollsBySpellID[spellID] = weenie;
@@ -240,12 +248,49 @@ namespace ACE.Database
             return weenie;
         }
 
+        private readonly ConcurrentDictionary<string, uint> creatureWeenieNamesLowerInvariantCache = new ConcurrentDictionary<string, uint>();
+
+        public bool IsCreatureNameInWorldDatabase(string name)
+        {
+            if (creatureWeenieNamesLowerInvariantCache.TryGetValue(name.ToLowerInvariant(), out _))
+                return true;
+
+            using (var context = new WorldDbContext())
+            {
+                return IsCreatureNameInWorldDatabase(context, name);
+            }
+        }
+
+        public bool IsCreatureNameInWorldDatabase(WorldDbContext context, string name)
+        {
+            var query = from weenieRecord in context.Weenie
+                        join stringProperty in context.WeeniePropertiesString on weenieRecord.ClassId equals stringProperty.ObjectId
+                        where weenieRecord.Type == (int)WeenieType.Creature && stringProperty.Type == (ushort)PropertyString.Name && stringProperty.Value == name
+                        select weenieRecord;
+
+            var weenie = query
+                .Include(r => r.WeeniePropertiesString)
+                .AsNoTracking()
+                .FirstOrDefault();
+
+            if (weenie == null)
+                return false;
+
+            var weenieName = weenie.GetProperty(PropertyString.Name).ToLowerInvariant();
+
+            creatureWeenieNamesLowerInvariantCache.TryAdd(weenieName, weenie.ClassId);
+
+            return true;
+        }
+
 
         // =====================================
         // CookBook
         // =====================================
 
         private readonly Dictionary<uint /* source WCID */, Dictionary<uint /* target WCID */, CookBook>> cookbookCache = new Dictionary<uint, Dictionary<uint, CookBook>>();
+
+        private readonly Dictionary<uint, Recipe> recipeCache = new Dictionary<uint, Recipe>();
 
         public override CookBook GetCookbook(WorldDbContext context, uint sourceWeenieClassId, uint targetWeenieClassId)
         {
@@ -264,25 +309,56 @@ namespace ACE.Database
                     cookbookCache.Add(sourceWeenieClassId, new Dictionary<uint, CookBook>() { { targetWeenieClassId, cookbook } });
             }
 
+            if (cookbook != null)
+            {
+                // build secondary index for RecipeManager_New caching
+                lock (recipeCache)
+                {
+                    if (!recipeCache.ContainsKey(cookbook.RecipeId))
+                        recipeCache.Add(cookbook.RecipeId, cookbook.Recipe);
+                }
+            }
             return cookbook;
         }
 
-        /// <summary>
-        /// This can take 1-2 minutes to complete.
-        /// </summary>
-        public void CacheAllCookbooksInParallel()
+        public override List<CookBook> GetAllCookbooks()
         {
-            using (var context = new WorldDbContext())
-            {
-                var results = context.CookBook
-                    .AsNoTracking()
-                    .ToList();
+            var cookbooks = base.GetAllCookbooks();
 
-                Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
+            // Add the cookbooks to the cache
+            lock (cookbookCache)
+            {
+                foreach (var cookbook in cookbooks)
                 {
-                    GetCookbook(result.SourceWCID, result.TargetWCID);  // This will add the result into the cache
-                });
+                    // We double check before commiting the recipe.
+                    // We could be in this lock, and queued up behind us is an attempt to add a result for the same source:target pair.
+                    if (cookbookCache.TryGetValue(cookbook.SourceWCID, out var sourceRecipes))
+                    {
+                        if (!sourceRecipes.ContainsKey(cookbook.TargetWCID))
+                            sourceRecipes.Add(cookbook.TargetWCID, cookbook);
+                    }
+                    else
+                        cookbookCache.Add(cookbook.SourceWCID, new Dictionary<uint, CookBook>() { { cookbook.TargetWCID, cookbook } });
+                }
             }
+
+            // build secondary index for RecipeManager_New caching
+            lock (recipeCache)
+            {
+                foreach (var cookbook in cookbooks)
+                {
+                    if (!recipeCache.ContainsKey(cookbook.RecipeId))
+                        recipeCache.Add(cookbook.RecipeId, cookbook.Recipe);
+                }
+            }
+
+            return cookbooks;
+        }
+
+
+        public void CacheAllCookbooks()
+        {
+            GetAllCookbooks();
         }
 
         /// <summary>
@@ -298,6 +374,9 @@ namespace ACE.Database
         {
             lock (cookbookCache)
                 cookbookCache.Clear();
+
+            lock (recipeCache)
+                recipeCache.Clear();
         }
 
         public CookBook GetCachedCookbook(uint sourceWeenieClassId, uint targetWeenieClassId)
@@ -310,10 +389,30 @@ namespace ACE.Database
                         return value;
                 }
             }
-
             return GetCookbook(sourceWeenieClassId, targetWeenieClassId);  // This will add the result into the cache
         }
 
+        public Recipe GetCachedRecipe(uint recipeId)
+        {
+            lock (recipeCache)
+            {
+                if (recipeCache.TryGetValue(recipeId, out var recipe))
+                    return recipe;
+            }
+            return GetRecipe(recipeId);  // This will add the result in the cache
+        }
+
+        public override Recipe GetRecipe(WorldDbContext context, uint recipeId)
+        {
+            var recipe = base.GetRecipe(context, recipeId);
+
+            lock (recipeCache)
+            {
+                if (!recipeCache.ContainsKey(recipeId))
+                    recipeCache.Add(recipeId, recipe);
+            }
+            return recipe;
+        }
 
         // =====================================
         // Encounter
@@ -344,6 +443,11 @@ namespace ACE.Database
                 cachedEncounters.TryAdd(landblock, results);
                 return results;
             }
+        }
+
+        public bool ClearCachedEncountersByLandblock(ushort landblock)
+        {
+            return cachedEncounters.TryRemove(landblock, out _);
         }
 
 
@@ -728,116 +832,228 @@ namespace ACE.Database
         // =====================================
 
         // The Key is the Material Code (derived from PropertyInt.TsysMaterialData)
-        // The Value is a list of all 
-        private readonly ConcurrentDictionary<int /* Material Code */, List<TreasureMaterialBase>> cachedTreasureMaterialBase = new ConcurrentDictionary<int, List<TreasureMaterialBase>>();
-
-        public void CacheAllTreasuresMaterialBaseInParallel()
+        // The Value is a list of all
+        private Dictionary<int /* Material Code */, Dictionary<int /* Tier */, List<TreasureMaterialBase>>> cachedTreasureMaterialBase;
+        
+        public void CacheAllTreasureMaterialBase()
         {
             using (var context = new WorldDbContext())
             {
-                var results = context.TreasureMaterialBase
-                    .AsNoTracking()
-                    .AsEnumerable()
-                    .GroupBy(r => r.MaterialCode);
+                var table = new Dictionary<int, Dictionary<int, List<TreasureMaterialBase>>>();
+
+                var results = context.TreasureMaterialBase.Where(i => i.Probability > 0).ToList();
 
                 foreach (var result in results)
-                    cachedTreasureMaterialBase[(int)result.Key] = result.ToList();
+                {
+                    if (!table.TryGetValue((int)result.MaterialCode, out var materialCode))
+                    {
+                        materialCode = new Dictionary<int, List<TreasureMaterialBase>>();
+                        table.Add((int)result.MaterialCode, materialCode);
+                    }
+                    if (!materialCode.TryGetValue((int)result.Tier, out var chances))
+                    {
+                        chances = new List<TreasureMaterialBase>();
+                        materialCode.Add((int)result.Tier, chances);
+                    }
+                    chances.Add(result.Clone());
+                }
+                TreasureMaterialBase_Normalize(table);
+
+                cachedTreasureMaterialBase = table;
+            }
+        }
+
+        private static readonly float NormalizeEpsilon = 0.00001f;
+
+        private void TreasureMaterialBase_Normalize(Dictionary<int, Dictionary<int, List<TreasureMaterialBase>>> materialBase)
+        {
+            foreach (var kvp in materialBase)
+            {
+                var materialCode = kvp.Key;
+                var tiers = kvp.Value;
+
+                foreach (var kvp2 in tiers)
+                {
+                    var tier = kvp2.Key;
+                    var list = kvp2.Value;
+
+                    var totalProbability = list.Sum(i => i.Probability);
+
+                    if (Math.Abs(1.0f - totalProbability) < NormalizeEpsilon)
+                        continue;
+
+                    //Console.WriteLine($"TotalProbability {totalProbability} found for TreasureMaterialBase {materialCode} tier {tier}");
+
+                    var factor = 1.0f / totalProbability;
+
+                    foreach (var item in list)
+                        item.Probability *= factor;
+
+                    /*totalProbability = list.Sum(i => i.Probability);
+
+                    Console.WriteLine($"After: {totalProbability}");*/
+                }
             }
         }
 
         public List<TreasureMaterialBase> GetCachedTreasureMaterialBase(int materialCode, int tier)
         {
-            if (cachedTreasureMaterialBase.Count == 0)
-                CacheAllTreasuresMaterialBaseInParallel();
+            if (cachedTreasureMaterialBase == null)
+                CacheAllTreasureMaterialBase();
 
-            if (cachedTreasureMaterialBase.TryGetValue(materialCode, out var value))
-            {
-                var results = value.Where(r => r.Tier == tier).Where(r => r.Probability > 0).ToList();
-                return results;
-            }
-
-            return new List<TreasureMaterialBase>();
+            if (cachedTreasureMaterialBase.TryGetValue(materialCode, out var tiers) && tiers.TryGetValue(tier, out var treasureMaterialBase))
+                return treasureMaterialBase;
+            else
+                return null;
         }
 
 
-        private readonly ConcurrentDictionary<int /* Material ID */, List<TreasureMaterialColor>> cachedTreasureMaterialColor = new ConcurrentDictionary<int, List<TreasureMaterialColor>>();
-
-        public void CacheAllTreasuresMaterialColorInParallel()
+        private Dictionary<int /* Material ID */, Dictionary<int /* Color Code */, List<TreasureMaterialColor>>> cachedTreasureMaterialColor;
+        
+        public void CacheAllTreasureMaterialColor()
         {
             using (var context = new WorldDbContext())
             {
-                var results = context.TreasureMaterialColor
-                    .AsNoTracking()
-                    .AsEnumerable()
-                    .GroupBy(r => r.MaterialId);
+                var table = new Dictionary<int, Dictionary<int, List<TreasureMaterialColor>>>();
+
+                var results = context.TreasureMaterialColor.ToList();
 
                 foreach (var result in results)
-                    cachedTreasureMaterialColor[(int)result.Key] = result.ToList();
+                {
+                    if (!table.TryGetValue((int)result.MaterialId, out var colorCodes))
+                    {
+                        colorCodes = new Dictionary<int, List<TreasureMaterialColor>>();
+                        table.Add((int)result.MaterialId, colorCodes);
+                    }
+                    if (!colorCodes.TryGetValue((int)result.ColorCode, out var list))
+                    {
+                        list = new List<TreasureMaterialColor>();
+                        colorCodes.Add((int)result.ColorCode, list);
+                    }
+                    list.Add(result.Clone());
+                }
+
+                TreasureMaterialColor_Normalize(table);
+
+                cachedTreasureMaterialColor = table;
             }
         }
 
-        /// <summary>
-        /// Returns the number of TreasureMaterialColor currently cached.
-        /// </summary>
-        public int GetTreasureMaterialColorCacheCount()
+        private void TreasureMaterialColor_Normalize(Dictionary<int, Dictionary<int, List<TreasureMaterialColor>>> materialColor)
         {
-            return cachedTreasureMaterialColor.Count(r => r.Value != null);
+            foreach (var kvp in materialColor)
+            {
+                var material = kvp.Key;
+                var colorCodes = kvp.Value;
+
+                foreach (var kvp2 in colorCodes)
+                {
+                    var colorCode = kvp2.Key;
+                    var list = kvp2.Value;
+
+                    var totalProbability = list.Sum(i => i.Probability);
+
+                    if (Math.Abs(1.0f - totalProbability) < NormalizeEpsilon)
+                        continue;
+
+                    //Console.WriteLine($"TotalProbability {totalProbability} found for TreasureMaterialColor {(MaterialType)material} ColorCode {colorCode}");
+
+                    var factor = 1.0f / totalProbability;
+
+                    foreach (var item in list)
+                        item.Probability *= factor;
+
+                    /*totalProbability = list.Sum(i => i.Probability);
+
+                    Console.WriteLine($"After: {totalProbability}");*/
+                }
+            }
         }
 
         public List<TreasureMaterialColor> GetCachedTreasureMaterialColors(int materialId, int tsysColorCode)
         {
-            if (cachedTreasureMaterialColor.Count == 0)
-                CacheAllTreasuresMaterialColorInParallel();
+            if (cachedTreasureMaterialColor == null)
+                CacheAllTreasureMaterialColor();
 
-            if (cachedTreasureMaterialColor.TryGetValue(materialId, out var value))
-            {
-                var results = value.Where(r => r.ColorCode == tsysColorCode).ToList();
-                return results;
-            }
-
-            return new List<TreasureMaterialColor>();
+            if (cachedTreasureMaterialColor.TryGetValue(materialId, out var colorCodes) && colorCodes.TryGetValue(tsysColorCode, out var result))
+                return result;
+            else
+                return null;
         }
 
 
         // The Key is the Material Group (technically a MaterialId, but more generic...e.g. "Material.Metal", "Material.Cloth", etc.)
-        // The Value is a list of all 
-        private readonly ConcurrentDictionary<int /* Material Group */, List<TreasureMaterialGroups>> cachedTreasureMaterialGroups = new ConcurrentDictionary<int, List<TreasureMaterialGroups>>();
+        // The Value is a list of all
+        private Dictionary<int /* Material Group */, Dictionary<int /* Tier */, List<TreasureMaterialGroups>>> cachedTreasureMaterialGroups;
 
-        public void CacheAllTreasuresMaterialGroupsInParallel()
+        public void CacheAllTreasureMaterialGroups()
         {
             using (var context = new WorldDbContext())
             {
-                var results = context.TreasureMaterialGroups
-                    .AsNoTracking()
-                    .AsEnumerable()
-                    .GroupBy(r => r.MaterialGroup);
+                var table = new Dictionary<int, Dictionary<int, List<TreasureMaterialGroups>>>();
+
+                var results = context.TreasureMaterialGroups.ToList();
 
                 foreach (var result in results)
-                    cachedTreasureMaterialGroups[(int)result.Key] = result.ToList();
+                {
+                    if (!table.TryGetValue((int)result.MaterialGroup, out var tiers))
+                    {
+                        tiers = new Dictionary<int, List<TreasureMaterialGroups>>();
+                        table.Add((int)result.MaterialGroup, tiers);
+                    }
+                    if (!tiers.TryGetValue((int)result.Tier, out var list))
+                    {
+                        list = new List<TreasureMaterialGroups>();
+                        tiers.Add((int)result.Tier, list);
+                    }
+                    list.Add(result.Clone());
+                }
+                TreasureMaterialGroups_Normalize(table);
+
+                cachedTreasureMaterialGroups = table;
             }
         }
 
-        /// <summary>
-        /// Returns the number of TreasureMaterialBase currently cached.
-        /// </summary>
-        public int GetTreasureMaterialGroupCacheCount()
+        private void TreasureMaterialGroups_Normalize(Dictionary<int, Dictionary<int, List<TreasureMaterialGroups>>> materialGroups)
         {
-            return cachedTreasureMaterialGroups.Count(r => r.Value != null);
+            foreach (var kvp in materialGroups)
+            {
+                var materialGroup = kvp.Key;
+                var tiers = kvp.Value;
+
+                foreach (var kvp2 in tiers)
+                {
+                    var tier = kvp2.Key;
+                    var list = kvp2.Value;
+
+                    var totalProbability = list.Sum(i => i.Probability);
+
+                    if (Math.Abs(1.0f - totalProbability) < NormalizeEpsilon)
+                        continue;
+
+                    //Console.WriteLine($"TotalProbability {totalProbability} found for TreasureMaterialGroup {(MaterialType)materialGroup} tier {tier}");
+
+                    var factor = 1.0f / totalProbability;
+
+                    foreach (var item in list)
+                        item.Probability *= factor;
+
+                    /*totalProbability = list.Sum(i => i.Probability);
+
+                    Console.WriteLine($"After: {totalProbability}");*/
+                }
+            }
         }
 
         public List<TreasureMaterialGroups> GetCachedTreasureMaterialGroup(int materialGroup, int tier)
         {
-            if (cachedTreasureMaterialGroups.Count == 0)
-                CacheAllTreasuresMaterialGroupsInParallel();
+            if (cachedTreasureMaterialGroups == null)
+                CacheAllTreasureMaterialGroups();
 
-            if (cachedTreasureMaterialGroups.TryGetValue(materialGroup, out var value))
-            {
-                var results = value.Where(r => r.Tier == tier).ToList();
-                return results;
-            }
-
-            // Something unexpected happened here. Return an empty list!
-            return new List<TreasureMaterialGroups>();
+            if (cachedTreasureMaterialGroups.TryGetValue(materialGroup, out var tiers) && tiers.TryGetValue(tier, out var treasureMaterialGroup))
+                return treasureMaterialGroup;
+            else
+                return null;
         }
 
 
@@ -850,7 +1066,7 @@ namespace ACE.Database
         /// <summary>
         /// This takes under 1 second to complete.
         /// </summary>
-        public void CacheAllTreasuresWieldedInParallel()
+        public void CacheAllTreasureWielded()
         {
             using (var context = new WorldDbContext())
             {
@@ -888,6 +1104,11 @@ namespace ACE.Database
                 cachedWieldedTreasure[dataId] = results;
                 return results;
             }
+        }
+
+        public void ClearWieldedTreasureCache()
+        {
+            cachedWieldedTreasure.Clear();
         }
     }
 }
