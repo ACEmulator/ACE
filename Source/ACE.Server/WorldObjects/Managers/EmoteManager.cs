@@ -1051,8 +1051,10 @@ namespace ACE.Server.WorldObjects.Managers
                         else
                             newPos.Rotation = new Quaternion(emote.AnglesX ?? 0, emote.AnglesY ?? 0, emote.AnglesZ ?? 0, emote.AnglesW ?? 1);
 
-                        if (emote.ObjCellId != null)
-                            newPos.LandblockId = new LandblockId(emote.ObjCellId.Value);
+                        //if (emote.ObjCellId != null)
+                        //newPos.LandblockId = new LandblockId(emote.ObjCellId.Value);
+
+                        newPos.LandblockId = new LandblockId(PositionExtensions.GetCell(newPos));
 
                         // TODO: handle delay for this?
                         creature.MoveTo(newPos, creature.GetRunRate(), true, null, emote.Extent);
