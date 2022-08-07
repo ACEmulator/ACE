@@ -135,7 +135,7 @@ namespace ACE.Server.WorldObjects.Managers
                 case EmoteType.AwardLuminance:
 
                     if (player != null)
-                        player.EarnLuminance(emote.HeroXP64 ?? 0, XpType.Quest, ShareType.None);
+                        player.EarnLuminance(emote.Amount64 ?? emote.HeroXP64 ?? 0, XpType.Quest, ShareType.None);
 
                     break;
 
@@ -1051,8 +1051,10 @@ namespace ACE.Server.WorldObjects.Managers
                         else
                             newPos.Rotation = new Quaternion(emote.AnglesX ?? 0, emote.AnglesY ?? 0, emote.AnglesZ ?? 0, emote.AnglesW ?? 1);
 
-                        if (emote.ObjCellId != null)
-                            newPos.LandblockId = new LandblockId(emote.ObjCellId.Value);
+                        //if (emote.ObjCellId != null)
+                        //newPos.LandblockId = new LandblockId(emote.ObjCellId.Value);
+
+                        newPos.LandblockId = new LandblockId(PositionExtensions.GetCell(newPos));
 
                         // TODO: handle delay for this?
                         creature.MoveTo(newPos, creature.GetRunRate(), true, null, emote.Extent);
@@ -1239,7 +1241,7 @@ namespace ACE.Server.WorldObjects.Managers
                 case EmoteType.SpendLuminance:
 
                     if (player != null)
-                        player.SpendLuminance(emote.HeroXP64 ?? 0);
+                        player.SpendLuminance(emote.Amount64 ?? emote.HeroXP64 ?? 0);
                     break;
 
                 case EmoteType.StampFellowQuest:
