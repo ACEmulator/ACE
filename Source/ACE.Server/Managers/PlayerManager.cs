@@ -136,6 +136,20 @@ namespace ACE.Server.Managers
             }
         }
 
+        public static void AddOfflinePlayer(Biota playerBiota)
+        {
+            playersLock.EnterWriteLock();
+            try
+            {
+                var offlinePlayer = new OfflinePlayer(playerBiota);
+                offlinePlayers[offlinePlayer.Guid.Full] = offlinePlayer;
+            }
+            finally
+            {
+                playersLock.ExitWriteLock();
+            }
+        }
+
         /// <summary>
         /// This will return null if the player wasn't found.
         /// </summary>

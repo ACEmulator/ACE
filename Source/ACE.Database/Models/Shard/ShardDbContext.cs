@@ -45,6 +45,7 @@ namespace ACE.Database.Models.Shard
         public virtual DbSet<BiotaPropertiesTextureMap> BiotaPropertiesTextureMap { get; set; }
         public virtual DbSet<Character> Character { get; set; }
         public virtual DbSet<CharacterPropertiesContractRegistry> CharacterPropertiesContractRegistry { get; set; }
+        public virtual DbSet<CharacterTransfer> CharacterTransfer { get; set; }
         public virtual DbSet<CharacterPropertiesFillCompBook> CharacterPropertiesFillCompBook { get; set; }
         public virtual DbSet<CharacterPropertiesFriendList> CharacterPropertiesFriendList { get; set; }
         public virtual DbSet<CharacterPropertiesQuestRegistry> CharacterPropertiesQuestRegistry { get; set; }
@@ -1222,6 +1223,10 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.IsPlussed).HasColumnName("is_Plussed");
 
+                entity.Property(e => e.IsReadOnly)
+                    .HasColumnName("is_Read_Only")
+                    .HasColumnType("bit(1)");
+
                 entity.Property(e => e.LastLoginTimestamp)
                     .HasColumnName("last_Login_Timestamp")
                     .HasComment("Timestamp the last time this character entered the world");
@@ -1236,6 +1241,58 @@ namespace ACE.Database.Models.Shard
                     .HasDefaultValueSql("'16383'");
 
                 entity.Property(e => e.TotalLogins).HasColumnName("total_Logins");
+            });
+
+            modelBuilder.Entity<CharacterTransfer>(entity =>
+            {
+                entity.ToTable("character_transfer");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id");
+
+                entity.Property(e => e.TransferType)
+                    .HasColumnType("int(11)")
+                    .HasColumnName("transfer_Type");
+
+                entity.Property(e => e.AccountId)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("account_Id");
+
+                entity.Property(e => e.PackageSourceId)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("package_Source_Id");
+
+                entity.Property(e => e.SourceId)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("source_Id");
+
+                entity.Property(e => e.TargetId)
+                    .HasColumnType("int(10)")
+                    .HasColumnName("target_Id");
+
+                entity.Property(e => e.TransferTime)
+                    .HasColumnType("bigint(10)")
+                    .HasColumnName("transfer_Time");
+
+                entity.Property(e => e.CancelTime)
+                    .HasColumnType("bigint(10)")
+                    .HasColumnName("cancel_Time");
+
+                entity.Property(e => e.DownloadTime)
+                    .HasColumnType("bigint(10)")
+                    .HasColumnName("download_Time");
+
+                entity.Property(e => e.Cookie)
+                    .HasColumnType("varchar(15)")
+                    .HasColumnName("cookie");
+
+                entity.Property(e => e.SourceThumbprint)
+                    .HasColumnType("varchar(45)")
+                    .HasColumnName("source_Thumbprint");
+
+                entity.Property(e => e.SourceBaseUrl)
+                    .HasColumnType("varchar(80)")
+                    .HasColumnName("source_Base_Url");
             });
 
             modelBuilder.Entity<CharacterPropertiesContractRegistry>(entity =>

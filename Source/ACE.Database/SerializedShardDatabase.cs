@@ -229,6 +229,24 @@ namespace ACE.Database
             }));
         }
 
+        public void GetCharacterTransfers(Action<List<CharacterTransfer>> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = BaseDatabase.GetCharacterTransfers();
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void SaveCharacterTransfer(CharacterTransfer characterTransfer, ReaderWriterLockSlim rwLock, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = BaseDatabase.SaveCharacterTransfer(characterTransfer, rwLock);
+                callback?.Invoke(result);
+            }));
+        }
+
         public void RenameCharacter(Character character, string newName, ReaderWriterLockSlim rwLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
