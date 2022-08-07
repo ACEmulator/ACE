@@ -20,6 +20,13 @@ namespace ACE.Server.Command
 
         private static Dictionary<string, CommandHandlerInfo> commandHandlers;
 
+        private static List<Action<Dictionary<string, CommandHandlerInfo>>> CommandHandlerRegistrars = new List<Action<Dictionary<string, CommandHandlerInfo>>>();
+
+        public static void AddCommandHandlerRegistrar(Action<Dictionary<string, CommandHandlerInfo>> registrar)
+        {
+            CommandHandlerRegistrars.Add(registrar);
+        }
+
         public static IEnumerable<CommandHandlerInfo> GetCommands()
         {
             return commandHandlers.Select(p => p.Value);
@@ -48,6 +55,11 @@ namespace ACE.Server.Command
                         commandHandlers[attribute.Command] = commandHandler;
                     }
                 }
+            }
+
+            foreach (var commandHandlerRegistrar in CommandHandlerRegistrars)
+            {
+                commandHandlerRegistrar(commandHandlers);
             }
 
             if (NonInteractiveConsole)
