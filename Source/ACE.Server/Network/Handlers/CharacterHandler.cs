@@ -258,6 +258,13 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
+            if (character.IsReadOnly)
+            {
+                // waiting for migration character snapshot package download or migration cancel
+                session.SendCharacterError(CharacterError.EnterGameCharacterLocked);
+                return;
+            }
+
             session.InitSessionForWorldLogin();
 
             session.State = SessionState.WorldConnected;
