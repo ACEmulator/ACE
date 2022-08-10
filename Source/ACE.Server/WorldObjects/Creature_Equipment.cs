@@ -392,7 +392,7 @@ namespace ACE.Server.WorldObjects
                 if (owners.Length > 0)
                 {
                     var lastOwner = owners[owners.Length - 1];
-                    if (Convert.ToUInt32(lastOwner[2..10], 16) != currentOwner)
+                    if (Convert.ToUInt32(lastOwner[0..10], 16) != currentOwner)
                         worldObject.SetProperty(PropertyString.PreviousWielders, currentPrevOwners + $"0x{currentOwner:X8}:{Time.GetUnixTime()};");
                 }
                 else
