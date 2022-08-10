@@ -148,7 +148,7 @@ namespace ACE.Server.WorldObjects
                 // TODO: figure this out better
                 if (spell.MetaSpellType == SpellType.PortalSummon)
                     TryCastSpell(spell, player, this, tryResist: false);
-                else if (spell.IsImpenBaneType)
+                else if (spell.IsImpenBaneType || spell.IsItemRedirectableType)
                     player.TryCastItemEnchantment_WithRedirects(spell, player, this);
                 else
                     player.TryCastSpell(spell, player, this, tryResist: false);

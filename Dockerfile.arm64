@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /Source
 
 # copy csproj and restore as distinct layers
@@ -20,7 +20,7 @@ COPY . ../.
 RUN dotnet publish ./ACE.Server/ACE.Server.csproj -c release -o /ace -r linux-arm64 --self-contained false --no-restore
 
 # final stage/image
-FROM mcr.microsoft.com/dotnet/runtime:5.0-buster-slim-arm64v8
+FROM mcr.microsoft.com/dotnet/runtime:6.0-bullseye-slim-arm64v8
 ARG DEBIAN_FRONTEND="noninteractive"
 WORKDIR /ace
 

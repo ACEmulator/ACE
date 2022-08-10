@@ -84,7 +84,7 @@ namespace ACE.Server.Entity
             var lower = Math.Min(r1, r2);
             var higher = Math.Max(r1, r2);
 
-            Rank = Math.Max(lower + 1, higher);
+            Rank = Math.Min(10, Math.Max(lower + 1, higher));
         }
 
         public void Walk(Action<AllegianceNode> action, bool self = true)

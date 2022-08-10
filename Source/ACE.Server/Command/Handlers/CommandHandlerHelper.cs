@@ -45,6 +45,22 @@ namespace ACE.Server.Command.Handlers
         }
 
         /// <summary>
+        /// This will determine where a command handler should output to, the console or a client session.<para />
+        /// If the session is null, the output will be sent to the console. If the session is not null, and the session.Player is in the world, it will be sent to the session.<para />
+        /// Messages sent to the console will be sent using log.Debug()
+        /// </summary>
+        public static void WriteOutputError(Session session, string output, ChatMessageType chatMessageType = ChatMessageType.Broadcast)
+        {
+            if (session != null)
+            {
+                if (session.State == Network.Enum.SessionState.WorldConnected && session.Player != null)
+                    ChatPacket.SendServerMessage(session, output, chatMessageType);
+            }
+            else
+                log.Error(output);
+        }
+
+        /// <summary>
         /// Returns the last appraised WorldObject
         /// </summary>
         public static WorldObject GetLastAppraisedObject(Session session)

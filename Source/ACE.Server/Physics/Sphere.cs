@@ -328,7 +328,7 @@ namespace ACE.Server.Physics
                 return TransitionState.OK;
             }
 
-            if (!isCreature)
+            if (isCreature)
                 return TransitionState.OK;
 
             if (!CollidesWithSphere(disp, radsum))
@@ -537,7 +537,7 @@ namespace ACE.Server.Physics
             radsum += PhysicsGlobals.EPSILON;
             var val = Math.Sqrt(radsum * radsum - (disp.X * disp.X + disp.Y * disp.Y));
             var scaledStep = (float)(val - disp.Z) / stepDown;
-            var timecheck = -scaledStep * path.WalkInterp;
+            var timecheck = (1.0f - scaledStep) * path.WalkInterp;
             if (timecheck >= path.WalkInterp || timecheck < -0.1f)
                 return TransitionState.Collided;
 

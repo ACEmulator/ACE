@@ -340,7 +340,13 @@ namespace ACE.Server.WorldObjects
             amount = Math.Min(amount, playerSkill.ExperienceLeft);
 
             GrantXP(amount, XpType.Emote, ShareType.None);
-            HandleActionRaiseSkill(skill, amount);
+            var raiseChain = new ActionChain();
+            raiseChain.AddDelayForOneTick();
+            raiseChain.AddAction(this, () =>
+            {
+                HandleActionRaiseSkill(skill, amount);
+            });
+            raiseChain.EnqueueChain();
 
             if (alertPlayer)
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You've earned {amount:N0} experience in your {playerSkill.Skill.ToSentence()} skill.", ChatMessageType.Broadcast));
@@ -830,6 +836,25 @@ namespace ACE.Server.WorldObjects
                 QuestManager.Erase("Forgetfulness6days");
                 QuestManager.Erase("Forgetfulness13days");
                 QuestManager.Erase("Forgetfulness20days");
+            });
+            actionChain.EnqueueChain();
+        }
+
+        public void HandleFreeMasteryResetRenewal()
+        {
+            if (!(GetProperty(PropertyBool.FreeMasteryResetRenewed) ?? false)) return;
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(5.0f);
+            actionChain.AddAction(this, () =>
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Your opportunity to change your Masteries is renewed!", ChatMessageType.Magic));
+
+                RemoveProperty(PropertyBool.FreeMasteryResetRenewed);
+
+                QuestManager.Erase("UsedFreeMeleeMasteryReset");
+                QuestManager.Erase("UsedFreeRangedMasteryReset");
+                QuestManager.Erase("UsedFreeSummoningMasteryReset");
             });
             actionChain.EnqueueChain();
         }

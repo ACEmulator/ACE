@@ -110,7 +110,17 @@ namespace ACE.Server.WorldObjects
             if (weapon == null)
                 return defaultModifier;
 
-            var defenseMod = (float)(weapon.WeaponDefense ?? defaultModifier) + weapon.EnchantmentManager.GetDefenseMod();
+            //var defenseMod = (float)(weapon.WeaponDefense ?? defaultModifier) + weapon.EnchantmentManager.GetDefenseMod();
+
+            // TODO: Resolve this issue a better way?
+            // Because of the way ACE handles default base values in recipe system (or rather the lack thereof)
+            // we need to check the following weapon properties to see if they're below expected minimum and adjust accordingly
+            // The issue is that the recipe system likely added 0.01 to 0 instead of 1, which is what *should* have happened.
+            var baseWepDef = (float)(weapon.WeaponDefense ?? defaultModifier);
+            if (weapon.WeaponDefense > 0 && weapon.WeaponDefense < 1 && ((weapon.GetProperty(PropertyInt.ImbueStackingBits) ?? 0) & 4) != 0)
+                baseWepDef += 1;
+
+            var defenseMod = baseWepDef + weapon.EnchantmentManager.GetDefenseMod();
 
             if (weapon.IsEnchantable)
                 defenseMod += wielder.EnchantmentManager.GetDefenseMod();
@@ -128,8 +138,19 @@ namespace ACE.Server.WorldObjects
             if (weapon == null || wielder.CombatMode == CombatMode.NonCombat)
                 return defaultModifier;
 
+            //// no enchantments?
+            //return (float)(weapon.WeaponMissileDefense ?? 1.0f);
+
+            var baseWepDef = (float)(weapon.WeaponMissileDefense ?? 1.0f);
+            // TODO: Resolve this issue a better way?
+            // Because of the way ACE handles default base values in recipe system (or rather the lack thereof)
+            // we need to check the following weapon properties to see if they're below expected minimum and adjust accordingly
+            // The issue is that the recipe system likely added 0.005 to 0 instead of 1, which is what *should* have happened.
+            if (weapon.WeaponMissileDefense > 0 && weapon.WeaponMissileDefense < 1 && ((weapon.GetProperty(PropertyInt.ImbueStackingBits) ?? 0) & 1) == 1)
+                baseWepDef += 1;
+
             // no enchantments?
-            return (float)(weapon.WeaponMissileDefense ?? 1.0f);
+            return baseWepDef;
         }
 
         /// <summary>
@@ -142,8 +163,19 @@ namespace ACE.Server.WorldObjects
             if (weapon == null || wielder.CombatMode == CombatMode.NonCombat)
                 return defaultModifier;
 
+            //// no enchantments?
+            //return (float)(weapon.WeaponMagicDefense ?? 1.0f);
+
+            var baseWepDef = (float)(weapon.WeaponMagicDefense ?? 1.0f);
+            // TODO: Resolve this issue a better way?
+            // Because of the way ACE handles default base values in recipe system (or rather the lack thereof)
+            // we need to check the following weapon properties to see if they're below expected minimum and adjust accordingly
+            // The issue is that the recipe system likely added 0.005 to 0 instead of 1, which is what *should* have happened.
+            if (weapon.WeaponMagicDefense > 0 && weapon.WeaponMagicDefense < 1 && ((weapon.GetProperty(PropertyInt.ImbueStackingBits) ?? 0) & 1) == 1)
+                baseWepDef += 1;
+
             // no enchantments?
-            return (float)(weapon.WeaponMagicDefense ?? 1.0f);
+            return baseWepDef;
         }
 
         /// <summary>
@@ -173,7 +205,20 @@ namespace ACE.Server.WorldObjects
 
         private static float GetWeaponOffenseModifier(Creature wielder, WorldObject weapon)
         {
-            if (weapon == null)
+            /* Excerpt from http://acpedia.org/wiki/Announcements_-_2002/07_-_Repercussions#Letter_to_the_Players
+             The second issue will, in some ways, be both more troubling and more inconsequential for players. HeartSeeker does not affect missile launchers.
+             It never has. Bows, crossbows, and atlatls get no benefit from the HeartSeeker spell or from innate attack bonuses (such as those found on the Singularity Bow).
+             The only variables that determine whether a missile character hits their target is their bow/xbow/tw skill, the missile defense of the target, and where they set their accuracy meter while they are attacking.
+             However, the Defender spell, as well as innate defensive bonuses, do work on missile launchers.
+             The AC Live team has been aware of this for the last several months. Once we knew the situation, the question became what to do about it. Should we “fix” an issue that probably isn't broken?
+             Almost no archer/atlatler complains about not being able to hit their target.
+             They have a built in “HeartSeeker” all the time.
+             If anything, most monsters' missile defense scores have historically been so low that many players regard archery as the fastest way to level a character up through the first 30-40 levels.
+             We did not feel that “fixing” such a system would improve the game balance for anyone in Asheron's Call, archer or no.
+             Ultimately, we decided to resolve the situation through our changes to the treasure system this month. From now on, missile launchers will have a chance of having an innate defensive bonus, but not an offensive one.
+             While many old quest weapons still retain their (useless) attack bonus, we will not be putting any new ones into the system.
+             */
+            if (weapon == null || weapon.IsRanged /* see note above */)
                 return defaultModifier;
 
             var offenseMod = (float)(weapon.WeaponOffense ?? defaultModifier) + weapon.EnchantmentManager.GetAttackMod();

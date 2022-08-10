@@ -64,6 +64,13 @@ namespace ACE.Common
         public bool AutoUpdateWorldDatabase { get; set; }
 
         /// <summary>
+        /// Automatically check for updated server binaries
+        /// </summary>
+        [System.ComponentModel.DefaultValue(true)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public bool AutoServerUpdateCheck { get; set; }
+
+        /// <summary>
         /// After updating to latest world database, automatically import further customizations
         /// AutoUpdateWorldDatabase must be true for this option to be used
         /// SQL files will be executed given the sort order of the full paths of the files

@@ -184,17 +184,17 @@ namespace ACE.Server.Entity
             WindupParams = null;
         }
 
-        public void SetCastParams(Spell spell, bool isWeaponSpell, uint magicSkill, uint manaUsed, WorldObject target, Player.CastingPreCheckStatus status)
+        public void SetCastParams(Spell spell, WorldObject caster, uint magicSkill, uint manaUsed, WorldObject target, Player.CastingPreCheckStatus status)
         {
-            CastSpellParams = new CastSpellParams(spell, isWeaponSpell, magicSkill, manaUsed, target, status);
+            CastSpellParams = new CastSpellParams(spell, caster, magicSkill, manaUsed, target, status);
 
             if (Player.RecordCast.Enabled && CastSpellParams.Target != null)
                 Player.RecordCast.Log($"Target Location: {CastSpellParams.Target.Location.ToLOCString()}");
         }
 
-        public void SetWindupParams(uint targetGuid, uint spellId, bool builtInSpell)
+        public void SetWindupParams(uint targetGuid, uint spellId, WorldObject casterItem)
         {
-            WindupParams = new WindupParams(targetGuid, spellId, builtInSpell);
+            WindupParams = new WindupParams(targetGuid, spellId, casterItem);
         }
 
         public override string ToString()
