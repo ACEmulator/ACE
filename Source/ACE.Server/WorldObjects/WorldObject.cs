@@ -883,7 +883,7 @@ namespace ACE.Server.WorldObjects
 
             CurrentLandblock?.RemoveWorldObject(Guid);
 
-            if (Stuck || ValidLocations < EquipMask.HeadWear || (Container?.Guid.IsStatic() ?? false) || (!Wielder?.Guid.IsPlayer() ?? false) || Container is Corpse && !Container.Level.HasValue)
+            if (Stuck || (ValidLocations < EquipMask.HeadWear) || (Container?.Guid.IsStatic() ?? false) || (!Wielder?.Guid.IsPlayer() ?? false) || (Container is Corpse && !Container.Level.HasValue))
             {
                 RemoveBiotaFromDatabase();
 
