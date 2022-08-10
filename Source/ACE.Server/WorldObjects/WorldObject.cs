@@ -883,10 +883,72 @@ namespace ACE.Server.WorldObjects
 
             CurrentLandblock?.RemoveWorldObject(Guid);
 
-            RemoveBiotaFromDatabase();
+            if (Stuck || ValidLocations < EquipMask.HeadWear || (Container?.Guid.IsStatic() ?? false) || (!Wielder?.Guid.IsPlayer() ?? false))
+            {
+                RemoveBiotaFromDatabase();
 
-            if (Guid.IsDynamic())
-                GuidManager.RecycleDynamicGuid(Guid);
+                if (Guid.IsDynamic())
+                    GuidManager.RecycleDynamicGuid(Guid);
+            }
+            else
+            {
+                var logline = "[DESTROY] ";
+                if (StackSize > 1)
+                logline += $"{StackSize:N0}x ";
+                logline += $"{GetNameWithMaterial(StackSize)} ";
+                logline += $"({Name} | {WeenieClassId} | 0x{Guid}) ";
+                logline += "has been destroyed but not deleted. ";
+                logline += $"OwnerId: 0x{OwnerId ?? 0:X8} | WielderId: 0x{WielderId ?? 0:X8} | ContainerId: 0x{ContainerId ?? 0:X8}\n";
+                if (Location != null && Location.LandblockId.Raw > 0)
+                {
+                    logline += $"LOC: {Location.ToLOCString()}\n";
+                    SetPosition(PositionType.PreDestroyLocation, new Position(Location));
+                    Location = null;
+                }
+                else
+                    logline += $"No Previous Location\n";
+                var previousOwners = GetProperty(PropertyString.PreviousOwners) ?? "";
+                var prevOwners = previousOwners.Split(";", StringSplitOptions.RemoveEmptyEntries);
+                if (prevOwners.Length > 0)
+                {
+                    logline += "Previous Owners: ";
+                    foreach (var p in prevOwners)
+                    {
+                        var po = PlayerManager.FindByGuid(new ObjectGuid(Convert.ToUInt32(p[0..10], 16)));
+                        if (po != null)
+                            logline += $"{po.Name} (0x{po.Guid}) ({Time.GetDateTimeFromTimestamp(Convert.ToDouble(p[11..])):G}), ";
+                        else
+                            logline += $"{p[0..10]} ({Time.GetDateTimeFromTimestamp(Convert.ToDouble(p[11..])):G}), ";
+                    }
+                    if (logline.EndsWith(", "))
+                        logline = logline[..^2] + "\n";
+                }
+                else
+                    logline += $"No Previous Owners\n";
+                var previousWielders = GetProperty(PropertyString.PreviousWielders) ?? "";
+                var prevWielders = previousWielders.Split(";", StringSplitOptions.RemoveEmptyEntries);
+                if (prevWielders.Length > 0)
+                {
+                    logline += "Previous Wielders: ";
+                    foreach (var p in prevWielders)
+                    {
+                        var po = PlayerManager.FindByGuid(new ObjectGuid(Convert.ToUInt32(p[0..10], 16)));
+                        if (po != null)
+                            logline += $"{po.Name} (0x{po.Guid}) ({Time.GetDateTimeFromTimestamp(Convert.ToDouble(p[11..])):G}), ";
+                        else
+                            logline += $"{p[0..10]} ({Time.GetDateTimeFromTimestamp(Convert.ToDouble(p[11..])):G}), ";
+                    }
+                    if (logline.EndsWith(", "))
+                        logline = logline[..^2] + "\n";
+                }
+                else
+                    logline += $"No Previous Wielders\n";
+                var loglineStackTrace = System.Environment.StackTrace;
+                //logline += $"StackTrace: {loglineStackTrace}";
+                log.Debug(logline);
+                SetProperty(PropertyString.DestroyStackLog, loglineStackTrace);
+                SaveBiotaToDatabase();
+            }
         }
 
         public void FadeOutAndDestroy(bool raiseNotifyOfDestructionEvent = true)

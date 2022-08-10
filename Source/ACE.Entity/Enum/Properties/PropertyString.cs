@@ -96,6 +96,16 @@ namespace ACE.Entity.Enum.Properties
         GodState                        = 9006,
         [ServerOnly]
         TinkerLog                       = 9007,
+        [ServerOnly]
+        DestroyStackLog                 = 9008,
+        [ServerOnly]
+        PreviousOwners                  = 9009,
+        [ServerOnly]
+        PreviousWielders                = 9010,
+        [ServerOnly]
+        PreviousOwnerStackLog           = 9011,
+        [ServerOnly]
+        PreviousWielderStackLog         = 9012,
     }
 
     public static class PropertyStringExtensions
