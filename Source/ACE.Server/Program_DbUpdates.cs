@@ -240,6 +240,29 @@ namespace ACE.Server
         {
             var updatesPath = $"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}{dbType}";
             var updatesFile = $"{updatesPath}{Path.DirectorySeparatorChar}applied_updates.txt";
+
+            if (!Directory.Exists(updatesPath))
+            {
+                // File not found in Environment.CurrentDirectory
+                // Lets try the ExecutingAssembly Location
+                var executingAssemblyLocation = System.Reflection.Assembly.GetExecutingAssembly().Location;
+
+                var directoryName = Path.GetFullPath(Path.GetDirectoryName(executingAssemblyLocation));
+
+                updatesPath = Path.Combine(directoryName, $"DatabaseSetupScripts{Path.DirectorySeparatorChar}Updates{Path.DirectorySeparatorChar}{dbType}");
+
+                if (!Directory.Exists(updatesPath))
+                {
+                    Console.WriteLine($" error!");
+                    Console.WriteLine($" Unable to locate updates directory");
+                }
+                else
+                {
+                    updatesFile = $"{updatesPath}{Path.DirectorySeparatorChar}applied_updates.txt";
+                }
+
+            }
+
             var appliedUpdates = Array.Empty<string>();
 
             var containerUpdatesFile = $"/ace/Config/{dbType}_applied_updates.txt";
