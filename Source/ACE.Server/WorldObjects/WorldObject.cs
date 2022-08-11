@@ -916,9 +916,9 @@ namespace ACE.Server.WorldObjects
                     {
                         var po = PlayerManager.FindByGuid(new ObjectGuid(Convert.ToUInt32(p[0..10], 16)));
                         if (po != null)
-                            logline += $"{po.Name} (0x{po.Guid}) ({Time.GetDateTimeFromTimestamp(Convert.ToDouble(p[11..])):G}), ";
+                            logline += $"{po.Name} (0x{po.Guid}) ({Time.GetDateTimeFromTimestamp(Convert.ToDouble(p[11..])).ToLocalTime:G}), ";
                         else
-                            logline += $"{p[0..10]} ({Time.GetDateTimeFromTimestamp(Convert.ToDouble(p[11..])):G}), ";
+                            logline += $"{p[0..10]} ({Time.GetDateTimeFromTimestamp(Convert.ToDouble(p[11..])).ToLocalTime:G}), ";
                     }
                     if (logline.EndsWith(", "))
                         logline = logline[..^2] + "\n";
@@ -934,9 +934,9 @@ namespace ACE.Server.WorldObjects
                     {
                         var po = PlayerManager.FindByGuid(new ObjectGuid(Convert.ToUInt32(p[0..10], 16)));
                         if (po != null)
-                            logline += $"{po.Name} (0x{po.Guid}) ({Time.GetDateTimeFromTimestamp(Convert.ToDouble(p[11..])):G}), ";
+                            logline += $"{po.Name} (0x{po.Guid}) ({Time.GetDateTimeFromTimestamp(Convert.ToDouble(p[11..])).ToLocalTime:G}), ";
                         else
-                            logline += $"{p[0..10]} ({Time.GetDateTimeFromTimestamp(Convert.ToDouble(p[11..])):G}), ";
+                            logline += $"{p[0..10]} ({Time.GetDateTimeFromTimestamp(Convert.ToDouble(p[11..])).ToLocalTime:G}), ";
                     }
                     if (logline.EndsWith(", "))
                         logline = logline[..^2] + "\n";
