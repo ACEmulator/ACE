@@ -164,8 +164,9 @@
     */
     "Plugins": [
         //"ACE.Plugin.Crypto",
-        //"ACE.Plugin.WebAPI",  // depends on ACE.Plugin.Crypto
-        //"ACE.Plugin.Transfer", // depends on ACE.Plugin.Crypto, ACE.Plugin.WebAPI(optionally)
+        //"ACE.Plugin.Web", // depends on Crypto
+        //"ACE.Plugin.Transfer", // depends on Crypto, Web(optionally)
+        //"ACE.Plugin.Warp" // depends on Transfer
     ]
   },
   "MySql": {
