@@ -883,7 +883,7 @@ namespace ACE.Server.WorldObjects
 
             CurrentLandblock?.RemoveWorldObject(Guid);
 
-            if (Stuck || ((ValidLocations ?? 0) < EquipMask.HeadWear) || (Container?.Guid.IsStatic() ?? false) || (!Wielder?.Guid.IsPlayer() ?? false) || (Container is Corpse && !Container.Level.HasValue) || (Container is Creature and not Player) || (Container is Chest and not Storage) || (this is Missile) || (this is Ammunition))
+            if (Stuck || ((ValidLocations ?? 0) < EquipMask.HeadWear) || (Container?.Guid.IsStatic() ?? false) || (!Wielder?.Guid.IsPlayer() ?? false) || (Container is Corpse && !Container.Level.HasValue) || (Container is Creature and not Player) || (Container is Chest and not Storage) || (this is Missile) || (this is Ammunition) || fromLandblockUnload)
             {
                 RemoveBiotaFromDatabase();
 
@@ -899,6 +899,12 @@ namespace ACE.Server.WorldObjects
                 logline += $"({Name} | {WeenieClassId} | 0x{Guid}) ";
                 logline += "has been destroyed but not deleted. ";
                 logline += $"OwnerId: 0x{OwnerId ?? 0:X8} | WielderId: 0x{WielderId ?? 0:X8} | ContainerId: 0x{ContainerId ?? 0:X8}\n";
+                if (OwnerId > 0)
+                    OwnerId = null;
+                if (WielderId > 0)
+                    WielderId = null;
+                if (ContainerId > 0)
+                    ContainerId = null;
                 if (Location != null && Location.LandblockId.Raw > 0)
                 {
                     logline += $"LOC: {Location.ToLOCString()}\n";
