@@ -177,6 +177,13 @@ namespace ACE.Server.WorldObjects
                 UsesLeft--;
                 var s = UsesLeft == 1 ? "" : "s";
                 remainingMsg = UsesLeft > 0 ? $" Your {Name} has {UsesLeft} use{s} left." : $" Your {Name} is used up.";
+
+                var healerWeenie = Database.DatabaseManager.World.GetCachedWeenie(healer.WeenieClassId);
+                var healerWeenieValue = healerWeenie.GetValue();
+                var healerWeenieMaxStructure = healerWeenie.GetMaxStructure();
+
+                if (healerWeenie != null && healerWeenieValue != null && healerWeenieMaxStructure != null)
+                    healer.Value = (healerWeenieValue / healerWeenieMaxStructure) * healer.Structure;
             }
 
             var stackSize = new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, UsesLeft.Value);

@@ -7,6 +7,7 @@ using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
@@ -74,6 +75,13 @@ namespace ACE.Server.WorldObjects
                 {
                     msg += $"{(isLockpick ? "have" : "has")} {unlocker.Structure} use{(unlocker.Structure > 1 ? "s" : "")} left.";
                 }
+
+                var unlockerWeenie = Database.DatabaseManager.World.GetCachedWeenie(unlocker.WeenieClassId);
+                var unlockerWeenieValue = unlockerWeenie.GetValue();
+                var unlockerWeenieMaxStructure = unlockerWeenie.GetMaxStructure();
+
+                if (unlockerWeenie != null && unlockerWeenieValue != null && unlockerWeenieMaxStructure != null)
+                    unlocker.Value = (unlockerWeenieValue / unlockerWeenieMaxStructure) * unlocker.Structure;
             }
 
             player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));

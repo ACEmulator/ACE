@@ -207,5 +207,12 @@ namespace ACE.Entity.Models
             }
             return 1;
         }
+
+        public static int? GetMaxStructure(this Weenie weenie)
+        {
+            var value = weenie.GetProperty(PropertyInt.MaxStructure);
+
+            return value;
+        }
     }
 }
