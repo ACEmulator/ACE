@@ -77,8 +77,8 @@ namespace ACE.Server.WorldObjects
                 }
 
                 var unlockerWeenie = Database.DatabaseManager.World.GetCachedWeenie(unlocker.WeenieClassId);
-                var unlockerWeenieValue = unlockerWeenie.GetValue();
-                var unlockerWeenieMaxStructure = unlockerWeenie.GetMaxStructure();
+                var unlockerWeenieValue = unlockerWeenie?.GetValue();
+                var unlockerWeenieMaxStructure = unlockerWeenie?.GetMaxStructure();
 
                 if (unlockerWeenie != null && unlockerWeenieValue != null && unlockerWeenieMaxStructure != null)
                     unlocker.Value = (unlockerWeenieValue / unlockerWeenieMaxStructure) * unlocker.Structure;
