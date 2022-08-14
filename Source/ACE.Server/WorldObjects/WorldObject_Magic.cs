@@ -1288,7 +1288,7 @@ namespace ACE.Server.WorldObjects
             gateway.Quest = portal.Quest;
             gateway.QuestRestriction = portal.QuestRestriction;
 
-            gateway.EmoteManager.SetProxy(portal);
+            gateway.Biota.PropertiesEmote = portal.Biota.PropertiesEmote;
 
             gateway.PortalRestrictions |= PortalBitmask.NoSummon; // all gateways are marked NoSummon but by default ruleset, the OriginalPortal is the one that is checked against
 
