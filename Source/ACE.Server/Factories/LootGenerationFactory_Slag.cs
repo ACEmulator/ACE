@@ -8,7 +8,7 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        public static readonly WeenieClassName slagWcid = WeenieClassName.slag;
+        public static readonly WeenieClassName slagWcid = WeenieClassName.coinolthoi;
 
         // https://asheron.fandom.com/wiki/Pitted_Slag
 
