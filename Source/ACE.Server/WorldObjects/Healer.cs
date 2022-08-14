@@ -179,8 +179,8 @@ namespace ACE.Server.WorldObjects
                 remainingMsg = UsesLeft > 0 ? $" Your {Name} has {UsesLeft} use{s} left." : $" Your {Name} is used up.";
 
                 var healerWeenie = Database.DatabaseManager.World.GetCachedWeenie(healer.WeenieClassId);
-                var healerWeenieValue = healerWeenie.GetValue();
-                var healerWeenieMaxStructure = healerWeenie.GetMaxStructure();
+                var healerWeenieValue = healerWeenie?.GetValue();
+                var healerWeenieMaxStructure = healerWeenie?.GetMaxStructure();
 
                 if (healerWeenie != null && healerWeenieValue != null && healerWeenieMaxStructure != null)
                     healer.Value = (healerWeenieValue / healerWeenieMaxStructure) * healer.Structure;
