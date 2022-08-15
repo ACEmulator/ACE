@@ -80,7 +80,7 @@ namespace ACE.Server.WorldObjects
                 var unlockerWeenieValue = unlockerWeenie?.GetValue();
                 var unlockerWeenieMaxStructure = unlockerWeenie?.GetMaxStructure();
 
-                if (unlockerWeenie != null && unlockerWeenieValue != null && unlockerWeenieMaxStructure != null)
+                if (unlockerWeenie != null && unlockerWeenieValue > 0 && unlockerWeenieMaxStructure != null)
                     unlocker.Value = (unlockerWeenieValue / unlockerWeenieMaxStructure) * unlocker.Structure;
             }
 
