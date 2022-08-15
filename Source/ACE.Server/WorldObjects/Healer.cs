@@ -182,7 +182,7 @@ namespace ACE.Server.WorldObjects
                 var healerWeenieValue = healerWeenie?.GetValue();
                 var healerWeenieMaxStructure = healerWeenie?.GetMaxStructure();
 
-                if (healerWeenie != null && healerWeenieValue != null && healerWeenieMaxStructure != null)
+                if (healerWeenie != null && healerWeenieValue > 0 && healerWeenieMaxStructure != null)
                     healer.Value = (healerWeenieValue / healerWeenieMaxStructure) * healer.Structure;
             }
 
