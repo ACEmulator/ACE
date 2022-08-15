@@ -1086,7 +1086,7 @@ namespace ACE.Server.WorldObjects
                 var weenieValue = weenie?.GetValue() ?? 0;
                 var weenieMaxStructure = weenie?.GetMaxStructure() ?? 1;
 
-                var structureUnitValue = (weenieValue / weenieMaxStructure) * (Structure ?? 0);
+                var structureUnitValue = weenieValue / weenieMaxStructure;
 
                 return Math.Max(1, structureUnitValue);
             }
