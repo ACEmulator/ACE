@@ -76,12 +76,7 @@ namespace ACE.Server.WorldObjects
                     msg += $"{(isLockpick ? "have" : "has")} {unlocker.Structure} use{(unlocker.Structure > 1 ? "s" : "")} left.";
                 }
 
-                var unlockerWeenie = Database.DatabaseManager.World.GetCachedWeenie(unlocker.WeenieClassId);
-                var unlockerWeenieValue = unlockerWeenie?.GetValue();
-                var unlockerWeenieMaxStructure = unlockerWeenie?.GetMaxStructure();
-
-                if (unlockerWeenie != null && unlockerWeenieValue > 0 && unlockerWeenieMaxStructure != null)
-                    unlocker.Value = (unlockerWeenieValue / unlockerWeenieMaxStructure) * unlocker.Structure;
+                unlocker.Value -= unlocker.StructureUnitValue;
             }
 
             player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
