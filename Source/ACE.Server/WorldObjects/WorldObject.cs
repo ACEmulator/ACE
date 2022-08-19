@@ -883,11 +883,14 @@ namespace ACE.Server.WorldObjects
 
             CurrentLandblock?.RemoveWorldObject(Guid);
 
-            if (Stuck || ((ValidLocations ?? 0) < EquipMask.HeadWear) || (Container?.Guid.IsStatic() ?? false) || (!Wielder?.Guid.IsPlayer() ?? false) || (Container is Corpse && !Container.Level.HasValue) || (Container is Creature and not Player) || (Container is Chest and not Storage) || (this is Missile) || (this is Ammunition) || fromLandblockUnload)
+            var recycleGuids = PropertyManager.GetBool("recycle_guids").Item;
+            var destroyItem = PropertyManager.GetBool("destroy_deletes_from_database").Item;
+
+            if (destroyItem || Stuck || ((ValidLocations ?? 0) < EquipMask.HeadWear) || (Container?.Guid.IsStatic() ?? false) || (!Wielder?.Guid.IsPlayer() ?? false) || (Container is Corpse && !Container.Level.HasValue) || (Container is Creature and not Player) || (Container is Chest and not Storage) || (this is Missile) || (this is Ammunition) || fromLandblockUnload)
             {
                 RemoveBiotaFromDatabase();
 
-                if (Guid.IsDynamic())
+                if (Guid.IsDynamic() && recycleGuids)
                     GuidManager.RecycleDynamicGuid(Guid);
             }
             else
@@ -949,10 +952,14 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                     logline += $"No Previous Wielders\n";
-                var loglineStackTrace = System.Environment.StackTrace;
-                //logline += $"StackTrace: {loglineStackTrace}";
+                if (PropertyManager.GetBool("record_destroy_stacktrace").Item)
+                {
+                    var loglineStackTrace = System.Environment.StackTrace;
+                    //logline += $"StackTrace: {loglineStackTrace}";
+                    
+                    SetProperty(PropertyString.DestroyStackLog, loglineStackTrace);
+                }
                 log.Debug(logline);
-                SetProperty(PropertyString.DestroyStackLog, loglineStackTrace);
                 SaveBiotaToDatabase();
             }
         }

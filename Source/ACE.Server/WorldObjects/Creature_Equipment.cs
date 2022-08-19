@@ -399,7 +399,8 @@ namespace ACE.Server.WorldObjects
                     worldObject.SetProperty(PropertyString.PreviousWielders, currentPrevOwners + $"0x{currentOwner:X8}:{Time.GetUnixTime()};");
             }
 
-            worldObject.SetProperty(PropertyString.PreviousWielderStackLog, Environment.StackTrace);
+            if (PropertyManager.GetBool("record_dequip_stacktrace").Item)
+                worldObject.SetProperty(PropertyString.PreviousWielderStackLog, Environment.StackTrace);
 
             wieldedLocation = worldObject.CurrentWieldedLocation ?? EquipMask.None;
 

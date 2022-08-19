@@ -35,6 +35,14 @@ namespace ACE.Common
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool PurgeOrphanedBiotas { get; set; }
 
+        [System.ComponentModel.DefaultValue(false)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public bool PurgeReleasedBiotas { get; set; }
+
+        [System.ComponentModel.DefaultValue(30)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public int PurgeReleasedBiotasDays { get; set; } = 30;
+
         /// <summary>
         /// Prune deleted characters from all friend lists
         /// </summary>

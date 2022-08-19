@@ -673,7 +673,8 @@ namespace ACE.Server.WorldObjects
                         item.SetProperty(PropertyString.PreviousOwners, currentPrevOwners + $"0x{currentOwner:X8}:{Common.Time.GetUnixTime()};");
                 }
 
-                item.SetProperty(PropertyString.PreviousOwnerStackLog, Environment.StackTrace);
+                if (PropertyManager.GetBool("record_remove_stacktrace").Item)
+                    item.SetProperty(PropertyString.PreviousOwnerStackLog, Environment.StackTrace);
 
                 item.OwnerId = null;
                 item.ContainerId = null;
