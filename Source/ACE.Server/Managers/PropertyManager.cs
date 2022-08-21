@@ -563,6 +563,7 @@ namespace ACE.Server.Managers
                 ("house_rent_enabled", new Property<bool>(true, "If FALSE then rent is not required")),
                 ("iou_trades", new Property<bool>(false, "(non-retail function) If enabled, IOUs can be traded for objects that are missing in DB but added/restored later on")),
                 ("item_dispel", new Property<bool>(false, "if enabled, allows players to dispel items. defaults to end of retail, where item dispels could only target creatures")),
+                ("landblock_destroys_failed_unstuck_spawns", new Property<bool>(false, "if enabled, any unmanaged/uncontrolled unstuck object that fails to spawn on a landblock will be destroyed")),
                 ("legacy_loot_system", new Property<bool>(false, "use the previous iteration of the ace lootgen system")),
                 ("lifestone_broadcast_death", new Property<bool>(true, "if true, player deaths are additionally broadcast to other players standing near the destination lifestone")),
                 ("loot_quality_mod", new Property<bool>(true, "if FALSE then the loot quality modifier of a Death Treasure profile does not affect loot generation")),
