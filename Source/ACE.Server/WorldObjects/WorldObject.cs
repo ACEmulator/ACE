@@ -1077,5 +1077,19 @@ namespace ACE.Server.WorldObjects
         public virtual bool IsBeingTradedOrContainsItemBeingTraded(HashSet<ObjectGuid> guidList) => guidList.Contains(Guid);
 
         public bool IsSocietyArmor => WieldSkillType >= (int)PropertyInt.SocietyRankCelhan && WieldSkillType <= (int)PropertyInt.SocietyRankRadblo;
+
+        public int StructureUnitValue
+        {
+            get
+            {
+                var weenie = DatabaseManager.World.GetCachedWeenie(WeenieClassId);
+                var weenieValue = weenie?.GetValue() ?? 0;
+                var weenieMaxStructure = weenie?.GetMaxStructure() ?? 1;
+
+                var structureUnitValue = weenieValue / weenieMaxStructure;
+
+                return Math.Max(1, structureUnitValue);
+            }
+        }
     }
 }
