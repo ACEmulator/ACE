@@ -825,7 +825,12 @@ namespace ACE.Server.WorldObjects
             if (WeenieType == WeenieType.Container || WeenieType == WeenieType.Corpse || WeenieType == WeenieType.Chest
                 || WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage)
             {
-                UpdateObjectDescriptionFlag(ObjectDescriptionFlag.Openable, !IsLocked);
+                var openable = !IsLocked;
+
+                if (WeenieType == WeenieType.Chest && !openable && PropertyManager.GetBool("fix_chest_missing_inventory_window").Item)
+                    openable = true;
+
+                UpdateObjectDescriptionFlag(ObjectDescriptionFlag.Openable, openable);
             }
 
             UpdateObjectDescriptionFlag(ObjectDescriptionFlag.Inscribable, Inscribable);

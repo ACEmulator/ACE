@@ -163,6 +163,12 @@ namespace ACE.Server.WorldObjects
             NumDeaths++;
             suicideInProgress = false;
 
+            // todo: since we are going to be using 'time since Player last died to an OlthoiPlayer'
+            // as a factor in slag generation, this will eventually be moved to after the slag generation
+
+            if (topDamager != null && topDamager.IsOlthoiPlayer)
+                OlthoiLootTimestamp = (int)Time.GetUnixTime();
+
             if (CombatMode == CombatMode.Magic && MagicState.IsCasting)
                 FailCast(false);
 
@@ -1023,6 +1029,22 @@ namespace ACE.Server.WorldObjects
                 destroyedItems.Add(destroyItem);
             }
             return destroyedItems;
+        }
+
+        /// <summary>
+        /// Determines the amount of slag to drop on a Player corpse when killed by an OlthoiPlayer
+        /// </summary>
+        public List<WorldObject> CalculateDeathItems_Olthoi(Corpse corpse)
+        {
+            var slag = LootGenerationFactory.RollSlag(this);
+
+            if (slag == null)
+                return new List<WorldObject>();
+
+            if (!corpse.TryAddToInventory(slag))
+                log.Warn($"Player_Death: couldn't add item to {Name}'s corpse: {slag.Name}");
+
+            return new List<WorldObject>() { slag };
         }
     }
 }
