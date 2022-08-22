@@ -104,6 +104,9 @@ namespace ACE.Server.WorldObjects
 
             if (IsLocked)
             {
+                if (PropertyManager.GetBool("fix_chest_missing_inventory_window").Item)
+                    player.SendTransientError($"The {Name} is locked");
+
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
                 return new ActivationResult(false);
             }
@@ -244,7 +247,8 @@ namespace ACE.Server.WorldObjects
             if (DefaultLocked && !IsLocked)
             {
                 IsLocked = true;
-                EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked));
+                if (!PropertyManager.GetBool("fix_chest_missing_inventory_window").Item)
+                    EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked));
             }
 
             ClearUnmanagedInventory();
