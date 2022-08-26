@@ -13,7 +13,7 @@ namespace ACE.Server.Entity
         public WorldObject Target { get; set; }
         public Player.CastingPreCheckStatus Status { get; set; }
 
-        public bool HasWindupGestures => !Spell.Flags.HasFlag(SpellFlags.FastCast) && Caster != null && Spell.Formula.HasWindupGestures;
+        public bool HasWindupGestures => !Spell.Flags.HasFlag(SpellFlags.FastCast) && Caster == null && Spell.Formula.HasWindupGestures;
 
         public CastSpellParams(Spell spell, WorldObject caster, uint magicSkill, uint manaUsed, WorldObject target, Player.CastingPreCheckStatus status)
         {
