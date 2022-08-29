@@ -171,6 +171,13 @@ namespace ACE.Server
                 log.Info($"Purged {numberOfBiotasPurged:N0} biotas.");
             }
 
+            //if (ConfigManager.Config.Offline.PurgeBondedDestroyBiotas)
+            //{
+            //    log.Info($"Purging Bonded.Destroy biotas...");
+            //    ShardDatabaseOfflineTools.PurgeDoDBiotasInParallel(out var numberOfBiotasPurged);
+            //    log.Info($"Purged {numberOfBiotasPurged:N0} biotas.");
+            //}
+
             if (ConfigManager.Config.Offline.PurgeOrphanedBiotas)
             {
                 log.Info($"Purging orphaned biotas...");
