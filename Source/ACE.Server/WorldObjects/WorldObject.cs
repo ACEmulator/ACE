@@ -844,7 +844,10 @@ namespace ACE.Server.WorldObjects
 
             IsDestroyed = true;
 
-            ReleasedTimestamp = Time.GetUnixTime();
+            var utcNow = DateTime.UtcNow;
+            var timestamp = Time.GetUnixTime(utcNow);
+
+            ReleasedTimestamp = timestamp;
 
             if (this is Container container)
             {
@@ -886,8 +889,24 @@ namespace ACE.Server.WorldObjects
             var recycleGuids = PropertyManager.GetBool("recycle_guids").Item;
             var destroyItem = PropertyManager.GetBool("destroy_deletes_from_database").Item;
 
-            if (destroyItem || Stuck || ((ValidLocations ?? 0) < EquipMask.HeadWear) || (Container?.Guid.IsStatic() ?? false) || (!Wielder?.Guid.IsPlayer() ?? false) || (Container is Corpse && !Container.Level.HasValue) || (Container is Creature and not Player) || (Container is Chest and not Storage) || (this is Missile) || (this is Ammunition) || fromLandblockUnload)
+            var creationTimestamp = CreationTimestamp;
+            var createdOn = creationTimestamp.HasValue ? Time.GetDateTimeFromTimestamp(creationTimestamp.Value) : utcNow;
+            var destroyLimiter = PropertyManager.GetLong("destroy_saves_older_than_seconds").Item;
+            var destroyLimit = utcNow.AddSeconds(-destroyLimiter);
+            var isOlderThanLimit = createdOn < destroyLimit;
+
+            //if (destroyItem || Stuck || ((ValidLocations ?? 0) < EquipMask.HeadWear) || (Container?.Guid.IsStatic() ?? false) || (!Wielder?.Guid.IsPlayer() ?? false) || (Container is Corpse && !Container.Level.HasValue) || (Container is Creature and not Player) || (Container is Chest and not Storage) || (this is Missile) || (this is Ammunition) || fromLandblockUnload)
+            if (destroyItem || Stuck || (Container is Creature and not Player) || (Container is Chest and not Storage) || (Container?.Guid.IsStatic() ?? false) || (Container is Corpse && !Container.Level.HasValue) || (!Wielder?.Guid.IsPlayer() ?? false) || !isOlderThanLimit)
             {
+                if (OwnerId > 0)
+                    OwnerId = null;
+                if (WielderId > 0)
+                    WielderId = null;
+                if (ContainerId > 0)
+                    ContainerId = null;
+                if (Location != null && Location.LandblockId.Raw > 0)
+                    Location = null;
+
                 RemoveBiotaFromDatabase();
 
                 if (Guid.IsDynamic() && recycleGuids)
@@ -902,6 +921,7 @@ namespace ACE.Server.WorldObjects
                 logline += $"({Name} | {WeenieClassId} | 0x{Guid}) ";
                 logline += "has been destroyed but not deleted. ";
                 logline += $"OwnerId: 0x{OwnerId ?? 0:X8} | WielderId: 0x{WielderId ?? 0:X8} | ContainerId: 0x{ContainerId ?? 0:X8}\n";
+                logline += $"CreationTimestamp: {createdOn.ToLocalTime():G} ({creationTimestamp})\n";
                 if (OwnerId > 0)
                     OwnerId = null;
                 if (WielderId > 0)
