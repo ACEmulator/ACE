@@ -943,6 +943,30 @@ namespace ACE.Database
             numberOfBiotasPurged = biotaPurgedTotal;
         }
 
+        public static void PurgeDoDBiotasInParallel(out int numberOfBiotasPurged)
+        {
+            using (var context = new ShardDbContext())
+            {
+                context.Database.SetCommandTimeout(900);
+                PurgeDoDBiotasInParallel(context, out numberOfBiotasPurged);
+            }
+        }
+
+        public static void PurgeDoDBiotasInParallel(ShardDbContext context, out int numberOfBiotasPurged)
+        {
+            var destroyedIds = context.BiotaPropertiesInt.AsNoTracking().Where(r => r.Type == (ushort)PropertyInt.Bonded && r.Value == (int)BondedStatus.Destroy).Select(r => r.ObjectId).ToHashSet();
+
+            int biotaPurgedTotal = 0;
+
+            Parallel.ForEach(destroyedIds, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
+            {
+                if (PurgeBiota(result, $"Biota has BondedStatus.Destroy"))
+                    Interlocked.Increment(ref biotaPurgedTotal);
+            });
+
+            numberOfBiotasPurged = biotaPurgedTotal;
+        }
+
         public static void PurgeReleasedBiotasInParallel(int daysLimiter, out int numberOfBiotasPurged)
         {
             using (var context = new ShardDbContext())
