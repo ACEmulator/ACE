@@ -1636,5 +1636,235 @@ namespace ACE.Server.Command.Handlers
                     Console.WriteLine($"Verified {results.Count:N0} shields");
             }
         }
+
+        //[CommandHandler("verify-destroy", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Verifies and optionally fixes any bugs with player attribute data")]
+        //public static void HandleVerifyDestroy(Session session, params string[] parameters)
+        //{
+        //    var players = PlayerManager.GetAllOffline();
+
+        //    var fix = parameters.Length > 0 && parameters[0].Equals("fix");
+        //    var fixStr = fix ? " -- fixed" : "";
+        //    var foundIssues = false;
+
+        //    foreach (var player in players)
+        //    {
+        //        var updated = false;
+
+        //        //foreach (var attr in new Dictionary<PropertyAttribute, PropertiesAttribute>(player.Biota.PropertiesAttribute))
+        //        //{
+        //        //    // ensure this is a valid attribute
+        //        //    if (attr.Key < PropertyAttribute.Strength || attr.Key > PropertyAttribute.Self)
+        //        //    {
+        //        //        Console.WriteLine($"{player.Name} has unknown attribute {attr.Key}{fixStr}");
+        //        //        foundIssues = true;
+
+        //        //        if (fix)
+        //        //        {
+        //        //            // i have found no instances of this situation being run into,
+        //        //            // but if it does happen, verify-xp will refund the player xp properly
+
+        //        //            player.Biota.PropertiesAttribute.Remove(attr);
+        //        //            updated = true;
+        //        //        }
+        //        //        continue;
+        //        //    }
+
+        //        //    var rank = attr.Value.LevelFromCP;
+
+        //        //    // verify attribute rank
+        //        //    var correctRank = Player.CalcAttributeRank(attr.Value.CPSpent);
+        //        //    if (rank != correctRank)
+        //        //    {
+        //        //        Console.WriteLine($"{player.Name}'s {attr.Key} rank is {rank}, should be {correctRank}{fixStr}");
+        //        //        foundIssues = true;
+
+        //        //        if (fix)
+        //        //        {
+        //        //            attr.Value.LevelFromCP = (ushort)correctRank;
+        //        //            updated = true;
+        //        //        }
+        //        //    }
+
+        //        //    // verify attribute xp is within bounds
+        //        //    var attributeXPTable = DatManager.PortalDat.XpTable.AttributeXpList;
+        //        //    var maxAttributeXp = attributeXPTable[attributeXPTable.Count - 1];
+
+        //        //    if (attr.Value.CPSpent > maxAttributeXp)
+        //        //    {
+        //        //        Console.WriteLine($"{player.Name}'s {attr.Key} attribute total xp is {attr.Value.CPSpent:N0}, should be capped at {maxAttributeXp:N0}{fixStr}");
+        //        //        foundIssues = true;
+
+        //        //        if (fix)
+        //        //        {
+        //        //            // again i have found no instances of this situation being run into,
+        //        //            // but if it does happen, verify-xp will refund the player xp properly
+
+        //        //            attr.Value.CPSpent = maxAttributeXp;
+        //        //            updated = true;
+        //        //        }
+        //        //    }
+        //        //}
+        //        //if (fix && updated)
+        //        //    player.SaveBiotaToDatabase();
+
+        //        var biotasToSave = new System.Collections.ObjectModel.Collection<(ACE.Entity.Models.Biota biota, System.Threading.ReaderWriterLockSlim rwLock)>();
+
+        //        DatabaseManager.Shard.GetPossessedBiotasInParallel(player.Guid.Full, biotas =>
+        //        {
+        //            //log.Debug($"GetPossessedBiotasInParallel for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
+
+        //            //ActionQueue.EnqueueAction(new ActionEventDelegate(() => DoPlayerEnterWorld(session, character, offlinePlayer.Biota, biotas)));
+
+        //            //foreach (var biota in biotas.Inventory)
+        //            //{
+
+        //            //}
+
+        //            //foreach (var biota in biotas.WieldedItems)
+        //            //{
+
+        //            //}
+
+        //            System.Threading.Tasks.Parallel.ForEach(biotas.Inventory.Union(biotas.WieldedItems), ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
+        //            {
+        //                var biota = Database.Adapter.BiotaConverter.ConvertToEntityBiota(result);
+
+        //                var x = biota.GetProperty(PropertyFloat.ReleasedTimestamp, new());
+
+        //                if (x is not null)
+        //                {
+        //                    Console.WriteLine($"Player {player.Name} (0x{player.Guid}) has {biota.GetName()} (0x{biota.Id:X8}) in inventory which has ReleasedTimestamp set to {x.Value} ({Time.GetDateTimeFromTimestamp(x.Value).ToLocalTime()}){fixStr}");
+        //                    if (fix)
+        //                    {
+        //                        biota.TryRemoveProperty(PropertyFloat.ReleasedTimestamp, new());
+        //                        biotasToSave.Add((biota, new()));
+        //                    }    
+        //                }
+                            
+        //            });
+        //        });
+        //    }
+
+        //    if (!fix && foundIssues)
+        //        Console.WriteLine($"Dry run completed. Type 'verify-destroy fix' to fix any issues.");
+
+        //    if (!foundIssues)
+        //        Console.WriteLine($"Verified no possessed destroyed items for {players.Count:N0} players");
+        //}
+
+        //[CommandHandler("verify-bonded", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Verifies and optionally fixes any bugs with player attribute data")]
+        //public static void HandleVerifyBonded(Session session, params string[] parameters)
+        //{
+        //    var players = PlayerManager.GetAllOffline();
+
+        //    var fix = parameters.Length > 0 && parameters[0].Equals("fix");
+        //    var fixStr = fix ? " -- fixed" : "";
+        //    var foundIssues = false;
+
+        //    foreach (var player in players)
+        //    {
+        //        var updated = false;
+
+        //        //foreach (var attr in new Dictionary<PropertyAttribute, PropertiesAttribute>(player.Biota.PropertiesAttribute))
+        //        //{
+        //        //    // ensure this is a valid attribute
+        //        //    if (attr.Key < PropertyAttribute.Strength || attr.Key > PropertyAttribute.Self)
+        //        //    {
+        //        //        Console.WriteLine($"{player.Name} has unknown attribute {attr.Key}{fixStr}");
+        //        //        foundIssues = true;
+
+        //        //        if (fix)
+        //        //        {
+        //        //            // i have found no instances of this situation being run into,
+        //        //            // but if it does happen, verify-xp will refund the player xp properly
+
+        //        //            player.Biota.PropertiesAttribute.Remove(attr);
+        //        //            updated = true;
+        //        //        }
+        //        //        continue;
+        //        //    }
+
+        //        //    var rank = attr.Value.LevelFromCP;
+
+        //        //    // verify attribute rank
+        //        //    var correctRank = Player.CalcAttributeRank(attr.Value.CPSpent);
+        //        //    if (rank != correctRank)
+        //        //    {
+        //        //        Console.WriteLine($"{player.Name}'s {attr.Key} rank is {rank}, should be {correctRank}{fixStr}");
+        //        //        foundIssues = true;
+
+        //        //        if (fix)
+        //        //        {
+        //        //            attr.Value.LevelFromCP = (ushort)correctRank;
+        //        //            updated = true;
+        //        //        }
+        //        //    }
+
+        //        //    // verify attribute xp is within bounds
+        //        //    var attributeXPTable = DatManager.PortalDat.XpTable.AttributeXpList;
+        //        //    var maxAttributeXp = attributeXPTable[attributeXPTable.Count - 1];
+
+        //        //    if (attr.Value.CPSpent > maxAttributeXp)
+        //        //    {
+        //        //        Console.WriteLine($"{player.Name}'s {attr.Key} attribute total xp is {attr.Value.CPSpent:N0}, should be capped at {maxAttributeXp:N0}{fixStr}");
+        //        //        foundIssues = true;
+
+        //        //        if (fix)
+        //        //        {
+        //        //            // again i have found no instances of this situation being run into,
+        //        //            // but if it does happen, verify-xp will refund the player xp properly
+
+        //        //            attr.Value.CPSpent = maxAttributeXp;
+        //        //            updated = true;
+        //        //        }
+        //        //    }
+        //        //}
+        //        //if (fix && updated)
+        //        //    player.SaveBiotaToDatabase();
+
+        //        var biotasToSave = new System.Collections.ObjectModel.Collection<(ACE.Entity.Models.Biota biota, System.Threading.ReaderWriterLockSlim rwLock)>();
+
+        //        DatabaseManager.Shard.GetPossessedBiotasInParallel(player.Guid.Full, biotas =>
+        //        {
+        //            //log.Debug($"GetPossessedBiotasInParallel for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
+
+        //            //ActionQueue.EnqueueAction(new ActionEventDelegate(() => DoPlayerEnterWorld(session, character, offlinePlayer.Biota, biotas)));
+
+        //            //foreach (var biota in biotas.Inventory)
+        //            //{
+
+        //            //}
+
+        //            //foreach (var biota in biotas.WieldedItems)
+        //            //{
+
+        //            //}
+
+        //            System.Threading.Tasks.Parallel.ForEach(biotas.Inventory.Union(biotas.WieldedItems), ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
+        //            {
+        //                var biota = Database.Adapter.BiotaConverter.ConvertToEntityBiota(result);
+
+        //                var x = biota.GetProperty(PropertyInt.Bonded, new());
+
+        //                if (x is not null && x.Value == (int)BondedStatus.Destroy)
+        //                {
+        //                    Console.WriteLine($"Player {player.Name} (0x{player.Guid}) has {biota.GetName()} (0x{biota.Id:X8} - {biota.WeenieClassId}) in possession which has Bonded set to Destroy{fixStr}");
+        //                    if (fix)
+        //                    {
+        //                        //biota.TryRemoveProperty(PropertyFloat.ReleasedTimestamp, new());
+        //                        //biotasToSave.Add((biota, new()));
+        //                    }
+        //                }
+
+        //            });
+        //        });
+        //    }
+
+        //    if (!fix && foundIssues)
+        //        Console.WriteLine($"Dry run completed. Type 'verify-destroy fix' to fix any issues.");
+
+        //    if (!foundIssues)
+        //        Console.WriteLine($"Verified no possessed destroyed items for {players.Count:N0} players");
+        //}
     }
 }
