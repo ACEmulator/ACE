@@ -215,6 +215,9 @@ namespace ACE.Server.Entity
 
             var source = player.FindObject(SourceGuid.Full, Player.SearchLocations.Landblock);
 
+            if (source is Hook hook && hook.Item != null)
+                source = hook.Item;
+
             if (source != null)
                 source.EmoteManager.ExecuteEmoteSet(response ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, Quest, player);
         }
