@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
+
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
+
+using log4net;
 
 namespace ACE.Server.Entity
 {
@@ -14,6 +18,8 @@ namespace ACE.Server.Entity
     {
         // http://acpedia.org/wiki/Tailoring
         // https://asheron.fandom.com/wiki/Tailoring
+
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         // tailoring kits
         public const uint ArmorTailoringKit = 41956;
@@ -198,6 +204,12 @@ namespace ACE.Server.Entity
                 return;
             }
 
+            if (!HasAvailableSpace(player, source.WeenieClassId, target.WeenieClassId, wcid.Value))
+            {
+                player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                return;
+            }
+
             var wo = WorldObjectFactory.CreateNewWorldObject(wcid.Value);
 
             SetArmorProperties(target, wo);
@@ -288,12 +300,41 @@ namespace ACE.Server.Entity
             target.W_DamageType = source.W_DamageType;
         }
 
+        public static bool HasAvailableSpace(Player player, uint sourceWCID, uint targetWCID, uint resultWCID)
+        {
+            // ensure player has enough free inventory slots / container slots / available burden to mutate items
+            var itemsToReceive = new ItemsToReceive(player);
+
+            itemsToReceive.Remove(sourceWCID, 1);
+            itemsToReceive.Remove(targetWCID, 1);
+            itemsToReceive.Add(resultWCID, 1);
+
+            if (itemsToReceive.PlayerExceedsLimits)
+            {
+                if (itemsToReceive.PlayerExceedsAvailableBurden)
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You are too encumbered to tailor that!"));
+                else if (itemsToReceive.PlayerOutOfInventorySlots)
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough pack space to tailor that!"));
+                else if (itemsToReceive.PlayerOutOfContainerSlots)
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You do not have enough container slots to tailor that!"));
+
+                return false;
+            }
+
+            return true;
+        }
+
         public static void Finalize(Player player, WorldObject source, WorldObject target, WorldObject result)
         {
             player.TryConsumeFromInventoryWithNetworking(source, 1);
             player.TryConsumeFromInventoryWithNetworking(target, 1);
 
-            player.TryCreateInInventoryWithNetworking(result);
+            // errors shouldn't be possible here, since the items were pre-validated, but just in case...
+            if (!player.TryCreateInInventoryWithNetworking(result))
+            {
+                log.Error($"[TAILORING] Tailoring.Finalize({player.Name} (0x{player.Guid}), {source.Name} (0x{source.Guid}), {target.Name} (0x{target.Guid}), {result.Name}) - couldn't add {result.Name} ({result.Guid}) to player inventory after validation, this shouldn't happen!");
+                result.Destroy();  // cleanup for guid manager
+            }
 
             if (PropertyManager.GetBool("player_receive_immediate_save").Item)
                 player.RushNextPlayerSave(5);
@@ -323,8 +364,14 @@ namespace ACE.Server.Entity
                 return;
             }
 
+            if (!HasAvailableSpace(player, source.WeenieClassId, target.WeenieClassId, DarkHeart))
+            {
+                player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                return;
+            }
+
             // create intermediate weapon tailoring kit
-            var wo = WorldObjectFactory.CreateNewWorldObject(51451);
+            var wo = WorldObjectFactory.CreateNewWorldObject(DarkHeart);
             SetWeaponProperties(target, wo);
 
             player.Session.Network.EnqueueSend(new GameMessageSystemChat("You tailor the appearance off the weapon.", ChatMessageType.Broadcast));
