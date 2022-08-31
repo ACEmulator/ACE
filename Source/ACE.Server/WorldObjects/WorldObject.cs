@@ -898,15 +898,6 @@ namespace ACE.Server.WorldObjects
             //if (destroyItem || Stuck || ((ValidLocations ?? 0) < EquipMask.HeadWear) || (Container?.Guid.IsStatic() ?? false) || (!Wielder?.Guid.IsPlayer() ?? false) || (Container is Corpse && !Container.Level.HasValue) || (Container is Creature and not Player) || (Container is Chest and not Storage) || (this is Missile) || (this is Ammunition) || fromLandblockUnload)
             if (destroyItem || Stuck || (Container is Creature and not Player) || (Container is Chest and not Storage) || (Container?.Guid.IsStatic() ?? false) || (Container is Corpse && !Container.Level.HasValue) || (!Wielder?.Guid.IsPlayer() ?? false) || !isOlderThanLimit)
             {
-                if (OwnerId > 0)
-                    OwnerId = null;
-                if (WielderId > 0)
-                    WielderId = null;
-                if (ContainerId > 0)
-                    ContainerId = null;
-                if (Location != null && Location.LandblockId.Raw > 0)
-                    Location = null;
-
                 RemoveBiotaFromDatabase();
 
                 if (Guid.IsDynamic() && recycleGuids)
