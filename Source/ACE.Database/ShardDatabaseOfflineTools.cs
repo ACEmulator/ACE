@@ -429,6 +429,7 @@ namespace ACE.Database
                 });
             }
 
+            context.Database.SetCommandTimeout(900);
             releasedIds = context.BiotaPropertiesFloat.AsNoTracking().Where(r => r.Type == (ushort)PropertyFloat.ReleasedTimestamp).Select(r => r.ObjectId).ToHashSet();
 
             // Purge contained items that belong to a parent container that no longer exists
