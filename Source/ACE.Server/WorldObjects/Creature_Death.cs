@@ -429,7 +429,7 @@ namespace ACE.Server.WorldObjects
         {
             if (NoCorpse)
             {
-                if (killer.IsOlthoiPlayer) return;
+                if (killer != null && killer.IsOlthoiPlayer) return;
 
                 var loot = GenerateTreasure(killer, null);
 
@@ -559,7 +559,7 @@ namespace ACE.Server.WorldObjects
             {
                 corpse.IsMonster = true;
 
-                if (!killer.IsOlthoiPlayer)
+                if (killer == null || !killer.IsOlthoiPlayer)
                     GenerateTreasure(killer, corpse);
                 else
                     GenerateTreasure_Olthoi(killer, corpse);
