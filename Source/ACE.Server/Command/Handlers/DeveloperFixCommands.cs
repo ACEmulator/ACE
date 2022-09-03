@@ -18,6 +18,7 @@ using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.WorldObjects;
+using System.Text;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -49,6 +50,7 @@ namespace ACE.Server.Command.Handlers
             var fix = parameters.Length > 0 && parameters[0].Equals("fix");
             var fixStr = fix ? " -- fixed" : "";
             var foundIssues = false;
+            var augmentationExploitMessageBuilder = new StringBuilder();
 
             foreach (var player in players)
             {
@@ -106,6 +108,32 @@ namespace ACE.Server.Command.Handlers
                             attr.Value.CPSpent = maxAttributeXp;
                             updated = true;
                         }
+                    }
+
+                    // Verify that attribute has not been augmented above 100
+                    // only do this if server operators have opted into this functionality
+                    if (attr.Value.InitLevel > 100 && attr.Value.InitLevel <= 104
+                        && player.Account.AccessLevel == (uint)AccessLevel.Player
+                        && PropertyManager.GetBool("attribute_augmentation_safety_cap").Item)
+                    {
+                        foundIssues = true;
+                        augmentationExploitMessageBuilder.AppendFormat($"{0}'s {1} is currently {2}, augmented above 100. ", player.Name, attr.Key, attr.Value.InitLevel);
+
+                        // only search strength, endurance, coordination, quicknesss, focus, and self
+                        var validAttributes = player.Biota.PropertiesAttribute.Where(attr => attr.Key < PropertyAttribute.Strength || attr.Key > PropertyAttribute.Self);
+                        // find the lowest one to distribute points to
+                        var lowestInitAttributeLevel = validAttributes.Min(x => x.Value.InitLevel);
+                        // Only actually do this if something is actually less than 96, otherwise we're just shifting the problem around
+                        if (lowestInitAttributeLevel < 96
+                            && fix)
+                        {
+                            var targetAttribute = validAttributes.FirstOrDefault(x => x.Value.InitLevel == lowestInitAttributeLevel);
+                            augmentationExploitMessageBuilder.AppendFormat("Redistributing 5 points to lowest innate attribute {0} previous value: {1}, new value {2}", targetAttribute.Key, targetAttribute.Value.InitLevel, targetAttribute.Value.InitLevel + 5);
+                            attr.Value.InitLevel -= 5;
+                            lowestInitAttributeLevel += 5;
+                            updated = true;
+                        }
+                        Console.WriteLine(augmentationExploitMessageBuilder.ToString());
                     }
                 }
                 if (fix && updated)
