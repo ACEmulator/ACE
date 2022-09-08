@@ -1,4 +1,7 @@
+using System;
+
 using ACE.Common;
+using ACE.Common.Extensions;
 using ACE.Database.Models.World;
 using ACE.Server.Factories.Entity;
 using ACE.Server.Factories.Enum;
@@ -83,20 +86,92 @@ namespace ACE.Server.Factories
         }
 
         /// <summary>
+        /// The amount of time that must elapse since player was last killed by an OlthoiPlayer
+        /// before they are dropping full amounts of slag again
+        /// </summary>
+        private static readonly TimeSpan pvpSlagTimer = TimeSpan.FromHours(1);
+
+        /// <summary>
         /// Rolls to generate slag for a player killed by an OlthoiPlayer
         /// </summary>
-        public static WorldObject RollSlag(Player player)
+        public static WorldObject RollSlag(Player player, bool hadVitae)
         {
-            if (player.Level < 100) return null;
+            // https://asheron.fandom.com/wiki/Pitted_Slag
+
+            // If killed by an Olthoi, a large amount may be dropped by players.
+            //
+            // It is commonly 0-15, but there are reports of up to 100 from a single player. Players only drop slag under the following conditions:
+            //
+            // - The player must be over a certain level. The current estimate is level 100+. Players under level 180 will not yield much slag, if at all.
+            // - Each time a player is killed they are less likely to drop pitted slag. This chance goes back up with time.
+            // - Players don't drop slag if they have vitae.
+
+            // can't simply use HasVitae here
+            // a freshly-killed player already has vitae by this point
+            //if (player.HasVitae) return null;
+            if (hadVitae) return null;
 
             // determine preliminary scale of slag to drop based on Player level
 
-            // just drop a static amount for testing for now
+            // divvy player levels up into "tiers"
+
+            var tier = GetTierHeuristic(player.Level ?? 0);
+
+            if (tier < 5) return null;  // if less than level 100, never drop any slag
+
+            var maxRoll = tier switch
+            {
+                5 => 5,
+                6 => 10,
+                _ => 15
+            };
+
+            var totalSlag = 0;
+            do
+            {
+                totalSlag += ThreadSafeRandom.Next(1, maxRoll);
+            }
+            while (ThreadSafeRandom.Next(0.0f, 1.0f) < 0.05f);  // 5% chance for another roll
+
+            // scale totalSlag by last death to olthoi
+            var olthoiLootTimestamp = player.OlthoiLootTimestamp ?? 0;
+            var currentTime = (int)Time.GetUnixTime();
+            var timeDiff = Math.Max(0, currentTime - olthoiLootTimestamp);  // clamp to 0 on lower end -- avoid negatives, such as from server clock being rewound back in time
+            if (timeDiff < pvpSlagTimer.TotalSeconds)   
+            {
+                var timeScale = (float)(timeDiff / pvpSlagTimer.TotalSeconds);
+                totalSlag = (totalSlag * timeScale).Round();
+            }
+
+            if (totalSlag <= 0) return null;
+
             var slag = WorldObjectFactory.CreateNewWorldObject((uint)slagWcid);
 
-            slag.SetStackSize(3);
+            slag.SetStackSize(totalSlag);
+
+            player.OlthoiLootTimestamp = currentTime;
 
             return slag;
+        }
+
+        /// <summary>
+        /// Returns an approximate tier for level
+        /// </summary>
+        public static int GetTierHeuristic(int level)
+        {
+            // based on http://acpedia.org/wiki/Loot
+
+            switch (level)
+            {
+                case < 20:  return 1;   // 1-19
+                case < 40:  return 2;   // 20-39
+                case < 60:  return 3;   // 40-59
+                case < 100: return 4;   // 60-99
+                case < 135: return 5;   // 100-134
+                case < 185: return 6;   // 135-184
+                case < 275: return 7;   // 185-274
+                default:    return 8;   // 275
+            }
         }
     }
 }
