@@ -2689,6 +2689,8 @@ namespace ACE.Server.Command.Handlers.Processors
                 newRotation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)angle);
             }
 
+            newRotation = Quaternion.Normalize(newRotation);
+
             // get landblock for static guid
             var landblock_id = (ushort)(obj.Guid.Full >> 12);
 
@@ -2792,7 +2794,7 @@ namespace ACE.Server.Command.Handlers.Processors
             var q = Quaternion.CreateFromAxisAngle(axis, rads);
 
             // get quaternion
-            var newRotation = obj.PhysicsObj.Position.Frame.Orientation * q;
+            var newRotation = Quaternion.Normalize(obj.PhysicsObj.Position.Frame.Orientation * q);
 
             // get landblock for static guid
             var landblock_id = (ushort)(obj.Guid.Full >> 12);
