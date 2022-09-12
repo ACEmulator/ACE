@@ -117,7 +117,7 @@ namespace ACE.Server.Command.Handlers
                         && PropertyManager.GetBool("attribute_augmentation_safety_cap").Item)
                     {
                         foundIssues = true;
-                        augmentationExploitMessageBuilder.AppendFormat($"{0}'s {1} is currently {2}, augmented above 100. ", player.Name, attr.Key, attr.Value.InitLevel);
+                        augmentationExploitMessageBuilder.AppendFormat("{0}'s {1} is currently {2}, augmented above 100. ", player.Name, attr.Key, attr.Value.InitLevel);
 
                         // only search strength, endurance, coordination, quicknesss, focus, and self
                         var validAttributes = player.Biota.PropertiesAttribute.Where(attr => attr.Key >= PropertyAttribute.Strength || attr.Key <= PropertyAttribute.Self);
