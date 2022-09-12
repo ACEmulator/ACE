@@ -50,7 +50,6 @@ namespace ACE.Server.Command.Handlers
             var fix = parameters.Length > 0 && parameters[0].Equals("fix");
             var fixStr = fix ? " -- fixed" : "";
             var foundIssues = false;
-            var augmentationExploitMessageBuilder = new StringBuilder();
 
             foreach (var player in players)
             {
@@ -116,6 +115,7 @@ namespace ACE.Server.Command.Handlers
                         && player.Account.AccessLevel == (uint)AccessLevel.Player
                         && PropertyManager.GetBool("attribute_augmentation_safety_cap").Item)
                     {
+                        var augmentationExploitMessageBuilder = new StringBuilder();
                         foundIssues = true;
                         augmentationExploitMessageBuilder.AppendFormat("{0}'s {1} is currently {2}, augmented above 100.", player.Name, attr.Key, attr.Value.InitLevel);
 
@@ -126,8 +126,9 @@ namespace ACE.Server.Command.Handlers
 
                         // find the lowest attribute to distribute the extra points to so they're not lost
                         var targetAttribute = validAttributes.FirstOrDefault(x => x.Value.InitLevel == lowestInitAttributeLevel);
-                        augmentationExploitMessageBuilder.AppendFormat("5 points will be distributed to lowest innate attribute ({0} previous value: {1}, new value {2}){3}", targetAttribute.Key, targetAttribute.Value.InitLevel, targetAttribute.Value.InitLevel + 5, System.Environment.NewLine);
+                        augmentationExploitMessageBuilder.AppendFormat("5 points will be redistributed to lowest innate attribute (currently {0})", targetAttribute.Key, targetAttribute.Value.InitLevel, targetAttribute.Value.InitLevel + 5, System.Environment.NewLine);
 
+                        Console.WriteLine(augmentationExploitMessageBuilder.ToString());
                         if (lowestInitAttributeLevel < 96
                             && fix)
                         {
@@ -137,8 +138,6 @@ namespace ACE.Server.Command.Handlers
                         }
                     }
                 }
-                if (foundIssues)
-                    Console.WriteLine(augmentationExploitMessageBuilder.ToString());
                 if (fix && updated)
                     player.SaveBiotaToDatabase();
             }
