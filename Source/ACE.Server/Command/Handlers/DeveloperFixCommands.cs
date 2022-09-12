@@ -120,7 +120,7 @@ namespace ACE.Server.Command.Handlers
                         augmentationExploitMessageBuilder.AppendFormat($"{0}'s {1} is currently {2}, augmented above 100. ", player.Name, attr.Key, attr.Value.InitLevel);
 
                         // only search strength, endurance, coordination, quicknesss, focus, and self
-                        var validAttributes = player.Biota.PropertiesAttribute.Where(attr => attr.Key < PropertyAttribute.Strength || attr.Key > PropertyAttribute.Self);
+                        var validAttributes = player.Biota.PropertiesAttribute.Where(attr => attr.Key >= PropertyAttribute.Strength || attr.Key <= PropertyAttribute.Self);
                         // find the lowest one to distribute points to
                         var lowestInitAttributeLevel = validAttributes.Min(x => x.Value.InitLevel);
                         // Only actually do this if something is actually less than 96, otherwise we're just shifting the problem around
