@@ -117,25 +117,28 @@ namespace ACE.Server.Command.Handlers
                         && PropertyManager.GetBool("attribute_augmentation_safety_cap").Item)
                     {
                         foundIssues = true;
-                        augmentationExploitMessageBuilder.AppendFormat("{0}'s {1} is currently {2}, augmented above 100. ", player.Name, attr.Key, attr.Value.InitLevel);
+                        augmentationExploitMessageBuilder.AppendFormat("{0}'s {1} is currently {2}, augmented above 100.", player.Name, attr.Key, attr.Value.InitLevel);
 
                         // only search strength, endurance, coordination, quicknesss, focus, and self
                         var validAttributes = player.Biota.PropertiesAttribute.Where(attr => attr.Key >= PropertyAttribute.Strength || attr.Key <= PropertyAttribute.Self);
                         // find the lowest one to distribute points to
                         var lowestInitAttributeLevel = validAttributes.Min(x => x.Value.InitLevel);
-                        // Only actually do this if something is actually less than 96, otherwise we're just shifting the problem around
+
+                        // find the lowest attribute to distribute the extra points to so they're not lost
+                        var targetAttribute = validAttributes.FirstOrDefault(x => x.Value.InitLevel == lowestInitAttributeLevel);
+                        augmentationExploitMessageBuilder.AppendFormat("5 points will be distributed to lowest innate attribute ({0} previous value: {1}, new value {2}){3}", targetAttribute.Key, targetAttribute.Value.InitLevel, targetAttribute.Value.InitLevel + 5, System.Environment.NewLine);
+
                         if (lowestInitAttributeLevel < 96
                             && fix)
                         {
-                            var targetAttribute = validAttributes.FirstOrDefault(x => x.Value.InitLevel == lowestInitAttributeLevel);
-                            augmentationExploitMessageBuilder.AppendFormat("Redistributing 5 points to lowest innate attribute {0} previous value: {1}, new value {2}", targetAttribute.Key, targetAttribute.Value.InitLevel, targetAttribute.Value.InitLevel + 5);
                             attr.Value.InitLevel -= 5;
                             lowestInitAttributeLevel += 5;
                             updated = true;
                         }
-                        Console.WriteLine(augmentationExploitMessageBuilder.ToString());
                     }
                 }
+                if (foundIssues)
+                    Console.WriteLine(augmentationExploitMessageBuilder.ToString());
                 if (fix && updated)
                     player.SaveBiotaToDatabase();
             }
