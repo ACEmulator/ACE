@@ -126,14 +126,14 @@ namespace ACE.Server.Command.Handlers
 
                         // find the lowest attribute to distribute the extra points to so they're not lost
                         var targetAttribute = validAttributes.FirstOrDefault(x => x.Value.InitLevel == lowestInitAttributeLevel);
-                        augmentationExploitMessageBuilder.AppendFormat("5 points will be redistributed to lowest innate attribute (currently {0})", targetAttribute.Key, targetAttribute.Value.InitLevel, targetAttribute.Value.InitLevel + 5, System.Environment.NewLine);
+                        augmentationExploitMessageBuilder.AppendFormat(" 5 points will be redistributed to lowest innate attribute (currently {0})", targetAttribute.Key, targetAttribute.Value.InitLevel, targetAttribute.Value.InitLevel + 5, System.Environment.NewLine);
 
                         Console.WriteLine(augmentationExploitMessageBuilder.ToString());
                         if (lowestInitAttributeLevel < 96
                             && fix)
                         {
                             attr.Value.InitLevel -= 5;
-                            lowestInitAttributeLevel += 5;
+                            targetAttribute.Value.InitLevel += 5;
                             updated = true;
                         }
                     }
