@@ -50,6 +50,7 @@ namespace ACE.Server.Command.Handlers
             var fix = parameters.Length > 0 && parameters[0].Equals("fix");
             var fixStr = fix ? " -- fixed" : "";
             var foundIssues = false;
+            var resetFreeAttributeRedistributionTimer = false;
 
             foreach (var player in players)
             {
@@ -135,15 +136,24 @@ namespace ACE.Server.Command.Handlers
                             attr.Value.InitLevel -= 5;
                             targetAttribute.Value.InitLevel += 5;
                             updated = true;
+                            resetFreeAttributeRedistributionTimer = true;
                         }
                     }
                 }
                 if (fix && updated)
+                {
+                    // if we've redistributed augmented attribute points, give people the opportunity
+                    // to redistribute them legitimately as they please
+                    if (resetFreeAttributeRedistributionTimer)
+                    {
+                        player.SetProperty(PropertyBool.FreeAttributeResetRenewed, true);
+                    }
                     player.SaveBiotaToDatabase();
+                }
             }
 
             if (!fix && foundIssues)
-                Console.WriteLine($"Dry run completed. Type 'verify-attributes fix' to fix any issues.");
+                Console.WriteLine("Dry run completed. Type 'verify-attributes fix' to fix any issues.");
 
             if (!foundIssues)
                 Console.WriteLine($"Verified attributes for {players.Count:N0} players");
