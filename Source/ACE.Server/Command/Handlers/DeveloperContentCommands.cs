@@ -2689,6 +2689,113 @@ namespace ACE.Server.Command.Handlers.Processors
                 newRotation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)angle);
             }
 
+            newRotation = Quaternion.Normalize(newRotation);
+
+            // get landblock for static guid
+            var landblock_id = (ushort)(obj.Guid.Full >> 12);
+
+            // get instances for landblock
+            var instances = DatabaseManager.World.GetCachedInstancesByLandblock(landblock_id);
+
+            // find instance
+            var instance = instances.FirstOrDefault(i => i.Guid == obj.Guid.Full);
+
+            if (instance == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find instance for {obj.Name} ({obj.Guid})", ChatMessageType.Broadcast));
+                return;
+            }
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}) new rotation: {newRotation}", ChatMessageType.Broadcast));
+
+            // update physics / ace rotation
+            obj.PhysicsObj.Position.Frame.Orientation = newRotation;
+            obj.Location.Rotation = newRotation;
+
+            // update instance
+            instance.AnglesW = newRotation.W;
+            instance.AnglesX = newRotation.X;
+            instance.AnglesY = newRotation.Y;
+            instance.AnglesZ = newRotation.Z;
+
+            SyncInstances(session, landblock_id, instances);
+
+            // broadcast new rotation
+            obj.SendUpdatePosition(true);
+        }
+
+        [CommandHandler("rotate-x", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Adjusts the rotation of a landblock instance along the x-axis", "<degrees>")]
+        public static void HandleRotateX(Session session, params string[] parameters)
+        {
+            HandleRotateAxis(session, Vector3.UnitX, parameters);
+        }
+
+        [CommandHandler("rotate-y", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Adjusts the rotation of a landblock instance along the y-axis", "<degrees>")]
+        public static void HandleRotateY(Session session, params string[] parameters)
+        {
+            HandleRotateAxis(session, Vector3.UnitY, parameters);
+        }
+
+        [CommandHandler("rotate-z", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Adjusts the rotation of a landblock instance along the z-axis", "<degrees>")]
+        public static void HandleRotateZ(Session session, params string[] parameters)
+        {
+            HandleRotateAxis(session, Vector3.UnitZ, parameters);
+        }
+
+        public static void HandleRotateAxis(Session session, Vector3 axis, params string[] parameters)
+        {
+            WorldObject obj = null;
+
+            var curParam = 0;
+
+            if (parameters.Length == 2)
+            {
+                if (!uint.TryParse(parameters[curParam++].TrimStart("0x"), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var guid))
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Invalid guid: {parameters[0]}", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                obj = session.Player.FindObject(guid, Player.SearchLocations.Landblock);
+
+                if (obj == null)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {parameters[0]}", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+            else
+                obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+            if (obj == null) return;
+
+            // ensure landblock instance
+            if (!obj.Guid.IsStatic())
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}) is not landblock instance", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (obj.PhysicsObj == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}) is not a physics object", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var degrees_str = parameters[curParam];
+
+            if (!float.TryParse(degrees_str, out var degrees))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Invalid angle: {degrees_str}", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var rads = degrees.ToRadians();
+            var q = Quaternion.CreateFromAxisAngle(axis, rads);
+
+            // get quaternion
+            var newRotation = Quaternion.Normalize(obj.PhysicsObj.Position.Frame.Orientation * q);
+
             // get landblock for static guid
             var landblock_id = (ushort)(obj.Guid.Full >> 12);
 
