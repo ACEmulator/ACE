@@ -232,6 +232,12 @@ namespace ACE.Server
             log.Info("Initializing DatManager...");
             DatManager.Initialize(ConfigManager.Config.Server.DatFilesDirectory, true);
 
+            //if (ConfigManager.Config.Server.AllowDatPatching)
+            {
+                log.Info("Initializing DDDManager...");
+                DDDManager.Initialize();
+            }
+
             log.Info("Initializing DatabaseManager...");
             DatabaseManager.Initialize();
 
