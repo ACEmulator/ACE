@@ -12,6 +12,7 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 
 using log4net;
+using static ACE.Server.Entity.CAllIterationList;
 
 namespace ACE.Server.Managers
 {
@@ -97,20 +98,119 @@ namespace ACE.Server.Managers
             }
         }
 
-        public static uint GetMissingIterations(int clientPortalDatIteration, int clientCellDatIteration, int clientLanguageDatIteration, out uint totalFileSize, out Dictionary<DatDatabaseType, Dictionary<uint, List<uint>>> iterations)
+        public static uint GetMissingIterations(CMostlyConsecutiveIntSet clientPortalDatIntSet, CMostlyConsecutiveIntSet clientCellDatIntSet, CMostlyConsecutiveIntSet clientLanguageDatIntSet, out uint totalFileSize, out Dictionary<DatDatabaseType, Dictionary<uint, List<uint>>> iterations)
         {
             uint totalMissingIterations = 0;
             totalFileSize = 0;
             iterations = new();
 
-            GetMissingIterations(DatDatabaseType.Portal, clientPortalDatIteration, ref totalFileSize, iterations, ref totalMissingIterations);
-            GetMissingIterations(DatDatabaseType.Cell, clientCellDatIteration, ref totalFileSize, iterations, ref totalMissingIterations);
-            GetMissingIterations(DatDatabaseType.Language, clientLanguageDatIteration, ref totalFileSize, iterations, ref totalMissingIterations);
+            GetMissingIterations(DatDatabaseType.Portal, clientPortalDatIntSet, ref totalFileSize, iterations, ref totalMissingIterations);
+            GetMissingIterations(DatDatabaseType.Cell, clientCellDatIntSet, ref totalFileSize, iterations, ref totalMissingIterations);
+            GetMissingIterations(DatDatabaseType.Language, clientLanguageDatIntSet, ref totalFileSize, iterations, ref totalMissingIterations);
 
             return totalMissingIterations;
         }
 
-        private static void GetMissingIterations(DatDatabaseType datDatabaseType, int clientDatIteration, ref uint totalFileSize, Dictionary<DatDatabaseType, Dictionary<uint, List<uint>>> iterations, ref uint totalMissingIterations)
+        private static void GetMissingIterations(DatDatabaseType datDatabaseType, CMostlyConsecutiveIntSet clientDatIterations, ref uint totalFileSize, Dictionary<DatDatabaseType, Dictionary<uint, List<uint>>> iterations, ref uint totalMissingIterations)
+        {
+            if (!Iterations.ContainsKey(datDatabaseType))
+                return;
+
+            // Generate a list of the missing iterations the client may have
+            var missingIterations = GetMissingIterationsFromClient(datDatabaseType, clientDatIterations);
+            // If the list is empty, we all good here!
+            if (missingIterations.Count == 0)
+                return;
+
+            // Get all the files for the iterations we are missing
+            var x = Iterations[datDatabaseType].OrderBy(i => i.Key).Where(i => missingIterations.Contains(i.Key));
+
+            if (x.Any())
+            {
+                var compressedFiles = 0;
+                var uncompressedFiles = 0;
+                iterations.TryAdd(datDatabaseType, new());
+                foreach (var y in x)
+                {
+                    totalMissingIterations++;
+                    iterations[datDatabaseType].TryAdd(y.Key, new());
+                    foreach (var z in y.Value.OrderBy(z => z))
+                    {
+                        iterations[datDatabaseType][y.Key].Add(z);
+
+                        if (datDatabaseType != DatDatabaseType.Cell)
+                        {
+                            if (DatFileSizes[datDatabaseType][z].CompressedFileSize > 0)
+                            {
+                                compressedFiles++;
+                                totalFileSize += (uint)DatFileSizes[datDatabaseType][z].CompressedFileSize;
+                            }
+                            else
+                            {
+                                uncompressedFiles++;
+                                totalFileSize += (uint)DatFileSizes[datDatabaseType][z].UncompressedFileSize;
+                            }
+                        }
+                        else
+                        {
+
+                        }
+                    }
+                }
+                totalFileSize += (uint)compressedFiles * 4;
+                //totalFileSize += (uint)uncompressedFiles * 4;
+            }
+        }
+
+        /// <summary>
+        /// Helper function to parse an Iteration list received from the client on login and return any missing iterations it may have
+        /// </summary>
+        /// <param name="datDatabaseType">The type of DAT we are looking for missing iterations from</param>
+        /// <param name="clientIterations">The CAlliterationList.Lists from the client</param>
+        /// <returns></returns>
+        private static List<uint> GetMissingIterationsFromClient(DatDatabaseType datDatabaseType, CMostlyConsecutiveIntSet clientIterations)
+        {
+            Dictionary<uint, bool> allIterations = new Dictionary<uint, bool>();
+            List<uint> missing = new List<uint>();
+
+            var totalIterations = Iterations[datDatabaseType].Keys.Max(); // Highest key will be the total iterations. We already know thie datDatabaseType exists from an earlier check.
+
+            // Store all the possible iterations here
+            for(uint i = 1; i <= totalIterations; i++)
+                allIterations.Add(i, true);
+
+
+            // Going to remove all the Iterations the client has
+            foreach (var ints in clientIterations.Ints)
+            {
+                for(uint i = 0; i < Math.Abs(ints.Value); i++)
+                {
+                    uint myKey = i + (uint)ints.Key;
+                    if (allIterations.ContainsKey(myKey))
+                        allIterations.Remove(myKey);
+                }
+            }
+
+            // The missing alterations are what is left
+            missing = allIterations.Keys.ToList();
+
+            return missing;
+        }
+
+        public static uint RIPLEY_GetMissingIterations(int clientPortalDatIteration, int clientCellDatIteration, int clientLanguageDatIteration, out uint totalFileSize, out Dictionary<DatDatabaseType, Dictionary<uint, List<uint>>> iterations)
+        {
+            uint totalMissingIterations = 0;
+            totalFileSize = 0;
+            iterations = new();
+
+            RIPLEY_GetMissingIterations(DatDatabaseType.Portal, clientPortalDatIteration, ref totalFileSize, iterations, ref totalMissingIterations);
+            RIPLEY_GetMissingIterations(DatDatabaseType.Cell, clientCellDatIteration, ref totalFileSize, iterations, ref totalMissingIterations);
+            RIPLEY_GetMissingIterations(DatDatabaseType.Language, clientLanguageDatIteration, ref totalFileSize, iterations, ref totalMissingIterations);
+
+            return totalMissingIterations;
+        }
+
+        private static void RIPLEY_GetMissingIterations(DatDatabaseType datDatabaseType, int clientDatIteration, ref uint totalFileSize, Dictionary<DatDatabaseType, Dictionary<uint, List<uint>>> iterations, ref uint totalMissingIterations)
         {
             if (!Iterations.ContainsKey(datDatabaseType))
                 return;

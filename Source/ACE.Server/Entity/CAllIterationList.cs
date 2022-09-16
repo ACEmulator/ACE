@@ -23,7 +23,8 @@ namespace ACE.Server.Entity
         {
             public int DatFileType;
             public int DatFileId;
-            public List<int> Ints = new List<int>();
+            public int Iterations;
+            public Dictionary<int, int> Ints = new Dictionary<int, int>();
             public bool Sorted;
 
             public static CMostlyConsecutiveIntSet Read(BinaryReader reader)
@@ -31,10 +32,15 @@ namespace ACE.Server.Entity
                 CMostlyConsecutiveIntSet newObj = new CMostlyConsecutiveIntSet();
                 newObj.DatFileType = reader.ReadInt32();
                 newObj.DatFileId = reader.ReadInt32();
-                newObj.Ints.Add(reader.ReadInt32());
-                newObj.Ints.Add(reader.ReadInt32());
-                newObj.Sorted = reader.ReadBoolean();
-                reader.Align();
+                newObj.Iterations = reader.ReadInt32();
+                var iterations = newObj.Iterations;
+                while(iterations > 0)
+                {
+                    var consecutiveIterations = reader.ReadInt32();
+                    var startingIteration = reader.ReadInt32();
+                    newObj.Ints.Add(startingIteration, consecutiveIterations);
+                    iterations += consecutiveIterations;
+                }
                 return newObj;
             }
         }

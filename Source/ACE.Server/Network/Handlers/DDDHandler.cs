@@ -18,9 +18,9 @@ namespace ACE.Server.Network.Handlers
         {
             var clientIsMissingIterations = false;
 
-            var clientPortalDatIteration = 0;
-            var clientCellDatIteration = 0;
-            var clientLanguageDatIteration = 0;
+            CAllIterationList.CMostlyConsecutiveIntSet clientPortalDatIntSet = new CAllIterationList.CMostlyConsecutiveIntSet();
+            CAllIterationList.CMostlyConsecutiveIntSet clientCellDatIntSet = new CAllIterationList.CMostlyConsecutiveIntSet();
+            CAllIterationList.CMostlyConsecutiveIntSet clientLanguageDatIntSet = new CAllIterationList.CMostlyConsecutiveIntSet();
 
             var showDatWarning = PropertyManager.GetBool("show_dat_warning").Item;
 
@@ -35,8 +35,8 @@ namespace ACE.Server.Network.Handlers
                 switch (entry.DatFileId)
                 {
                     case 1: // PORTAL
-                        clientPortalDatIteration = entry.Ints[0];
-                        if (entry.Ints[0] < DatManager.PortalDat.Iteration)
+                        clientPortalDatIntSet = entry;
+                        if (entry.Iterations < DatManager.PortalDat.Iteration)
                         {
                             if (showDatWarning)
                                 session.DatWarnPortal = true;
@@ -45,8 +45,8 @@ namespace ACE.Server.Network.Handlers
                         }
                         break;
                     case 2: // CELL
-                        clientCellDatIteration = entry.Ints[0];
-                        if (entry.Ints[0] < DatManager.CellDat.Iteration)
+                        clientCellDatIntSet = entry;
+                        if (entry.Iterations < DatManager.CellDat.Iteration)
                         {
                             if (showDatWarning)
                                 session.DatWarnCell = true;
@@ -55,8 +55,8 @@ namespace ACE.Server.Network.Handlers
                         }
                         break;
                     case 3: // LANGUAGE
-                        clientLanguageDatIteration = entry.Ints[0];
-                        if (entry.Ints[0] < DatManager.LanguageDat.Iteration)
+                        clientLanguageDatIntSet = entry;
+                        if (entry.Iterations < DatManager.LanguageDat.Iteration)
                         {
                             if (showDatWarning)
                                 session.DatWarnLanguage = true;
@@ -69,7 +69,7 @@ namespace ACE.Server.Network.Handlers
 
             if (clientIsMissingIterations)
             {
-                var totalMissingIterations = DDDManager.GetMissingIterations(clientPortalDatIteration, clientCellDatIteration, clientLanguageDatIteration, out var totalFileSize, out var missingIterations);
+                var totalMissingIterations = DDDManager.GetMissingIterations(clientPortalDatIntSet, clientCellDatIntSet, clientLanguageDatIntSet, out var totalFileSize, out var missingIterations);
                 GameMessageDDDBeginDDD patchStatusMessage = new GameMessageDDDBeginDDD(totalMissingIterations, totalFileSize, missingIterations);
                 session.Network.EnqueueSend(patchStatusMessage);
 
