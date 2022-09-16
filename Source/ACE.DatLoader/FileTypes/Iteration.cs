@@ -24,7 +24,7 @@ namespace ACE.DatLoader.FileTypes
 
             var iterationCount = TotalIterations;
             Ints = new Dictionary<int, int>();
-            while(iterationCount > 0)
+            while (iterationCount > 0)
             {
                 var consecutiveIterations = reader.ReadInt32();
                 var startingIteration = reader.ReadInt32();

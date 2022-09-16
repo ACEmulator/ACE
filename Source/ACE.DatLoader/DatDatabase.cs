@@ -155,7 +155,7 @@ namespace ACE.DatLoader
             var iteration = ReadFromDat<Iteration>(FileTypes.Iteration.FILE_ID);
             if (iteration.TotalIterations > 0)
             {
-                if(iteration.Ints.Count > 1)
+                if (iteration.Ints.Count > 1)
                     log.Error($"{FilePath} contains an incomplete dat file!");
                 return iteration.TotalIterations;
             }

@@ -2,32 +2,36 @@ using System.Linq;
 
 using ACE.DatLoader;
 using ACE.Entity.Enum;
-using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Structure;
+
+using log4net;
 
 namespace ACE.Server.Network.Handlers
 {
     public static class DDDHandler
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         [GameMessage(GameMessageOpcode.DDD_InterrogationResponse, SessionState.AuthConnected)]
         public static void DDD_InterrogationResponse(ClientMessage message, Session session)
         {
             var clientIsMissingIterations = false;
 
-            CAllIterationList.CMostlyConsecutiveIntSet clientPortalDatIntSet = new CAllIterationList.CMostlyConsecutiveIntSet();
-            CAllIterationList.CMostlyConsecutiveIntSet clientCellDatIntSet = new CAllIterationList.CMostlyConsecutiveIntSet();
-            CAllIterationList.CMostlyConsecutiveIntSet clientLanguageDatIntSet = new CAllIterationList.CMostlyConsecutiveIntSet();
+            var clientPortalDatIntSet = new CMostlyConsecutiveIntSet();
+            var clientCellDatIntSet = new CMostlyConsecutiveIntSet();
+            var clientLanguageDatIntSet = new CMostlyConsecutiveIntSet();
 
             var showDatWarning = PropertyManager.GetBool("show_dat_warning").Item;
 
             message.Payload.ReadUInt32(); // m_ClientLanguage
 
-            var ItersWithKeys = CAllIterationList.Read(message.Payload);
-            //var ItersWithoutKeys = CAllIterationList.Read(message.Payload); // Not seen this populated in any pcap.
+            var ItersWithKeys = message.Payload.ReadCAllIterationList();
+            //var ItersWithoutKeys = message.Payload.ReadCAllIterationList(); // Not seen this populated in any pcap.
             // message.Payload.ReadUInt32(); // m_dwFlags - We don't need this
 
             foreach (var entry in ItersWithKeys.Lists)
@@ -82,9 +86,9 @@ namespace ACE.Server.Network.Handlers
                     {
                         foreach (var fileId in iteration.OrderBy(f => f))
                         {
-                            if (DatManager.PortalDat.AllFiles.TryGetValue(fileId, out var datFile))
-                                //session.Network.EnqueueSend(new GameMessageDDDDataMessage(datFile, DatDatabaseType.Portal));
-                                DDDManager.AddToQueue(session, fileId, DatDatabaseType.Portal);
+                            if (DatManager.PortalDat.AllFiles.TryGetValue(fileId, out _))
+                                session.Network.EnqueueSend(new GameMessageDDDDataMessage(fileId, DatDatabaseType.Portal));
+                                //DDDManager.AddToQueue(session, fileId, DatDatabaseType.Portal);
                         }
                     }
                 }
@@ -95,9 +99,9 @@ namespace ACE.Server.Network.Handlers
                     {
                         foreach (var fileId in iteration.OrderBy(f => f))
                         {
-                            if (DatManager.LanguageDat.AllFiles.TryGetValue(fileId, out var datFile))
-                                //session.Network.EnqueueSend(new GameMessageDDDDataMessage(datFile, DatDatabaseType.Language));
-                                DDDManager.AddToQueue(session, fileId, DatDatabaseType.Language);
+                            if (DatManager.LanguageDat.AllFiles.TryGetValue(fileId, out _))
+                                session.Network.EnqueueSend(new GameMessageDDDDataMessage(fileId, DatDatabaseType.Language));
+                                //DDDManager.AddToQueue(session, fileId, DatDatabaseType.Language);
                         }
                     }
                 }
