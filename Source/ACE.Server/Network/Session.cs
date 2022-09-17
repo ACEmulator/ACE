@@ -6,8 +6,10 @@ using System.Threading;
 using log4net;
 
 using ACE.Common;
+using ACE.Common.Performance;
 using ACE.Database;
 using ACE.Database.Models.Shard;
+using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
 using ACE.Server.Managers;
@@ -16,6 +18,7 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.Managers;
+
 
 namespace ACE.Server.Network
 {
@@ -56,6 +59,13 @@ namespace ACE.Server.Network
         public bool DatWarnCell;
         public bool DatWarnPortal;
         public bool DatWarnLanguage;
+
+        public bool BeginDDDSent;
+        private Queue<(uint DatFileId, DatDatabaseType DatDatabaseType)> dddDataQueue;
+        /// <summary>
+        /// The rate at which ProcessDDDQueue executes (and sends DDD patch data out to client)
+        /// </summary>
+        private static readonly RateLimiter dddDataQueueRateLimiter = new RateLimiter(1000, TimeSpan.FromMinutes(1));
 
         /// <summary>
         /// Rate limiter for /passwd command
@@ -142,6 +152,8 @@ namespace ACE.Server.Network
             }
             else if (lastCharacterSelectPingReply != DateTime.MinValue)
                 lastCharacterSelectPingReply = DateTime.MinValue;
+
+            ProcessDDDQueue();
         }
 
 
@@ -315,6 +327,32 @@ namespace ACE.Server.Network
         {
             var worldBroadcastMessage = new GameMessageSystemChat(broadcastMessage, ChatMessageType.WorldBroadcast);
             Network.EnqueueSend(worldBroadcastMessage);
+        }
+
+        public bool AddToDDDQueue(uint datFileId, DatDatabaseType datDatabaseType)
+        {
+            if (dddDataQueue == null)
+                dddDataQueue = new();
+
+            dddDataQueue.Enqueue((datFileId, datDatabaseType));
+
+            return true;
+        }
+
+        private void ProcessDDDQueue()
+        {
+            if (dddDataQueue == null)
+                return;
+
+            if (dddDataQueueRateLimiter.GetSecondsToWaitBeforeNextEvent() > 0)
+                return;
+
+            var success = dddDataQueue.TryDequeue(out var dataFile);
+            if (success)
+            {
+                Network.EnqueueSend(new GameMessageDDDDataMessage(dataFile.DatFileId, dataFile.DatDatabaseType));
+                dddDataQueueRateLimiter.RegisterEvent();
+            }
         }
     }
 }
