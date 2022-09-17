@@ -6,10 +6,8 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 
-using ACE.Common.Performance;
 using ACE.DatLoader;
 using ACE.Server.Network;
-using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
 
 using log4net;
@@ -31,9 +29,9 @@ namespace ACE.Server.Managers
         /// <summary>
         /// The rate at which DDDManager.Tick() executes
         /// </summary>
-        private static readonly RateLimiter dddDataQueueRateLimiter = new RateLimiter(1000, TimeSpan.FromMinutes(1));
+        //private static readonly RateLimiter dddDataQueueRateLimiter = new RateLimiter(1000, TimeSpan.FromMinutes(1));
 
-        private static readonly Queue<(Session Session, uint DatFileId, DatDatabaseType DatDatabaseType)> dddDataQueue = new();
+        //private static readonly Queue<(Session Session, uint DatFileId, DatDatabaseType DatDatabaseType)> dddDataQueue = new();
 
         static DDDManager()
         {
@@ -118,6 +116,7 @@ namespace ACE.Server.Managers
 
             // Generate a list of the missing iterations the client may have
             var missingIterations = GetMissingIterationsFromClient(datDatabaseType, clientDatIterations);
+
             // If the list is empty, we all good here!
             if (missingIterations.Count == 0)
                 return;
@@ -170,56 +169,151 @@ namespace ACE.Server.Managers
         /// <returns></returns>
         private static List<uint> GetMissingIterationsFromClient(DatDatabaseType datDatabaseType, CMostlyConsecutiveIntSet clientIterations)
         {
-            Dictionary<uint, bool> allIterations = new();
-            //List<uint> missing = new();
+            var allIterations = new HashSet<uint>();
 
             var totalIterations = Iterations[datDatabaseType].Keys.Max(); // Highest key will be the total iterations. We already know the datDatabaseType exists from an earlier check.
 
             // Store all the possible Iterations here
             for (uint i = 1; i <= totalIterations; i++)
-                allIterations.Add(i, true);
+                allIterations.Add(i);
+
+            var dbFile = "";
+            switch (datDatabaseType)
+            {
+                case DatDatabaseType.Portal:
+                    dbFile = "client_portal.dat";
+                    break;
+                case DatDatabaseType.Cell:
+                    dbFile = "client_cell_1.dat";
+                    break;
+                case DatDatabaseType.Language:
+                    dbFile = "client_Local_English.dat";
+                    break;
+            }
+            var debugStr = dbFile + Environment.NewLine + "Completed Iterations:" + Environment.NewLine;
 
             // Going to remove all the Iterations the client has
+            var iterations = 0;
+            var rangeStart = 0;
+            var rangeEnd = 0;
             foreach (var ints in clientIterations.Ints)
             {
-                for (uint i = 0; i < Math.Abs(ints.Value); i++)
+                if (Math.Abs(ints) == totalIterations)
+                    return new();
+
+                if (ints < 0)
                 {
-                    uint myKey = i + (uint)ints.Key;
-                    if (allIterations.ContainsKey(myKey))
-                        allIterations.Remove(myKey);
+                    rangeEnd = ints;
+                    continue;
+                }
+
+                if (ints > 0 && rangeStart == 0 && rangeEnd < 0)
+                {
+                    rangeStart = ints;
+                    //continue;
+                }
+
+                if (rangeStart != 0 && rangeEnd != 0)
+                {
+                    rangeEnd = rangeStart + Math.Abs(rangeEnd);
+                    for (var i = (uint)rangeStart; i < rangeEnd; i++)
+                    {
+                        if (allIterations.Remove(i))
+                        {
+                            //allIterations.Remove(i);
+                            iterations++;
+                        }
+                    }
+                    if (Debug)
+                    {
+                        //debugStr = "Completed Iterations:";
+                        debugStr += $"  |    {rangeStart:####} - {rangeEnd - 1:####}" + Environment.NewLine;
+                    }
+                    rangeStart = 0;
+                    rangeEnd = 0;
+                    continue;
+                }
+
+                if (allIterations.Remove((uint)ints))
+                {
+                    //allIterations.Remove((uint)ints);
+                    iterations++;
+
+                    if (Debug)
+                        //debugStr += $"  |    {ints:####} - {ints:####}" + Environment.NewLine;
+                        debugStr += $"  |    {ints:####}" + Environment.NewLine;
                 }
             }
 
+            if (Debug)
+                Console.WriteLine(debugStr + Environment.NewLine + $"Total Completed Iterations: {iterations} of {totalIterations} ({(double)iterations / totalIterations:P2})" + Environment.NewLine);
+
             // The missing Iterations are what is left
-            var missing = allIterations.Keys.ToList();
+            var missing = allIterations.ToList();
+
+            if (Debug)
+            {
+                debugStr = dbFile + Environment.NewLine + "Missing Iterations:" + Environment.NewLine;
+                //debugStr += allIterations.Keys.ToList().Ranges
+                //Console.WriteLine(new int[] { 1, 3, 5, 6 }.Ranges().Show());                  -> "[1,3,5-6]";
+                debugStr += allIterations.ToArray().Ranges().Show();
+                Console.WriteLine(debugStr + Environment.NewLine + Environment.NewLine + $"Total Missing Iterations: {allIterations.Count} of {totalIterations} ({(double)allIterations.Count / totalIterations:P2})" + Environment.NewLine);
+            }
 
             return missing;
         }
 
-        public static void Tick()
+        public static IEnumerable<(uint begin, uint end)> Ranges(this IEnumerable<uint> nums)
         {
-            if (dddDataQueueRateLimiter.GetSecondsToWaitBeforeNextEvent() > 0)
-                return;
-
-            //dddDataQueueRateLimiter.RegisterEvent();
-
-            while (dddDataQueue.Count > 0 && dddDataQueueRateLimiter.GetSecondsToWaitBeforeNextEvent() <= 0)
+            var e = nums.GetEnumerator();
+            if (e.MoveNext())
             {
-                var x = dddDataQueue.TryDequeue(out var y);
-
-                if (x)
+                var begin = e.Current;
+                var end = begin + 1;
+                while (e.MoveNext())
                 {
-                    y.Session.Network.EnqueueSend(new GameMessageDDDDataMessage(y.DatFileId, y.DatDatabaseType));
-                    dddDataQueueRateLimiter.RegisterEvent();
+                    if (e.Current != end)
+                    {
+                        yield return (begin, end);
+                        begin = end = e.Current;
+                    }
+                    end++;
                 }
+                yield return (begin, end);
             }
         }
 
+        public static string Show(this IEnumerable<(uint begin, uint end)> ranges)
+        {
+            //return "[" + string.Join(",", ranges.Select(r => r.end - r.begin == 1 ? $"{r.begin}" : $"{r.begin}-{r.end - 1}")) + "]";
+            return string.Join(Environment.NewLine, ranges.Select(r => r.end - r.begin == 1 ? $"  |    {r.begin}" : $"  |    {r.begin:####} - {r.end - 1:####}"));
+        }
+
+        //public static void Tick()
+        //{
+        //    if (dddDataQueueRateLimiter.GetSecondsToWaitBeforeNextEvent() > 0)
+        //        return;
+
+        //    //dddDataQueueRateLimiter.RegisterEvent();
+
+        //    while (dddDataQueue.Count > 0 && dddDataQueueRateLimiter.GetSecondsToWaitBeforeNextEvent() <= 0)
+        //    {
+        //        var x = dddDataQueue.TryDequeue(out var y);
+
+        //        if (x)
+        //        {
+        //            y.Session.Network.EnqueueSend(new GameMessageDDDDataMessage(y.DatFileId, y.DatDatabaseType));
+        //            dddDataQueueRateLimiter.RegisterEvent();
+        //        }
+        //    }
+        //}
+
         public static bool AddToQueue(Session session, uint datFileId, DatDatabaseType datDatabaseType)
         {
-            dddDataQueue.Enqueue((session, datFileId, datDatabaseType));
+            //dddDataQueue.Enqueue((session, datFileId, datDatabaseType));
+            //session.AddToDDDQueue(datFileId, datDatabaseType);
 
-            return true;
+            return session.AddToDDDQueue(datFileId, datDatabaseType); ;
         }
     }
 }
