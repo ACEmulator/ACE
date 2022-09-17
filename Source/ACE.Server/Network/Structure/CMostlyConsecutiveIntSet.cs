@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -8,9 +9,24 @@ namespace ACE.Server.Network.Structure
         public int DatFileType;
         public int DatFileId;
         public int Iterations;
-        public Dictionary<int, int> Ints = new();
+        public List<int> Ints = new();
 
         public CMostlyConsecutiveIntSet() { }
+
+        public override string ToString()
+        {
+            var str = "";
+
+            str += $"DatFileType: {DatFileType}" + Environment.NewLine;
+            str += $"DatFileId:   {DatFileId}" + Environment.NewLine;
+            str += $"Iterations:  {Iterations}" + Environment.NewLine;
+            str += "Ints:" + Environment.NewLine;
+
+            foreach (var i in Ints)
+                str += $"  |   {i}" + Environment.NewLine;
+
+            return str;
+        }
     }
 
     public static class CMostlyConsecutiveIntSetExtensions
@@ -21,13 +37,21 @@ namespace ACE.Server.Network.Structure
             newObj.DatFileType = reader.ReadInt32();
             newObj.DatFileId = reader.ReadInt32();
             newObj.Iterations = reader.ReadInt32();
-            var iterations = newObj.Iterations;
-            while (iterations > 0)
+            var iterations = 0;
+            while (iterations != newObj.Iterations)
             {
-                var consecutiveIterations = reader.ReadInt32();
-                var startingIteration = reader.ReadInt32();
-                newObj.Ints.TryAdd(startingIteration, consecutiveIterations);
-                iterations += consecutiveIterations;
+                var x = reader.ReadInt32();
+                if (x < 0)
+                {
+                    var xAbs = Math.Abs(x);
+                    iterations += xAbs - 1;
+                }
+                else
+                {
+                    iterations++;
+                }
+
+                newObj.Ints.Add(x);
             }
             return newObj;
         }
