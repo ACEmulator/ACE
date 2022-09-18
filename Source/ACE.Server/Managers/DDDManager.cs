@@ -153,7 +153,7 @@ namespace ACE.Server.Managers
                         }
                         else
                         {
-
+                            // do nothing, files from Cell DAT are not included in totalFileSize calculations because these files are requested/sent on demand and not part of initial patching.
                         }
                     }
                 }
