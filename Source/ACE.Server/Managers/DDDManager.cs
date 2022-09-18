@@ -81,6 +81,7 @@ namespace ACE.Server.Managers
                 //if (useCompressedFile)
                 //    CompressedDatFilesCache[datDatabaseType].TryAdd(fileName, compressedDatFile);
             });
+            log.Info($"Iterations for {datDatabaseType} initialized. Iterations.Count={Iterations[datDatabaseType].Count} | DatFileSizes.Count={DatFileSizes[datDatabaseType].Count}");
         }
 
         public static byte[] Compress(byte[] data)
@@ -220,13 +221,11 @@ namespace ACE.Server.Managers
                     {
                         if (allIterations.Remove(i))
                         {
-                            //allIterations.Remove(i);
                             iterations++;
                         }
                     }
                     if (Debug)
                     {
-                        //debugStr = "Completed Iterations:";
                         debugStr += $"  |    {rangeStart:####} - {rangeEnd - 1:####}" + Environment.NewLine;
                     }
                     rangeStart = 0;
@@ -236,7 +235,6 @@ namespace ACE.Server.Managers
 
                 if (allIterations.Remove((uint)ints))
                 {
-                    //allIterations.Remove((uint)ints);
                     iterations++;
 
                     if (Debug)
@@ -254,8 +252,6 @@ namespace ACE.Server.Managers
             if (Debug)
             {
                 debugStr = dbFile + Environment.NewLine + "Missing Iterations:" + Environment.NewLine;
-                //debugStr += allIterations.Keys.ToList().Ranges
-                //Console.WriteLine(new int[] { 1, 3, 5, 6 }.Ranges().Show());                  -> "[1,3,5-6]";
                 debugStr += allIterations.ToArray().Ranges().Show();
                 Console.WriteLine(debugStr + Environment.NewLine + Environment.NewLine + $"Total Missing Iterations: {allIterations.Count} of {totalIterations} ({(double)allIterations.Count / totalIterations:P2})" + Environment.NewLine);
             }
