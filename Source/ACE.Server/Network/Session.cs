@@ -60,7 +60,13 @@ namespace ACE.Server.Network
         public bool DatWarnPortal;
         public bool DatWarnLanguage;
 
+        /// <summary>
+        /// This boolean is set to true if GameMessageDDDBeginDDD is sent to the client. Used to determine when response is needed for DDD_EndDDD
+        /// </summary>
         public bool BeginDDDSent;
+        /// <summary>
+        /// Queue for data files missing at time of connection (Portal/Cell/Language DAT), and data files requested by client (Cell DAT)
+        /// </summary>
         private Queue<(uint DatFileId, DatDatabaseType DatDatabaseType)> dddDataQueue;
         /// <summary>
         /// The rate at which ProcessDDDQueue executes (and sends DDD patch data out to client)
@@ -329,16 +335,23 @@ namespace ACE.Server.Network
             Network.EnqueueSend(worldBroadcastMessage);
         }
 
+        /// <summary>
+        /// This will enqueue a file to be sent by ProcessDDDQueue.
+        /// </summary>
         public bool AddToDDDQueue(uint datFileId, DatDatabaseType datDatabaseType)
         {
             if (dddDataQueue == null)
                 dddDataQueue = new();
 
+            //Network.EnqueueSend(new GameMessageDDDDataMessage(datFileId, datDatabaseType);
             dddDataQueue.Enqueue((datFileId, datDatabaseType));
 
             return true;
         }
 
+        /// <summary>
+        /// This will Network.EnqueueSend queued data files from DDDManager/DDDHandler.
+        /// </summary>
         private void ProcessDDDQueue()
         {
             if (dddDataQueue == null)
