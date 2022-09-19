@@ -110,7 +110,7 @@ namespace ACE.Server.Command.Handlers
                         }
                     }
 
-                    // Verify that attribute has not been augmented above 100
+                    // Verify that an attribute has not been augmented above 100
                     // only do this if server operators have opted into this functionality
                     if (attr.Value.InitLevel > 100 && attr.Value.InitLevel <= 104
                         && player.Account.AccessLevel == (uint)AccessLevel.Player
@@ -127,7 +127,7 @@ namespace ACE.Server.Command.Handlers
 
                         // find the lowest attribute to distribute the extra points to so they're not lost
                         var targetAttribute = validAttributes.FirstOrDefault(x => x.Value.InitLevel == lowestInitAttributeLevel);
-                        augmentationExploitMessageBuilder.AppendFormat(" 5 points will be redistributed to lowest innate attribute (currently {0})", targetAttribute.Key, targetAttribute.Value.InitLevel, targetAttribute.Value.InitLevel + 5, System.Environment.NewLine);
+                        augmentationExploitMessageBuilder.AppendFormat(" 5 points will be redistributed to lowest eligible innate attribute{0}", System.Environment.NewLine);
 
                         Console.WriteLine(augmentationExploitMessageBuilder.ToString());
                         if (lowestInitAttributeLevel < 96
