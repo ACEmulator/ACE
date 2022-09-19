@@ -121,13 +121,13 @@ namespace ACE.Server.Command.Handlers
                         augmentationExploitMessageBuilder.AppendFormat("{0}'s {1} is currently {2}, augmented above 100.", player.Name, attr.Key, attr.Value.InitLevel);
 
                         // only search strength, endurance, coordination, quicknesss, focus, and self
-                        var validAttributes = player.Biota.PropertiesAttribute.Where(attr => attr.Key >= PropertyAttribute.Strength || attr.Key <= PropertyAttribute.Self);
-                        // find the lowest one to distribute points to
+                        var validAttributes = player.Biota.PropertiesAttribute.Where(attr => attr.Key >= PropertyAttribute.Strength && attr.Key <= PropertyAttribute.Self);
+                        // find the lowest value of an attribute to distribute points to
                         var lowestInitAttributeLevel = validAttributes.Min(x => x.Value.InitLevel);
 
                         // find the lowest attribute to distribute the extra points to so they're not lost
                         var targetAttribute = validAttributes.FirstOrDefault(x => x.Value.InitLevel == lowestInitAttributeLevel);
-                        augmentationExploitMessageBuilder.AppendFormat(" 5 points will be redistributed to lowest eligible innate attribute{0}", System.Environment.NewLine);
+                        augmentationExploitMessageBuilder.AppendLine("5 points will be redistributed to lowest eligible innate attribute");
 
                         Console.WriteLine(augmentationExploitMessageBuilder.ToString());
                         if (lowestInitAttributeLevel < 96
