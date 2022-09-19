@@ -65,6 +65,10 @@ namespace ACE.Server.Network
         /// </summary>
         public bool BeginDDDSent;
         /// <summary>
+        /// The time at which the BeginDDD message was sent to the client. Used to determine when to start processing dddDataQueue initially.
+        /// </summary>
+        public DateTime BeginDDDSentTime;
+        /// <summary>
         /// Queue for data files missing at time of connection (Portal/Cell/Language DAT), and data files requested by client (Cell DAT)
         /// </summary>
         private Queue<(uint DatFileId, DatDatabaseType DatDatabaseType)> dddDataQueue;
@@ -359,6 +363,13 @@ namespace ACE.Server.Network
 
             if (dddDataQueueRateLimiter.GetSecondsToWaitBeforeNextEvent() > 0)
                 return;
+
+            // give a few seconds breathing room for BeginDDD pack to be sent and arrive before starting transmission from queue
+            if (BeginDDDSentTime != DateTime.MinValue && DateTime.UtcNow < BeginDDDSentTime.AddSeconds(5))
+                return;
+
+            if (BeginDDDSentTime != DateTime.MinValue)
+                BeginDDDSentTime = DateTime.MinValue;
 
             var success = dddDataQueue.TryDequeue(out var dataFile);
             if (success)
