@@ -94,7 +94,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            log.Debug($"[ALLEGIANCE] {Name} swearing allegiance to {patron.Name}");
+            log.Debug($"[ALLEGIANCE] {Name} ({Level}) swearing allegiance to {patron.Name} ({patron.Level})");
 
             PatronId = targetGuid;
 

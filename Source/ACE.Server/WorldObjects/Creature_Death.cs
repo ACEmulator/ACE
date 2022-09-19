@@ -425,7 +425,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Create a corpse for both creatures and players currently
         /// </summary>
-        protected void CreateCorpse(DamageHistoryInfo killer)
+        protected void CreateCorpse(DamageHistoryInfo killer, bool hadVitae = false)
         {
             if (NoCorpse)
             {
@@ -524,7 +524,7 @@ namespace ACE.Server.WorldObjects
             if (player != null)
             {
                 corpse.SetPosition(PositionType.Location, corpse.Location);
-                var dropped = killer != null && killer.IsOlthoiPlayer ? player.CalculateDeathItems_Olthoi(corpse) : player.CalculateDeathItems(corpse);
+                var dropped = killer != null && killer.IsOlthoiPlayer ? player.CalculateDeathItems_Olthoi(corpse, hadVitae) : player.CalculateDeathItems(corpse);
                 corpse.RecalculateDecayTime(player);
 
                 if (dropped.Count > 0)
