@@ -42,8 +42,8 @@ namespace ACE.Server.Network.Handlers
                 switch (entry.DatFileId)
                 {
                     case 1: // PORTAL
-                        clientPortalDatIntSet = entry;
-                        if (entry.Iterations < DatManager.PortalDat.Iteration)
+                        clientPortalDatIntSet = entry.List;
+                        if (entry.List.Iterations < DatManager.PortalDat.Iteration)
                         {
                             if (showDatWarning)
                                 session.DatWarnPortal = true;
@@ -52,8 +52,8 @@ namespace ACE.Server.Network.Handlers
                         }
                         break;
                     case 2: // CELL
-                        clientCellDatIntSet = entry;
-                        if (entry.Iterations < DatManager.CellDat.Iteration)
+                        clientCellDatIntSet = entry.List;
+                        if (entry.List.Iterations < DatManager.CellDat.Iteration)
                         {
                             if (showDatWarning)
                                 session.DatWarnCell = true;
@@ -62,8 +62,8 @@ namespace ACE.Server.Network.Handlers
                         }
                         break;
                     case 3: // LANGUAGE
-                        clientLanguageDatIntSet = entry;
-                        if (entry.Iterations < DatManager.LanguageDat.Iteration)
+                        clientLanguageDatIntSet = entry.List;
+                        if (entry.List.Iterations < DatManager.LanguageDat.Iteration)
                         {
                             if (showDatWarning)
                                 session.DatWarnLanguage = true;
@@ -89,6 +89,7 @@ namespace ACE.Server.Network.Handlers
                 var totalMissingIterations = DDDManager.GetMissingIterations(clientPortalDatIntSet, clientCellDatIntSet, clientLanguageDatIntSet, out var totalFileSize, out var missingIterations);                
                 var patchStatusMessage = new GameMessageDDDBeginDDD(totalMissingIterations, totalFileSize, missingIterations);
                 session.Network.EnqueueSend(patchStatusMessage);
+                session.BeginDDDSentTime = DateTime.UtcNow;
                 session.BeginDDDSent = true;
 
                 log.Info($"[DDD] client {session.Account} informed with BeginDDD payload:\n Total Missing Iterations: {totalMissingIterations} | Expected Data Transfer Size: {totalFileSize / 1024:N0} kB");
