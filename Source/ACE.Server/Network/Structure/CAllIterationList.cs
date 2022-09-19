@@ -5,7 +5,7 @@ namespace ACE.Server.Network.Structure
 {
     public class CAllIterationList
     {
-        public List<CMostlyConsecutiveIntSet> Lists = new();
+        public List<PTaggedIterationList> Lists = new();
 
         public CAllIterationList() { }
     }
@@ -18,7 +18,7 @@ namespace ACE.Server.Network.Structure
             var obj = new CAllIterationList();
             var numElements = reader.ReadInt32();
             for (var i = 0; i < numElements; i++)
-                obj.Lists.Add(reader.ReadCMostlyConsecutiveIntSet());
+                obj.Lists.Add(reader.ReadPTaggedIterationList());
             return obj;
         }
     }
