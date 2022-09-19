@@ -69,7 +69,6 @@ namespace ACE.Server.Managers
 
                 var datFile = datDatabase.GetReaderForFile(fileName);
                 var uncompressedFileSize = datFile.Buffer.Length;
-                //var compressedDatFile = Ionic.Zlib.ZlibStream.CompressBuffer(datFile.Buffer);
                 var compressedDatFile = Compress(datFile.Buffer);
                 var compressedFileSize = compressedDatFile.Length;
                 var useCompressedFile = compressedFileSize + 4 < uncompressedFileSize;
@@ -78,22 +77,99 @@ namespace ACE.Server.Managers
                 Iterations[datDatabaseType][fileIter].Add(fileName);
                 DatFileSizes[datDatabaseType].TryAdd(fileName, (uncompressedFileSize, fileSizeToSend));
 
-                //if (useCompressedFile)
-                //    CompressedDatFilesCache[datDatabaseType].TryAdd(fileName, compressedDatFile);
+                if (useCompressedFile)
+                    CompressedDatFilesCache[datDatabaseType].TryAdd(fileName, PrependUncompressedFileSize(compressedDatFile, (uint)uncompressedFileSize));
             });
             log.Info($"Iterations for {datDatabaseType} initialized. Iterations.Count={Iterations[datDatabaseType].Count} | DatFileSizes.Count={DatFileSizes[datDatabaseType].Count}");
         }
 
+        /// <summary>
+        /// Compresses data with ZLib
+        /// </summary>
+        /// <param name="data">The data to compress</param>
+        /// <returns>The ZLib compressed data</returns>
         public static byte[] Compress(byte[] data)
         {
             using (var input = new MemoryStream(data))
             using (var output = new MemoryStream())
             using (var compressor = new ZLibStream(output, CompressionLevel.SmallestSize))
-            //using (var compressor = new Ionic.Zlib.ZlibStream(output, Ionic.Zlib.CompressionMode.Compress, Ionic.Zlib.CompressionLevel.BestCompression))
             {
                 input.CopyTo(compressor);
                 compressor.Close();
                 return output.ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Combines the uncompressed file size with the compressed data for transmission to client
+        /// </summary>
+        /// <param name="compressedData">Data that has been previously compressed</param>
+        /// <param name="uncompressedFileSize">The file size of the compressed data when uncompressed</param>
+        /// <returns></returns>
+        public static byte[] PrependUncompressedFileSize(byte[] compressedData, uint uncompressedFileSize)
+        {
+            var uncompressedFileSizeBytes = BitConverter.GetBytes(uncompressedFileSize);
+            var output = uncompressedFileSizeBytes.Concat(compressedData).ToArray();
+
+            return output;
+        }
+
+        /// <summary>
+        /// Tries to search for and return the file contents for a DatFileId of the specified DAT file, suitable for transmission to client
+        /// </summary>
+        /// <param name="datFileId">The id of the file to transmit</param>
+        /// <param name="datDatabaseType">The type of DAT to search for <paramref name="datFileId"/></param>
+        /// <param name="datFile">The DatFile found in <paramref name="datDatabaseType"/></param>
+        /// <param name="isCompressed">Indicates if the data has been ZLib compressed for transmission</param>
+        /// <returns>If found, the data contents for <paramref name="datFileId"/> prepared for transmission, the <paramref name="datFile"/> and if the contents <paramref name="isCompressed"/>. null is returned if the file is not found.</returns>
+        public static byte[] TryGetDatFileContentsForTransmission(uint datFileId, DatDatabaseType datDatabaseType, out DatFile datFile, out bool isCompressed)
+        {
+            DatDatabase datDatabase = null;
+            isCompressed = false;
+
+            switch (datDatabaseType)
+            {
+                case DatDatabaseType.Portal:
+
+                    datDatabase = DatManager.PortalDat;
+                    break;
+
+                case DatDatabaseType.Cell:
+
+                    datDatabase = DatManager.CellDat;
+                    break;
+
+                case DatDatabaseType.Language:
+
+                    datDatabase = DatManager.LanguageDat;
+                    break;
+            }
+
+            var datFileFound = datDatabase.AllFiles.TryGetValue(datFileId, out datFile);
+
+            if (!datFileFound)
+                return null;
+
+            var cachedDatFileSizes = DatFileSizes[datDatabaseType][datFileId];
+
+            var compressDatFile = cachedDatFileSizes.CompressedFileSize > 0;
+
+            if (compressDatFile)
+            {
+                isCompressed = true;
+
+                if (CompressedDatFilesCache[datDatabaseType].TryGetValue(datFileId, out var compressedData))
+                    return compressedData;
+
+                compressedData = PrependUncompressedFileSize(Compress(datDatabase.GetReaderForFile(datFileId).Buffer), datFile.FileSize);
+
+                CompressedDatFilesCache[datDatabaseType].TryAdd(datFileId, compressedData);
+
+                return compressedData;
+            }
+            else
+            {
+                return datDatabase.GetReaderForFile(datFileId).Buffer;
             }
         }
 
@@ -167,7 +243,7 @@ namespace ACE.Server.Managers
         /// </summary>
         /// <param name="datDatabaseType">The type of DAT we are looking for missing iterations from</param>
         /// <param name="clientIterations">The CMostlyConsecutiveIntSet from the client for a single DAT</param>
-        /// <returns></returns>
+        /// <returns>List of missing iterations</returns>
         private static List<uint> GetMissingIterationsFromClient(DatDatabaseType datDatabaseType, CMostlyConsecutiveIntSet clientIterations)
         {
             var allIterations = new HashSet<uint>();
