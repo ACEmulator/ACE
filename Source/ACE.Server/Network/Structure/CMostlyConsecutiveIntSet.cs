@@ -6,8 +6,6 @@ namespace ACE.Server.Network.Structure
 {
     public class CMostlyConsecutiveIntSet
     {
-        public int DatFileType;
-        public int DatFileId;
         public int Iterations;
         public List<int> Ints = new();
 
@@ -17,8 +15,6 @@ namespace ACE.Server.Network.Structure
         {
             var str = "";
 
-            str += $"DatFileType: {DatFileType}" + Environment.NewLine;
-            str += $"DatFileId:   {DatFileId}" + Environment.NewLine;
             str += $"Iterations:  {Iterations}" + Environment.NewLine;
             str += "Ints:" + Environment.NewLine;
 
@@ -34,8 +30,6 @@ namespace ACE.Server.Network.Structure
         public static CMostlyConsecutiveIntSet ReadCMostlyConsecutiveIntSet(this BinaryReader reader)
         {
             var newObj = new CMostlyConsecutiveIntSet();
-            newObj.DatFileType = reader.ReadInt32();
-            newObj.DatFileId = reader.ReadInt32();
             newObj.Iterations = reader.ReadInt32();
             var iterations = 0;
             while (iterations != newObj.Iterations)
