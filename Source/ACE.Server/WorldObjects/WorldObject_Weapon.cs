@@ -954,7 +954,7 @@ namespace ACE.Server.WorldObjects
             return HasProc && ProcSpell == spellID;
         }
 
-        public void TryProcItem(WorldObject attacker, Creature target)
+        public void TryProcItem(WorldObject attacker, Creature target, bool selfTarget)
         {
             // roll for a chance of casting spell
             var chance = ProcSpellRate ?? 0.0f;
@@ -978,6 +978,17 @@ namespace ACE.Server.WorldObjects
                     else
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
                 }
+                return;
+            }
+
+            // not sure if this should go before or after the resist check
+            // after would match Player_Magic, but would require changing the signature of TryCastSpell yet again
+            // starting with the simpler check here
+            if (!selfTarget && target != null && target.NonProjectileMagicImmune && !spell.IsProjectile)
+            {
+                if (attacker is Player player)
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {target.Name} with {spell.Name}", ChatMessageType.Magic));
+
                 return;
             }
 
