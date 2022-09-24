@@ -410,6 +410,23 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        private float? _auralAwarenessRangeSq;
+
+        public float AuralAwarenessRangeSq
+        {
+            get
+            {
+                if (_auralAwarenessRangeSq == null)
+                {
+                    var auralAwarenessRange = (float)((AuralAwarenessRange ?? VisualAwarenessRange ?? VisualAwarenessRange_Default) * PropertyManager.GetDouble("mob_awareness_range").Item);
+
+                    _auralAwarenessRangeSq = auralAwarenessRange * auralAwarenessRange;
+                }
+
+                return _auralAwarenessRangeSq.Value;
+            }
+        }
+
         /// <summary>
         /// A monster can only alert friendly mobs to the presence of each attack target
         /// once every AlertThreshold
@@ -448,7 +465,7 @@ namespace ACE.Server.WorldObjects
                 {
                     //var distSq = Location.SquaredDistanceTo(nearbyCreature.Location);
                     var distSq = PhysicsObj.get_distance_sq_to_object(nearbyCreature.PhysicsObj, true);
-                    if (distSq > nearbyCreature.VisualAwarenessRangeSq)
+                    if (distSq > nearbyCreature.AuralAwarenessRangeSq)
                         continue;
 
                     // scenario: spawn a faction mob, and then spawn a non-faction mob next to it, of the same CreatureType
