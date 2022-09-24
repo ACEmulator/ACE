@@ -374,6 +374,7 @@ namespace ACE.Server.Network
             var success = dddDataQueue.TryDequeue(out var dataFile);
             if (success)
             {
+                //Console.WriteLine($"{Account}.ProcessDDDQueue: 0x{dataFile.DatFileId:X8}, {dataFile.DatDatabaseType}; Remaining in Queue: {dddDataQueue.Count}");
                 Network.EnqueueSend(new GameMessageDDDDataMessage(dataFile.DatFileId, dataFile.DatDatabaseType));
                 dddDataQueueRateLimiter.RegisterEvent();
             }
