@@ -372,7 +372,7 @@ namespace ACE.Server.Managers
 
             // first, check for variables updated on the server-side. Write those to the DB.
             // then, compare variables to DB and update from DB as necessary. (needs to minimize r/w)
-            
+
             WriteBoolToDB();
             WriteLongToDB();
             WriteDoubleToDB();
@@ -510,6 +510,7 @@ namespace ACE.Server.Managers
                 ("allow_pkl_bump", new Property<bool>(true, "enables retail behavior where /pkl checks for entry collisions, bumping the player position over if standing on another PKLite. This effectively enables /pkl door skipping from retail")),
                 ("allow_summoning_killtask_multicredit", new Property<bool>(true, "enables retail behavior where a summoner can get multiple killtask credits from a monster")),
                 ("assess_creature_mod", new Property<bool>(false, "(non-retail function) If enabled, re-enables former skill formula, when assess creature skill is not trained or spec'ed")),
+                ("attribute_augmentation_safety_cap", new Property<bool>(true, "if TRUE players are not able to use attribute augmentations if the innate value of the target attribute is >= 96. All normal restrictions to these augmentations still apply.")),
                 ("chat_disable_general", new Property<bool>(false, "disable general global chat channel")),
                 ("chat_disable_lfg", new Property<bool>(false, "disable lfg global chat channel")),
                 ("chat_disable_olthoi", new Property<bool>(false, "disable olthoi global chat channel")),

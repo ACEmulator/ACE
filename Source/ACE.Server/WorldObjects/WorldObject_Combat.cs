@@ -30,7 +30,7 @@ namespace ACE.Server.WorldObjects
             {
                 // projectile
                 // monster
-                TryProcItem(attacker, target);
+                TryProcItem(attacker, target, selfTarget);
             }
 
             // handle proc spells for weapon
@@ -38,14 +38,14 @@ namespace ACE.Server.WorldObjects
             if (weapon != null && weapon.HasProc && weapon.ProcSpellSelfTargeted == selfTarget)
             {
                 // weapon
-                weapon.TryProcItem(attacker, target);
+                weapon.TryProcItem(attacker, target, selfTarget);
             }
 
             if (attacker != this && attacker.HasProc && attacker.ProcSpellSelfTargeted == selfTarget)
             {
                 // handle special case -- missile projectiles from monsters w/ a proc directly on the mob
                 // monster
-                attacker.TryProcItem(attacker, target);
+                attacker.TryProcItem(attacker, target, selfTarget);
             }
 
             // handle aetheria procs
@@ -55,7 +55,7 @@ namespace ACE.Server.WorldObjects
 
                 // aetheria
                 foreach (var aetheria in equippedAetheria)
-                    aetheria.TryProcItem(attacker, target);
+                    aetheria.TryProcItem(attacker, target, selfTarget);
             }
         }
     }
