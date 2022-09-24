@@ -931,6 +931,8 @@ namespace ACE.Database
         {
             var deleteLimit = Time.GetUnixTime(DateTime.UtcNow.AddDays(-daysLimiter));
 
+            context.Database.SetCommandTimeout(900);
+
             var releasedIds = context.BiotaPropertiesFloat.AsNoTracking().Where(r => r.Type == (ushort)PropertyFloat.ReleasedTimestamp && r.Value <= deleteLimit).Select(r => new { r.ObjectId, r.Value }).AsEnumerable().Select(r => (Id: r.ObjectId, ReleasedTimestamp: r.Value)).ToHashSet();
 
             int biotaPurgedTotal = 0;
