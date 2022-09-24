@@ -6,12 +6,19 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
     public class AugmentationDevice: WorldObject
     {
+        /// <summary>
+        /// Indicates that the server should enforce logic to prevent players
+        /// from augmenting a given attribute's innate value over 100
+        /// </summary>
+        public static bool AttributeAugmentationSafetyCapEnabled => PropertyManager.GetBool("attribute_augmentation_safety_cap").Item;
+
         public long? AugmentationCost
         {
             get => GetProperty(PropertyInt64.AugmentationCost);
@@ -85,12 +92,13 @@ namespace ACE.Server.WorldObjects
 
                 var attr = AugTypeHelper.GetAttribute(type);
                 var playerAttr = player.Attributes[attr];
-                playerAttr.StartingValue += 5;
+                playerAttr.StartingValue += AttributeAugmentationSafetyCapEnabled ? Math.Min(5, 100 - playerAttr.StartingValue) : 5;
                 player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(player, playerAttr));
             }
             else if (AugTypeHelper.IsResist(type))
+            {
                 player.AugmentationResistanceFamily++;
-
+            }
             else if (AugTypeHelper.IsSkill(type))
             {
                 var playerSkill = player.GetCreatureSkill(AugTypeHelper.GetSkill(type));
@@ -103,14 +111,12 @@ namespace ACE.Server.WorldObjects
                 playerSkill.Ranks = (ushort)specRank;
                 player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, playerSkill));
             }
-
             else if (type == AugmentationType.PackSlot)
             {
                 // still seems to require the client to relog
                 player.ContainerCapacity++;
                 player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.ContainersCapacity, (int)player.ContainerCapacity));
             }
-
             else if (type == AugmentationType.BurdenLimit)
             {
                 var capacity = player.GetEncumbranceCapacity();
@@ -169,7 +175,8 @@ namespace ACE.Server.WorldObjects
                 var playerAttribute = player.Attributes[AugTypeHelper.GetAttribute(type)];
 
                 // check InitLevel
-                if (playerAttribute.StartingValue >= 100)
+                var maxInnateValue = AttributeAugmentationSafetyCapEnabled ? 96 : 100;
+                if (playerAttribute.StartingValue >= maxInnateValue)
                 {
                     player.SendWeenieErrorWithString(WeenieErrorWithString.AugmentationSkillNotTrained, $"You are not able to purchase this augmentation because your {playerAttribute.Attribute.ToString()} is already at the maximum innate level!");
                     return false;
