@@ -288,7 +288,7 @@ namespace ACE.Server.Command.Handlers.Processors
             }
 
             foreach (var file in files)
-                ImportSQLWeenie(session, file.DirectoryName + "\\", file.Name);
+                ImportSQLWeenie(session, file.DirectoryName + sep, file.Name);
                 
         }
 
