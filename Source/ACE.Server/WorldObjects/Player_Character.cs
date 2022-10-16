@@ -186,7 +186,7 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
 
             // get friend player info
-            var friend = PlayerManager.FindByGuid(friendToRemove.CharacterId);
+            var friend = PlayerManager.FindByGuid(friendToRemove.FriendId);
 
             if (friend == null) // shouldn't happen
                 ChatPacket.SendServerMessage(Session, "Friend has been removed from your friends list.", ChatMessageType.Broadcast);
@@ -202,7 +202,7 @@ namespace ACE.Server.WorldObjects
             // Remove all from DB
             if (Character.ClearAllFriends(CharacterDatabaseLock))
             {
-                ChatPacket.SendServerMessage(Session, "Your friends list has been cleared.", ChatMessageType.Broadcast);
+                //ChatPacket.SendServerMessage(Session, "Your friends list has been cleared.", ChatMessageType.Broadcast);
                 CharacterChangesDetected = true;
             }
         }
