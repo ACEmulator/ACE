@@ -4,6 +4,7 @@ using System.Linq;
 using ACE.Database;
 using ACE.Database.Entity;
 using ACE.Entity.Enum;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
 {
@@ -94,6 +95,37 @@ namespace ACE.Server.Entity
             if (Available == null) GetHouseList();
 
             return Available[houseType].Select(i => i.LandblockInstance.ObjCellId | 0x0001).ToList();
+        }
+
+        public static void RemoveFromAvailable(SlumLord slumLord, House houseToRemove)
+        {
+            if (Available == null) return; // no results cached, move on.
+
+            var houseType = slumLord.House?.HouseType ?? houseToRemove.HouseType;
+
+            var house = Available[houseType].FirstOrDefault(i => i.LandblockInstance.Guid == slumLord.Guid.Full);
+            if (house != null)
+                Available[houseType].Remove(house);
+        }
+
+        public static void AddToAvailable(SlumLord slumLord, House houseToAdd)
+        {
+            if (Available == null) return; // no results cached, move on.
+
+            var houseType = slumLord.House?.HouseType ?? houseToAdd.HouseType;
+
+            var house = Available[houseType].FirstOrDefault(i => i.LandblockInstance.Guid == slumLord.Guid.Full);
+            if (house != null)
+                Available[houseType].Remove(house);
+
+            var weenie = DatabaseManager.World.GetWeenie(slumLord.WeenieClassId);
+            //var landblockInstance = slumLord.House.LinkedInstances.FirstOrDefault(i => i.Guid == slumLord.Guid.Full);
+            var landblockInstance = slumLord.House?.LinkedInstances.FirstOrDefault(i => i.Guid == slumLord.Guid.Full) ?? houseToAdd.LinkedInstances.FirstOrDefault(i => i.Guid == slumLord.Guid.Full);
+            //var landblockInstance = houseToAdd.LinkedInstances.FirstOrDefault(i => i.Guid == slumLord.Guid.Full);
+
+            if (weenie == null || landblockInstance == null) return;
+
+            Available[houseType].Add(new HouseListResults(weenie, landblockInstance));
         }
     }
 }

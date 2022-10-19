@@ -1310,6 +1310,24 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.NoOlthoiTalk); else SetProperty(PropertyBool.NoOlthoiTalk, value); }
         }
 
+        // not sure of the exact use for these fields in retail
+        // from the name, i would be inclined to think the last time an OlthoiPlayer found / looted some slag
+        // it could also mean the last time a Player corpse generated some slag
+
+        // going to lean towards the latter, and use it to indicate the last time a Player died to an OlthoiPlayer
+
+        public int? OlthoiLootTimestamp
+        {
+            get => GetProperty(PropertyInt.OlthoiLootTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.OlthoiLootTimestamp); else SetProperty(PropertyInt.OlthoiLootTimestamp, value.Value); }
+        }
+
+        public int? OlthoiLootStep
+        {
+            get => GetProperty(PropertyInt.OlthoiLootStep);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.OlthoiLootStep); else SetProperty(PropertyInt.OlthoiLootStep, value.Value); }
+        }
+
         /// <summary>
         /// Returns player's augmentation resistance for damage type
         /// </summary>

@@ -425,11 +425,11 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Create a corpse for both creatures and players currently
         /// </summary>
-        protected void CreateCorpse(DamageHistoryInfo killer)
+        protected void CreateCorpse(DamageHistoryInfo killer, bool hadVitae = false)
         {
             if (NoCorpse)
             {
-                if (killer.IsOlthoiPlayer) return;
+                if (killer != null && killer.IsOlthoiPlayer) return;
 
                 var loot = GenerateTreasure(killer, null);
 
@@ -524,7 +524,7 @@ namespace ACE.Server.WorldObjects
             if (player != null)
             {
                 corpse.SetPosition(PositionType.Location, corpse.Location);
-                var dropped = player.CalculateDeathItems(corpse);
+                var dropped = killer != null && killer.IsOlthoiPlayer ? player.CalculateDeathItems_Olthoi(corpse, hadVitae) : player.CalculateDeathItems(corpse);
                 corpse.RecalculateDecayTime(player);
 
                 if (dropped.Count > 0)
@@ -559,8 +559,10 @@ namespace ACE.Server.WorldObjects
             {
                 corpse.IsMonster = true;
 
-                if (!killer.IsOlthoiPlayer)
+                if (killer == null || !killer.IsOlthoiPlayer)
                     GenerateTreasure(killer, corpse);
+                else
+                    GenerateTreasure_Olthoi(killer, corpse);
 
                 if (killer != null && killer.IsPlayer && !killer.IsOlthoiPlayer)
                 {
@@ -636,28 +638,6 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            // contain and non-wielded treasure create
-            if (Biota.PropertiesCreateList != null)
-            {
-                var createList = Biota.PropertiesCreateList.Where(i => (i.DestinationType & DestinationType.Contain) != 0 ||
-                                (i.DestinationType & DestinationType.Treasure) != 0 && (i.DestinationType & DestinationType.Wield) == 0).ToList();
-
-                var selected = CreateListSelect(createList);
-
-                foreach (var item in selected)
-                {
-                    var wo = WorldObjectFactory.CreateNewWorldObject(item);
-
-                    if (wo != null)
-                    {
-                        if (corpse != null)
-                            corpse.TryAddToInventory(wo);
-                        else
-                            droppedItems.Add(wo);
-                    }
-                }
-            }
-
             // move wielded treasure over, which also should include Wielded objects not marked for destroy on death.
             // allow server operators to configure this behavior due to errors in createlist post 16py data
             var dropFlags = PropertyManager.GetBool("creatures_drop_createlist_wield").Item ? DestinationType.WieldTreasure : DestinationType.Treasure;
@@ -680,7 +660,44 @@ namespace ACE.Server.WorldObjects
                     droppedItems.Add(item);
             }
 
+            // contain and non-wielded treasure create
+            if (Biota.PropertiesCreateList != null)
+            {
+                var createList = Biota.PropertiesCreateList.Where(i => (i.DestinationType & DestinationType.Contain) != 0 ||
+                                (i.DestinationType & DestinationType.Treasure) != 0 && (i.DestinationType & DestinationType.Wield) == 0).ToList();
+
+                var selected = CreateListSelect(createList);
+
+                foreach (var item in selected)
+                {
+                    var wo = WorldObjectFactory.CreateNewWorldObject(item);
+
+                    if (wo != null)
+                    {
+                        if (corpse != null)
+                            corpse.TryAddToInventory(wo);
+                        else
+                            droppedItems.Add(wo);
+                    }
+                }
+            }
+
             return droppedItems;
+        }
+
+        /// <summary>
+        /// Generates random amounts of slag on a corpse
+        /// when an OlthoiPlayer is the killer
+        /// </summary>
+        private void GenerateTreasure_Olthoi(DamageHistoryInfo killer, Corpse corpse)
+        {
+            if (DeathTreasure == null) return;
+
+            var slag = LootGenerationFactory.RollSlag(DeathTreasure);
+
+            if (slag == null) return;
+
+            corpse.TryAddToInventory(slag);
         }
 
         public void DoCantripLogging(DamageHistoryInfo killer, WorldObject wo)

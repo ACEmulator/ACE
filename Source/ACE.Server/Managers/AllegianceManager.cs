@@ -302,7 +302,11 @@ namespace ACE.Server.Managers
                 //patron.CPPoolToUnload += passupAmount;
 
                 vassal.AllegianceXPGenerated += generatedAmount;
-                patron.AllegianceXPCached += passupAmount;
+
+                if (PropertyManager.GetBool("offline_xp_passup_limit").Item)
+                    patron.AllegianceXPCached = Math.Min(patron.AllegianceXPCached + passupAmount, uint.MaxValue);
+                else
+                    patron.AllegianceXPCached += passupAmount;
 
                 var onlinePatron = PlayerManager.GetOnlinePlayer(patron.Guid);
                 if (onlinePatron != null)

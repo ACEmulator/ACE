@@ -893,6 +893,17 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            if (item is Container)
+            {
+                // Blocking all attempts to put containers in things that aren't Players and Storage. This may not be retail, but at this time appears to be best catch all solution to Quest stamp bypass issue.
+                if (container is not Player && container is not Storage)
+                {
+                    //Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You cannot put {item.Name} in that.")); // Custom error message
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                    return false;
+                }
+            }
+
             return true;
         }
 
@@ -2208,6 +2219,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (stack.IsAttunedOrContainsAttuned && stackRootOwner == this && containerRootOwner != this)
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId));
+                return;
+            }
+
             if ((stackRootOwner == this && containerRootOwner != this)  || (stackRootOwner != this && containerRootOwner == this)) // Movement is between the player and the world
             {
                 if (stackRootOwner is Vendor)
@@ -2609,6 +2626,12 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            if (sourceStack.IsAttunedOrContainsAttuned && sourceStackRootOwner == this && targetStackRootOwner != this)
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, sourceStack.Guid.Full));
+                return;
+            }
+
             if ((sourceStackRootOwner == this && targetStackRootOwner != this)  || (sourceStackRootOwner != this && targetStackRootOwner == this)) // Movement is between the player and the world
             {
                 if (sourceStackRootOwner is Vendor)
@@ -2725,10 +2748,13 @@ namespace ACE.Server.WorldObjects
 
                 if (sourceStackRootOwner != null) // item is contained and not on a landblock
                 {
-                    var sourceStackRootCreature = sourceStackRootOwner as Creature;
+                    var sourceStackRootPlayer = sourceStackRootOwner as Player;
 
-                    if (sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out var stackToDestroy, true) || sourceStackRootCreature != null && sourceStackRootCreature.TryDequipObject(sourceStack.Guid, out stackToDestroy, out _))
+                    if (sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out var stackToDestroy, true) ||
+                        sourceStackRootPlayer != null && sourceStackRootPlayer.TryDequipObjectWithNetworking(sourceStack.Guid, out stackToDestroy, DequipObjectAction.DequipToPack))  // test case: merge equipped phials with another stack in inventory
+                    {
                         stackToDestroy?.Destroy();
+                    }
                     else
                     {
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, previousSourceStackCheck.Guid.Full));

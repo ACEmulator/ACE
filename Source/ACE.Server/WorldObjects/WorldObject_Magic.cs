@@ -370,7 +370,7 @@ namespace ACE.Server.WorldObjects
         /// Handles casting SpellType.Enchantment / FellowEnchantment spells
         /// this is also called if SpellType.EnchantmentProjectile successfully hits
         /// </summary>
-        public void CreateEnchantment(WorldObject target, WorldObject caster, WorldObject weapon, Spell spell, bool equip = false)
+        public void CreateEnchantment(WorldObject target, WorldObject caster, WorldObject weapon, Spell spell, bool equip = false, bool fromProc = false)
         {
             // weird itemCaster -> caster collapsing going on here -- fixme
 
@@ -392,6 +392,14 @@ namespace ACE.Server.WorldObjects
                     caster = this;
                     cloakProc = true;
                 }
+            }
+            else if (fromProc)
+            {
+                // fromProc is assumed to be cloakProc currently
+                // todo: change fromProc from bool to WorldObject
+                // do we need separate concepts for itemCaster and fromProc objects?
+                caster = this;
+                cloakProc = true;
             }
 
             // create enchantment
@@ -468,8 +476,9 @@ namespace ACE.Server.WorldObjects
             var player = this as Player;
             var creature = this as Creature;
 
-            // double check caster and target are alive
-            if (creature != null && creature.IsDead || targetCreature != null && targetCreature.IsDead)
+            // prevent double deaths from indirect casts
+            // caster is already checked in player/monster, and re-checking caster here would break death emotes such as bunny smite
+            if (targetCreature != null && targetCreature.IsDead)
                 return;
 
             // handle negatives?
@@ -692,8 +701,9 @@ namespace ACE.Server.WorldObjects
 
             var targetPlayer = targetCreature as Player;
 
-            // double check caster and target are alive
-            if (creature != null && creature.IsDead || targetCreature != null && targetCreature.IsDead)
+            // prevent double deaths from indirect casts
+            // caster is already checked in player/monster, and re-checking caster here would break death emotes such as bunny smite
+            if (targetCreature != null && targetCreature.IsDead)
                 return;
 
             // source and destination can be the same creature, or different creatures
@@ -1279,6 +1289,8 @@ namespace ACE.Server.WorldObjects
 
             gateway.Quest = portal.Quest;
             gateway.QuestRestriction = portal.QuestRestriction;
+
+            gateway.Biota.PropertiesEmote = portal.Biota.PropertiesEmote;
 
             gateway.PortalRestrictions |= PortalBitmask.NoSummon; // all gateways are marked NoSummon but by default ruleset, the OriginalPortal is the one that is checked against
 

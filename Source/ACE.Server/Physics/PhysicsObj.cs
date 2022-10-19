@@ -1428,7 +1428,7 @@ namespace ACE.Server.Physics
                     // compare: rabbits occasionally spawning in buildings in yaraq,
                     // vs. lich tower @ 3D31FFFF
 
-                    /*var sortCell = LScape.get_landcell(newPos.ObjCellID) as SortCell;
+                    var sortCell = LScape.get_landcell(newPos.ObjCellID) as SortCell;
                     if (sortCell == null || !sortCell.has_building())
                     {
                         // set to ground pos
@@ -1440,7 +1440,7 @@ namespace ACE.Server.Physics
                         else
                             newPos.Frame.Origin.Z = groundZ;
 
-                    }*/
+                    }
                     //else
                         //indoors = true;
 

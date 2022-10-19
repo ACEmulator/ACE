@@ -192,6 +192,11 @@ namespace ACE.Server
                 log.Info($"Pruned {numberOfSquelchesPruned:N0} invalid squelched characters found on squelch lists.");
             }
 
+            if (ConfigManager.Config.Offline.AutoServerUpdateCheck)
+                CheckForServerUpdate();
+            else
+                log.Info($"AutoServerVersionCheck is disabled...");
+
             if (ConfigManager.Config.Offline.AutoUpdateWorldDatabase)
             {
                 CheckForWorldDatabaseUpdate();

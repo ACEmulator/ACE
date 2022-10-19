@@ -307,12 +307,12 @@ namespace ACE.Server.Managers
             // You determine that you have a 99 percent chance to succeed.
             // You determine that you have a 38 percent chance to succeed. 5 percent is due to your augmentation.
 
-            var floorMsg = $"You determine that you have a {percent.Round()}% chance to succeed.";
+            var floorMsg = $"You determine that you have a {percent.Round()} percent chance to succeed.";
 
             var numAugs = recipe.IsImbuing() ? player.AugmentationBonusImbueChance : 0;
 
             if (numAugs > 0)
-                floorMsg += $"\n{numAugs * 5}% is due to your augmentation.";
+                floorMsg += $"\n{numAugs * 5} percent is due to your augmentation.";
 
             if (!player.ConfirmationManager.EnqueueSend(new Confirmation_CraftInteration(player.Guid, source.Guid, target.Guid), floorMsg))
             {
@@ -322,7 +322,7 @@ namespace ACE.Server.Managers
 
             if (PropertyManager.GetBool("craft_exact_msg").Item)
             {
-                var exactMsg = $"You have a {(float)percent}% chance of using {source.NameWithMaterial} on {target.NameWithMaterial}.";
+                var exactMsg = $"You have a {(float)percent} percent chance of using {source.NameWithMaterial} on {target.NameWithMaterial}.";
 
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(exactMsg, ChatMessageType.Craft));
             }
@@ -789,7 +789,7 @@ namespace ACE.Server.Managers
 
             // TODO: figure out other Usable flags
             if (usable.HasFlag(Usable.Contained))
-                searchLocations |= Player.SearchLocations.MyInventory;
+                searchLocations |= Player.SearchLocations.MyInventory | Player.SearchLocations.MyEquippedItems;
             if (usable.HasFlag(Usable.Wielded))
                 searchLocations |= Player.SearchLocations.MyEquippedItems;
             if (usable.HasFlag(Usable.Remote))
@@ -938,6 +938,16 @@ namespace ACE.Server.Managers
 
                 case CompareType.Exist:
                     if (prop != null)
+                        success = false;
+                    break;
+
+                case CompareType.NotHasBits:
+                    if (((int)(prop ?? 0) & (int)val) == 0)
+                        success = false;
+                    break;
+
+                case CompareType.HasBits:
+                    if (((int)(prop ?? 0) & (int)val) == (int)val)
                         success = false;
                     break;
             }
@@ -1143,7 +1153,15 @@ namespace ACE.Server.Managers
                 if (mod.ExecutesOnSuccess != success)
                     continue;
 
-                // adjust vitals, but all appear to be 0 in current database?
+                // adjust vitals
+                if (mod.Health != 0)
+                    ModifyVital(player, PropertyAttribute2nd.Health, mod.Health);
+
+                if (mod.Stamina != 0)
+                    ModifyVital(player, PropertyAttribute2nd.Stamina, mod.Stamina);
+
+                if (mod.Mana != 0)
+                    ModifyVital(player, PropertyAttribute2nd.Mana, mod.Mana);
 
                 // apply type mods
                 foreach (var boolMod in mod.RecipeModsBool)
@@ -1170,6 +1188,31 @@ namespace ACE.Server.Managers
             }
 
             return modified;
+        }
+
+        private static void ModifyVital(Player player, PropertyAttribute2nd attribute2nd, int value)
+        {
+            var vital = player.GetCreatureVital(attribute2nd);
+
+            var vitalChange = (uint)Math.Abs(player.UpdateVitalDelta(vital, value));
+
+            if (attribute2nd == PropertyAttribute2nd.Health)
+            {
+                if (value >= 0)
+                    player.DamageHistory.OnHeal(vitalChange);
+                else
+                    player.DamageHistory.Add(player, DamageType.Health, vitalChange);
+
+                if (player.Health.Current <= 0)
+                {
+                    // should this be possible?
+                    //var lastDamager = player != null ? new DamageHistoryInfo(player) : null;
+                    var lastDamager = new DamageHistoryInfo(player);
+
+                    player.OnDeath(lastDamager, DamageType.Health, false);
+                    player.Die();
+                }
+            }
         }
 
         public static void ModifyBool(Player player, RecipeModsBool boolMod, WorldObject source, WorldObject target, WorldObject result, HashSet<uint> modified)
@@ -1230,6 +1273,20 @@ namespace ACE.Server.Managers
                     if (added)
                         targetMod.ChangesDetected = true;
                     if (Debug) Console.WriteLine($"{targetMod.Name}.AddSpell({intMod.Stat}) - {op}");
+                    break;
+                case ModificationOperation.SetBitsOn:
+                    var bits = targetMod.GetProperty(prop) ?? 0;
+                    bits |= value;
+                    player.UpdateProperty(targetMod, prop, bits);
+                    modified.Add(targetMod.Guid.Full);
+                    if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, 0x{bits:X}) - {op}");
+                    break;
+                case ModificationOperation.SetBitsOff:
+                    bits = targetMod.GetProperty(prop) ?? 0;
+                    bits &= ~value;
+                    player.UpdateProperty(targetMod, prop, bits);
+                    modified.Add(targetMod.Guid.Full);
+                    if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, 0x{bits:X}) - {op}");
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyInt({source.Name}, {target.Name}): unhandled operation {op}");

@@ -263,7 +263,7 @@ namespace ACE.Server.WorldObjects
 
             if (wo == null)
             {
-                log.Debug($"{Name}.HandleActionIdentifyObject({objectGuid:X8}): couldn't find object");
+                //log.Debug($"{Name}.HandleActionIdentifyObject({objectGuid:X8}): couldn't find object");
                 Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, objectGuid));
                 return;
             }
@@ -748,7 +748,7 @@ namespace ACE.Server.WorldObjects
             var wo = FindObject(itemGuid, SearchLocations.Everywhere);
             if (wo == null)
             {
-                log.Debug($"HandleActionForceObjDescSend() - couldn't find object {itemGuid:X8}");
+                //log.Debug($"HandleActionForceObjDescSend() - couldn't find object {itemGuid:X8}");
                 return;
             }
             Session.Network.EnqueueSend(new GameMessageObjDescEvent(wo));

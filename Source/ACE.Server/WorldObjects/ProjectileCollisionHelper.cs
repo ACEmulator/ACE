@@ -34,7 +34,7 @@ namespace ACE.Server.WorldObjects
 
             DamageEvent damageEvent = null;
 
-            if (targetCreature != null)
+            if (targetCreature != null && targetCreature.IsAlive)
             {
                 if (sourcePlayer != null)
                 {

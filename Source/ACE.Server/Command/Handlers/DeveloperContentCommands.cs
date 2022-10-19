@@ -211,6 +211,13 @@ namespace ACE.Server.Command.Handlers.Processors
                 ImportJsonQuest(session, json_folder, file.Name);
         }
 
+        [CommandHandler("import-sql-folders", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Imports all weenie sql data from the Content folder and all sub-folders", "<wcid>")]
+        public static void HandleImportSQLFolders(Session session, params string[] parameters)
+        {
+            var param = parameters[0];
+            ImportSQLWeenie(session, param, true);
+        }
+
         [CommandHandler("import-sql", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Imports sql data from the Content folder", "<wcid>")]
         public static void HandleImportSQL(Session session, params string[] parameters)
         {
@@ -254,7 +261,7 @@ namespace ACE.Server.Command.Handlers.Processors
             }
         }
 
-        public static void ImportSQLWeenie(Session session, string wcid)
+        public static void ImportSQLWeenie(Session session, string wcid, bool withFolders = false)
         {
             DirectoryInfo di = VerifyContentFolder(session);
             if (!di.Exists) return;
@@ -270,7 +277,9 @@ namespace ACE.Server.Command.Handlers.Processors
 
             di = new DirectoryInfo(sql_folder);
 
-            var files = di.Exists ? di.GetFiles($"{prefix}*.sql") : null;
+            EnumerationOptions options = new EnumerationOptions();
+            options.RecurseSubdirectories = withFolders;
+            var files = di.Exists ? di.GetFiles($"{prefix}*.sql", options) : null;
 
             if (files == null || files.Length == 0)
             {
@@ -279,7 +288,8 @@ namespace ACE.Server.Command.Handlers.Processors
             }
 
             foreach (var file in files)
-                ImportSQLWeenie(session, sql_folder, file.Name);
+                ImportSQLWeenie(session, file.DirectoryName + sep, file.Name);
+                
         }
 
         public static void ImportSQLRecipe(Session session, string recipeId)
@@ -2688,6 +2698,113 @@ namespace ACE.Server.Command.Handlers.Processors
                 var angle = Math.Atan2(-dir.Value.X, dir.Value.Y);
                 newRotation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)angle);
             }
+
+            newRotation = Quaternion.Normalize(newRotation);
+
+            // get landblock for static guid
+            var landblock_id = (ushort)(obj.Guid.Full >> 12);
+
+            // get instances for landblock
+            var instances = DatabaseManager.World.GetCachedInstancesByLandblock(landblock_id);
+
+            // find instance
+            var instance = instances.FirstOrDefault(i => i.Guid == obj.Guid.Full);
+
+            if (instance == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find instance for {obj.Name} ({obj.Guid})", ChatMessageType.Broadcast));
+                return;
+            }
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}) new rotation: {newRotation}", ChatMessageType.Broadcast));
+
+            // update physics / ace rotation
+            obj.PhysicsObj.Position.Frame.Orientation = newRotation;
+            obj.Location.Rotation = newRotation;
+
+            // update instance
+            instance.AnglesW = newRotation.W;
+            instance.AnglesX = newRotation.X;
+            instance.AnglesY = newRotation.Y;
+            instance.AnglesZ = newRotation.Z;
+
+            SyncInstances(session, landblock_id, instances);
+
+            // broadcast new rotation
+            obj.SendUpdatePosition(true);
+        }
+
+        [CommandHandler("rotate-x", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Adjusts the rotation of a landblock instance along the x-axis", "<degrees>")]
+        public static void HandleRotateX(Session session, params string[] parameters)
+        {
+            HandleRotateAxis(session, Vector3.UnitX, parameters);
+        }
+
+        [CommandHandler("rotate-y", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Adjusts the rotation of a landblock instance along the y-axis", "<degrees>")]
+        public static void HandleRotateY(Session session, params string[] parameters)
+        {
+            HandleRotateAxis(session, Vector3.UnitY, parameters);
+        }
+
+        [CommandHandler("rotate-z", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Adjusts the rotation of a landblock instance along the z-axis", "<degrees>")]
+        public static void HandleRotateZ(Session session, params string[] parameters)
+        {
+            HandleRotateAxis(session, Vector3.UnitZ, parameters);
+        }
+
+        public static void HandleRotateAxis(Session session, Vector3 axis, params string[] parameters)
+        {
+            WorldObject obj = null;
+
+            var curParam = 0;
+
+            if (parameters.Length == 2)
+            {
+                if (!uint.TryParse(parameters[curParam++].TrimStart("0x"), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var guid))
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Invalid guid: {parameters[0]}", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                obj = session.Player.FindObject(guid, Player.SearchLocations.Landblock);
+
+                if (obj == null)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {parameters[0]}", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+            else
+                obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+            if (obj == null) return;
+
+            // ensure landblock instance
+            if (!obj.Guid.IsStatic())
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}) is not landblock instance", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (obj.PhysicsObj == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}) is not a physics object", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var degrees_str = parameters[curParam];
+
+            if (!float.TryParse(degrees_str, out var degrees))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Invalid angle: {degrees_str}", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var rads = degrees.ToRadians();
+            var q = Quaternion.CreateFromAxisAngle(axis, rads);
+
+            // get quaternion
+            var newRotation = Quaternion.Normalize(obj.PhysicsObj.Position.Frame.Orientation * q);
 
             // get landblock for static guid
             var landblock_id = (ushort)(obj.Guid.Full >> 12);

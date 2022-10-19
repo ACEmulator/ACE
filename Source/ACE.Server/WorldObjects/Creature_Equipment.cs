@@ -759,5 +759,45 @@ namespace ACE.Server.WorldObjects
                     //TryWieldObject(item, (EquipMask)item.ValidLocations);
             }
         }
+
+        public uint? InventoryTreasureType
+        {
+            get => GetProperty(PropertyDataId.InventoryTreasureType);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.InventoryTreasureType); else SetProperty(PropertyDataId.InventoryTreasureType, value.Value); }
+        }
+
+        public void GenerateInventoryTreasure()
+        {
+            if (InventoryTreasureType == null || InventoryTreasureType.Value <= 0) return;
+
+            // based on property name found in older data, this property was only found 5 weenies (entirely contained in Focusing Stone quest)
+            // guessing that the value might have possibly allowed for either Death or Wielded treasure, but technically it might have only been the former.
+            // so for now, coded for checking both types.
+            // Although the property's name seemingly was removed, either it's value was still used in code OR its value was moved into DeathTreasureType/CreateList
+            // because pcaps for these 5 objects do show similar, if not exact, results on corpses.
+
+            var treasureDeath = DatabaseManager.World.GetCachedDeathTreasure(InventoryTreasureType.Value);
+            var treasureWielded = DatabaseManager.World.GetCachedWieldedTreasure(InventoryTreasureType.Value);
+
+            var treasure = new List<WorldObject>();
+            if (treasureDeath != null)
+            {
+                treasure = LootGenerationFactory.CreateRandomLootObjects(treasureDeath);
+            }
+            else if (treasureWielded != null)
+            {
+                treasure = GenerateWieldedTreasureSets(treasureWielded);
+            }
+
+            foreach (var item in treasure)
+            {
+                item.DestinationType = DestinationType.Treasure;
+                // add this flag so item can move over to corpse upon death
+                // (ACE logic: it is likely all inventory of a creature was moved over without reservation (bonded rules enforced), but ACE is slightly different in how it handles it for net same result)
+
+                if (!TryAddToInventory(item))
+                    item.Destroy();
+            }
+        }
     }
 }
