@@ -893,6 +893,17 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            if (item is Container)
+            {
+                // Blocking all attempts to put containers in things that aren't Players and Storage. This may not be retail, but at this time appears to be best catch all solution to Quest stamp bypass issue.
+                if (container is not Player && container is not Storage)
+                {
+                    //Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You cannot put {item.Name} in that.")); // Custom error message
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
+                    return false;
+                }
+            }
+
             return true;
         }
 

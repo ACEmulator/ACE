@@ -3849,9 +3849,14 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            var target = CommandHandlerHelper.GetLastAppraisedObject(session);
+            WorldObject target = null;
 
-            if (target == null) return;
+            if (spell.NonComponentTargetType != ItemType.None)
+            {
+                target = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+                if (target == null) return;
+            }
 
             session.Player.TryCastSpell(spell, target, tryResist: false);
         }
