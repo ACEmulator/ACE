@@ -904,9 +904,27 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            if (container is Storage storage)
+            //if (container is Storage storage)
+            //{
+            //    if (!storage.IsOpen || storage.Viewer != Guid.Full)
+            //    {
+            //        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.TheContainerIsClosed));
+            //        return false;
+            //    }
+            //}
+
+            //if (container is Chest chest)
+            //{
+            //    if (!chest.IsOpen || chest.Viewer != Guid.Full)
+            //    {
+            //        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.TheContainerIsClosed));
+            //        return false;
+            //    }
+            //}
+
+            if (containerRootOwner == null) // container is on landscape, so you must have it open
             {
-                if (!storage.IsOpen || storage.Viewer != Guid.Full)
+                if (!container.IsOpen || container.Viewer != Guid.Full)
                 {
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.TheContainerIsClosed));
                     return false;
