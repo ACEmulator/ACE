@@ -904,6 +904,15 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            if (container is Storage storage)
+            {
+                if (!storage.IsOpen || storage.Viewer != Guid.Full)
+                {
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.TheContainerIsClosed));
+                    return false;
+                }
+            }
+
             return true;
         }
 
