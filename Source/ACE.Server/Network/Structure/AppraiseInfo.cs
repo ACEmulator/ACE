@@ -124,12 +124,8 @@ namespace ACE.Server.Network.Structure
             if (wo.WeaponMissileDefense.HasValue && wo.WeaponMissileDefense.Value > 0 && wo.WeaponMissileDefense.Value < 1 && ((wo.GetProperty(PropertyInt.ImbueStackingBits) ?? 0) & 1) != 0)
                 PropertiesFloat[PropertyFloat.WeaponMissileDefense] += 1;
 
-            // Add AbsorbMagicDamage for ImbuedEffectType.IgnoreSomeMagicProjectileDamage
-            if (wo.HasImbuedEffect(ImbuedEffectType.IgnoreSomeMagicProjectileDamage) && !PropertiesFloat.ContainsKey(PropertyFloat.AbsorbMagicDamage))
-                PropertiesFloat[PropertyFloat.AbsorbMagicDamage] = 1;
-
-            // Mask real value of AbsorbMagicDamage
-            if (PropertiesFloat.ContainsKey(PropertyFloat.AbsorbMagicDamage))
+            // Mask real value of AbsorbMagicDamage and/or Add AbsorbMagicDamage for ImbuedEffectType.IgnoreSomeMagicProjectileDamage
+            if (PropertiesFloat.ContainsKey(PropertyFloat.AbsorbMagicDamage) || wo.HasImbuedEffect(ImbuedEffectType.IgnoreSomeMagicProjectileDamage))
                 PropertiesFloat[PropertyFloat.AbsorbMagicDamage] = 1;
 
             if (wo is Door || wo is Chest)
