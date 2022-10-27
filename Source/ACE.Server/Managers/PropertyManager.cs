@@ -662,7 +662,21 @@ namespace ACE.Server.Managers
                 ("vitae_penalty", new Property<double>(0.05, "the amount of vitae penalty a player gets per death")),
                 ("vitae_penalty_max", new Property<double>(0.40, "the maximum vitae penalty a player can have")),
                 ("void_pvp_modifier", new Property<double>(0.5, "Scales the amount of damage players take from Void Magic. Defaults to 0.5, as per retail. For earlier content where DRR isn't as readily available, this can be adjusted for balance.")),
-                ("xp_modifier", new Property<double>(1.0, "scales the amount of xp received by players"))
+                ("xp_modifier", new Property<double>(1.0, "scales the amount of xp received by players")),
+                ("pvp_dmg_mod_war", new Property<double>(1.0, "Scales the amount of damage for war magic.")),
+                ("pvp_dmg_mod_war_streak", new Property<double>(1.0, "Scales the amount of damage for war streaks.")),
+                ("pvp_dmg_mod_void", new Property<double>(1.0, "Scales the amount of damage for Void Magic")),
+                ("pvp_dmg_mod_life", new Property<double>(1.0, "Scales the amount of damage for Life Magic")),
+                ("pvp_dmg_mod_fw", new Property<double>(1.0, "Scales the amount of damage for Finesse Weapons")),
+                ("pvp_dmg_mod_lw", new Property<double>(1.0, "Scales the amount of damage for Light Weapons")),
+                ("pvp_dmg_mod_hw", new Property<double>(1.0, "Scales the amount of damage for Heavy Weapons")),
+                ("pvp_dmg_mod_2h", new Property<double>(1.0, "Scales the amount of damage for Two Handed Weapons")),
+                ("pvp_dmg_mod_phantom", new Property<double>(1.0, "Scales the amount of damage for phantom")),
+                ("pvp_dmg_mod_hollow", new Property<double>(1.0, "Scales the amount of damage for hollow")),
+                ("pvp_dmg_mod_cb", new Property<double>(1.0, "Scales the amount of damage for crippling blow")),
+                ("pvp_dmg_mod_ar", new Property<double>(1.0, "Scales the amount of damage for armor rending")),
+                ("pvp_dmg_mod_cs", new Property<double>(1.0, "Scales the amount of damage for critical strike")),
+                ("pvp_cs_critrate_mod", new Property<double>(1.0, "Scales the crit rate for CS"))
                 );
 
         public static readonly ReadOnlyDictionary<string, Property<string>> DefaultStringProperties =
