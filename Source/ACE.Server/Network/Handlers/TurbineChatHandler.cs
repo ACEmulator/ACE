@@ -378,7 +378,7 @@ namespace ACE.Server.Network.Handlers
                         channelName = $"[{channelName}] ";
 
                     var dict = new System.Collections.Generic.Dictionary<string, string>();
-                    dict["content"] = $"{channelName}{sender}: \"{message}\"";
+                    dict["content"] = $"{channelName}{sender}: \"{message.Replace("@", "")}\"";
 
                     var payload = Newtonsoft.Json.JsonConvert.SerializeObject(dict);
                     using (var wc = new System.Net.WebClient())
