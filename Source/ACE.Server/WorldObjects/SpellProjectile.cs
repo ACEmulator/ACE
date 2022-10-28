@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 
 using ACE.Common;
+using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -309,26 +310,7 @@ namespace ACE.Server.WorldObjects
             var damage = CalculateDamage(ProjectileSource, creatureTarget, ref critical, ref critDefended, ref overpower);
 
             if (damage != null)
-            {
-                //Apply pvp dmg mods for war and void
-                float dmgMod = 1;
-                if (player != null && targetPlayer != null)
-                {
-                    if (Spell.School == MagicSchool.WarMagic)
-                    {
-                        dmgMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_war").Item;
-
-                        if (SpellType == ProjectileSpellType.Streak)
-                            dmgMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_war_streak").Item; // scales war streak damages
-                    }
-                    else if(Spell.School == MagicSchool.VoidMagic)
-                    {
-                        dmgMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_void").Item;
-                    }
-
-                    damage = damage * dmgMod;
-                }
-
+            {                
                 if (Spell.MetaSpellType == ACE.Entity.Enum.SpellType.EnchantmentProjectile)
                 {
                     // handle EnchantmentProjectile successfully landing on target
@@ -569,7 +551,7 @@ namespace ACE.Server.WorldObjects
 
                     // this supposedly brings the direct damage from void spells in pvp closer to retail
                     resistanceMod *= (float)PropertyManager.GetDouble("void_pvp_modifier").Item;
-                }
+                }                
 
                 finalDamage = baseDamage + critDamageBonus + skillBonus;
 
@@ -585,6 +567,19 @@ namespace ACE.Server.WorldObjects
             {
                 ShowInfo(target, Spell, attackSkill, criticalChance, criticalHit, critDefended, overpower, weaponCritDamageMod, skillBonus, baseDamage, critDamageBonus, elementalDamageMod, slayerMod, weaponResistanceMod, resistanceMod, absorbMod, LifeProjectileDamage, lifeMagicDamage, finalDamage);
             }
+
+            //Apply pvp dmg mods for war
+            float dmgMod = 1;
+            if (sourcePlayer != null && targetPlayer != null && Spell.School == MagicSchool.WarMagic)
+            {
+                dmgMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_war").Item;
+
+                if (SpellType == ProjectileSpellType.Streak)
+                    dmgMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_war_streak").Item; // scales war streak damages
+
+                finalDamage = finalDamage * dmgMod;
+            }
+
             return finalDamage;
         }
 

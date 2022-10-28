@@ -377,12 +377,6 @@ namespace ACE.Server.Entity
                             case Skill.WarMagic:
                                 config_mod = (float)PropertyManager.GetDouble("pvp_dmg_mod_war").Item;
                                 break;
-                            case Skill.VoidMagic:
-                                config_mod = (float)PropertyManager.GetDouble("pvp_dmg_mod_void").Item;
-                                break;
-                            case Skill.LifeMagic:
-                                config_mod = (float)PropertyManager.GetDouble("pvp_dmg_mod_life").Item;
-                                break;
                             case Skill.FinesseWeapons:
                                 config_mod = (float)PropertyManager.GetDouble("pvp_dmg_mod_fw").Item;
                                 break;
