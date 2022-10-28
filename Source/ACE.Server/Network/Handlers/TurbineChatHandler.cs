@@ -67,17 +67,17 @@ namespace ACE.Server.Network.Handlers
                 {
                     adjustedChannelID = chatType switch
                     {
-                        ChatType.Allegiance     => TurbineChatChannel.Allegiance,
-                        ChatType.General        => TurbineChatChannel.General,
-                        ChatType.Trade          => TurbineChatChannel.Trade,
-                        ChatType.LFG            => TurbineChatChannel.LFG,
-                        ChatType.Roleplay       => TurbineChatChannel.Roleplay,
-                        ChatType.Society        => TurbineChatChannel.Society,
-                        ChatType.SocietyCelHan  => TurbineChatChannel.Society,
-                        ChatType.SocietyEldWeb  => TurbineChatChannel.Society,
-                        ChatType.SocietyRadBlo  => TurbineChatChannel.Society,
-                        ChatType.Olthoi         => TurbineChatChannel.Olthoi,
-                        _                       => TurbineChatChannel.General
+                        ChatType.Allegiance => TurbineChatChannel.Allegiance,
+                        ChatType.General => TurbineChatChannel.General,
+                        ChatType.Trade => TurbineChatChannel.Trade,
+                        ChatType.LFG => TurbineChatChannel.LFG,
+                        ChatType.Roleplay => TurbineChatChannel.Roleplay,
+                        ChatType.Society => TurbineChatChannel.Society,
+                        ChatType.SocietyCelHan => TurbineChatChannel.Society,
+                        ChatType.SocietyEldWeb => TurbineChatChannel.Society,
+                        ChatType.SocietyRadBlo => TurbineChatChannel.Society,
+                        ChatType.Olthoi => TurbineChatChannel.Olthoi,
+                        _ => TurbineChatChannel.General
                     };
 
                     adjustedchatType = (ChatType)adjustedChannelID;
@@ -184,6 +184,8 @@ namespace ACE.Server.Network.Handlers
                         HandleChatReject(session, contextId, chatType, gameMessageTurbineChat, $"because this character has reached level {chat_requires_player_level}");
                         return;
                     }
+
+                    _ = SendWebhookedChat(gameMessageTurbineChat.SenderName, gameMessageTurbineChat.Message, null, gameMessageTurbineChat.Channel);
 
                     foreach (var recipient in PlayerManager.GetAllOnline())
                     {
@@ -318,6 +320,11 @@ namespace ACE.Server.Network.Handlers
                     }
 
                     session.Network.EnqueueSend(new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_RESPONSE_BINARY, ChatNetworkBlobDispatchType.ASYNCMETHOD_SENDTOROOMBYNAME, contextId, null, null, 0, adjustedchatType));
+
+                    if (adjustedchatType == ChatType.General)
+                    {
+                        _ = SendWebhookedChat(gameMessageTurbineChat.SenderName, gameMessageTurbineChat.Message, null, gameMessageTurbineChat.Channel);
+                    }
                 }
 
                 LogTurbineChat(adjustedChannelID, session.Player.Name, message, senderID, adjustedchatType);
