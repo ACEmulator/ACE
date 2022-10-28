@@ -65,6 +65,11 @@ namespace ACE.Server.WorldObjects
         public ACE.Entity.Position LastGroundPos;
         public ACE.Entity.Position SnapPos;
 
+        public bool IsBurdenIgnored
+        {
+            get { return this.Level < PropertyManager.GetLong("ignore_burden_below_character_level").Item; }
+        }
+
         public ConfirmationManager ConfirmationManager;
 
         public SquelchManager SquelchManager;
