@@ -5,6 +5,7 @@ using ACE.Entity.Enum;
 using ACE.Database.Models.World;
 using ACE.Server.Factories.Entity;
 using ACE.Server.WorldObjects;
+using ACE.Server.Managers;
 
 namespace ACE.Server.Factories.Tables
 {
@@ -40,6 +41,9 @@ namespace ACE.Server.Factories.Tables
 
         public static EquipmentSet? Roll(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
         {
+            if (!PropertyManager.GetBool("equipmentsetid_enabled").Item)
+                return null;
+
             if (profile.Tier < 6 || !roll.HasArmorLevel(wo))
                 return null;
 

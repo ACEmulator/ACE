@@ -615,11 +615,11 @@ namespace ACE.Server.Factories
 
         private static bool TryRollEquipmentSet(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
         {
-            if (roll == null)
-            {
-                if (!PropertyManager.GetBool("equipmentsetid_enabled").Item)
-                    return false;
+            if (!PropertyManager.GetBool("equipmentsetid_enabled").Item)
+                return false;
 
+            if (roll == null)
+            {                
                 if (profile.Tier < 6 || !wo.HasArmorLevel())
                     return false;
 
@@ -627,7 +627,7 @@ namespace ACE.Server.Factories
                     return false;
 
                 var dropRate = PropertyManager.GetDouble("equipmentsetid_drop_rate").Item;
-                var dropRateMod = 1.0 / dropRate;
+                var dropRateMod = dropRate > 0 ? 1.0 / dropRate : 0;
 
                 var lootQualityMod = 1.0f;
                 if (PropertyManager.GetBool("loot_quality_mod").Item)
