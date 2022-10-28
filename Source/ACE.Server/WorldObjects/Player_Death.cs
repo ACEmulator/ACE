@@ -1034,19 +1034,66 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Determines the amount of slag to drop on a Player corpse when killed by an OlthoiPlayer
+        /// Determines the amount of slag to drop on a Player corpse when killed by an OlthoiPlayer or the loot to drop when an OlthoiPlayer is killed by a Player Killer
         /// </summary>
-        public List<WorldObject> CalculateDeathItems_Olthoi(Corpse corpse, bool hadVitae)
+        public List<WorldObject> CalculateDeathItems_Olthoi(Corpse corpse, bool hadVitae, bool killerIsOlthoiPlayer, bool killerIsPkPlayer)
         {
-            var slag = LootGenerationFactory.RollSlag(this, hadVitae);
+            if (killerIsOlthoiPlayer)
+            {
+                var slag = LootGenerationFactory.RollSlag(this, hadVitae);
 
-            if (slag == null)
-                return new List<WorldObject>();
+                if (slag == null)
+                    return new();
 
-            if (!corpse.TryAddToInventory(slag))
-                log.Warn($"Player_Death: couldn't add item to {Name}'s corpse: {slag.Name}");
+                if (!corpse.TryAddToInventory(slag))
+                    log.Warn($"CalculateDeathItems_Olthoi: couldn't add item to {Name}'s corpse: {slag.Name}");
 
-            return new List<WorldObject>() { slag };
+                return new() { slag };
+            }
+            else if (killerIsPkPlayer)
+            {
+                if (hadVitae)
+                    return new();
+
+                var items = LootGenerationFactory.CreateRandomLootObjects(new()
+                {
+                    TreasureType                            = 2000,
+                    Tier                                    = 8,
+                    LootQualityMod                          = 0,
+                    UnknownChances                          = 19,
+                    ItemChance                              = 100,
+                    ItemMinAmount                           = 1,
+                    ItemMaxAmount                           = 2,
+                    ItemTreasureTypeSelectionChances        = 8,
+                    MagicItemChance                         = 100,
+                    MagicItemMinAmount                      = 2,
+                    MagicItemMaxAmount                      = 3,
+                    MagicItemTreasureTypeSelectionChances   = 8,
+                    MundaneItemChance                       = 100,
+                    MundaneItemMinAmount                    = 0,
+                    MundaneItemMaxAmount                    = 1,
+                    MundaneItemTypeSelectionChances         = 7
+                });
+
+                var gland = LootGenerationFactory.RollGland(this, hadVitae);
+
+                if (gland != null)
+                {
+                    items.Add(gland);
+                }
+
+                foreach (WorldObject wo in items)
+                {
+                    if (!corpse.TryAddToInventory(wo))
+                        log.Warn($"CalculateDeathItems_Olthoi: couldn't add item to {Name}'s corpse: {wo.Name}");
+                }
+
+                return items;
+            }
+            else
+            {
+                return new();
+            }
         }
     }
 }
