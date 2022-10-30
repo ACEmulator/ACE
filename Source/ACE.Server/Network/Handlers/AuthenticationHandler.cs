@@ -224,6 +224,15 @@ namespace ACE.Server.Network.Handlers
 
             session.SetAccount(account.AccountId, account.AccountName, (AccessLevel)account.AccessLevel);
             session.State = SessionState.AuthConnectResponse;
+
+            try
+            {
+                new LogDatabase().LogAccountSessionStart(session.AccountId, session.Account, session.EndPoint.Address.ToString());
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Exception in AuthenticationHandler.AccountSelectCallback logging account session start. Ex: {ex}");
+            }
         }
 
         public static void HandleConnectResponse(Session session)

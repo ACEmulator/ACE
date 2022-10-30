@@ -300,6 +300,15 @@ namespace ACE.Server.Network
             // What this means is that we will release any network related resources, as well as avoid taking on additional resources
             // In the future, we should set Network to null and funnel Network communication through Session, instead of accessing Session.Network directly.
             Network.ReleaseResources();
+
+            try
+            {
+                new LogDatabase().LogAccountSessionEnd(this.AccountId);
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Exception saving session end date to log DB. Ex:{ex}");
+            }
         }
 
 

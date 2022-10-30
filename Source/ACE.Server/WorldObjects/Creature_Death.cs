@@ -543,7 +543,36 @@ namespace ACE.Server.WorldObjects
                 var isPKLdeath = player.IsPKLiteDeath(killer);
 
                 if (isPKdeath)
+                {
                     corpse.PkLevel = PKLevel.PK;
+
+                    if (corpse != null && corpse.VictimId != null)
+                    {
+                        uint? victimMonarchId = null;
+                        uint? killerMonarchId = null;
+                        var killerAllegiance = AllegianceManager.GetAllegiance(PlayerManager.FindByGuid(killer.Guid));
+                        var victimAllegiance = AllegianceManager.GetAllegiance(PlayerManager.FindByGuid(new ObjectGuid(corpse.VictimId.Value)));
+
+                        if (killerAllegiance != null)
+                        {
+                            killerMonarchId = killerAllegiance.MonarchId;
+                        }
+
+                        if (victimAllegiance != null)
+                        {
+                            victimMonarchId = victimAllegiance.MonarchId;
+                        }
+
+                        try
+                        {
+                            DatabaseManager.Log.LogPkKill((uint)corpse.VictimId, (uint)killer.Guid.Full, victimMonarchId, killerMonarchId);
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Error($"Exception logging PK Kill to DB. Ex: {ex}");
+                        }
+                    }
+                }
 
                 if (!isPKdeath && !isPKLdeath)
                 {
