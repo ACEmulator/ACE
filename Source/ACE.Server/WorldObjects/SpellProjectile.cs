@@ -2,7 +2,6 @@ using System;
 using System.Numerics;
 
 using ACE.Common;
-using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
