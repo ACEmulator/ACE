@@ -4,6 +4,7 @@ using System.Linq;
 
 using ACE.Common;
 using ACE.Database.Models.World;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Models;
 using ACE.Server.Factories.Entity;
@@ -286,6 +287,16 @@ namespace ACE.Server.Factories
             foreach (var cantrip in cantrips)
             {
                 var cantripLevel = CantripChance.RollCantripLevel(profile);
+
+                if(profile.DisableLegendaryCantrips)
+                {
+                    cantripLevel = 3;
+                }
+
+                if (profile.DisableEpicCantrips)
+                {
+                    cantripLevel = 2;
+                }
 
                 var cantripLevels = SpellLevelProgression.GetSpellLevels(cantrip);
 

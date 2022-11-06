@@ -615,7 +615,7 @@ namespace ACE.Server.Factories
 
         private static bool TryRollEquipmentSet(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
         {
-            if (!PropertyManager.GetBool("equipmentsetid_enabled").Item)
+            if (!PropertyManager.GetBool("equipmentsetid_enabled").Item || profile.DisableSets)
                 return false;
 
             if (roll == null)

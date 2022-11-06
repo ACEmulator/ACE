@@ -41,11 +41,16 @@ namespace ACE.Server.Factories.Tables
 
         public static EquipmentSet? Roll(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
         {
-            if (!PropertyManager.GetBool("equipmentsetid_enabled").Item)
+            if (!PropertyManager.GetBool("equipmentsetid_enabled").Item || profile.DisableSets)
                 return null;
 
             if (profile.Tier < 6 || !roll.HasArmorLevel(wo))
                 return null;
+
+            if(profile.DisableSets)
+            {
+                return null;
+            }
 
             if (wo.ClothingPriority == null || (wo.ClothingPriority & (CoverageMask)CoverageMaskHelper.Outerwear) == 0)
                 return null;

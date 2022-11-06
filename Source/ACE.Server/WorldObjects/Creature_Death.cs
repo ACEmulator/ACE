@@ -655,6 +655,24 @@ namespace ACE.Server.WorldObjects
             // create death treasure from loot generation factory
             if (DeathTreasure != null)
             {
+                if (this.CurrentLandblock != null)
+                {
+                    if (PropertyManager.GetBool("equipmentset_whitelist_enabled").Item)
+                    {
+                        DeathTreasure.DisableSets = !Whitelist.IsEquipmentSetWhitelistedLandblock(this.CurrentLandblock.Id.Landblock);
+                    }
+
+                    if (PropertyManager.GetBool("epic_whitelist_enabled").Item)
+                    {
+                        DeathTreasure.DisableEpicCantrips = !Whitelist.IsEpicWhitelistedLandblock(this.CurrentLandblock.Id.Landblock);
+                    }
+
+                    if (PropertyManager.GetBool("legendary_whitelist_enabled").Item)
+                    {
+                        DeathTreasure.DisableLegendaryCantrips = !Whitelist.IsLegendaryWhitelistedLandblock(this.CurrentLandblock.Id.Landblock);
+                    }
+                }
+
                 List<WorldObject> items = LootGenerationFactory.CreateRandomLootObjects(DeathTreasure);
                 foreach (WorldObject wo in items)
                 {

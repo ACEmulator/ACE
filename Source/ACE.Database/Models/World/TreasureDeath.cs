@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 #nullable disable
 
@@ -25,5 +26,14 @@ namespace ACE.Database.Models.World
         public int MundaneItemMaxAmount { get; set; }
         public int MundaneItemTypeSelectionChances { get; set; }
         public DateTime LastModified { get; set; }
+
+        [NotMapped]
+        public bool DisableSets { get; set; }
+
+        [NotMapped]
+        public bool DisableLegendaryCantrips { get; set; }
+
+        [NotMapped]
+        public bool DisableEpicCantrips { get; set; }
     }
 }
