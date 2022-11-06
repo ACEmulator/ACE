@@ -547,7 +547,7 @@ namespace ACE.Server.Managers
                 ("creature_name_check", new Property<bool>(true, "if enabled, creature names in world database restricts player names during character creation")),
                 ("creatures_drop_createlist_wield", new Property<bool>(false, "If FALSE then Wielded items in CreateList will not drop. Retail defaulted to TRUE but there are currently data errors")),
                 ("dispel_rares_pvp", new Property<bool>(false, "If true, disables rare gem buffs from being usable in PvP.")),
-                ("equipmentsetid_enabled", new Property<bool>(true, "enable this to allow adding EquipmentSetIDs to loot armor")),
+                ("equipmentsetid_enabled", new Property<bool>(true, "enable this to allow adding EquipmentSetIDs to loot armor")),                
                 ("equipmentsetid_name_decoration", new Property<bool>(false, "enable this to add the EquipmentSet name to loot armor name")),
                 ("fastbuff", new Property<bool>(true, "If TRUE, enables the fast buffing trick from retail.")),
                 ("fellow_busy_no_recruit", new Property<bool>(true, "if FALSE, fellows can be recruited while they are busy, different from retail")),
@@ -608,6 +608,10 @@ namespace ACE.Server.Managers
                 ("use_wield_requirements", new Property<bool>(true, "disable this to bypass wield requirements. mostly for dev debugging")),
                 ("version_info_enabled", new Property<bool>(false, "toggles the /aceversion player command")),
                 ("vendor_shop_uses_generator", new Property<bool>(false, "enables or disables vendors using generator system in addition to createlist to create artificial scarcity")),
+                ("equipmentset_whitelist_enabled", new Property<bool>(true, "enable this to limit areas where Sets drop to whitelisted landblocks")),
+                ("epic_whitelist_enabled", new Property<bool>(true, "enable this to limit areas where Epic cantrips drop to whitelisted landblocks")),
+                ("legendary_whitelist_enabled", new Property<bool>(true, "enable this to limit areas where Legendary cantrips drop to whitelisted landblocks")),
+                ("block_vpn_connections", new Property<bool>(false, "enable this to block user sessions from IPs identified as VPN proxies")),
                 ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world"))
                 );
 
@@ -667,8 +671,6 @@ namespace ACE.Server.Managers
                 ("xp_modifier", new Property<double>(1.0, "scales the amount of xp received by players")),
                 ("pvp_dmg_mod_war", new Property<double>(1.0, "Scales the amount of damage for war magic.")),
                 ("pvp_dmg_mod_war_streak", new Property<double>(1.0, "Scales the amount of damage for war streaks.")),
-                ("pvp_dmg_mod_void", new Property<double>(1.0, "Scales the amount of damage for Void Magic")),
-                ("pvp_dmg_mod_life", new Property<double>(1.0, "Scales the amount of damage for Life Magic")),
                 ("pvp_dmg_mod_fw", new Property<double>(1.0, "Scales the amount of damage for Finesse Weapons")),
                 ("pvp_dmg_mod_lw", new Property<double>(1.0, "Scales the amount of damage for Light Weapons")),
                 ("pvp_dmg_mod_hw", new Property<double>(1.0, "Scales the amount of damage for Heavy Weapons")),
@@ -691,7 +693,8 @@ namespace ACE.Server.Managers
                 ("popup_motd", new Property<string>("", "Popup message of the day")),
                 ("server_motd", new Property<string>("", "Server message of the day")),
                 ("turbine_chat_webhook", new Property<string>("", "Webhook to be used for turbine chat. This is for copying ingame general chat channels to a Discord channel.")),
-                ("turbine_chat_webhook_audit", new Property<string>("", "Webhook to be used for ingame audit log."))
+                ("turbine_chat_webhook_audit", new Property<string>("", "Webhook to be used for ingame audit log.")),
+                ("proxycheck_api_key", new Property<string>("", "API key for proxycheck.io service for VPN detection"))
                 );
     }
 }
