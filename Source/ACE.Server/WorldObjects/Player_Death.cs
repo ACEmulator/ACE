@@ -16,6 +16,7 @@ using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Handlers;
+using ACE.Database;
 
 namespace ACE.Server.WorldObjects
 {
@@ -565,6 +566,73 @@ namespace ACE.Server.WorldObjects
             }
 
             var destroyCoins = PropertyManager.GetBool("corpse_destroy_pyreals").Item;
+
+            //PK Trophy drop on death behavior
+            if (IsPKDeath(corpse.KillerId))
+            {
+                //Don't drop trophy if low level
+                var shouldDropTrophy = true;
+                if (this.Level < 100)
+                {
+                    shouldDropTrophy = false;
+                }
+
+                //Don't drop trophy if killer is in same clan
+                var killer = PlayerManager.FindByGuid(new ObjectGuid((uint)corpse.KillerId));
+                var victimMonarch = this.MonarchId != null ? this.MonarchId : this.Guid.Full;
+                var killerMonarch = killer.MonarchId != null ? killer.MonarchId : killer.Guid.Full;                
+                if(victimMonarch == killerMonarch)
+                {
+                    shouldDropTrophy = false;
+                }
+
+                //Don't drop trophy if two dropped within last hour
+                if (LastPkTrophyDropTime.HasValue &&
+                    Last2PkTrophyDropTime.HasValue &&
+                    Last2PkTrophyDropTime.Value > (Time.GetUnixTime() - 3600))
+                {
+                    shouldDropTrophy = false;
+                }
+
+                //Don't drop trophy if 10 have already dropped today
+                if(PkTrophyDropDay.HasValue && PkTrophyDropsToday.HasValue)
+                {
+                    if(PkTrophyDropDay.Value >= Time.GetUnixTime(DateTime.Today) &&
+                        PkTrophyDropsToday >= 10)
+                    {
+                        shouldDropTrophy = false;
+                    }
+                }
+                
+                if (shouldDropTrophy)
+                {
+                    var dropItem = WorldObjectFactory.CreateNewWorldObject(1000002);
+                    dropItem.SetStackSize(1);
+                    dropItems.Add(dropItem);
+
+                    if(!LastPkTrophyDropTime.HasValue)
+                    {
+                        SetProperty(PropertyFloat.LastPkTrophyDropTime, Time.GetUnixTime());
+                    }
+                    else
+                    {
+                        SetProperty(PropertyFloat.Last2PkTrophyDropTime, LastPkTrophyDropTime.Value);
+                        SetProperty(PropertyFloat.LastPkTrophyDropTime, Time.GetUnixTime());
+                    }
+
+                    if (!PkTrophyDropDay.HasValue ||
+                        PkTrophyDropDay < Time.GetUnixTime(DateTime.Today) ||
+                        !PkTrophyDropsToday.HasValue)
+                    {
+                        SetProperty(PropertyFloat.PkTrophyDropDay, Time.GetUnixTime(DateTime.Today));
+                        SetProperty(PropertyFloat.PkTrophyDropsToday, 1);
+                    }
+                    else
+                    {
+                        SetProperty(PropertyFloat.PkTrophyDropsToday, PkTrophyDropsToday.Value + 1);
+                    }
+                }
+            }
 
             // add items to corpse
             foreach (var dropItem in dropItems)

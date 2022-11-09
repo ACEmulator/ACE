@@ -3093,5 +3093,29 @@ namespace ACE.Server.WorldObjects
         /// If not unlimited, client will only allow you to buy or add to buy list up this number of items for a single transaction.
         /// </summary>
         public int? VendorShopCreateListStackSize;
+
+        public double? LastPkTrophyDropTime
+        {
+            get => GetProperty(PropertyFloat.LastPkTrophyDropTime);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.LastPkTrophyDropTime); else SetProperty(PropertyFloat.LastPkTrophyDropTime, value.Value); }
+        }
+
+        public double? Last2PkTrophyDropTime
+        {
+            get => GetProperty(PropertyFloat.Last2PkTrophyDropTime);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.Last2PkTrophyDropTime); else SetProperty(PropertyFloat.Last2PkTrophyDropTime, value.Value); }
+        }
+
+        public double? PkTrophyDropDay
+        {
+            get => GetProperty(PropertyFloat.PkTrophyDropDay);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.PkTrophyDropDay); else SetProperty(PropertyFloat.PkTrophyDropDay, value.Value); }
+        }
+
+        public double? PkTrophyDropsToday
+        {
+            get => GetProperty(PropertyFloat.PkTrophyDropsToday);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.PkTrophyDropsToday); else SetProperty(PropertyFloat.PkTrophyDropsToday, value.Value); }
+        }
     }
 }

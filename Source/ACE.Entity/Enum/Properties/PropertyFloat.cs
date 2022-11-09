@@ -197,6 +197,11 @@ namespace ACE.Entity.Enum.Properties
         [SendOnLogin]
         WeaponAuraManaConv             = 171,
 
+        LastPkTrophyDropTime           = 172,
+        Last2PkTrophyDropTime          = 173,
+        PkTrophyDropDay                = 174,
+        PkTrophyDropsToday             = 175,
+
         [ServerOnly]
         PCAPRecordedWorkmanship        = 8004,
         [ServerOnly]
