@@ -134,7 +134,7 @@ namespace ACE.Server.WorldObjects
 
             var targetCategory = GetTargetCategory(targetGuid, spellId, out var target);
 
-            if (target == null || target.Teleporting)
+            if (target == null)
             {
                 SendUseDoneEvent(WeenieError.TargetNotAcquired);
                 return;
@@ -472,7 +472,7 @@ namespace ACE.Server.WorldObjects
             if (target == this && spell.IsNegativeRedirectable)
                 return true;
 
-            if (targetCreature != null && targetCreature != this && spell.NonComponentTargetType == ItemType.Creature && !CanDamage(targetCreature))
+            if (targetCreature != null && targetCreature != this && spell.NonComponentTargetType == ItemType.Creature && !CanDamageNoTeleport(targetCreature))
                 return true;
 
             return false;
@@ -875,6 +875,14 @@ namespace ACE.Server.WorldObjects
             var pk_error = CheckPKStatusVsTarget(target, spell);
             if (pk_error != null)
                 castingPreCheckStatus = CastingPreCheckStatus.InvalidPKStatus;
+
+            if (target.Teleporting)
+            {
+                if (spell.NumProjectiles == 0)
+                    SendTransientError($"You fail to affect {target.Name} because they are in portal space");
+
+                castingPreCheckStatus = CastingPreCheckStatus.InvalidPKStatus;
+            }
 
             switch (castingPreCheckStatus)
             {

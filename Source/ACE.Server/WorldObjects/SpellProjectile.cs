@@ -285,7 +285,13 @@ namespace ACE.Server.WorldObjects
             // ensure caster can damage target
             var sourceCreature = ProjectileSource as Creature;
             if (sourceCreature != null && !sourceCreature.CanDamage(creatureTarget))
+            {
+                if (sourceCreature is Player sourcePlayer && creatureTarget.Teleporting)
+                    sourcePlayer.SendTransientError($"You cannot attack {creatureTarget.Name}");
+
+
                 return;
+            }
 
             // if player target, ensure matching PK status
             var targetPlayer = creatureTarget as Player;

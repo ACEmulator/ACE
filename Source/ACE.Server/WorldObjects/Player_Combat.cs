@@ -119,6 +119,12 @@ namespace ACE.Server.WorldObjects
             if (target.Health.Current <= 0)
                 return null;
 
+            if (!CanDamage(target))
+            {
+                SendTransientError($"You cannot attack {target.Name}");
+                return null;
+            }
+
             var targetPlayer = target as Player;
 
             // check PK status
@@ -888,6 +894,11 @@ namespace ACE.Server.WorldObjects
         public override bool CanDamage(Creature target)
         {
             return target.Attackable && !target.Teleporting && !(target is CombatPet);
+        }
+
+        public bool CanDamageNoTeleport(Creature target)
+        {
+            return target.Attackable && !(target is CombatPet);
         }
 
         // http://acpedia.org/wiki/Announcements_-_2002/04_-_Betrayal
