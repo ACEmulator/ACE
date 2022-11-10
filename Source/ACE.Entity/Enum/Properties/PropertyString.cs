@@ -96,6 +96,9 @@ namespace ACE.Entity.Enum.Properties
         GodState                        = 9006,
         [ServerOnly]
         TinkerLog                       = 9007,
+
+        [ServerOnly]
+        CurrentRareEnchantmentIds = 52029,
     }
 
     public static class PropertyStringExtensions
