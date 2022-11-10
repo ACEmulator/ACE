@@ -278,20 +278,43 @@ namespace ACE.Server.Command.Handlers
             // @gag - Prevents a character from talking.
             // @ungag -Allows a gagged character to talk again.
 
+            var msg = "";
+
             if (parameters.Length > 0)
             {
                 var playerName = string.Join(" ", parameters);
 
-                var msg = "";
-                if (PlayerManager.GagPlayer(session.Player, playerName))
+                int numDays = 3;
+                if (playerName.Contains(","))
                 {
-                    msg = $"{playerName} has been gagged for five minutes.";
+                    try
+                    {
+                        numDays = Convert.ToInt32(playerName.Split(",")[1]);
+                    }
+                    catch (Exception)
+                    {
+                        msg = "Invalid parameters: correct usage /gag <playerName>, <numDays>";
+                        CommandHandlerHelper.WriteOutputInfo(session, msg, ChatMessageType.WorldBroadcast);
+                        return;
+                    }
+
+                    playerName = playerName.Substring(0, playerName.IndexOf(","));
+                }
+
+                if (PlayerManager.GagPlayer(session.Player, playerName, numDays))
+                {
+                    msg = $"{playerName} has been gagged for {numDays} days.";
                 }
                 else
                 {
                     msg = $"Unable to gag a character named {playerName}, check the name and re-try the command.";
                 }
 
+                CommandHandlerHelper.WriteOutputInfo(session, msg, ChatMessageType.WorldBroadcast);
+            }
+            else
+            {
+                msg = "Invalid parameters: correct usage /gag <playerName>, <numDays>";
                 CommandHandlerHelper.WriteOutputInfo(session, msg, ChatMessageType.WorldBroadcast);
             }
         }

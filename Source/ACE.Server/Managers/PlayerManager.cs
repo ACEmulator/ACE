@@ -701,7 +701,7 @@ namespace ACE.Server.Managers
                 player.Session.Network.EnqueueSend(new GameEventChannelBroadcast(player.Session, channel, "EMOTE", message));
         }
 
-        public static bool GagPlayer(Player issuer, string playerName)
+        public static bool GagPlayer(Player issuer, string playerName, int numDays = 3)
         {
             var player = FindByName(playerName);
 
@@ -710,11 +710,11 @@ namespace ACE.Server.Managers
 
             player.SetProperty(ACE.Entity.Enum.Properties.PropertyBool.IsGagged, true);
             player.SetProperty(ACE.Entity.Enum.Properties.PropertyFloat.GagTimestamp, Common.Time.GetUnixTime());
-            player.SetProperty(ACE.Entity.Enum.Properties.PropertyFloat.GagDuration, 300);
+            player.SetProperty(ACE.Entity.Enum.Properties.PropertyFloat.GagDuration, numDays * 86400);
 
             player.SaveBiotaToDatabase();
 
-            BroadcastToAuditChannel(issuer, $"{issuer.Name} has gagged {player.Name} for five minutes.");
+            BroadcastToAuditChannel(issuer, $"{issuer.Name} has gagged {player.Name} for {numDays} days.");
 
             return true;
         }
