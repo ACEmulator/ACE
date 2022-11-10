@@ -212,7 +212,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public void OnAttackDone(WeenieError error = WeenieError.None)
+        public void OnAttackDone(WeenieError error = WeenieError.None, bool skipClear = false)
         {
             // this function is called at the very end of an attack sequence,
             // and not between the repeat attacks
@@ -223,7 +223,8 @@ namespace ACE.Server.WorldObjects
             // the werror for this network message is not displayed to the client --
             // if you wish to display a message, a separate GameEventWeenieError should also be sent
 
-            Session.Network.EnqueueSend(new GameEventAttackDone(Session, WeenieError.ActionCancelled));
+            if (!skipClear)
+                Session.Network.EnqueueSend(new GameEventAttackDone(Session, WeenieError.ActionCancelled));
 
             AttackTarget = null;
             MeleeTarget = null;
@@ -241,12 +242,44 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.HandleActionCancelAttack()");
 
+            // 3 (!) of these are called,
+            // 2 from client, 1 from cancel_moveto() -> OnMoveComplete() -> loop
+            var meleeTarget = MeleeTarget;
+            var wasMovingTo = PhysicsObj?.MovementManager?.MoveToManager?.Initialized ?? false;
+            var queueing = meleeTarget != null && wasMovingTo && FastTick;
+
             if (Attacking)
                 AttackCancelled = true;
             else if (AttackTarget != null)
-                OnAttackDone();
+                OnAttackDone(WeenieError.None, queueing);
 
             PhysicsObj.cancel_moveto();
+
+            if (queueing)
+                MoveToParams = new MoveToParams((success) => ManualMeleeCallback(meleeTarget), meleeTarget);
+        }
+
+        public void ManualMeleeCallback(Creature target)
+        {
+            //Console.WriteLine("ManualMeleeCallback");
+
+            // code duplicated from HandleActionTargetedMeleeAttack_Inner
+            var dist = GetCylinderDistance(target);
+
+            if (dist <= MeleeDistance || dist <= StickyDistance && IsMeleeVisible(target))
+            {
+                // sticky melee
+                var angle = GetAngle(target);
+                if (angle <= PropertyManager.GetDouble("melee_max_angle").Item)
+                {
+                    // do 1 attack
+                    MeleeTarget = target;
+                    AttackCancelled = true;
+                    Attack(target, AttackSequence);
+                    return;
+                }
+            }
+            OnAttackDone();
         }
 
         /// <summary>
