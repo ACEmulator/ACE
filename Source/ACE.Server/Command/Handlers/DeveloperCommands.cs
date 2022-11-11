@@ -898,7 +898,7 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("spendallxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Spend all available XP on Attributes, Vitals and Skills.")]
+        [CommandHandler("spendallxp", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0, "Spend all available XP on Attributes, Vitals and Skills.")]
         public static void HandleSpendAllXp(Session session, params string[] parameters)
         {
             session.Player.SpendAllXp();
