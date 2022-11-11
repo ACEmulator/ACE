@@ -2,12 +2,14 @@ using System;
 using System.Numerics;
 
 using ACE.Common;
+using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Entity.TownControl;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -397,6 +399,50 @@ namespace ACE.Server.WorldObjects
 
                 targetPlayer.HandleLifestoneProtection();
                 return null;
+            }
+
+            //If defender is town control boss and attacker is not a player in PK state, dmg is zero
+            if (targetPlayer == null)
+            {
+                if (target.IsTownControlBoss)
+                {
+                    if (sourcePlayer == null || !sourcePlayer.IsPK)
+                    {
+                        //Don't allow summons or NPKs to damage the town control bosses
+                        return 0.0f;
+                    }
+                    else
+                    {
+                        //Don't allow the owning clan to damage the town control bosses
+                        bool playerOwnsTown = false;
+                        var boss = TownControlBosses.TownControlBossMap[target.WeenieClassId];
+                        var town = DatabaseManager.TownControl.GetTownById(boss.TownID);
+                        var playerAlleg = AllegianceManager.GetAllegiance(sourcePlayer);
+                        if (playerAlleg != null)
+                        {
+                            var playerMonarchId = playerAlleg.MonarchId;
+
+                            if (town.CurrentOwnerID.HasValue && town.CurrentOwnerID.Value == playerMonarchId)
+                            {
+                                playerOwnsTown = true;
+                            }
+                        }
+
+                        if (playerOwnsTown)
+                        {
+                            return 0.0f;
+                        }
+
+                        //Only allow clans that are whitelisted to damage the Init bosses                        
+                        if (target.IsTownControlInitBoss)
+                        {
+                            if (playerAlleg == null || !playerAlleg.MonarchId.HasValue || !TownControlAllegiances.IsAllowedAllegiance((int)playerAlleg.MonarchId.Value))
+                            {
+                                return 0.0f;
+                            }
+                        }
+                    }
+                }
             }
 
             var critDamageBonus = 0.0f;
