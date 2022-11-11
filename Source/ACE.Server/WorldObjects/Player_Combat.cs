@@ -144,7 +144,12 @@ namespace ACE.Server.WorldObjects
                 OnDamageTarget(target, damageEvent.CombatType, damageEvent.IsCritical);
 
                 if (targetPlayer != null)
+                {
+                    var damageCap = PropertyManager.GetLong("pvp_damage_cap").Item;
+                    if (damageEvent.Damage > damageCap)
+                        damageEvent.Damage = damageCap;
                     targetPlayer.TakeDamage(this, damageEvent);
+                }
                 else
                     target.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage, damageEvent.IsCritical);
             }

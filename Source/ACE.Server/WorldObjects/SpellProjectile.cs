@@ -795,6 +795,16 @@ namespace ACE.Server.WorldObjects
                     percent = damage / target.Health.MaxValue;
                 }
 
+                if(pkBattle)
+                {
+                    var damageCap = PropertyManager.GetLong("pvp_damage_cap").Item;
+                    if (damage > damageCap)
+                    {
+                        damage = damageCap;
+                        percent = damage / target.Health.MaxValue;
+                    }
+                }
+
                 amount = (uint)-target.UpdateVitalDelta(target.Health, (int)-Math.Round(damage));
                 target.DamageHistory.Add(ProjectileSource, Spell.DamageType, amount);
 
