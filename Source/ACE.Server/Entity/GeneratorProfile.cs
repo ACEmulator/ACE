@@ -273,8 +273,13 @@ namespace ACE.Server.Entity
 
             var spawned = new List<WorldObject>();
 
+            if (objects == null)
+                return spawned;
+
             foreach (var obj in objects)
             {
+                if (obj == null)
+                    continue;
                 //log.Debug($"{_generator.Name}.Spawn({obj.Name})");
 
                 obj.Generator = Generator;
