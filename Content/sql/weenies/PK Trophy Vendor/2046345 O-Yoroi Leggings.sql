@@ -7,18 +7,14 @@ INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`)
 VALUES (2046345,   1,          2) /* ItemType - Armor */
      , (2046345,   3,         39) /* PaletteTemplate - Black */
      , (2046345,   4,       2816) /* ClothingPriority - OuterwearUpperLegs, OuterwearLowerLegs, OuterwearAbdomen */
-     , (2046345,   5,       2247) /* EncumbranceVal */
+     , (2046345,   5,       0) /* EncumbranceVal */
      , (2046345,   9,      25600) /* ValidLocations - AbdomenArmor, UpperLegArmor, LowerLegArmor */
      , (2046345,  16,          1) /* ItemUseable - No */
      , (2046345,  19,         20) /* Value */
      , (2046345,  28,          1) /* ArmorLevel */
      , (2046345,  33,          1) /* Bonded - Bonded */
      , (2046345,  53,        101) /* PlacementPosition - Resting */
-     , (2046345,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
-     , (2046345, 106,        100) /* ItemSpellcraft */
-     , (2046345, 107,       1000) /* ItemCurMana */
-     , (2046345, 108,       1000) /* ItemMaxMana */
-     , (2046345, 109,          0) /* ItemDifficulty */;
+     , (2046345,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */;
 
 INSERT INTO `weenie_properties_bool` (`object_Id`, `type`, `value`)
 VALUES (2046345,  11, True ) /* IgnoreCollisions */

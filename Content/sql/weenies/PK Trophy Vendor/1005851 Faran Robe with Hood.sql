@@ -4,10 +4,10 @@ INSERT INTO `weenie` (`class_Id`, `class_Name`, `type`, `last_Modified`)
 VALUES (1005851, 'ace1005851-faranrobewithhood', 2, '2021-11-20 00:19:18') /* Clothing */;
 
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`)
-VALUES (1005851,   1,          2) /* ItemType - Armor */
+VALUES (1005851,   1,          4) /* ItemType - Armor */
      , (1005851,   3,          4) /* PaletteTemplate - Brown */
      , (1005851,   4,       1024) /* ClothingPriority - OuterwearChest */
-     , (1005851,   5,        200) /* EncumbranceVal */
+     , (1005851,   5,        0) /* EncumbranceVal */
      , (1005851,   8,        150) /* Mass */
      , (1005851,   9,        512) /* ValidLocations - ChestArmor */
      , (1005851,  16,          1) /* ItemUseable - No */

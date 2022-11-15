@@ -11,7 +11,6 @@ VALUES (1030372,   1,          2) /* ItemType - Armor */
      , (1030372,   8,         90) /* Mass */
      , (1030372,   9,    2097152) /* ValidLocations - Shield */
      , (1030372,  16,          1) /* ItemUseable - No */
-     , (1030372,  17,        272) /* RareId */
      , (1030372,  19,         20) /* Value */
      , (1030372,  27,          2) /* ArmorType - Leather */
      , (1030372,  28,          1) /* ArmorLevel */

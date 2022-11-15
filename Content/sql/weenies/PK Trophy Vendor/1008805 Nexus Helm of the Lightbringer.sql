@@ -7,7 +7,7 @@ INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`)
 VALUES (1008805,   1,          2) /* ItemType - Armor */
      , (1008805,   3,          2) /* PaletteTemplate - Blue */
      , (1008805,   4,      16384) /* ClothingPriority - Head */
-     , (1008805,   5,        200) /* EncumbranceVal */
+     , (1008805,   5,        0) /* EncumbranceVal */
      , (1008805,   8,        200) /* Mass */
      , (1008805,   9,          1) /* ValidLocations - HeadWear */
      , (1008805,  16,          1) /* ItemUseable - No */
