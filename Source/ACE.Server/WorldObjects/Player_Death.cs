@@ -1033,6 +1033,26 @@ namespace ACE.Server.WorldObjects
             return destroyedItems;
         }
 
+        private static Database.Models.World.TreasureDeath OlthoiDeathTreasureType => Database.DatabaseManager.World.GetCachedDeathTreasure(2222) ?? new()
+        {
+            TreasureType = 2222,
+            Tier = 8,
+            LootQualityMod = 0,
+            UnknownChances = 19,
+            ItemChance = 100,
+            ItemMinAmount = 1,
+            ItemMaxAmount = 2,
+            ItemTreasureTypeSelectionChances = 8,
+            MagicItemChance = 100,
+            MagicItemMinAmount = 2,
+            MagicItemMaxAmount = 3,
+            MagicItemTreasureTypeSelectionChances = 8,
+            MundaneItemChance = 100,
+            MundaneItemMinAmount = 0,
+            MundaneItemMaxAmount = 1,
+            MundaneItemTypeSelectionChances = 7
+        };
+
         /// <summary>
         /// Determines the amount of slag to drop on a Player corpse when killed by an OlthoiPlayer or the loot to drop when an OlthoiPlayer is killed by a Player Killer
         /// </summary>
@@ -1055,25 +1075,7 @@ namespace ACE.Server.WorldObjects
                 if (hadVitae)
                     return new();
 
-                var items = LootGenerationFactory.CreateRandomLootObjects(new()
-                {
-                    TreasureType                            = 2000,
-                    Tier                                    = 8,
-                    LootQualityMod                          = 0,
-                    UnknownChances                          = 19,
-                    ItemChance                              = 100,
-                    ItemMinAmount                           = 1,
-                    ItemMaxAmount                           = 2,
-                    ItemTreasureTypeSelectionChances        = 8,
-                    MagicItemChance                         = 100,
-                    MagicItemMinAmount                      = 2,
-                    MagicItemMaxAmount                      = 3,
-                    MagicItemTreasureTypeSelectionChances   = 8,
-                    MundaneItemChance                       = 100,
-                    MundaneItemMinAmount                    = 0,
-                    MundaneItemMaxAmount                    = 1,
-                    MundaneItemTypeSelectionChances         = 7
-                });
+                var items = LootGenerationFactory.CreateRandomLootObjects(OlthoiDeathTreasureType);
 
                 var gland = LootGenerationFactory.RollGland(this, hadVitae);
 
