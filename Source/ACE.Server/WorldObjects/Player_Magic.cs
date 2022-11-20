@@ -699,7 +699,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            DoCastSpell(state.Spell, state.Caster, state.MagicSkill, state.ManaUsed, state.Target, state.Status, checkAngle);
+            DoCastSpell(state.Spell, state.Caster, state.MagicSkill, state.BaseMagicSkill, state.ManaUsed, state.Target, state.Status, checkAngle);
         }
 
         public bool IsWithinAngle(WorldObject target)
@@ -731,7 +731,7 @@ namespace ACE.Server.WorldObjects
             return angle <= maxAngle;
         }
 
-        public void DoCastSpell(Spell spell, WorldObject caster, uint magicSkill, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus, bool checkAngle = true)
+        public void DoCastSpell(Spell spell, WorldObject caster, uint magicSkill, uint baseMagicSkill, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus, bool checkAngle = true)
         {
             if (target != null)
             {
@@ -755,7 +755,7 @@ namespace ACE.Server.WorldObjects
 
                         var actionChain = new ActionChain();
                         actionChain.AddDelaySeconds(rotateTime);
-                        actionChain.AddAction(this, () => DoCastSpell(spell, caster, magicSkill, manaUsed, target, castingPreCheckStatus, false));
+                        actionChain.AddAction(this, () => DoCastSpell(spell, caster, magicSkill, baseMagicSkill, manaUsed, target, castingPreCheckStatus, false));
                         actionChain.EnqueueChain();
                     }
                     else
@@ -770,7 +770,7 @@ namespace ACE.Server.WorldObjects
                 }
 
                 // verify spell range
-                if (!VerifySpellRange(target, targetCategory, spell, magicSkill))
+                if (!VerifySpellRange(target, targetCategory, spell, baseMagicSkill))
                 {
                     FinishCast();
                     return;
