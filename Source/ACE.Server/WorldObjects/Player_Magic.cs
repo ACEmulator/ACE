@@ -1001,9 +1001,9 @@ namespace ACE.Server.WorldObjects
             var caster = casterItem ?? GetEquippedWand();
             var isWeaponSpell = casterItem != null && IsWeaponSpell(spell.Id, casterItem);
 
-            // Grab player's skill level in the spell's Magic School (matches CACQualities::InqSkillLevel)
+            // Grab player's skill level in the spell's Magic School, current and base
             var playerSkill = GetCreatureSkill(spell.School);
-            var baseMagicSkill = playerSkill.InitLevel + playerSkill.Ranks;
+            var baseMagicSkill = playerSkill.InitLevel + playerSkill.Ranks; // (matches CACQualities::InqSkillLevel)
             var magicSkill = playerSkill.Current;
             if (isWeaponSpell && caster.ItemSpellcraft != null)
                 magicSkill = (uint)caster.ItemSpellcraft;
@@ -1135,9 +1135,9 @@ namespace ACE.Server.WorldObjects
             if (spell == null)
                 return false;
 
-            // get player's current magic skill (matches CACQualities::InqSkillLevel)
+            // get player's current and base magic skill
             var playerSkill = GetCreatureSkill(spell.School);
-            var baseMagicSkill = playerSkill.InitLevel + playerSkill.Ranks;
+            var baseMagicSkill = playerSkill.InitLevel + playerSkill.Ranks; // (matches CACQualities::InqSkillLevel)
             var magicSkill = playerSkill.Current;
 
             var castingPreCheckStatus = GetCastingPreCheckStatus(spell, magicSkill, false);
