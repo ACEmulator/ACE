@@ -1003,12 +1003,13 @@ namespace ACE.Server.WorldObjects
 
             // Grab player's skill level in the spell's Magic School (matches CACQualities::InqSkillLevel)
             var playerSkill = GetCreatureSkill(spell.School);
-            var magicSkill = playerSkill.InitLevel + playerSkill.Ranks;
+            var baseMagicSkill = playerSkill.InitLevel + playerSkill.Ranks;
+            var magicSkill = playerSkill.Current;
             if (isWeaponSpell && caster.ItemSpellcraft != null)
                 magicSkill = (uint)caster.ItemSpellcraft;
 
             // verify spell range
-            if (!VerifySpellRange(target, targetCategory, spell, magicSkill))
+            if (!VerifySpellRange(target, targetCategory, spell, baseMagicSkill))
                 return false;
 
             // get casting pre-check status
@@ -1030,7 +1031,7 @@ namespace ACE.Server.WorldObjects
             // cast spell
             DoCastGesture(spell, casterItem, spellChain);
 
-            MagicState.SetCastParams(spell, casterItem, magicSkill, manaUsed, target, castingPreCheckStatus);
+            MagicState.SetCastParams(spell, casterItem, magicSkill, baseMagicSkill, manaUsed, target, castingPreCheckStatus);
 
             if (!FastTick)
                 spellChain.AddAction(this, () => DoCastSpell(MagicState));
@@ -1136,7 +1137,8 @@ namespace ACE.Server.WorldObjects
 
             // get player's current magic skill (matches CACQualities::InqSkillLevel)
             var playerSkill = GetCreatureSkill(spell.School);
-            var magicSkill = playerSkill.InitLevel + playerSkill.Ranks;
+            var baseMagicSkill = playerSkill.InitLevel + playerSkill.Ranks;
+            var magicSkill = playerSkill.Current;
 
             var castingPreCheckStatus = GetCastingPreCheckStatus(spell, magicSkill, false);
 
@@ -1158,7 +1160,7 @@ namespace ACE.Server.WorldObjects
             DoCastGesture(spell, null, spellChain);
 
             // cast untargeted spell
-            MagicState.SetCastParams(spell, null, magicSkill, manaUsed, null, castingPreCheckStatus);
+            MagicState.SetCastParams(spell, null, magicSkill, baseMagicSkill, manaUsed, null, castingPreCheckStatus);
 
             if (!FastTick)
                 spellChain.AddAction(this, () => DoCastSpell(MagicState));
