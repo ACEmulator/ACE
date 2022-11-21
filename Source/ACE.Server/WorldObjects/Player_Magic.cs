@@ -876,7 +876,7 @@ namespace ACE.Server.WorldObjects
             if (pk_error != null)
                 castingPreCheckStatus = CastingPreCheckStatus.InvalidPKStatus;
 
-            if (target.Teleporting)
+            if (target != null && target.Teleporting)
             {
                 if (spell.NumProjectiles == 0)
                     SendTransientError($"You fail to affect {target.Name} because they are in portal space");
