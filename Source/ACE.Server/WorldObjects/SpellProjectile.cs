@@ -556,6 +556,8 @@ namespace ACE.Server.WorldObjects
 
                     // this supposedly brings the direct damage from void spells in pvp closer to retail
                     resistanceMod *= (float)PropertyManager.GetDouble("void_pvp_modifier").Item;
+                    if (SpellType == ProjectileSpellType.Streak)
+                        resistanceMod *= (float)PropertyManager.GetDouble("pvp_dmg_mod_void_streak").Item; // scales void streak damages
                 }                
 
                 finalDamage = baseDamage + critDamageBonus + skillBonus;
