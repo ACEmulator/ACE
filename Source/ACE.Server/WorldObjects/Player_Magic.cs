@@ -492,7 +492,7 @@ namespace ACE.Server.WorldObjects
             if (casterItem == null)
             {
                 // use init + ranks, same as acclient DetermineSpellRange -> InqSkillLevel
-                // this is slightly different from base, and omits things like base augs and enlightenment
+                // this is much lower than base, and omits things like attribute formula + base augs + enlightenment
                 var playerSkill = GetCreatureSkill(spell.School);
                 magicSkill = playerSkill.InitLevel + playerSkill.Ranks;
             }
