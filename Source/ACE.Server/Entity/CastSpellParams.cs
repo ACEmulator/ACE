@@ -9,20 +9,18 @@ namespace ACE.Server.Entity
         //public bool IsWeaponSpell { get; set; }
         public WorldObject Caster { get; set; }
         public uint MagicSkill { get; set; }
-        public uint BaseMagicSkill { get; set; }
         public uint ManaUsed { get; set; }
         public WorldObject Target { get; set; }
         public Player.CastingPreCheckStatus Status { get; set; }
 
         public bool HasWindupGestures => !Spell.Flags.HasFlag(SpellFlags.FastCast) && Caster == null && Spell.Formula.HasWindupGestures;
 
-        public CastSpellParams(Spell spell, WorldObject caster, uint magicSkill, uint baseMagicSkill, uint manaUsed, WorldObject target, Player.CastingPreCheckStatus status)
+        public CastSpellParams(Spell spell, WorldObject caster, uint magicSkill, uint manaUsed, WorldObject target, Player.CastingPreCheckStatus status)
         {
             Spell = spell;
             //IsWeaponSpell = isWeaponSpell;
             Caster = caster;
             MagicSkill = magicSkill;
-            BaseMagicSkill = baseMagicSkill;
             ManaUsed = manaUsed;
             Target = target;
             Status = status;
@@ -32,7 +30,7 @@ namespace ACE.Server.Entity
         {
             var targetName = Target != null ? Target.Name : "null";
 
-            return $"{Spell.Name}, {Caster?.Name}, {MagicSkill}, {BaseMagicSkill}, {ManaUsed}, {targetName}, {Status}";
+            return $"{Spell.Name}, {Caster?.Name}, {MagicSkill}, {ManaUsed}, {targetName}, {Status}";
         }
     }
 }

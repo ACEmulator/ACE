@@ -699,7 +699,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            DoCastSpell(state.Spell, state.Caster, state.MagicSkill, state.BaseMagicSkill, state.ManaUsed, state.Target, state.Status, checkAngle);
+            DoCastSpell(state.Spell, state.Caster, state.MagicSkill, state.ManaUsed, state.Target, state.Status, checkAngle);
         }
 
         public bool IsWithinAngle(WorldObject target)
@@ -731,7 +731,7 @@ namespace ACE.Server.WorldObjects
             return angle <= maxAngle;
         }
 
-        public void DoCastSpell(Spell spell, WorldObject caster, uint magicSkill, uint baseMagicSkill, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus, bool checkAngle = true)
+        public void DoCastSpell(Spell spell, WorldObject caster, uint magicSkill, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus, bool checkAngle = true)
         {
             if (target != null)
             {
@@ -755,7 +755,7 @@ namespace ACE.Server.WorldObjects
 
                         var actionChain = new ActionChain();
                         actionChain.AddDelaySeconds(rotateTime);
-                        actionChain.AddAction(this, () => DoCastSpell(spell, caster, magicSkill, baseMagicSkill, manaUsed, target, castingPreCheckStatus, false));
+                        actionChain.AddAction(this, () => DoCastSpell(spell, caster, magicSkill, manaUsed, target, castingPreCheckStatus, false));
                         actionChain.EnqueueChain();
                     }
                     else
@@ -770,7 +770,7 @@ namespace ACE.Server.WorldObjects
                 }
 
                 // verify spell range
-                if (!VerifySpellRange(target, targetCategory, spell, baseMagicSkill))
+                if (!VerifySpellRange(target, targetCategory, spell, magicSkill))
                 {
                     FinishCast();
                     return;
@@ -1001,15 +1001,13 @@ namespace ACE.Server.WorldObjects
             var caster = casterItem ?? GetEquippedWand();
             var isWeaponSpell = casterItem != null && IsWeaponSpell(spell.Id, casterItem);
 
-            // Grab player's skill level in the spell's Magic School, current and base
-            var playerSkill = GetCreatureSkill(spell.School);
-            var baseMagicSkill = playerSkill.InitLevel + playerSkill.Ranks; // (matches CACQualities::InqSkillLevel)
-            var magicSkill = playerSkill.Current;
+            // Grab player's skill level in the spell's Magic School
+            var magicSkill = GetCreatureSkill(spell.School).Current;
             if (isWeaponSpell && caster.ItemSpellcraft != null)
                 magicSkill = (uint)caster.ItemSpellcraft;
 
             // verify spell range
-            if (!VerifySpellRange(target, targetCategory, spell, baseMagicSkill))
+            if (!VerifySpellRange(target, targetCategory, spell, magicSkill))
                 return false;
 
             // get casting pre-check status
@@ -1031,7 +1029,7 @@ namespace ACE.Server.WorldObjects
             // cast spell
             DoCastGesture(spell, casterItem, spellChain);
 
-            MagicState.SetCastParams(spell, casterItem, magicSkill, baseMagicSkill, manaUsed, target, castingPreCheckStatus);
+            MagicState.SetCastParams(spell, casterItem, magicSkill, manaUsed, target, castingPreCheckStatus);
 
             if (!FastTick)
                 spellChain.AddAction(this, () => DoCastSpell(MagicState));
@@ -1135,10 +1133,8 @@ namespace ACE.Server.WorldObjects
             if (spell == null)
                 return false;
 
-            // get player's current and base magic skill
-            var playerSkill = GetCreatureSkill(spell.School);
-            var baseMagicSkill = playerSkill.InitLevel + playerSkill.Ranks; // (matches CACQualities::InqSkillLevel)
-            var magicSkill = playerSkill.Current;
+            // get player's current magic skill
+            var magicSkill = GetCreatureSkill(spell.School).Current;
 
             var castingPreCheckStatus = GetCastingPreCheckStatus(spell, magicSkill, false);
 
@@ -1160,7 +1156,7 @@ namespace ACE.Server.WorldObjects
             DoCastGesture(spell, null, spellChain);
 
             // cast untargeted spell
-            MagicState.SetCastParams(spell, null, magicSkill, baseMagicSkill, manaUsed, null, castingPreCheckStatus);
+            MagicState.SetCastParams(spell, null, magicSkill, manaUsed, null, castingPreCheckStatus);
 
             if (!FastTick)
                 spellChain.AddAction(this, () => DoCastSpell(MagicState));
