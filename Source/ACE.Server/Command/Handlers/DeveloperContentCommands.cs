@@ -953,6 +953,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
             // clear this spell out of the cache (and everything else)
             DatabaseManager.World.ClearSpellCache();
+            WorldObject.ClearSpellCache();
 
             // load spell from db
             var spell = DatabaseManager.World.GetCachedSpell(spellId);
