@@ -1000,7 +1000,7 @@ namespace ACE.Server.WorldObjects
             {
                 // TODO: spell.NonComponentTargetType should probably always go through TryCastSpell_WithItemRedirects,
                 // however i don't feel like testing every possible known type of item procspell in the current db to ensure there are no regressions
-                // current test case: 33990 Composite Bow casting Tattermail
+                // current test case: 33990 Composite Bow casting Tattercoat
                 attacker.TryCastSpell_WithRedirects(spell, target, itemCaster, itemCaster, true, true);
             }
             else
