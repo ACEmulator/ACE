@@ -634,7 +634,10 @@ namespace ACE.Server.Managers
                 ("summoning_killtask_multicredit_cap", new Property<long>(2, "if allow_summoning_killtask_multicredit is enabled, the maximum # of killtask credits a player can receive from 1 kill")),
                 ("teleport_visibility_fix", new Property<long>(0, "Fixes some possible issues with invisible players and mobs. 0 = default / disabled, 1 = players only, 2 = creatures, 3 = all world objects")),
                 ("pvp_damage_cap", new Property<long>(450, "The cap for PvP damage per strike")),
-                ("pvp_dispel_vuln_timer", new Property<long>(300, "the number of seconds where a player's dispel actions will not remove vulns after becoming involved in a PK battle"))
+                ("pvp_dispel_vuln_timer", new Property<long>(300, "the number of seconds where a player's dispel actions will not remove vulns after becoming involved in a PK battle")),
+                ("jump_limit", new Property<long>(7, "the number of jumps you can do before being penalized")),
+                ("jump_second_timer", new Property<long>(10, "the number of seconds cutoff for jumping")),
+                ("jump_penalty_length", new Property<long>(5, "the number of seconds you're penalized after hitting the jump limits"))
                 );
 
         public static readonly ReadOnlyDictionary<string, Property<double>> DefaultDoubleProperties =
