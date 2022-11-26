@@ -8,7 +8,7 @@ VALUES (450026,   1,          4) /* ItemType - Clothing */
      , (450026,   3,         39) /* PaletteTemplate - Black */
      , (450026,   4,      1024) /* ClothingPriority - OuterwearUpperLegs, OuterwearLowerLegs, OuterwearChest, OuterwearAbdomen, OuterwearUpperArms, OuterwearLowerArms, Feet */
      , (450026,   5,        0) /* EncumbranceVal */
-     , (450026,   9,      32512) /* ValidLocations - Armor */
+     , (450026,   9,      512) /* ValidLocations - Armor */
      , (450026,  16,          1) /* ItemUseable - No */
      , (450026,  19,          20) /* Value */
      , (450026,  28,        0) /* ArmorLevel */

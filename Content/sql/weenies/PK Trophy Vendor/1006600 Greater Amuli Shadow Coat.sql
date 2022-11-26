@@ -6,10 +6,10 @@ VALUES (1006600, 'ace1006600-greateramulishadowcoat', 2, '2021-11-20 00:19:18') 
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`)
 VALUES (1006600,   1,          2) /* ItemType - Armor */
      , (1006600,   3,         21) /* PaletteTemplate - Gold */
-     , (1006600,   4,      13312) /* ClothingPriority - OuterwearChest, OuterwearUpperArms, OuterwearLowerArms */
+     , (1006600,   4,      1024) /* ClothingPriority - OuterwearChest, OuterwearUpperArms, OuterwearLowerArms */
      , (1006600,   5,          0) /* EncumbranceVal */
      , (1006600,   8,       1000) /* Mass */
-     , (1006600,   9,       6656) /* ValidLocations - ChestArmor, UpperArmArmor, LowerArmArmor */
+     , (1006600,   9,       512) /* ValidLocations - ChestArmor, UpperArmArmor, LowerArmArmor */
      , (1006600,  16,          1) /* ItemUseable - No */
      , (1006600,  19,         20) /* Value */
      , (1006600,  27,          8) /* ArmorType - Scalemail */

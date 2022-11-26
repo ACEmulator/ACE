@@ -9,7 +9,7 @@ VALUES (450544,   1,          4) /* ItemType - Clothing */
      , (450544,   4,      1024) /* ClothingPriority - OuterwearUpperLegs, OuterwearLowerLegs, OuterwearChest, OuterwearAbdomen, OuterwearUpperArms, OuterwearLowerArms, Feet */
      , (450544,   5,       0) /* EncumbranceVal */
      , (450544,   8,        150) /* Mass */
-     , (450544,   9,      32512) /* ValidLocations - Armor */
+     , (450544,   9,      512) /* ValidLocations - Armor */
      , (450544,  16,          1) /* ItemUseable - No */
      , (450544,  18,          1) /* UiEffects - Magical */
      , (450544,  19,       20) /* Value */

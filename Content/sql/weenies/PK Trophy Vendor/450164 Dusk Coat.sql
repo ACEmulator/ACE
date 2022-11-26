@@ -8,7 +8,7 @@ VALUES (450164,   1,          2) /* ItemType - Armor */
      , (450164,   3,          1) /* PaletteTemplate - AquaBlue */
      , (450164,   4,      1024) /* ClothingPriority - OuterwearChest, OuterwearAbdomen, OuterwearUpperArms, OuterwearLowerArms */
      , (450164,   5,        0) /* EncumbranceVal */
-     , (450164,   9,       7680) /* ValidLocations - ChestArmor, AbdomenArmor, UpperArmArmor, LowerArmArmor */
+     , (450164,   9,       512) /* ValidLocations - ChestArmor, AbdomenArmor, UpperArmArmor, LowerArmArmor */
      , (450164,  16,          1) /* ItemUseable - No */
      , (450164,  19,      20) /* Value */
      , (450164,  27,          4) /* ArmorType - StuddedLeather */

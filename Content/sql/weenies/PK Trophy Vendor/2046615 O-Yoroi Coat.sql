@@ -6,9 +6,9 @@ VALUES (2046615, 'ace2046615-oyoroicoat', 2, '2021-12-26 05:40:42') /* Clothing 
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`)
 VALUES (2046615,   1,          2) /* ItemType - Armor */
      , (2046615,   3,         39) /* PaletteTemplate - Black */
-     , (2046615,   4,      13312) /* ClothingPriority - OuterwearChest, OuterwearUpperArms, OuterwearLowerArms */
+     , (2046615,   4,      1024) /* ClothingPriority - OuterwearChest, OuterwearUpperArms, OuterwearLowerArms */
      , (2046615,   5,       0) /* EncumbranceVal */
-     , (2046615,   9,       6656) /* ValidLocations - ChestArmor, UpperArmArmor, LowerArmArmor */
+     , (2046615,   9,       512) /* ValidLocations - ChestArmor, UpperArmArmor, LowerArmArmor */
      , (2046615,  16,          1) /* ItemUseable - No */
      , (2046615,  19,         20) /* Value */
      , (2046615,  28,          0) /* ArmorLevel */

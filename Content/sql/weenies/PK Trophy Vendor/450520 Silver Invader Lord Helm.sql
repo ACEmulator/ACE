@@ -13,7 +13,7 @@ VALUES (450520,   1,          2) /* ItemType - Armor */
      , (450520,  19,       20) /* Value */
      , (450520,  28,        0) /* ArmorLevel */
      , (450520,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
-     , (450520, 151,          2) /* HookType - Wall */
+     , (450520, 151,          2) /* HookType - Wall */;
 
 INSERT INTO `weenie_properties_bool` (`object_Id`, `type`, `value`)
 VALUES (450520,  11, True ) /* IgnoreCollisions */

@@ -8,7 +8,7 @@ VALUES (450010,   1,          4) /* ItemType - Clothing */
      , (450010,   3,         85) /* PaletteTemplate - DyeDarkRed */
      , (450010,   4,      1024) /* ClothingPriority - OuterwearUpperLegs, OuterwearLowerLegs, OuterwearChest, OuterwearAbdomen, OuterwearUpperArms, OuterwearLowerArms, Feet */
      , (450010,   5,        10) /* EncumbranceVal */
-     , (450010,   9,      32512) /* ValidLocations - Armor */
+     , (450010,   9,      512) /* ValidLocations - Armor */
      , (450010,  16,          1) /* ItemUseable - No */
      , (450010,  19,         20) /* Value */
      , (450010,  27,          1) /* ArmorType - Cloth */

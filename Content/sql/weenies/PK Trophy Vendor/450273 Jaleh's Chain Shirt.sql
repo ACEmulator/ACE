@@ -9,7 +9,7 @@ VALUES (450273,   1,          2) /* ItemType - Armor */
      , (450273,   4,       1024) /* ClothingPriority - OuterwearChest, OuterwearUpperArms */
      , (450273,   5,        0) /* EncumbranceVal */
      , (450273,   8,        680) /* Mass */
-     , (450273,   9,       2560) /* ValidLocations - ChestArmor, UpperArmArmor */
+     , (450273,   9,       512) /* ValidLocations - ChestArmor, UpperArmArmor */
      , (450273,  16,          1) /* ItemUseable - No */
      , (450273,  19,      20) /* Value */
      , (450273,  27,         16) /* ArmorType - Chainmail */

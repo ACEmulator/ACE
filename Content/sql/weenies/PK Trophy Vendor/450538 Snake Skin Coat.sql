@@ -1,4 +1,4 @@
-DELETE FROM `weenie` WHERE `class_Id` = 9245;
+DELETE FROM `weenie` WHERE `class_Id` = 450538;
 
 INSERT INTO `weenie` (`class_Id`, `class_Name`, `type`, `last_Modified`)
 VALUES (450538, 'coatsclavustailor', 2, '2005-02-09 10:00:00') /* Clothing */;
@@ -9,7 +9,7 @@ VALUES (450538,   1,          2) /* ItemType - Armor */
      , (450538,   4,      1024) /* ClothingPriority - OuterwearChest, OuterwearUpperArms, OuterwearLowerArms */
      , (450538,   5,       1000) /* EncumbranceVal */
      , (450538,   8,        500) /* Mass */
-     , (450538,   9,       6656) /* ValidLocations - ChestArmor, UpperArmArmor, LowerArmArmor */
+     , (450538,   9,       512) /* ValidLocations - ChestArmor, UpperArmArmor, LowerArmArmor */
      , (450538,  16,          1) /* ItemUseable - No */
      , (450538,  19,       20) /* Value */
      , (450538,  27,          8) /* ArmorType - Scalemail */
