@@ -195,5 +195,36 @@ namespace ACE.Server.WorldObjects
 
             MoveToParams = null;
         }
+
+        public void ClearRawState()
+        {
+            if (!FastTick) return;
+
+            // clear raw state to mitigate client bugs
+            // repro steps: hold strafe, drop an item, release strafe while crouching down
+            // client does not send release command, similar to releasing movement key during stance swap
+
+            // the opposite of this bug can be seen by holding 'run forward', dropping an item, and continuing to hold run forward during and after the drop
+            // on the self-client, the player will resume running forward
+            // on the server, and from the perspective of other clients, the player will not be moving, and will 'blip forward' every 1.875s
+            // when it receives AutoPos updates from self-client
+
+            // this will create consistent behavior on amongst the self-client / server / other clients for the original scenario,
+            // but will introduce a desync bug between the self-client and server/other clients if the player were to continue to hold strafe after the drop
+            // it turns that scenario into the 'opposite bug' though, which is the lesser of 2 evils compared to the original bug
+
+            CurrentMotionState.SetTurnCommand(MotionCommand.Invalid);
+            CurrentMotionState.SetSidestepCommand(MotionCommand.Invalid);
+
+            var rawState = PhysicsObj.InqRawMotionState();
+
+            rawState.TurnCommand = 0;
+            rawState.TurnHoldKey = HoldKey.Invalid;
+            rawState.TurnSpeed = 1.0f;
+
+            rawState.SideStepCommand = 0;
+            rawState.SideStepHoldKey = HoldKey.Invalid;
+            rawState.TurnSpeed = 1.0f;
+        }
     }
 }

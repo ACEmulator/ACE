@@ -749,6 +749,9 @@ namespace ACE.Server.WorldObjects
         {
             PickupState = PickupState.Return;
 
+            // clear raw state to mitigate client bugs
+            ClearRawState();
+
             var returnStance = new Motion(CurrentMotionState.Stance);
             EnqueueBroadcastMotion(returnStance);
 
@@ -1420,6 +1423,9 @@ namespace ACE.Server.WorldObjects
                     else
                         log.Warn($"0x{item.Guid}:{item.Name} for player {Name} lost from HandleActionDropItem failure.");
                 }
+
+                // clear raw state to mitigate client bugs
+                ClearRawState();
 
                 var returnStance = new Motion(CurrentMotionState.Stance);
                 EnqueueBroadcastMotion(returnStance);
@@ -2510,6 +2516,9 @@ namespace ACE.Server.WorldObjects
 
                     newStack.Destroy();
                 }
+
+                // clear raw state to mitigate client bugs
+                ClearRawState();
 
                 var returnStance = new Motion(CurrentMotionState.Stance);
                 EnqueueBroadcastMotion(returnStance);
