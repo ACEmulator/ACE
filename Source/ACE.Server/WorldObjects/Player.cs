@@ -966,7 +966,7 @@ namespace ACE.Server.WorldObjects
             {
                 shouldGetFucked = true;
                 if (JumpTimer == null)
-                    SetProperty(PropertyFloat.TrophyTimer, Time.GetFutureUnixTime(PropertyManager.GetLong("jump_penalty_length").Item));
+                    SetProperty(PropertyFloat.JumpTimer, Time.GetFutureUnixTime(PropertyManager.GetLong("jump_penalty_length").Item));
             }
 
             // calculate stamina cost for this jump
