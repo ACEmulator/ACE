@@ -1357,7 +1357,7 @@ namespace ACE.Server.WorldObjects
 
             var distanceToTarget = creature.GetDistance(targetPlayer);
             var skill = creature.GetCreatureSkill(spell.School);
-            var magicSkill = skill.InitLevel + skill.Ranks;     // matches CACQualities::InqSkillLevel
+            var magicSkill = skill.InitLevel + skill.Ranks;     // synced with acclient DetermineSpellRange -> InqSkillLevel
 
             var maxRange = spell.BaseRangeConstant + magicSkill * spell.BaseRangeMod;
             if (maxRange == 0.0f)
