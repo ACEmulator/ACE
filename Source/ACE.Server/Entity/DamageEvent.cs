@@ -288,6 +288,13 @@ namespace ACE.Server.Entity
                 }
             }
 
+            if (playerAttacker != null && playerDefender != null && Weapon != null)
+            {
+                var multi = (float?)Weapon.GetProperty(ACE.Entity.Enum.Properties.PropertyFloat.ForedawnPvpDamageMulti);
+                if (multi.HasValue)
+                    DamageBeforeMitigation *= multi.Value;
+            }
+
             // armor rending and cleaving
             var armorRendingMod = 1.0f;
             if (Weapon != null && Weapon.HasImbuedEffect(ImbuedEffectType.ArmorRending))
