@@ -478,7 +478,7 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
-        public bool VerifySpellRange(WorldObject target, TargetCategory targetCategory, Spell spell, uint magicSkill)
+        public bool VerifySpellRange(WorldObject target, TargetCategory targetCategory, Spell spell, WorldObject casterItem, uint magicSkill)
         {
             if (targetCategory != TargetCategory.WorldObject && targetCategory != TargetCategory.Wielded || target.Guid == Guid)
                 return true;
@@ -488,6 +488,14 @@ namespace ACE.Server.WorldObjects
                 targetLoc = CurrentLandblock?.GetObject(targetLoc.WielderId.Value);
 
             float distanceTo = Location.Distance2D(targetLoc.Location);
+
+            if (casterItem == null)
+            {
+                // use init + ranks, same as acclient DetermineSpellRange -> InqSkillLevel
+                // this is much lower than base, and omits things like attribute formula + base augs + enlightenment
+                var playerSkill = GetCreatureSkill(spell.School);
+                magicSkill = playerSkill.InitLevel + playerSkill.Ranks;
+            }
 
             var maxRange = Math.Min(spell.BaseRangeConstant + magicSkill * spell.BaseRangeMod, MaxRadarRange_Outdoors);
 
@@ -699,7 +707,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            DoCastSpell(state.Spell, state.Caster, state.MagicSkill, state.ManaUsed, state.Target, state.Status, checkAngle);
+            DoCastSpell(state.Spell, state.CasterItem, state.MagicSkill, state.ManaUsed, state.Target, state.Status, checkAngle);
         }
 
         public bool IsWithinAngle(WorldObject target)
@@ -731,7 +739,7 @@ namespace ACE.Server.WorldObjects
             return angle <= maxAngle;
         }
 
-        public void DoCastSpell(Spell spell, WorldObject caster, uint magicSkill, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus, bool checkAngle = true)
+        public void DoCastSpell(Spell spell, WorldObject casterItem, uint magicSkill, uint manaUsed, WorldObject target, CastingPreCheckStatus castingPreCheckStatus, bool checkAngle = true)
         {
             if (target != null)
             {
@@ -755,7 +763,7 @@ namespace ACE.Server.WorldObjects
 
                         var actionChain = new ActionChain();
                         actionChain.AddDelaySeconds(rotateTime);
-                        actionChain.AddAction(this, () => DoCastSpell(spell, caster, magicSkill, manaUsed, target, castingPreCheckStatus, false));
+                        actionChain.AddAction(this, () => DoCastSpell(spell, casterItem, magicSkill, manaUsed, target, castingPreCheckStatus, false));
                         actionChain.EnqueueChain();
                     }
                     else
@@ -770,7 +778,7 @@ namespace ACE.Server.WorldObjects
                 }
 
                 // verify spell range
-                if (!VerifySpellRange(target, targetCategory, spell, magicSkill))
+                if (!VerifySpellRange(target, targetCategory, spell, casterItem, magicSkill))
                 {
                     FinishCast();
                     return;
@@ -783,7 +791,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            DoCastSpell_Inner(spell, caster, manaUsed, target, castingPreCheckStatus);
+            DoCastSpell_Inner(spell, casterItem, manaUsed, target, castingPreCheckStatus);
         }
 
         public WorldObject TurnTarget;
@@ -1007,7 +1015,7 @@ namespace ACE.Server.WorldObjects
                 magicSkill = (uint)caster.ItemSpellcraft;
 
             // verify spell range
-            if (!VerifySpellRange(target, targetCategory, spell, magicSkill))
+            if (!VerifySpellRange(target, targetCategory, spell, casterItem, magicSkill))
                 return false;
 
             // get casting pre-check status
@@ -1302,7 +1310,7 @@ namespace ACE.Server.WorldObjects
 
             if (parms != null && tryFizzle)
             {
-                DoCastSpell_Inner(parms.Spell, parms.Caster, parms.ManaUsed, parms.Target, CastingPreCheckStatus.CastFailed, false);
+                DoCastSpell_Inner(parms.Spell, parms.CasterItem, parms.ManaUsed, parms.Target, CastingPreCheckStatus.CastFailed, false);
 
                 werror = WeenieError.YourSpellFizzled;
             }

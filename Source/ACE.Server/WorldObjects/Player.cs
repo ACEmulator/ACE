@@ -585,14 +585,15 @@ namespace ACE.Server.WorldObjects
 
                     EnqueueBroadcastPhysicsState();
 
-                    var logout = new Motion(MotionStance.NonCombat, MotionCommand.LogOut);
-                    EnqueueBroadcastMotion(logout);                    
+                    var motionCommand = MotionCommand.LogOut;
+                    var motion = new Motion(this, motionCommand);
+                    var stanceNonCombat = MotionStance.NonCombat;
+                    var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stanceNonCombat, motionCommand);
 
                     var logoutChain = new ActionChain();
 
-                    var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>((uint) MotionTableId);
-                    float logoutAnimationLength = motionTable.GetAnimationLength(MotionCommand.LogOut);
-                    logoutChain.AddDelaySeconds(logoutAnimationLength);
+                    logoutChain.AddAction(this, () => SendMotionAsCommands(motionCommand, stanceNonCombat));
+                    logoutChain.AddDelaySeconds(animLength);
 
                     // remove the player from landblock management -- after the animation has run
                     logoutChain.AddAction(WorldManager.ActionQueue, () =>

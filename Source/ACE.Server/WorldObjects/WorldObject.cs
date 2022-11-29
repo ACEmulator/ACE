@@ -1174,7 +1174,7 @@ namespace ACE.Server.WorldObjects
 
                 var structureUnitValue = weenieValue / weenieMaxStructure;
 
-                return Math.Max(1, structureUnitValue);
+                return Math.Max(0, structureUnitValue);
             }
         }
     }
