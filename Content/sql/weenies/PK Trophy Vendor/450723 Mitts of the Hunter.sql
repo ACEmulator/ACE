@@ -12,7 +12,7 @@ VALUES (450723,   1,          2) /* ItemType - Armor */
      , (450723,  16,          1) /* ItemUseable - No */
      , (450723,  19,       20) /* Value */
      , (450723,  28,        0) /* ArmorLevel */
-     , (450723,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity *//;
+     , (450723,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */;
 
 INSERT INTO `weenie_properties_bool` (`object_Id`, `type`, `value`)
 VALUES (450723,  11, True ) /* IgnoreCollisions */
