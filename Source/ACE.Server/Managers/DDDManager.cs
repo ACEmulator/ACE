@@ -6,6 +6,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 
+using ACE.Common;
 using ACE.DatLoader;
 using ACE.Server.Network;
 using ACE.Server.Network.Structure;
@@ -60,6 +61,8 @@ namespace ACE.Server.Managers
             for (var i = 1; i <= datDatabase.Iteration; i++)
                 Iterations[datDatabaseType].TryAdd((uint)i, new());
 
+            var precacheCompressedDATFiles = ConfigManager.Config.DDD.PrecacheCompressedDATFiles;
+
             Parallel.ForEach(datDatabase.AllFiles, file =>
             {
                 var fileName = file.Value.ObjectId;
@@ -77,10 +80,10 @@ namespace ACE.Server.Managers
                 Iterations[datDatabaseType][fileIter].Add(fileName);
                 DatFileSizes[datDatabaseType].TryAdd(fileName, (uncompressedFileSize, fileSizeToSend));
 
-                if (useCompressedFile)
+                if (useCompressedFile && precacheCompressedDATFiles)
                     CompressedDatFilesCache[datDatabaseType].TryAdd(fileName, PrependUncompressedFileSize(compressedDatFile, (uint)uncompressedFileSize));
             });
-            log.Info($"Iterations for {datDatabaseType} initialized. Iterations.Count={Iterations[datDatabaseType].Count} | DatFileSizes.Count={DatFileSizes[datDatabaseType].Count}");
+            log.Info($"Iterations for {datDatabaseType} initialized. Iterations.Count={Iterations[datDatabaseType].Count} | DatFileSizes.Count={DatFileSizes[datDatabaseType].Count}{(precacheCompressedDATFiles ? " | precached Compressed files" : "")}");
         }
 
         /// <summary>
@@ -385,7 +388,7 @@ namespace ACE.Server.Managers
             //dddDataQueue.Enqueue((session, datFileId, datDatabaseType));
             //session.AddToDDDQueue(datFileId, datDatabaseType);
 
-            return session.AddToDDDQueue(datFileId, datDatabaseType); ;
+            return session.AddToDDDQueue(datFileId, datDatabaseType);
         }
     }
 }
