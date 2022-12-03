@@ -39,7 +39,7 @@ VALUES (450704,   1, 'Cloak') /* Name */
 INSERT INTO `weenie_properties_d_i_d` (`object_Id`, `type`, `value`)
 VALUES (450704,   1, 0x02001B2A) /* Setup */
      , (450704,   3, 0x20000014) /* SoundTable */
-     , (450704,   7, 0x100007F5) /* ClothingBase */
-     , (450704,   8, 0x060070A5) /* Icon */
+     , (450704,   7, 0x100007F7) /* ClothingBase */
+     , (450704,   8, 0x060070A7) /* Icon */
      , (450704,  22, 0x3400002B) /* PhysicsEffectTable */;
 
