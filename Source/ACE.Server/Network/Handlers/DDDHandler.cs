@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 
+using ACE.Common;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
@@ -81,10 +82,13 @@ namespace ACE.Server.Network.Handlers
                 Console.WriteLine($"{session.Account} client_Local_English.dat:" + Environment.NewLine + clientLanguageDatIntSet);
             }
 
+            var enableDATpatching = ConfigManager.Config.DDD.EnableDATPatching;
+
             var logMsg = $"[DDD] client {session.Account} responded to Interrogation:\n client_portal.dat: {clientPortalDatIntSet.Iterations} | client_cell_1.dat: {clientCellDatIntSet.Iterations} | client_Local_English.dat: {clientLanguageDatIntSet.Iterations} | {(clientIsMissingIterations ? "" : "no ")}update required";
+            if (clientIsMissingIterations && !enableDATpatching) logMsg += ", but DAT patching is disabled";
             log.Info(logMsg);
 
-            if (clientIsMissingIterations)
+            if (clientIsMissingIterations && enableDATpatching)
             {
                 var totalMissingIterations = DDDManager.GetMissingIterations(clientPortalDatIntSet, clientCellDatIntSet, clientLanguageDatIntSet, out var totalFileSize, out var missingIterations);                
                 var patchStatusMessage = new GameMessageDDDBeginDDD(totalMissingIterations, totalFileSize, missingIterations);
@@ -99,14 +103,8 @@ namespace ACE.Server.Network.Handlers
 
                 if (hasPortalMissingIterations)
                 {
-                    //var skip = false;
                     foreach (var iteration in portalMissingIterations.Values)
                     {
-                        //if (skip)
-                        //{
-                        //    skip = false;
-                        //    continue;
-                        //}
                         foreach (var fileId in iteration.OrderBy(f => f))
                         {
                             if (DatManager.PortalDat.AllFiles.TryGetValue(fileId, out _))
@@ -115,7 +113,6 @@ namespace ACE.Server.Network.Handlers
                             else
                                 log.Warn($"[DDD] DDD_InterrogationResponse: DDDManager.AddToQueue failed: DatManager.PortalDat.AllFiles does not contain 0x{fileId:X8}");
                         }
-                        //skip = true;
                     }
                 }
 
@@ -134,7 +131,7 @@ namespace ACE.Server.Network.Handlers
                     }
                 }
             }
-            else // client dat files are up to date
+            else // client dat files are up to date or DAT patching is not enabled
             {
                 session.Network.EnqueueSend(new GameMessageDDDEndDDD());
             }
@@ -162,10 +159,40 @@ namespace ACE.Server.Network.Handlers
         [GameMessage(GameMessageOpcode.DDD_RequestDataMessage, SessionState.WorldConnected)]
         public static void DDD_RequestDataMessage(ClientMessage message, Session session)
         {
+            var enableDATpatching = ConfigManager.Config.DDD.EnableDATPatching;
+            var showDatWarning = PropertyManager.GetBool("show_dat_warning").Item;
+
             var qdid_type = (DatFileType)message.Payload.ReadUInt32();
             var qdid_ID = message.Payload.ReadUInt32();
 
-            log.Info($"[DDD] client {session.Account} requested data on 0x{qdid_ID:X8} | {qdid_type}");
+            log.Info($"[DDD] client {session.Account} requested data on 0x{qdid_ID:X8} | {qdid_type}{(!enableDATpatching ? $"; DAT patching is disabled{(showDatWarning ? " and client will be booted" : "")}" : "")}");
+
+            if (!enableDATpatching)
+            {
+                if (showDatWarning)
+                {
+                    var msg = PropertyManager.GetString("dat_warning_msg").Item;
+                    var popupMsg = new GameEventPopupString(session, msg);
+                    var chatMsg = new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast);
+                    var transientMsg = new GameEventCommunicationTransientString(session, msg);
+
+                    //var resourceType = message.Payload.ReadUInt32();
+                    //var dataId = message.Payload.ReadUInt32();
+                    var errorType = 1u; // unknown enum... this seems to trigger reattempt request by client.
+
+                    var dddErrorMsg = new GameMessageDDDErrorMessage((uint)qdid_type, qdid_ID, errorType);
+
+                    if (session.Player.FirstEnterWorldDone) // Boot client with msg
+                    {
+                        session.Network.EnqueueSend(new GameMessageBootAccount($"\n{msg}"), dddErrorMsg);
+                        session.LogOffPlayer(true);
+                    }
+                    else // cannot cleanly boot player that hasn't completed first login, client crashes so msg wouldn't be seen, instead spam msgs until server auto boots them or they disconnect.
+                        session.Network.EnqueueSend(popupMsg, chatMsg, transientMsg, dddErrorMsg);
+                }
+
+                return;
+            }
 
             // Landblock also needs to send the LandBlockInfo (0xFFFE) file with it...
             if (qdid_type == DatFileType.LandBlock)
@@ -186,37 +213,9 @@ namespace ACE.Server.Network.Handlers
                 else if (qdid_type != DatFileType.LandBlockInfo)
                     log.Warn($"[DDD] DDD_RequestDataMessage: The server does not have the requested data on 0x{qdid_ID:X8} | {qdid_type} to send to client {session.Account}.");
             }
-
             else
             {
                 log.Warn($"[DDD] DDD_RequestDataMessage: client {session.Account} requested data on 0x{qdid_ID:X8} | {qdid_type} which has been ignored.");
-            }
-
-            return;
-
-            {
-                if (!PropertyManager.GetBool("show_dat_warning").Item) return;
-
-                // True DAT patching would be triggered by this msg, but as we're not supporting that, respond instead with warning and push to external download
-
-                var msg = PropertyManager.GetString("dat_warning_msg").Item;
-                var popupMsg = new GameEventPopupString(session, msg);
-                var chatMsg = new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast);
-                var transientMsg = new GameEventCommunicationTransientString(session, msg);
-
-                var resourceType = message.Payload.ReadUInt32();
-                var dataId = message.Payload.ReadUInt32();
-                var errorType = 1u; // unknown enum... this seems to trigger reattempt request by client.
-
-                var dddErrorMsg = new GameMessageDDDErrorMessage(resourceType, dataId, errorType);
-
-                if (session.Player.FirstEnterWorldDone) // Boot client with msg
-                {
-                    session.Network.EnqueueSend(new GameMessageBootAccount($"\n{msg}"), dddErrorMsg);
-                    session.LogOffPlayer(true);
-                }
-                else // cannot cleanly boot player that hasn't completed first login, client crashes so msg wouldn't be seen, instead spam msgs until server auto boots them or they disconnect.
-                    session.Network.EnqueueSend(popupMsg, chatMsg, transientMsg, dddErrorMsg);
             }
         }
     }
