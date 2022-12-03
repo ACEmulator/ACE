@@ -547,18 +547,7 @@ namespace ACE.Server.WorldObjects
                 // if attacker/weapon has IgnoreMagicResist directly, do not transfer to spell projectile
                 // only pass if SpellProjectile has it directly, such as 2637 - Invoking Aun Tanua
 
-                resistanceMod = (float)Math.Max(0.0f, target.GetResistanceMod(resistanceType, this, null, weaponResistanceMod));
-
-                if (sourcePlayer != null && targetPlayer != null && Spell.DamageType == DamageType.Nether)
-                {
-                    // for direct damage from void spells in pvp,
-                    // apply void_pvp_modifier *on top of* the player's natural resistance to nether
-
-                    // this supposedly brings the direct damage from void spells in pvp closer to retail
-                    resistanceMod *= (float)PropertyManager.GetDouble("void_pvp_modifier").Item;
-                    if (SpellType == ProjectileSpellType.Streak)
-                        resistanceMod *= (float)PropertyManager.GetDouble("pvp_dmg_mod_void_streak").Item; // scales void streak damages
-                }                
+                resistanceMod = (float)Math.Max(0.0f, target.GetResistanceMod(resistanceType, this, null, weaponResistanceMod));                                
 
                 finalDamage = baseDamage + critDamageBonus + skillBonus;
 
@@ -575,16 +564,26 @@ namespace ACE.Server.WorldObjects
                 ShowInfo(target, Spell, attackSkill, criticalChance, criticalHit, critDefended, overpower, weaponCritDamageMod, skillBonus, baseDamage, critDamageBonus, elementalDamageMod, slayerMod, weaponResistanceMod, resistanceMod, absorbMod, LifeProjectileDamage, lifeMagicDamage, finalDamage);
             }
 
-            //Apply pvp dmg mods for war
+            //Apply pvp dmg mods for war and void (not including DOTs which are in EnchantmentManager.ApplyDamageTick)
             float dmgMod = 1;
-            if (sourcePlayer != null && targetPlayer != null && Spell.School == MagicSchool.WarMagic)
+            if (sourcePlayer != null && targetPlayer != null)
             {
-                dmgMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_war").Item;
+                if (Spell.School == MagicSchool.WarMagic)
+                {
+                    dmgMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_war").Item;
 
-                if (SpellType == ProjectileSpellType.Streak)
-                    dmgMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_war_streak").Item; // scales war streak damages
+                    if (SpellType == ProjectileSpellType.Streak)
+                        dmgMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_war_streak").Item; // scales war streak damages
 
-                finalDamage = finalDamage * dmgMod;
+                    finalDamage = finalDamage * dmgMod;
+                }
+                else if (Spell.DamageType == DamageType.Nether)
+                {
+                    dmgMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_void").Item;
+                    if (SpellType == ProjectileSpellType.Streak)
+                        dmgMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_void_streak").Item; // scales void streak damages
+                    finalDamage = finalDamage * dmgMod;
+                }
             }
 
             return finalDamage;
