@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 
 using log4net;
@@ -41,6 +42,15 @@ namespace ACE.Server.Network
                 ListenerEndpoint = new IPEndPoint(listeningHost, (int)listeningPort);
                 Socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    var sioUdpConnectionReset = -1744830452;
+                    var inValue = new byte[] { 0 };
+                    var outValue = new byte[] { 0 };
+                    Socket.IOControl(sioUdpConnectionReset, inValue, outValue);
+                }
+
                 Socket.Bind(ListenerEndpoint);
                 Listen();
             }
