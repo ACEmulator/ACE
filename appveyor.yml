@@ -57,6 +57,8 @@ artifacts:
   name: test logs
 - path: '**\ACE.Server-*.zip'
   name: release candidate
+- path: '**\ACE.Server.zip'
+  name: release candidate (direct link)
 before_deploy:
 - ps: >-
     git config --global credential.helper store
