@@ -26,6 +26,8 @@ namespace ACE.Server.Network.Handlers
         {
             var clientIsMissingIterations = false;
 
+            var clientHasExtraIterations = false;
+
             var clientPortalDatIntSet = new CMostlyConsecutiveIntSet();
             var clientCellDatIntSet = new CMostlyConsecutiveIntSet();
             var clientLanguageDatIntSet = new CMostlyConsecutiveIntSet();
@@ -51,6 +53,13 @@ namespace ACE.Server.Network.Handlers
 
                             clientIsMissingIterations = true;
                         }
+                        else if (entry.List.Iterations > DatManager.PortalDat.Iteration)
+                        {
+                            if (showDatWarning)
+                                session.DatWarnPortal = true;
+
+                            clientHasExtraIterations = true;
+                        }
                         break;
                     case 2: // CELL
                         clientCellDatIntSet = entry.List;
@@ -61,6 +70,13 @@ namespace ACE.Server.Network.Handlers
 
                             clientIsMissingIterations = true;
                         }
+                        else if (entry.List.Iterations > DatManager.CellDat.Iteration)
+                        {
+                            if (showDatWarning)
+                                session.DatWarnCell = true;
+
+                            clientHasExtraIterations = true;
+                        }
                         break;
                     case 3: // LANGUAGE
                         clientLanguageDatIntSet = entry.List;
@@ -70,6 +86,13 @@ namespace ACE.Server.Network.Handlers
                                 session.DatWarnLanguage = true;
 
                             clientIsMissingIterations = true;
+                        }
+                        else if (entry.List.Iterations > DatManager.LanguageDat.Iteration)
+                        {
+                            if (showDatWarning)
+                                session.DatWarnLanguage = true;
+
+                            clientHasExtraIterations = true;
                         }
                         break;
                 }
@@ -84,11 +107,19 @@ namespace ACE.Server.Network.Handlers
 
             var enableDATpatching = ConfigManager.Config.DDD.EnableDATPatching;
 
-            var logMsg = $"[DDD] client {session.Account} responded to Interrogation:\n client_portal.dat: {clientPortalDatIntSet.Iterations} | client_cell_1.dat: {clientCellDatIntSet.Iterations} | client_Local_English.dat: {clientLanguageDatIntSet.Iterations} | {(clientIsMissingIterations ? "" : "no ")}update required";
+            var logMsg = $"[DDD] client {session.Account} responded to Interrogation:\n client_portal.dat: {clientPortalDatIntSet.Iterations} | client_cell_1.dat: {clientCellDatIntSet.Iterations} | client_Local_English.dat: {clientLanguageDatIntSet.Iterations}";
+            if (clientHasExtraIterations) logMsg += " | client has more iterations than server, cannot update";
+            else if (clientIsMissingIterations) logMsg += " | update required";
+            else logMsg += " | no update required";
             if (clientIsMissingIterations && !enableDATpatching) logMsg += ", but DAT patching is disabled";
             log.Info(logMsg);
 
-            if (clientIsMissingIterations && enableDATpatching)
+            if (clientHasExtraIterations)
+            {
+                var msg = PropertyManager.GetString("dat_newer_warning_msg").Item;
+                session.Terminate(SessionTerminationReason.DATsNewerThanServer, new GameMessageBootAccount($" because {msg[..^1]}"));
+            }
+            else if (clientIsMissingIterations && enableDATpatching)
             {
                 var totalMissingIterations = DDDManager.GetMissingIterations(clientPortalDatIntSet, clientCellDatIntSet, clientLanguageDatIntSet, out var totalFileSize, out var missingIterations);                
                 var patchStatusMessage = new GameMessageDDDBeginDDD(totalMissingIterations, totalFileSize, missingIterations);
@@ -131,7 +162,12 @@ namespace ACE.Server.Network.Handlers
                     }
                 }
             }
-            else // client dat files are up to date or DAT patching is not enabled
+            else if (clientIsMissingIterations && !enableDATpatching)
+            {
+                var msg = PropertyManager.GetString("dat_older_warning_msg").Item;
+                session.Terminate(SessionTerminationReason.DATsPatchingDisabled, new GameMessageBootAccount($" because {msg.TrimEnd('.')}"));
+            }
+            else // client dat files are up to date
             {
                 session.Network.EnqueueSend(new GameMessageDDDEndDDD());
             }
@@ -171,7 +207,7 @@ namespace ACE.Server.Network.Handlers
             {
                 if (showDatWarning)
                 {
-                    var msg = PropertyManager.GetString("dat_warning_msg").Item;
+                    var msg = PropertyManager.GetString("dat_older_warning_msg").Item;
                     var popupMsg = new GameEventPopupString(session, msg);
                     var chatMsg = new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast);
                     var transientMsg = new GameEventCommunicationTransientString(session, msg);
@@ -184,8 +220,9 @@ namespace ACE.Server.Network.Handlers
 
                     if (session.Player.FirstEnterWorldDone) // Boot client with msg
                     {
-                        session.Network.EnqueueSend(new GameMessageBootAccount($"\n{msg}"), dddErrorMsg);
-                        session.LogOffPlayer(true);
+                        //session.Network.EnqueueSend(new GameMessageBootAccount($"\n{msg}"), dddErrorMsg);
+                        //session.LogOffPlayer(true);
+                        session.Terminate(SessionTerminationReason.DATsPatchingDisabled, new GameMessageBootAccount($" because {msg.TrimEnd('.')}"));
                     }
                     else // cannot cleanly boot player that hasn't completed first login, client crashes so msg wouldn't be seen, instead spam msgs until server auto boots them or they disconnect.
                         session.Network.EnqueueSend(popupMsg, chatMsg, transientMsg, dddErrorMsg);
