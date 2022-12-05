@@ -9,9 +9,9 @@ VALUES (42622,   1,       2048) /* ItemType - Gem */
      , (42622,  11,          1) /* MaxStackSize */
      , (42622,  12,          1) /* StackSize */
      , (42622,  13,         10) /* StackUnitEncumbrance */
-     , (42622,  15,         50) /* StackUnitValue */
+     , (42622,  15,         2) /* StackUnitValue */
      , (42622,  16,     524296) /* ItemUseable - SourceContainedTargetContained */
-     , (42622,  19,         1) /* Value */
+     , (42622,  19,         2) /* Value */
      , (42622,  65,        101) /* Placement - Resting */
      , (42622,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (42622,  94,          6) /* TargetType - Vestements */;
