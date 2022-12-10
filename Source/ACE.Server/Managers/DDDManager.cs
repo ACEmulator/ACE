@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using ACE.Common;
@@ -21,7 +22,7 @@ namespace ACE.Server.Managers
 
         public static bool Debug = false;
 
-        public static Dictionary<DatDatabaseType, Dictionary<uint, List<uint>>> Iterations;
+        public static Dictionary<DatDatabaseType, Dictionary<uint, ConcurrentBag<uint>>> Iterations;
 
         public static Dictionary<DatDatabaseType, ConcurrentDictionary<uint, (int UncompressedFileSize, int CompressedFileSize)>> DatFileSizes;
 
@@ -63,6 +64,7 @@ namespace ACE.Server.Managers
 
             var precacheCompressedDATFiles = ConfigManager.Config.DDD.PrecacheCompressedDATFiles;
 
+            var fileCount = 0;
             Parallel.ForEach(datDatabase.AllFiles, file =>
             {
                 var fileName = file.Value.ObjectId;
@@ -78,12 +80,13 @@ namespace ACE.Server.Managers
                 var fileSizeToSend = useCompressedFile ? compressedFileSize : 0;
 
                 Iterations[datDatabaseType][fileIter].Add(fileName);
+                Interlocked.Increment(ref fileCount);
                 DatFileSizes[datDatabaseType].TryAdd(fileName, (uncompressedFileSize, fileSizeToSend));
 
                 if (useCompressedFile && precacheCompressedDATFiles)
                     CompressedDatFilesCache[datDatabaseType].TryAdd(fileName, PrependUncompressedFileSize(compressedDatFile, (uint)uncompressedFileSize));
             });
-            log.Info($"Iterations for {datDatabaseType} initialized. Iterations.Count={Iterations[datDatabaseType].Count} | DatFileSizes.Count={DatFileSizes[datDatabaseType].Count}{(precacheCompressedDATFiles ? " | precached Compressed files" : "")}");
+            log.Info($"Iterations for {datDatabaseType} initialized. Iterations.Count={Iterations[datDatabaseType].Count} | FileCount={fileCount} | DatFileSizes.Count={DatFileSizes[datDatabaseType].Count}{(precacheCompressedDATFiles ? " | precached Compressed files" : "")}");
         }
 
         /// <summary>
