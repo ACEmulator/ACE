@@ -523,5 +523,56 @@ namespace ACE.Server.Command.Handlers
 
             session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.AdminTell));
         }
+
+        [CommandHandler("ForceLogoffStuckCharacter", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Force log off of character that's stuck in game.  Is only allowed when initiated from a character that is on the same account as the target character.")]
+        public static void HandleForceLogoffStuckCharacter(Session session, params string[] parameters)
+        {
+            var playerName = "";
+            if (parameters.Length > 0)
+                playerName = string.Join(" ", parameters);
+
+            Player target = null;
+
+            if (!string.IsNullOrEmpty(playerName))
+            {
+                var plr = PlayerManager.FindByName(playerName);
+                if (plr != null)
+                {
+                    target = PlayerManager.GetOnlinePlayer(plr.Guid);
+
+                    if (target == null)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Unable to force log off for {plr.Name}: Player is not online.");
+                        return;
+                    }
+
+                    //Verify the target is not the current player
+                    if(session.Player.Guid == target.Guid)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Unable to force log off for {plr.Name}: You cannot target yourself, please try with a different character on same account.");
+                        return;
+                    }
+
+                    //Verify the target is on the same account as the current player
+                    if (session.AccountId != target.Account.AccountId)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Unable to force log off for {plr.Name}: Target must be within same account as the player who issues the logoff command. Please reach out for admin support.");
+                        return;
+                    }
+
+                    DeveloperCommands.HandleForceLogoff(session, parameters);
+                }
+                else
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Unable to force log off for {playerName}: Player not found.");
+                    return;
+                }
+            }
+            else
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Invalid parameters, please provide a player name for the player that needs to be logged off.");
+                return;
+            }            
+        }
     }
 }
