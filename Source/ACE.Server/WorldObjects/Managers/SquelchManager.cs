@@ -50,18 +50,18 @@ namespace ACE.Server.WorldObjects.Managers
             {
                 case ChatMessageType.Speech:
                 case ChatMessageType.Tell:
-                case ChatMessageType.Combat:
-                case ChatMessageType.Magic:
+                //case ChatMessageType.Combat:
+                //case ChatMessageType.Magic:
                 case ChatMessageType.Emote:
                 case ChatMessageType.Appraisal:
-                case ChatMessageType.Spellcasting:
+                //case ChatMessageType.Spellcasting:
                 case ChatMessageType.Allegiance:
                 case ChatMessageType.Fellowship:
-                case ChatMessageType.CombatEnemy:
-                case ChatMessageType.CombatSelf:
-                case ChatMessageType.Recall:
-                case ChatMessageType.Craft:
-                case ChatMessageType.Salvaging:
+                //case ChatMessageType.CombatEnemy:
+                //case ChatMessageType.CombatSelf:
+                //case ChatMessageType.Recall:
+                //case ChatMessageType.Craft:
+                //case ChatMessageType.Salvaging:
 
                     return true;
             }
