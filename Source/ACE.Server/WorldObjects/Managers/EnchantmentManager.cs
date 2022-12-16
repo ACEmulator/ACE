@@ -113,6 +113,14 @@ namespace ACE.Server.WorldObjects.Managers
         }
 
         /// <summary>
+        /// Returns the top layer for a category
+        /// </summary>
+        public List<PropertiesEnchantmentRegistry> GetEnchantments_TopLayer(SpellCategory spellCategory)
+        {
+            return WorldObject.Biota.PropertiesEnchantmentRegistry.GetEnchantmentsTopLayerBySpellCategory(spellCategory, WorldObject.BiotaDatabaseLock, SpellSet.SetSpells);
+        }
+
+        /// <summary>
         /// Returns the top layers in each spell category for a StatMod type
         /// </summary>
         public List<PropertiesEnchantmentRegistry> GetEnchantments_TopLayer(EnchantmentTypeFlags statModType)
@@ -721,7 +729,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public virtual float GetXPBonus()
         {
-            var enchantments = GetEnchantments(SpellCategory.TrinketXPRaising);
+            var enchantments = GetEnchantments_TopLayer(SpellCategory.TrinketXPRaising);
 
             // TODO: temporary code to handle both additive and multiplicative mods
             // should be additive in database, update when everything is in sync

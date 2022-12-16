@@ -162,6 +162,32 @@ namespace ACE.Entity.Models
             }
         }
 
+        public static List<PropertiesEnchantmentRegistry> GetEnchantmentsTopLayerBySpellCategory(this ICollection<PropertiesEnchantmentRegistry> value, SpellCategory spellCategory, ReaderWriterLockSlim rwLock, HashSet<int> setSpells)
+        {
+            if (value == null)
+                return null;
+
+            rwLock.EnterReadLock();
+            try
+            {
+                var valuesBySpellCategory = value.Where(e => e.SpellCategory == spellCategory);
+
+                var results = from e in valuesBySpellCategory
+                              group e by e.SpellCategory
+                    into categories
+                              //select categories.OrderByDescending(c => c.LayerId).First();
+                              select categories.OrderByDescending(c => c.PowerLevel)
+                                  .ThenByDescending(c => Level8AuraSelfSpells.Contains(c.SpellId))
+                                  .ThenByDescending(c => setSpells.Contains(c.SpellId) ? c.SpellId : c.StartTime).First();
+
+                return results.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
         /// <summary>
         /// Returns the top layers in each spell category for a StatMod type
         /// </summary>
