@@ -47,7 +47,7 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            if (player.CombatMode != CombatMode.NonCombat)
+            if (!PropertyManager.GetBool("allow_combat_mode_craft").Item && (player.CombatMode != CombatMode.NonCombat))
             {
                 player.SendUseDoneEvent(WeenieError.YouMustBeInPeaceModeToTrade);
                 return;
