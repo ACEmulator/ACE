@@ -729,13 +729,13 @@ namespace ACE.Server.WorldObjects.Managers
         /// </summary>
         public virtual float GetXPBonus()
         {
-            var enchantments = GetEnchantments_TopLayer(SpellCategory.TrinketXPRaising);
+            var enchantments = GetEnchantments(SpellCategory.TrinketXPRaising);
 
             // TODO: temporary code to handle both additive and multiplicative mods
             // should be additive in database, update when everything is in sync
             var modifier = 0.0f;
 
-            foreach (var enchantment in enchantments)
+            foreach (var enchantment in enchantments.OrderByDescending(i => i.StatModValue).Take(1))
             {
                 if (enchantment.StatModType.HasFlag(EnchantmentTypeFlags.Multiplicative))
                     modifier += enchantment.StatModValue - 1.0f;
