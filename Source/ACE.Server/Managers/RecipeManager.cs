@@ -47,7 +47,8 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            if (!PropertyManager.GetBool("allow_combat_mode_craft").Item && (player.CombatMode != CombatMode.NonCombat))
+            var craftInCombat = (PropertyManager.GetBool("allow_combat_mode_craft").Item && (player.CombatMode != CombatMode.NonCombat)) ? true : false;
+            if (!craftInCombat && (player.CombatMode != CombatMode.NonCombat))
             {
                 player.SendUseDoneEvent(WeenieError.YouMustBeInPeaceModeToTrade);
                 return;
@@ -102,6 +103,15 @@ namespace ACE.Server.Managers
             var actionChain = new ActionChain();
 
             player.IsBusy = true;
+
+            if (craftInCombat)
+            {
+                // Drop out of combat mode.  This depends on the server property "allow_combat_mode_craft" being True.
+                // If not, this action would have aborted due to not being in NonCombat mode.
+                var stanceTime = player.SetCombatMode(CombatMode.NonCombat);
+                actionChain.AddDelaySeconds(stanceTime);
+                animLength += stanceTime;
+            }
 
             if (!confirmed)
             {
