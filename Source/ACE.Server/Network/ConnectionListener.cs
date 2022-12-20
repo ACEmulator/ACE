@@ -42,7 +42,8 @@ namespace ACE.Server.Network
                 Socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
                 Socket.Bind(ListenerEndpoint);
-                Listen();
+
+                while (Listen());
             }
             catch (Exception exception)
             {
@@ -58,7 +59,10 @@ namespace ACE.Server.Network
                 Socket.Close();
         }
 
-        private void Listen()
+        /// <summary>
+        /// Will return true if the function is to be refired
+        /// </summary>
+        private bool Listen()
         {
             try
             {
@@ -68,12 +72,15 @@ namespace ACE.Server.Network
             catch (SocketException socketException)
             {
                 log.DebugFormat("ConnectionListener.Listen() has thrown {0}: {1}", socketException.SocketErrorCode, socketException.Message);
-                Listen();
+
+                return true;
             }
             catch (Exception exception)
             {
                 log.FatalFormat("ConnectionListener.Listen() has thrown: {0}", exception.Message);
             }
+
+            return false;
         }
 
         private void OnDataReceive(IAsyncResult result)
@@ -125,7 +132,7 @@ namespace ACE.Server.Network
                 }
             }
 
-            Listen();
+            while (Listen());
         }
     }
 }
