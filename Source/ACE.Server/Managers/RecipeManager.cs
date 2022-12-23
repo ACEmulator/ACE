@@ -94,15 +94,8 @@ namespace ACE.Server.Managers
             if (!confirmed && player.LumAugSkilledCraft > 0)
                 player.SendMessage($"Your Aura of the Craftman augmentation increased your skill by {player.LumAugSkilledCraft}!");
 
-            var motionCommand = MotionCommand.ClapHands;
-
-            var motion = new Motion(player, motionCommand);
-            var currentStance = player.CurrentMotionState.Stance;
-            var animLength = !confirmed ? Physics.Animation.MotionTable.GetAnimationLength(player.MotionTableId, currentStance, motionCommand) : 0.0f;
-
+            var animLength = 0.0f;
             var actionChain = new ActionChain();
-
-            player.IsBusy = true;
 
             if (craftInCombat)
             {
@@ -112,6 +105,13 @@ namespace ACE.Server.Managers
                 actionChain.AddDelaySeconds(stanceTime);
                 animLength += stanceTime;
             }
+
+            var motionCommand = MotionCommand.ClapHands;
+            var motion = new Motion(player, motionCommand);
+            var currentStance = player.CurrentMotionState.Stance;
+            animLength+= !confirmed ? Physics.Animation.MotionTable.GetAnimationLength(player.MotionTableId, currentStance, motionCommand) : 0.0f;
+
+            player.IsBusy = true;
 
             if (!confirmed)
             {
