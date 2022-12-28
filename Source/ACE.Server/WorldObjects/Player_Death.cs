@@ -1033,20 +1033,69 @@ namespace ACE.Server.WorldObjects
             return destroyedItems;
         }
 
-        /// <summary>
-        /// Determines the amount of slag to drop on a Player corpse when killed by an OlthoiPlayer
-        /// </summary>
-        public List<WorldObject> CalculateDeathItems_Olthoi(Corpse corpse, bool hadVitae)
+        private static Database.Models.World.TreasureDeath OlthoiDeathTreasureType => Database.DatabaseManager.World.GetCachedDeathTreasure(2222) ?? new()
         {
-            var slag = LootGenerationFactory.RollSlag(this, hadVitae);
+            TreasureType = 2222,
+            Tier = 8,
+            LootQualityMod = 0,
+            UnknownChances = 19,
+            ItemChance = 100,
+            ItemMinAmount = 1,
+            ItemMaxAmount = 2,
+            ItemTreasureTypeSelectionChances = 8,
+            MagicItemChance = 100,
+            MagicItemMinAmount = 2,
+            MagicItemMaxAmount = 3,
+            MagicItemTreasureTypeSelectionChances = 8,
+            MundaneItemChance = 100,
+            MundaneItemMinAmount = 0,
+            MundaneItemMaxAmount = 1,
+            MundaneItemTypeSelectionChances = 7
+        };
 
-            if (slag == null)
-                return new List<WorldObject>();
+        /// <summary>
+        /// Determines the amount of slag to drop on a Player corpse when killed by an OlthoiPlayer or the loot to drop when an OlthoiPlayer is killed by a Player Killer
+        /// </summary>
+        public List<WorldObject> CalculateDeathItems_Olthoi(Corpse corpse, bool hadVitae, bool killerIsOlthoiPlayer, bool killerIsPkPlayer)
+        {
+            if (killerIsOlthoiPlayer)
+            {
+                var slag = LootGenerationFactory.RollSlag(this, hadVitae);
 
-            if (!corpse.TryAddToInventory(slag))
-                log.Warn($"Player_Death: couldn't add item to {Name}'s corpse: {slag.Name}");
+                if (slag == null)
+                    return new();
 
-            return new List<WorldObject>() { slag };
+                if (!corpse.TryAddToInventory(slag))
+                    log.Warn($"CalculateDeathItems_Olthoi: couldn't add item to {Name}'s corpse: {slag.Name}");
+
+                return new() { slag };
+            }
+            else if (killerIsPkPlayer)
+            {
+                if (hadVitae)
+                    return new();
+
+                var items = LootGenerationFactory.CreateRandomLootObjects(OlthoiDeathTreasureType);
+
+                var gland = LootGenerationFactory.RollGland(this, hadVitae);
+
+                if (gland != null)
+                {
+                    items.Add(gland);
+                }
+
+                foreach (WorldObject wo in items)
+                {
+                    if (!corpse.TryAddToInventory(wo))
+                        log.Warn($"CalculateDeathItems_Olthoi: couldn't add item to {Name}'s corpse: {wo.Name}");
+                }
+
+                return items;
+            }
+            else
+            {
+                return new();
+            }
         }
     }
 }

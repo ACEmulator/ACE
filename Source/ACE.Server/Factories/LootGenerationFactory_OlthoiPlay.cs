@@ -173,5 +173,32 @@ namespace ACE.Server.Factories
                 default:    return 8;   // 275
             }
         }
+
+        public static readonly WeenieClassName glandWcid = WeenieClassName.olthoipvpcurrency;
+
+        /// <summary>
+        /// Rolls to generate a gland for a player that killed an OlthoiPlayer
+        /// </summary>
+        public static WorldObject RollGland(Player player, bool hadVitae)
+        {
+            // http://acpedia.org/wiki/Mutated_Olthoi_Gland
+
+            // - OlthoiPlayers don't drop Glands if they have vitae.
+
+            // can't simply use HasVitae here
+            // a freshly-killed player already has vitae by this point
+            //if (player.HasVitae) return null;
+
+            if (hadVitae) return null;
+
+            var rng = ThreadSafeRandom.Next(1, 100);
+
+            if (rng <= 50)
+                return null;
+
+            var gland = WorldObjectFactory.CreateNewWorldObject((uint)glandWcid);
+
+            return gland;
+        }
     }
 }

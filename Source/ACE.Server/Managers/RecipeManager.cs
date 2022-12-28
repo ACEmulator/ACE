@@ -47,6 +47,12 @@ namespace ACE.Server.Managers
                 return;
             }
 
+            if (player.CombatMode != CombatMode.NonCombat)
+            {
+                player.SendUseDoneEvent(WeenieError.YouMustBeInPeaceModeToTrade);
+                return;
+            }
+
             if (source == target)
             {
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {source.NameWithMaterial} cannot be combined with itself.", ChatMessageType.Craft));
@@ -72,7 +78,7 @@ namespace ACE.Server.Managers
             }
 
             if (recipe.IsTinkering())
-                log.Debug($"[TINKERING] {player.Name}.HandleTinkering({source.NameWithMaterial}, {target.NameWithMaterial}) | Status: {(confirmed ? "" : "un")}confirmed");
+                log.Debug($"[TINKERING] {player.Name}.UseObjectOnTarget({source.NameWithMaterial}, {target.NameWithMaterial}) | Status: {(confirmed ? "" : "un")}confirmed");
 
             var percentSuccess = GetRecipeChance(player, source, target, recipe);
 
@@ -87,43 +93,45 @@ namespace ACE.Server.Managers
             if (!confirmed && player.LumAugSkilledCraft > 0)
                 player.SendMessage($"Your Aura of the Craftman augmentation increased your skill by {player.LumAugSkilledCraft}!");
 
-            if (showDialog && !confirmed)
-            {
-                ShowDialog(player, source, target, recipe, percentSuccess.Value);
-                return;
-            }
+            var motionCommand = MotionCommand.ClapHands;
+
+            var motion = new Motion(player, motionCommand);
+            var currentStance = player.CurrentMotionState.Stance;
+            var animLength = !confirmed ? Physics.Animation.MotionTable.GetAnimationLength(player.MotionTableId, currentStance, motionCommand) : 0.0f;
 
             var actionChain = new ActionChain();
 
-            var animTime = 0.0f;
-
             player.IsBusy = true;
 
-            if (player.CombatMode != CombatMode.NonCombat)
+            if (!confirmed)
             {
-                var stanceTime = player.SetCombatMode(CombatMode.NonCombat);
-                actionChain.AddDelaySeconds(stanceTime);
-
-                animTime += stanceTime;
+                actionChain.AddAction(player, () => player.SendMotionAsCommands(motionCommand, currentStance));
+                actionChain.AddDelaySeconds(animLength);
             }
 
-            animTime += player.EnqueueMotion(actionChain, MotionCommand.ClapHands);
-
-            actionChain.AddAction(player, () => HandleRecipe(player, source, target, recipe, percentSuccess.Value));
-
-            player.EnqueueMotion(actionChain, MotionCommand.Ready);
-
-            actionChain.AddAction(player, () =>
+            if (showDialog && !confirmed)
             {
-                if (!showDialog)
-                    player.SendUseDoneEvent();
+                actionChain.AddAction(player, () => ShowDialog(player, source, target, recipe, percentSuccess.Value));
+                actionChain.AddAction(player, () => player.IsBusy = false);
+            }
+            else
+            {
+                player.IsBusy = true;
 
-                player.IsBusy = false;
-            });
+                actionChain.AddAction(player, () => HandleRecipe(player, source, target, recipe, percentSuccess.Value));
+
+                actionChain.AddAction(player, () =>
+                {
+                    if (!showDialog)
+                        player.SendUseDoneEvent();
+
+                    player.IsBusy = false;
+                });
+            }
 
             actionChain.EnqueueChain();
 
-            player.NextUseTime = DateTime.UtcNow.AddSeconds(animTime);
+            player.NextUseTime = DateTime.UtcNow.AddSeconds(animLength);
         }
 
         public static bool HasDifficulty(Recipe recipe)

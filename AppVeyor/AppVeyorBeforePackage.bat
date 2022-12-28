@@ -3,4 +3,6 @@ dotnet publish "C:\projects\ace\Source\ACE.Server\ACE.Server.csproj" --output C:
 
 7z.exe a AppVeyor\ACE.Server-v%APPVEYOR_BUILD_VERSION%.zip "C:\projects\ace\publish\*"
 
+copy /Y AppVeyor\ACE.Server-v%APPVEYOR_BUILD_VERSION%.zip AppVeyor\ACE.Server.zip
+
 REM docker build -t acemulator/ace:latest -t acemulator/ace:%APPVEYOR_BUILD_VERSION% .
