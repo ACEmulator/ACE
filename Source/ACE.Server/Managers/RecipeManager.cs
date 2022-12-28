@@ -47,8 +47,9 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            var craftInCombat = (PropertyManager.GetBool("allow_combat_mode_craft").Item && (player.CombatMode != CombatMode.NonCombat)) ? true : false;
-            if (!craftInCombat && (player.CombatMode != CombatMode.NonCombat))
+            var allowCraftInCombat = PropertyManager.GetBool("allow_combat_mode_crafting").Item;
+
+            if (!allowCraftInCombat && player.CombatMode != CombatMode.NonCombat)
             {
                 player.SendUseDoneEvent(WeenieError.YouMustBeInPeaceModeToTrade);
                 return;
@@ -94,29 +95,33 @@ namespace ACE.Server.Managers
             if (!confirmed && player.LumAugSkilledCraft > 0)
                 player.SendMessage($"Your Aura of the Craftman augmentation increased your skill by {player.LumAugSkilledCraft}!");
 
-            var animLength = 0.0f;
-            var actionChain = new ActionChain();
+            var motionCommand = MotionCommand.ClapHands;
 
-            if (craftInCombat)
+            var actionChain = new ActionChain();
+            var nextUseTime = 0.0f;
+
+            player.IsBusy = true;
+
+            if (allowCraftInCombat && player.CombatMode != CombatMode.NonCombat)
             {
                 // Drop out of combat mode.  This depends on the server property "allow_combat_mode_craft" being True.
                 // If not, this action would have aborted due to not being in NonCombat mode.
                 var stanceTime = player.SetCombatMode(CombatMode.NonCombat);
                 actionChain.AddDelaySeconds(stanceTime);
-                animLength += stanceTime;
+
+                nextUseTime += stanceTime;
             }
 
-            var motionCommand = MotionCommand.ClapHands;
             var motion = new Motion(player, motionCommand);
-            var currentStance = player.CurrentMotionState.Stance;
-            animLength+= !confirmed ? Physics.Animation.MotionTable.GetAnimationLength(player.MotionTableId, currentStance, motionCommand) : 0.0f;
-
-            player.IsBusy = true;
+            var currentStance = player.CurrentMotionState.Stance; // expected to be MotionStance.NonCombat
+            var clapTime = !confirmed ? Physics.Animation.MotionTable.GetAnimationLength(player.MotionTableId, currentStance, motionCommand) : 0.0f;
 
             if (!confirmed)
             {
                 actionChain.AddAction(player, () => player.SendMotionAsCommands(motionCommand, currentStance));
-                actionChain.AddDelaySeconds(animLength);
+                actionChain.AddDelaySeconds(clapTime);
+
+                nextUseTime += clapTime;
             }
 
             if (showDialog && !confirmed)
@@ -126,8 +131,6 @@ namespace ACE.Server.Managers
             }
             else
             {
-                player.IsBusy = true;
-
                 actionChain.AddAction(player, () => HandleRecipe(player, source, target, recipe, percentSuccess.Value));
 
                 actionChain.AddAction(player, () =>
@@ -141,7 +144,7 @@ namespace ACE.Server.Managers
 
             actionChain.EnqueueChain();
 
-            player.NextUseTime = DateTime.UtcNow.AddSeconds(animLength);
+            player.NextUseTime = DateTime.UtcNow.AddSeconds(nextUseTime);
         }
 
         public static bool HasDifficulty(Recipe recipe)
