@@ -530,28 +530,12 @@ namespace ACE.Database.Adapter
                     // Entity Framework is unable to store NaN floats in the database and results in an error of:
                     // ERROR 1054: Unknown column 'NaN' in 'field list'
 
-                    var isNaNCount = 0;
-                    if (float.IsNaN(entity.AnglesX))
+                    if (float.IsNaN(entity.AnglesX) || float.IsNaN(entity.AnglesY) || float.IsNaN(entity.AnglesZ) || float.IsNaN(entity.AnglesW))
                     {
+                        entity.AnglesW = 1;
                         entity.AnglesX = 0;
-                        isNaNCount++;
-                    }
-                    if (float.IsNaN(entity.AnglesY))
-                    {
                         entity.AnglesY = 0;
-                        isNaNCount++;
-                    }
-                    if (float.IsNaN(entity.AnglesZ))
-                    {
                         entity.AnglesZ = 0;
-                        isNaNCount++;
-                    }
-                    if (float.IsNaN(entity.AnglesW))
-                    {
-                        if (isNaNCount == 3) // all other values are 0, set this to 1 (Identity)
-                            entity.AnglesW = 1;
-                        else
-                            entity.AnglesW = 0;
                     }
 
                     result.BiotaPropertiesPosition.Add(entity);
