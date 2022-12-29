@@ -2659,7 +2659,10 @@ namespace ACE.Server.WorldObjects
                             return;
                         }
 
-                        Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
+                        if (stackRootOwner == null)
+                            EnqueueBroadcast(new GameMessageSetStackSize(stack));
+                        else
+                            Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
 
                         var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
 
@@ -2694,6 +2697,11 @@ namespace ACE.Server.WorldObjects
 
                                 if (stack.WeenieType == WeenieType.Coin)
                                     UpdateCoinValue();
+
+                                if (stackRootOwner == null)
+                                    EnqueueBroadcast(new GameMessageSetStackSize(stack));
+                                else
+                                    Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
                             }
                             else
                                 log.WarnFormat("Partial stack 0x{0:X8}:{1} for player {2} lost from HandleActionStackableSplitToWield failure.", stack.Guid.Full, stack.Name, Name);
@@ -2738,6 +2746,8 @@ namespace ACE.Server.WorldObjects
 
                         if (stack.WeenieType == WeenieType.Coin)
                             UpdateCoinValue();
+
+                        Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
                     }
                     else
                         log.WarnFormat("Partial stack 0x{0:X8}:{1} for player {2} lost from HandleActionStackableSplitToWield failure.", stack.Guid.Full, stack.Name, Name);
