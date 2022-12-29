@@ -2529,7 +2529,6 @@ namespace ACE.Server.WorldObjects
             }
 
             var stack = FindObject(new ObjectGuid(stackId), SearchLocations.LocationsICanMove, out var stackFoundInContainer, out var stackRootOwner, out _);
-            //var container = FindObject(new ObjectGuid(containerId), SearchLocations.MyInventory | SearchLocations.Landblock | SearchLocations.LastUsedContainer, out _, out var containerRootOwner, out _) as Container;
 
             if (stack == null)
             {
@@ -2556,27 +2555,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            //if (stackRootOwner != this && containerRootOwner == this && !HasEnoughBurdenToAddToInventory(stack))
             if (stackRootOwner != this && !HasEnoughBurdenToAddToInventory(stack))
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to carry that!"));
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId));
                 return;
             }
-
-            //if (container == null)
-            //{
-            //    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Target container not found!")); // Custom error message
-            //    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId));
-            //    return;
-            //}
-
-            //if (container is Corpse)
-            //{
-            //    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You cannot put {stack.Name} in that.")); // Custom error message
-            //    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId));
-            //    return;
-            //}
 
             if (stack.StackSize == null || stack.StackSize == 0)
             {
@@ -2600,7 +2584,6 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            //if (stack.IsAttunedOrContainsAttuned && stackRootOwner == this && containerRootOwner != this)
             if (stack.IsAttunedOrContainsAttuned)
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId));
@@ -2615,7 +2598,6 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            //if ((stackRootOwner == this && containerRootOwner != this) || (stackRootOwner != this && containerRootOwner == this)) // Movement is between the player and the world
             if (stackRootOwner != this) // Movement is between the player and the world
             {
                 if (stackRootOwner is Vendor)
@@ -2627,10 +2609,7 @@ namespace ACE.Server.WorldObjects
 
                 WorldObject moveToObject;
 
-                //if (stackRootOwner == this)
-                //    moveToObject = containerRootOwner ?? container;
-                //else
-                    moveToObject = stackRootOwner ?? stack;
+                moveToObject = stackRootOwner ?? stack;
 
                 var stackOriginalContainer = stack.ContainerId;
 
@@ -2695,7 +2674,6 @@ namespace ACE.Server.WorldObjects
 
                         newStack.SetStackSize(amount);
 
-                        //if (DoHandleActionStackableSplitToContainer(stack, stackFoundInContainer, stackRootOwner, container, containerRootOwner, newStack, placementPosition, amount))
                         if (DoHandleActionGetAndWieldItem(newStack, stackFoundInContainer, stackRootOwner, false, wieldedLocation, true))
                         {
                             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
@@ -2703,10 +2681,7 @@ namespace ACE.Server.WorldObjects
                             if (stack.WeenieType == WeenieType.Coin)
                                 UpdateCoinValue();
 
-                            //if (stackRootOwner == this)
-                            //    EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
-                            //else if (containerRootOwner == this)
-                                EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
+                            EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
 
                             TrackObject(newStack);
                         }
@@ -2753,9 +2728,6 @@ namespace ACE.Server.WorldObjects
                 }
 
                 newStack.SetStackSize(amount);
-
-                //DoHandleActionStackableSplitToContainer(stack, stackFoundInContainer, stackRootOwner, container, containerRootOwner, newStack, placementPosition, amount);
-                //DoHandleActionGetAndWieldItem(newStack, stackFoundInContainer, stackRootOwner, false, wieldedLocation, true);
 
                 if (!DoHandleActionGetAndWieldItem(newStack, stackFoundInContainer, stackRootOwner, false, wieldedLocation, true))
                 {
