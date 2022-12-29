@@ -1,4 +1,4 @@
-version: 1.48.{build}
+version: 1.49.{build}
 pull_requests:
   do_not_increment_build_number: true
 skip_tags: true
@@ -57,6 +57,8 @@ artifacts:
   name: test logs
 - path: '**\ACE.Server-*.zip'
   name: release candidate
+- path: '**\ACE.Server.zip'
+  name: release candidate (direct link)
 before_deploy:
 - ps: >-
     git config --global credential.helper store
@@ -69,7 +71,7 @@ deploy:
   description: <h1> ACEmulator Server - v$(appveyor_build_version) </h1> <blockquote>The following changes are included in this release:</<blockquote> <h1></h1>$(APPVEYOR_REPO_COMMIT_MESSAGE) <p>$(APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED)<p><a href="https://github.com/ACEmulator/ACE/compare/v1.0.XXXX...v1.1.XXXX">Click here to see the detailed changes</a></p><h1><h6>automated server build - $(APPVEYOR_REPO_COMMIT_TIMESTAMP)
   auth_token:
     secure: lGLpqex+Weod6ZiPw34RwTv999QvoSZ+imTcmYhiJWQL6XkfkVUYcqOO6pJDuAYt
-  artifact: AppVeyor\ACE.Server-v$(appveyor_build_version).zip
+  artifact: /.*\.zip/
   draft: true
   prerelease: false
   force_update: true
