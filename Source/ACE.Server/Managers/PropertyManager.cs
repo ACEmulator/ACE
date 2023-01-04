@@ -725,7 +725,8 @@ namespace ACE.Server.Managers
                 ("pvp_dmg_mod_tw_ar", new Property<double>(1.0, "Scales the amount of damage for TW AR.")),
                 ("pvp_dmg_mod_tw_hollow", new Property<double>(1.0, "Scales the amount of damage for TW Hollow.")),
                 ("pvp_dmg_mod_tw_phantom", new Property<double>(1.0, "Scales the amount of damage for TW Phantom.")),
-                ("pvp_cs_critrate_mod", new Property<double>(1.0, "Scales the crit rate for CS"))
+                ("pvp_cs_critrate_mod", new Property<double>(1.0, "Scales the crit rate for CS")),
+                ("cloak_max_proc_rate", new Property<double>(25.0, "Cap cloak proc chance to this percentage (100.0 will effectively use the standard ACE proc rate)."))
                 );
 
         public static readonly ReadOnlyDictionary<string, Property<string>> DefaultStringProperties =
