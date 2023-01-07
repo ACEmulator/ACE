@@ -124,26 +124,34 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 case EmoteType.AwardLevelProportionalXP:
+                    // Adjust award based on server quest property.
+                    var modifier = PropertyManager.GetDouble("quest_xp_modifier").Item;
 
                     min = emote.Min64 ?? emote.Min ?? 0;
-                    max = emote.Max64 ?? emote.Max ?? 0;
+                    max = (long)((emote.Max64 ?? emote.Max ?? 0) * modifier);
 
                     if (player != null)
-                        player.GrantLevelProportionalXp(emote.Percent ?? 0, min, max);
+                        player.GrantLevelProportionalXp((emote.Percent ?? 0) * modifier, min, max);
                     break;
 
                 case EmoteType.AwardLuminance:
 
                     if (player != null)
-                        player.EarnLuminance(emote.Amount64 ?? emote.HeroXP64 ?? 0, XpType.Quest, ShareType.None);
-
+                    {
+                        // Adjust award based on server quest property.
+                        modifier = PropertyManager.GetDouble("quest_lum_modifier").Item;
+                        player.EarnLuminance((long)((emote.Amount64 ?? emote.HeroXP64 ?? 0) * modifier), XpType.Quest, ShareType.None);
+                    }
                     break;
 
                 case EmoteType.AwardNoShareXP:
 
                     if (player != null)
-                        player.EarnXP(emote.Amount64 ?? emote.Amount ?? 0, XpType.Quest, ShareType.None);
-
+                    {
+                        // Adjust award based on server quest property.
+                        modifier = PropertyManager.GetDouble("quest_xp_modifier").Item;
+                        player.EarnXP((long)((emote.Amount64 ?? emote.Amount ?? 0) * modifier), XpType.Quest, ShareType.None);
+                    }
                     break;
 
                 case EmoteType.AwardSkillPoints:
@@ -171,14 +179,16 @@ namespace ACE.Server.WorldObjects.Managers
 
                     if (player != null)
                     {
-                        var amt = emote.Amount64 ?? emote.Amount ?? 0;
+                        // Adjust award based on server quest property.
+                        modifier = PropertyManager.GetDouble("quest_xp_modifier").Item;
+                        var amt = (emote.Amount64 ?? emote.Amount ?? 0) * modifier;
                         if (amt > 0)
                         {
-                            player.EarnXP(amt, XpType.Quest, ShareType.All);
+                            player.EarnXP((long)amt, XpType.Quest, ShareType.All);
                         }
                         else if (amt < 0)
                         {
-                            player.SpendXP(-amt);
+                            player.SpendXP((long)-amt);
                         }
                     }
                     break;
