@@ -38,6 +38,11 @@
     // Note that for servers running on Windows, a path like c:\ace\ MUST be entered as c:\\ace\\, replacing the single backslashes (\) with double backslashes (\\)
     "DatFilesDirectory": "/ace/Dats",
 
+	// The folder that contains Harmony mods
+    // Note that for servers running on Linux, the ~ home folder must be fully expanded, ie. /home/user/ace/, instead of ~/ace/
+    // Note that for servers running on Windows, a path like c:\ace\ MUST be entered as c:\\ace\\, replacing the single backslashes (\) with double backslashes (\\)
+	"ModsDirectory": "/ace/Mods",
+
     // ShutdownInterval, default: 60
     // Default time it will take for a server to wait before shutting down after shutdown is called from console or in game admin.
     "ShutdownInterval": "60",
