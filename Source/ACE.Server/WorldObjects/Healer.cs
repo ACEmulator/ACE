@@ -171,10 +171,12 @@ namespace ACE.Server.WorldObjects
         {
             HealerObject healerObject = new HealerObject();
             var vital = target.GetCreatureVital(BoosterEnum);
+            var missingHealth = vital.MaxValue - vital.Current;
             var healAmount = GetHealAmount(healer, target, vital, out var critical, out var staminaCost);
             healerObject.Critical = critical;
             healerObject.HealAmount = healAmount;
             healerObject.StaminaCost = staminaCost;
+            healerObject.MissingHealth = missingHealth;
             return healerObject;
         }
 
@@ -203,7 +205,7 @@ namespace ACE.Server.WorldObjects
 
             // skill check
             var difficulty = 0;
-            var skillCheck = DoSkillCheck(healer, target, vital, ref difficulty);
+            var skillCheck = DoSkillCheck(healer, target, vital, ref difficulty, healerObject);
             if (!skillCheck)
             {
                 var failMsg = new GameMessageSystemChat($"You fail to heal {targetName}.{remainingMsg}", ChatMessageType.Broadcast);
@@ -257,7 +259,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Determines if healer successfully heals target for attempt
         /// </summary>
-        public bool DoSkillCheck(Player healer, Player target, CreatureVital vital, ref int difficulty)
+        public bool DoSkillCheck(Player healer, Player target, CreatureVital vital, ref int difficulty, HealerObject healerObject = null)
         {
             // skill check:
             // (healing skill + healing kit boost) * trainedMod
@@ -268,7 +270,7 @@ namespace ACE.Server.WorldObjects
             var combatMod = healer.CombatMode == CombatMode.NonCombat ? 1.0f : 1.1f;
 
             var effectiveSkill = (int)Math.Round((healingSkill.Current + BoostValue) * trainedMod);
-            difficulty = (int)Math.Round((vital.MaxValue - vital.Current) * 2 * combatMod);
+            difficulty = (int)Math.Round((healerObject != null ? healerObject.MissingHealth : vital.MaxValue - vital.Current) * 2 * combatMod);
 
             var skillCheck = SkillCheck.GetSkillChance(effectiveSkill, difficulty);
             return skillCheck > ThreadSafeRandom.Next(0.0f, 1.0f);

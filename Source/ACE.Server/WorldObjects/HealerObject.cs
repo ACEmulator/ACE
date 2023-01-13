@@ -13,5 +13,7 @@ namespace ACE.Server.WorldObjects
         public bool Critical { get; set; }
 
         public uint HealAmount { get; set; }
+
+        public uint MissingHealth { get; set; }
     }
 }
