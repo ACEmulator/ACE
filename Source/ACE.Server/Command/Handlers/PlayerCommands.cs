@@ -158,6 +158,20 @@ namespace ACE.Server.Command.Handlers
 
             session.Network.EnqueueSend(new GameMessageSystemChat(session.Player.MagicState.ToString(), ChatMessageType.Broadcast));
             session.Network.EnqueueSend(new GameMessageSystemChat($"IsMovingOrAnimating: {physicsObj.IsMovingOrAnimating}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"  IsAnimating: {physicsObj.IsAnimating}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"  PartArray.Sequence.is_first_cyclic(): {physicsObj.PartArray.Sequence.is_first_cyclic()}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"  CachedVelocity: {physicsObj.CachedVelocity}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"  Velocity: {physicsObj.Velocity}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"  MovementManager.MotionInterpreter.InterpretedState.HasCommands(): {physicsObj.MovementManager.MotionInterpreter.InterpretedState.HasCommands()}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"  MovementManager.MoveToManager.Initialized: {physicsObj.MovementManager.MoveToManager.Initialized}", ChatMessageType.Broadcast));
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"TransientState: {physicsObj.TransientState}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"State: {physicsObj.State}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"JumpedThisFrame: {physicsObj.JumpedThisFrame}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Acceleration: {physicsObj.Acceleration}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Omega: {physicsObj.Omega}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"CollidingWithEnvironment: {physicsObj.CollidingWithEnvironment}", ChatMessageType.Broadcast));            
+
             session.Network.EnqueueSend(new GameMessageSystemChat($"PendingActions: {pendingActions.Count}", ChatMessageType.Broadcast));
             session.Network.EnqueueSend(new GameMessageSystemChat($"CurrAnim: {currAnim?.Value.Anim.ID:X8}", ChatMessageType.Broadcast));
         }
