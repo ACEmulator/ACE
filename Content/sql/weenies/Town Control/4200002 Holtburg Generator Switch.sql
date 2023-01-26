@@ -10,7 +10,11 @@ VALUES (4200002,   1,        128) /* ItemType - Misc */
      , (4200002,   9,          0) /* ValidLocations - None */
      , (4200002,  16,         48) /* ItemUseable - ViewedRemote */
      , (4200002,  19,          0) /* Value */
+<<<<<<< Updated upstream
      , (4200002,  81,          5) /* MaxGeneratedObjects */
+=======
+     , (4200002,  81,          1) /* MaxGeneratedObjects */
+>>>>>>> Stashed changes
      , (4200002,  82,          0) /* InitGeneratedObjects */
      , (4200002,  83,      65552) /* ActivationResponse - Talk, Generate */
      , (4200002,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
@@ -31,13 +35,21 @@ VALUES (4200002,   1, 'Holtburg Generator Switch') /* Name */
      , (4200002,  17, 'A TOWN CONTROL CRYSTAL HAS SPAWNED!') /* ActivationTalk */;
 
 INSERT INTO `weenie_properties_d_i_d` (`object_Id`, `type`, `value`)
+<<<<<<< Updated upstream
 VALUES (4200002,   1, 0x0200026B) /* Setup */
      , (4200002,   8, 0x06001066) /* Icon */;
+=======
+VALUES (4200002,   1, 0x020018C0) /* Setup */
+     , (4200002,   2, 0x09000172) /* MotionTable */
+     , (4200002,   3, 0x20000014) /* SoundTable */
+     , (4200002,   8, 0x0600106B) /* Icon */;
+>>>>>>> Stashed changes
 
 INSERT INTO `weenie_properties_i_i_d` (`object_Id`, `type`, `value`)
 VALUES (4200002,  16, 0x00000000) /* ActivationTarget */;
 
 INSERT INTO `weenie_properties_generator` (`object_Id`, `probability`, `weenie_Class_Id`, `delay`, `init_Create`, `max_Create`, `when_Create`, `where_Create`, `stack_Size`, `palette_Id`, `shade`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`)
+<<<<<<< Updated upstream
 VALUES (4200002, -1, 4200007, 0, 1, 1, 1, 2, -1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0) /* Generate Holtburg Town Control Crystal (4200007) (x1 up to max of 1) - Regenerate upon Destruction - Location to (re)Generate: Scatter */;
 
 INSERT INTO `weenie_properties_generator` (`object_Id`, `probability`, `weenie_Class_Id`, `delay`, `init_Create`, `max_Create`, `when_Create`, `where_Create`, `stack_Size`, `palette_Id`, `shade`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`)
@@ -48,4 +60,9 @@ VALUES (4200002, -1, 4200015, 2, 1, 1, 1, 4, 0, 0, 0, 0xA5B4002B, 131.286011, 53
 
 INSERT INTO `weenie_properties_generator` (`object_Id`, `probability`, `weenie_Class_Id`, `delay`, `init_Create`, `max_Create`, `when_Create`, `where_Create`, `stack_Size`, `palette_Id`, `shade`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`)
 VALUES (4200002, -1, 4200015, 3, 1, 1, 1, 4, 0, 0, 0, 0xA5B4002B, 135.286011, 53.899799, 52.000000, 1, 0, 0, 0) /* Generate Custom Chest (38457)  Location to (re)Generate: Static */;
+=======
+VALUES (4200002, -1, 451000, 1, 1, 1, 1, 4, 0, 0, 0, 0xA5B4002E, 128.293854, 125.666321,  56.005001, -0.704984, 0, 0,  0.709223) /* Generate Custom Chest (38457)  Location to (re)Generate: Static */;
+
+
+>>>>>>> Stashed changes
 

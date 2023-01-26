@@ -68,6 +68,7 @@ INSERT INTO `landblock_instance_link` (`parent_GUID`, `child_GUID`, `last_Modifi
 VALUES (0x7A5B4013, 0x7A5B4012, '2021-11-01 00:00:00') /* Sentry (12725) */;
 
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
+<<<<<<< Updated upstream
 VALUES (0x7A5B4014,  4200047, 0xA5B4002D, 140.216, 108.324, 54.1089, 0.138897, 0, 0, -0.990307, False, '2022-01-11 18:10:03'); /* Linkable Monster Gen (2 hours) */
 /* @teleloc 0xA5B4002D [140.216003 108.323997 54.108898] 0.138897 0.000000 0.000000 -0.990307 */
 
@@ -81,3 +82,22 @@ VALUES (0x7A5B4015, 4200001, 0xA5B4002D, 141.425, 109.016, 54.1799, 0.168351, 0,
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
 VALUES (0x7A5B4016, 4200002, 0xA5B40032, 145.652, 24.652, 52.055, -0.999895, 0, 0, -0.0145, False, '2022-01-11 18:13:29'); /* Holtburg Generator Switch */
 /* @teleloc 0xA5B40032 [145.651993 24.652000 52.055000] -0.999895 0.000000 0.000000 -0.014500 */
+=======
+VALUES (0x7A5B4014, 4200047, 0xA5B4002D, 140.216, 108.324, 54.1089, 0.138897, 0, 0, -0.990307, False, '2022-01-11 18:10:03'); /* Linkable Monster Gen (2 hours) */
+/* @teleloc 0xA5B4002D [140.216003 108.323997 54.108898] 0.138897 0.000000 0.000000 -0.990307 */
+
+INSERT INTO `landblock_instance_link` (`parent_GUID`, `child_GUID`, `last_Modified`)
+VALUES (0x7A5B4014, 0x7A5B4015, '2022-01-11 18:11:47') /* Holtburg Governor (4200001) */;
+
+INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
+VALUES (0x7A5B4015, 4200001, 0xA5B4002D, 141.425, 109.016, 54.1799, 0.168351, 0, 0, -0.985727,  True, '2022-01-11 18:11:47'); /* Holtburg Governor */
+/* @teleloc 0xA5B4002D [141.425003 109.015999 54.179901] 0.168351 0.000000 0.000000 -0.985727 */
+
+INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
+VALUES (0x7A5B4016,   252, 0xA5B4002E, 128.294, 125.666, 56.055, -0.704984, 0, 0, 0.709223, False, '2023-01-24 23:31:49'); /* Stone Portal Frame */
+/* @teleloc 0xA5B4002E [128.294006 125.666000 56.055000] -0.704984 0.000000 0.000000 0.709223 */
+
+INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
+VALUES (0x7A5B4017, 4200002, 0xA5B4002E, 128.2939, 125.6663, 56.055, -0.704984, 0, 0, 0.709223, False, '2023-01-24 23:39:00'); /* Holtburg Generator Switch */
+/* @teleloc 0xA5B4002E [128.293900 125.666298 56.055000] -0.704984 0.000000 0.000000 0.709223 */
+>>>>>>> Stashed changes

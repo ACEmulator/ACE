@@ -52,6 +52,7 @@ VALUES (0x7DE51012, 4200047, 0xDE51000C, 47.6641, 74.3012, 16.083, -0.999949, 0,
 /* @teleloc 0xDE51000C [47.664101 74.301201 16.083000] -0.999949 0.000000 0.000000 -0.010079 */
 
 INSERT INTO `landblock_instance_link` (`parent_GUID`, `child_GUID`, `last_Modified`)
+<<<<<<< Updated upstream
 VALUES (0x7DE51012, 0x7DE51013, '2022-01-11 13:43:25') /* Mosswart Governor (42153365) */;
 
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
@@ -61,3 +62,18 @@ VALUES (0x7DE51013, 42153365, 0xDE51000C, 47.635, 75.8188, 16.0409, -0.999949, 0
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
 VALUES (0x7DE51014, 42111556, 0xDE510017, 67.1601, 158.499, 16.055, -0.248515, 0, 0, -0.968628, False, '2022-01-11 17:39:45'); /* Shoushi Generator Switch */
 /* @teleloc 0xDE510017 [67.160103 158.498993 16.055000] -0.248515 0.000000 0.000000 -0.968628 */
+=======
+VALUES (0x7DE51012, 0x7DE51013, '2022-01-11 13:43:25') /* Shoushi Governor (42153365) */;
+
+INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
+VALUES (0x7DE51013, 42153365, 0xDE51000C, 47.635, 75.8188, 16.0409, -0.999949, 0, 0, -0.010079,  True, '2022-01-11 13:43:25'); /* Shoushi Governor */
+/* @teleloc 0xDE51000C [47.634998 75.818802 16.040899] -0.999949 0.000000 0.000000 -0.010079 */
+
+INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
+VALUES (0x7DE51014,   252, 0xDE51000C, 29.4532, 90.6395, 17.6006, -0.68424, 0, 0, 0.729257, False, '2023-01-25 13:49:39'); /* Stone Portal Frame */
+/* @teleloc 0xDE51000C [29.453199 90.639503 17.600599] -0.684240 0.000000 0.000000 0.729257 */
+
+INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
+VALUES (0x7DE51015, 42111556, 0xDE51000C, 29.45324, 90.63947, 17.33573, -0.68424, 0, 0, 0.729257, False, '2023-01-25 13:54:48'); /* Shoushi Generator Switch */
+/* @teleloc 0xDE51000C [29.453239 90.639473 17.335730] -0.684240 0.000000 0.000000 0.729257 */
+>>>>>>> Stashed changes
