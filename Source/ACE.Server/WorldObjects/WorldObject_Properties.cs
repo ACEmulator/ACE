@@ -2865,17 +2865,10 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.SummoningMastery); else SetProperty(PropertyInt.SummoningMastery, (int)value.Value); }
         }
 
-
         public double? JumpTimer
         {
             get => GetProperty(PropertyFloat.JumpTimer);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.JumpTimer); else SetProperty(PropertyFloat.JumpTimer, value.Value); }
-        }
-
-        public double? TownControlTrophyTimer
-        {
-            get => GetProperty(PropertyFloat.TownControlTrophyTimer);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.TownControlTrophyTimer); else SetProperty(PropertyFloat.TownControlTrophyTimer, value.Value); }
         }
 
         public double? MaximumVelocity

@@ -27,8 +27,6 @@ using ACE.Server.Network.GameMessages;
 using ACE.Server.WorldObjects;
 
 using Position = ACE.Entity.Position;
-using ACE.Server.Entity.TownControl;
-using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.Entity
 {
@@ -139,7 +137,6 @@ namespace ACE.Server.Entity
         public List<ModelMesh> WeenieMeshes { get; private set; }
         public List<ModelMesh> Scenery { get; private set; }
 
-        public bool IsTownControlLandblock { get; set; }
 
         public readonly RateMonitor Monitor5m = new RateMonitor();
         private readonly TimeSpan last5mClearInteval = TimeSpan.FromMinutes(5);
@@ -195,42 +192,9 @@ namespace ACE.Server.Entity
                 SpawnDynamicShardObjects();
 
                 SpawnEncounters();
-
-                HandleTownControl();
             });
 
             //LoadMeshes(objects);
-        }
-
-        public void HandleTownControl()
-        {
-            log.Info("Landblock.HandleTownControl");
-            IsTownControlLandblock = TownControlLandblocks.IsTownControlLandblock(this.Id.Landblock);
-            if (IsTownControlLandblock)
-            {
-                try
-                {
-                    uint? townId = TownControlLandblocks.GetTownIdByLandblockId(this.Id.Landblock);
-                    var latestEvent = DatabaseManager.TownControl.GetLatestTownControlEventByTownId(townId.HasValue ? townId.Value : 0);
-                    if (latestEvent != null && townId.HasValue)
-                    {
-                        if (!latestEvent.EventEndDateTime.HasValue || !latestEvent.IsAttackSuccess.HasValue)
-                        {
-                            latestEvent.EventEndDateTime = DateTime.UtcNow;
-                            latestEvent.IsAttackSuccess = false;
-                            DatabaseManager.TownControl.UpdateTownControlEvent(latestEvent);
-
-                            var town = DatabaseManager.TownControl.GetTownById(townId.Value);
-                            town.IsInConflict = false;
-                            DatabaseManager.TownControl.UpdateTown(town);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    log.ErrorFormat("Landblock.HandleTownControl exception. Ex: {0}", ex);
-                }
-            }
         }
 
         /// <summary>
@@ -1384,13 +1348,6 @@ namespace ACE.Server.Entity
                 SetFogColor(environChangeType);
             else
                 SendEnvironSound(environChangeType);
-        }
-
-        public List<Player> GetCurrentLandblockPlayers()
-        {
-            var playerList = new List<Player>();
-            playerList.AddRange(players);
-            return playerList;
         }
     }
 }
