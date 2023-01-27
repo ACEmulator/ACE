@@ -14,7 +14,7 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
-
+using System.Text;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -588,5 +588,118 @@ namespace ACE.Server.Command.Handlers
                 return;
             }            
         }
+
+        #region Town Control
+
+        private static string _townOwnerMessageHeader = "Town Owners:\n";
+        private static string _townOwnerRecordTemplate = "{0} is owned by {1}\n";
+
+        [CommandHandler("town-owners", AccessLevel.Player, CommandHandlerFlag.None, 0,
+            "Show owners of each town",
+            "")]
+        public static void HandleTownOwnersQuery(Session session, params string[] parameters)
+        {
+            try
+            {
+                StringBuilder townOwnerMsg = new StringBuilder(_townOwnerMessageHeader);
+
+                var townList = DatabaseManager.TownControl.GetAllTowns();
+
+                foreach (var town in townList)
+                {
+                    string townOwner = string.Empty;
+
+                    if (town.CurrentOwnerID.HasValue)
+                    {
+                        var monarch = PlayerManager.FindByGuid(town.CurrentOwnerID.Value);
+                        townOwner = monarch.Name;
+                    }
+                    else
+                    {
+                        townOwner = "nobody";
+                    }
+
+                    townOwnerMsg.Append(String.Format(_townOwnerRecordTemplate, town.TownName, townOwner));
+                }
+
+                CommandHandlerHelper.WriteOutputInfo(session, townOwnerMsg.ToString(), ChatMessageType.Broadcast);
+            }
+            catch (Exception ex)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Server Error checking town owner list.  Pls report this to the admins with a timestamp of when it happened.", ChatMessageType.Broadcast);
+                log.ErrorFormat("Error in PlayerCommands.HandleTownOwnersQuery. Ex: {0}", ex);
+            }
+        }
+
+
+        [CommandHandler("town-control-respite", AccessLevel.Player, CommandHandlerFlag.None, 1,
+            "Show the remaining respite time for a given town for your clan",
+            "")]
+        public static void HandleTownRespiteQuery(Session session, params string[] parameters)
+        {
+            try
+            {
+                if (parameters != null && parameters.Length > 0)
+                {
+                    string townName = "";
+
+                    foreach (string param in parameters)
+                    {
+                        townName = String.Concat(townName, param, " ");
+                    }
+
+                    townName = townName.Trim();
+
+                    var townList = DatabaseManager.TownControl.GetAllTowns();
+
+                    var town = townList.Find(x => x.TownName.Equals(townName, StringComparison.OrdinalIgnoreCase));
+                    if (town == null)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"{townName} is not a valid town that is provisioned for Town Control", ChatMessageType.Broadcast);
+                        return;
+                    }
+
+                    if (!session.Player.MonarchId.HasValue)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"You are not part of a valid allegiance, unable to check respite for {townName}", ChatMessageType.Broadcast);
+                        return;
+                    }
+
+                    if (session.Player.MonarchId == town.CurrentOwnerID)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Your allegiance already owns {townName}", ChatMessageType.Broadcast);
+                        return;
+                    }
+
+                    var latestTcEvent = DatabaseManager.TownControl.GetLatestTownControlEventByAttackingMonarchId(session.Player.MonarchId.Value, town.TownId);
+
+                    if (latestTcEvent != null)
+                    {
+                        var respiteExpirationDate = latestTcEvent.EventStartDateTime?.AddSeconds(town.ConflictRespiteLength.HasValue ? town.ConflictRespiteLength.Value : 0);
+                        if (respiteExpirationDate.HasValue && respiteExpirationDate.Value > DateTime.UtcNow)
+                        {
+                            TimeSpan timeLeft = respiteExpirationDate.Value - DateTime.UtcNow;
+                            CommandHandlerHelper.WriteOutputInfo(session, $"Your clan can attack {townName} again in {timeLeft.TotalMinutes} minutes", ChatMessageType.Broadcast);
+                            return;
+                        }
+                    }
+
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Your clan is not currently limited by a respite and can attack {townName} any time", ChatMessageType.Broadcast);
+                    return;
+                }
+                else
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, "Invalid Parameters.  Expected Syntax: /town-control-respite TownName", ChatMessageType.Broadcast);
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Server Error checking town respite timer.  Pls report this to the admins with a timestamp of when it happened.", ChatMessageType.Broadcast);
+                log.ErrorFormat("Error in PlayerCommands.HandleTownRespiteQuery. Ex: {0}", ex);
+            }
+        }
+
+        #endregion
     }
 }

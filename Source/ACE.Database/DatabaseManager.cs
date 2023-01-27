@@ -20,6 +20,8 @@ namespace ACE.Database
 
         public static LogDatabase Log { get; } = new LogDatabase();
 
+        public static TownControlDatabase TownControl { get; } = new TownControlDatabase();
+
         public static bool InitializationFailure = false;
 
         public static void Initialize(bool autoRetry = true)
@@ -57,6 +59,8 @@ namespace ACE.Database
             Shard = serializedShardDb;
 
             shardDb.Exists(true);
+
+            TownControl.Exists(true);
         }
 
         public static bool AutoPromoteNextAccountToAdmin { get; set; }

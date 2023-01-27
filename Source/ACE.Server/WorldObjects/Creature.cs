@@ -15,6 +15,7 @@ using ACE.Server.Managers;
 using ACE.Server.WorldObjects.Entity;
 
 using Position = ACE.Entity.Position;
+using ACE.Server.Entity.TownControl;
 
 namespace ACE.Server.WorldObjects
 {
@@ -378,5 +379,53 @@ namespace ACE.Server.WorldObjects
                     selectedTargets.Remove(kvp.Key);
             }
         }
+
+        private bool? _isTownControlBoss = null;
+        public bool IsTownControlBoss
+        {
+            get
+            {
+                if (!_isTownControlBoss.HasValue)
+                {
+                    _isTownControlBoss = TownControlBosses.IsTownControlBoss(this.WeenieClassId);
+                }
+
+                return _isTownControlBoss.Value;
+            }
+        }
+
+        private bool? _isTownControlInitBoss = null;
+        public bool IsTownControlInitBoss
+        {
+            get
+            {
+                if (!_isTownControlInitBoss.HasValue)
+                {
+                    _isTownControlInitBoss = TownControlBosses.IsTownControlInitBoss(this.WeenieClassId);
+                }
+
+                return _isTownControlInitBoss.Value;
+            }
+        }
+
+        private bool? _isTownControlConflictBoss = null;
+        public bool IsTownControlConflictBoss
+        {
+            get
+            {
+                if (!_isTownControlConflictBoss.HasValue)
+                {
+                    _isTownControlConflictBoss = TownControlBosses.IsTownControlConflictBoss(this.WeenieClassId);
+                }
+
+                return _isTownControlConflictBoss.Value;
+            }
+        }
+
+        public bool TownControl_InitLowHpBroadcastSent = false;
+
+        public bool TownControl_ConflictBroadcast1Sent = false;
+        public bool TownControl_ConflictBroadcast2Sent = false;
+        public bool TownControl_ConflictBroadcast3Sent = false;
     }
 }

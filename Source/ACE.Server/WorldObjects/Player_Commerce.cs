@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Entity.TownControl;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
@@ -39,6 +40,41 @@ namespace ACE.Server.WorldObjects
             {
                 SendUseDoneEvent(WeenieError.NoObject);
                 return;
+            }
+
+            //If the vendor is a Town Control vendor, check to see if the purchaser is part of the clan who owns the town
+            if (TownControlVendors.IsTownControlVendor(vendor.WeenieClassId))
+            {
+                try
+                {
+                    bool playerOwnsTown = false;
+
+                    var tcVendor = TownControlVendors.TownControlVendorMap[vendor.WeenieClassId];
+                    var town = DatabaseManager.TownControl.GetTownById(tcVendor.TownID);
+
+                    var playerAlleg = AllegianceManager.GetAllegiance(this);
+                    if (playerAlleg != null)
+                    {
+                        var playerMonarchId = playerAlleg.MonarchId;
+                        var playerAllegName = playerAlleg.Monarch.Player.Name;
+
+                        if (town.CurrentOwnerID.HasValue && town.CurrentOwnerID.Value == playerMonarchId)
+                        {
+                            playerOwnsTown = true;
+                        }
+                    }
+
+                    if (!playerOwnsTown)
+                    {
+                        this.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(this.Session, $"Your clan does not own {town.TownName}!"));
+                        SendUseDoneEvent(WeenieError.YouAreNotInAllegiance);
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.ErrorFormat("Exception applying Town Control behavior to vendor.  VendorGuid = {0}, Vendor WeenieClassId = {1}, Ex: {2}", vendorGuid, this.WeenieClassId, ex);
+                }
             }
 
             // if this succeeds, it automatically calls player.FinalizeBuyTransaction()

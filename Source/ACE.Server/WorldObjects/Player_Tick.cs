@@ -4,11 +4,13 @@ using System.Linq;
 using System.Numerics;
 
 using ACE.Common;
+using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Entity.TownControl;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
@@ -122,6 +124,8 @@ namespace ACE.Server.WorldObjects
             PK_DeathTick();
 
             GagsTick();
+
+            TownControlTick();
 
             PhysicsObj.ObjMaint.DestroyObjects();
 
@@ -607,6 +611,46 @@ namespace ACE.Server.WorldObjects
                     SendUngagNotice();
                     gagNoticeSent = false;
                 }
+            }
+        }
+
+        public void TownControlTick()
+        {
+            try
+            {
+                if (CurrentLandblock == null)
+                    return;
+
+                if (TownControlLandblocks.IsTownControlLandcell(this.Location.Cell))
+                {
+                    var townId = TownControlLandblocks.GetTownIdByLandcellId(this.Location.Cell);
+
+                    if (townId.HasValue)
+                    {
+                        //Console.WriteLine($"{inLandblock}");
+                        var town = DatabaseManager.TownControl.GetTownById(townId.Value);
+                        var tearsTimerLogic = TownControlTrophyTimer == null ? true : Time.GetUnixTime() > TownControlTrophyTimer;
+                        var satisfiesLevelReq = this.Level >= PropertyManager.GetLong("town_control_currency_level_minimum").Item;
+                        if (PlayerKillerStatus == PlayerKillerStatus.PK && town.IsInConflict && tearsTimerLogic && satisfiesLevelReq)
+                        {
+                            Random rnd = new Random();
+                            var shouldDropTrophy = rnd.Next((int)PropertyManager.GetLong("tc_trophy_randomness").Item);
+                            if (shouldDropTrophy == 1)
+                            {
+                                var tcTrophy = WorldObjectFactory.CreateNewWorldObject(42127923);
+                                this.TryCreateInInventoryWithNetworking(tcTrophy);
+                                Session.Network.EnqueueSend(new GameMessageCreateObject(tcTrophy));
+                                var msg = new GameMessageSystemChat($"You have received a participation trophy.", ChatMessageType.Broadcast);
+                                Session.Network.EnqueueSend(msg);
+                            }
+                            SetProperty(PropertyFloat.TownControlTrophyTimer, Time.GetFutureUnixTime(PropertyManager.GetLong("tc_trophy_seconds").Item)); // every 30 (default 30) seconds of participation, you get a town control trophy
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("Exception in Player_Tick.TownControlTick. ex: {0}", ex);
             }
         }
 

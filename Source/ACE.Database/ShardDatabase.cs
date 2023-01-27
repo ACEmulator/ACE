@@ -858,5 +858,43 @@ namespace ACE.Database
                 rwLock.ExitReadLock();
             }
         }
+
+        public List<uint> GetCharacterIDsWithQuestCompletion(string questName)
+        {
+            var characterIds = new List<uint>();
+
+            try
+            {
+                string query = $"SELECT `character_id` FROM character_properties_quest_registry WHERE quest_Name = @QuestName;";
+
+                using (var context = new ShardDbContext())
+                {
+                    context.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
+
+                    var connection = context.Database.GetDbConnection();
+                    connection.Open();
+                    var command = connection.CreateCommand();
+                    command.CommandText = query;
+                    var questNameParam = command.CreateParameter();
+                    questNameParam.ParameterName = "@QuestName";
+                    questNameParam.DbType = System.Data.DbType.String;
+                    questNameParam.Value = questName;
+                    command.Parameters.Add(questNameParam);
+                    var reader = command.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        var charid = reader.GetFieldValue<uint>(0);
+                        characterIds.Add(charid);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                //TODO logging
+            }
+
+            return characterIds;
+        }
     }
 }
