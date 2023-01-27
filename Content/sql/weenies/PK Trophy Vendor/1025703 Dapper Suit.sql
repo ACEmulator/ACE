@@ -4,7 +4,7 @@ INSERT INTO `weenie` (`class_Id`, `class_Name`, `type`, `last_Modified`)
 VALUES (1025703, 'ace1025703-dappersuit', 2, '2021-11-20 00:19:18') /* Clothing */;
 
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`)
-VALUES (1025703,   1,          2) /* ItemType - Armor */
+VALUES (1025703,   1,          4) /* ItemType - Armor */
      , (1025703,   3,          2) /* PaletteTemplate - Blue */
      , (1025703,   4,       1024) /* ClothingPriority - OuterwearChest */
      , (1025703,   5,        500) /* EncumbranceVal */

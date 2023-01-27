@@ -11,7 +11,7 @@ VALUES (2046552,   1,          2) /* ItemType - Armor */
      , (2046552,   9,          1) /* ValidLocations - HeadWear */
      , (2046552,  16,          1) /* ItemUseable - No */
      , (2046552,  19,         20) /* Value */
-     , (2046552,  28,          1) /* ArmorLevel */
+     , (2046552,  28,          0) /* ArmorLevel */
      , (2046552,  33,          1) /* Bonded - Bonded */
      , (2046552,  53,        101) /* PlacementPosition - Resting */
      , (2046552,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */

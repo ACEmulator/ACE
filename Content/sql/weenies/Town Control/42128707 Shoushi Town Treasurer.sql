@@ -78,7 +78,11 @@ VALUES (42128707,   1, 0x02000001) /* Setup */
      , (42128707,   3, 0x20000001) /* SoundTable */
      , (42128707,   4, 0x30000000) /* CombatTable */
      , (42128707,   8, 0x06001036) /* Icon */
+<<<<<<< Updated upstream
      , (42128707,  57,      20630) /* AlternateCurrency - Trade Note (250,000) */;
+=======
+     , (42128707,  57,      1000002) /* AlternateCurrency - Trade Note (250,000) */;
+>>>>>>> Stashed changes
 
 INSERT INTO `weenie_properties_attribute` (`object_Id`, `type`, `init_Level`, `level_From_C_P`, `c_P_Spent`)
 VALUES (42128707,   1, 290, 0, 0) /* Strength */
@@ -183,10 +187,28 @@ VALUES (42128707, 2, 22017,  0, 21, 0.9, False) /* Create Koji's Fiend (22017) f
      , (42128707, 2, 29521,  0, 85, 0.9, False) /* Create Noble Gauntlets (29521) for Wield */
      , (42128707, 2, 29535,  0, 85, 0.9, False) /* Create Noble Leggings (29535) for Wield */
      , (42128707, 2, 29545,  0, 85, 0.9, False) /* Create Noble Sollerets (29545) for Wield */
+<<<<<<< Updated upstream
      , (42128707, 4, 524470,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
      , (42128707, 4, 4200017,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
      , (42128707, 4, 4200020,  0, 0, 0, False) /* Create Burning Blunt (4200020) for Shop */
      , (42128707, 4, 4200012,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */;
+=======
+	, (42128707, 4, 4200021,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+	 , (42128707, 4, 4200017,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+	 , (42128707, 4, 4200020,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+	 , (42128707, 4, 450617,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
+	 , (42128707, 4, 450618,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
+	 , (42128707, 4, 450624,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
+	, (42128707, 4, 450613,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
+	, (42128707, 4, 482000,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
+	, (42128707, 4, 450609,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
+	, (42128707, 4, 480004,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
+     , (42128707, 4, 480006,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+     , (42128707, 4, 480007,  0, 0, 0, False) /* Create Burning Blunt (4200020) for Shop */
+     , (42128707, 4, 480013,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
+	 , (42128707, 4, 1910507,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
+	 , (42128707, 4, 4200141,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */;
+>>>>>>> Stashed changes
      /*, (42128707, 4, 4200014,  0, 0, 0, False) /* Create Water Stasis (4200014) for Shop */
 
 /* Lifestoned Changelog:

@@ -1392,8 +1392,15 @@ namespace ACE.Server.WorldObjects
 
             var removeSpells = target.EnchantmentManager.SelectDispel(spell);
 
+            var playerTarget = target as Player;
+
+            if (playerTarget != null && playerTarget.PKDispelVulnTimerActive)
+            {
+                removeSpells = removeSpells.Where(s => s.Spell != null && !s.Spell.IsVuln).ToList();
+            }
+
             // dispel on server and client
-            target.EnchantmentManager.Dispel(removeSpells.Select(s => s.Enchantment).ToList());
+            target.EnchantmentManager.Dispel(removeSpells.Select(s => s.Enchantment).ToList());            
 
             var spellList = BuildSpellList(removeSpells);
             var suffix = "";

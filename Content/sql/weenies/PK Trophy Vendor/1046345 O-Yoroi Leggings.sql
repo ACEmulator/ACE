@@ -10,18 +10,10 @@ VALUES (1046345,   1,          2) /* ItemType - Armor */
      , (1046345,   9,      25600) /* ValidLocations - AbdomenArmor, UpperLegArmor, LowerLegArmor */
      , (1046345,  16,          1) /* ItemUseable - No */
      , (1046345,  19,         20) /* Value */
-     , (1046345,  28,          1) /* ArmorLevel */
+     , (1046345,  28,          0) /* ArmorLevel */
      , (1046345,  33,          1) /* Bonded - Bonded */
      , (1046345,  53,        101) /* PlacementPosition - Resting */
-     , (1046345,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
-     , (1046345, 106,        100) /* ItemSpellcraft */
-     , (1046345, 107,        823) /* ItemCurMana */
-     , (1046345, 108,       1000) /* ItemMaxMana */
-     , (1046345, 109,          0) /* ItemDifficulty */
-     , (1046345, 158,          7) /* WieldRequirements - Level */
-     , (1046345, 159,          1) /* WieldSkillType - Axe */
-     , (1046345, 160,        180) /* WieldDifficulty */
-     , (1046345, 265,         14) /* EquipmentSetId - Adepts */;
+     , (1046345,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */;
 
 INSERT INTO `weenie_properties_bool` (`object_Id`, `type`, `value`)
 VALUES (1046345,  11, True ) /* IgnoreCollisions */

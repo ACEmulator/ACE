@@ -6,22 +6,14 @@ VALUES (1046553, 'ace1046553-oyoroisandals', 2, '2021-11-20 00:19:18') /* Clothi
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`)
 VALUES (1046553,   1,          2) /* ItemType - Armor */
      , (1046553,   4,      65536) /* ClothingPriority - Feet */
-     , (1046553,   5,        420) /* EncumbranceVal */
+     , (1046553,   5,        0) /* EncumbranceVal */
      , (1046553,   9,        384) /* ValidLocations - LowerLegWear, FootWear */
      , (1046553,  16,          1) /* ItemUseable - No */
      , (1046553,  19,         20) /* Value */
      , (1046553,  28,          1) /* ArmorLevel */
      , (1046553,  33,          1) /* Bonded - Bonded */
      , (1046553,  53,        101) /* PlacementPosition - Resting */
-     , (1046553,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
-     , (1046553, 106,        100) /* ItemSpellcraft */
-     , (1046553, 107,        823) /* ItemCurMana */
-     , (1046553, 108,       1000) /* ItemMaxMana */
-     , (1046553, 109,          0) /* ItemDifficulty */
-     , (1046553, 158,          7) /* WieldRequirements - Level */
-     , (1046553, 159,          1) /* WieldSkillType - Axe */
-     , (1046553, 160,        180) /* WieldDifficulty */
-     , (1046553, 265,         14) /* EquipmentSetId - Adepts */;
+     , (1046553,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */;
 
 INSERT INTO `weenie_properties_bool` (`object_Id`, `type`, `value`)
 VALUES (1046553,  11, True ) /* IgnoreCollisions */

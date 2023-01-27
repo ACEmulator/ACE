@@ -7,12 +7,12 @@ INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`)
 VALUES (2046551,   1,          2) /* ItemType - Armor */
      , (2046551,   3,         39) /* PaletteTemplate - Black */
      , (2046551,   4,      32768) /* ClothingPriority - Hands */
-     , (2046551,   5,        919) /* EncumbranceVal */
+     , (2046551,   5,        0) /* EncumbranceVal */
      , (2046551,   9,         32) /* ValidLocations - HandWear */
      , (2046551,  16,          1) /* ItemUseable - No */
      , (2046551,  19,         20) /* Value */
      , (2046551,  27,          0) /* ArmorType - None */
-     , (2046551,  28,          1) /* ArmorLevel */
+     , (2046551,  28,          0) /* ArmorLevel */
      , (2046551,  33,          1) /* Bonded - Bonded */
      , (2046551,  53,        101) /* PlacementPosition - Resting */
      , (2046551,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */;

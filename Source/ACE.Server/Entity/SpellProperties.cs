@@ -486,5 +486,75 @@ namespace ACE.Server.Entity
         /// Number * NumberVariance = the minimum # of spells to dispel
         /// </summary>
         public float NumberVariance { get => _spell.NumberVariance ?? 0; }
+
+        public bool IsVuln { get { return VulnList.Contains(this.Id); } }
+
+        private static List<uint> VulnList = new List<uint>()
+        {
+            25,    //Imperil Other I
+            1323,  //Imperil Other II
+            1324,  //Imperil Other III
+            1325,  //Imperil Other IV
+            1326,  //Imperil Other V            
+            1327,  //Imperil Other VI
+            21,    //Fire Vulnerability Other I
+            521,   //Acid Vulnerability Other I
+            522,   //Acid Vulnerability Other II 
+            523,   //Acid Vulnerability Other III
+            524,   //Acid Vulnerability Other IV
+            525,   //Acid Vulnerability Other V 
+            526,   //Acid Vulnerability Other VI
+            1048,  //Bludgeoning Vulnerability Other I  
+            1049,  //Bludgeoning Vulnerability Other II 
+            1050,  //Bludgeoning Vulnerability Other III
+            1051,  //Bludgeoning Vulnerability Other IV
+            1052,  //Bludgeoning Vulnerability Other V 
+            1053,  //Bludgeoning Vulnerability Other VI
+            1060,  //Cold Vulnerability Other I  
+            1061,  //Cold Vulnerability Other II 
+            1062,  //Cold Vulnerability Other III
+            1063,  //Cold Vulnerability Other IV
+            1064,  //Cold Vulnerability Other V       
+            1065,  //Cold Vulnerability Other VI
+            1084,  //Lightning Vulnerability Other I  
+            1085,  //Lightning Vulnerability Other II 
+            1086,  //Lightning Vulnerability Other III
+            1087,  //Lightning Vulnerability Other IV
+            1088,  //Lightning Vulnerability Other V
+            1089,  //Lightning Vulnerability Other VI
+            1104,  //Fire Vulnerability Other II
+            1105,  //Fire Vulnerability Other III
+            1106,  //Fire Vulnerability Other IV
+            1107,  //Fire Vulnerability Other V 
+            1108,  //Fire Vulnerability Other VI
+            1127,  //Blade Vulnerability Other I
+            1128,  //Blade Vulnerability Other II
+            1129,  //Blade Vulnerability Other III
+            1130,  //Blade Vulnerability Other IV
+            1131,  //Blade Vulnerability Other V
+            1132,  //Blade Vulnerability Other VI
+            1151,  //Piercing Vulnerability Other I
+            1152,  //Piercing Vulnerability Other II
+            1153,  //Piercing Vulnerability Other III
+            1154,  //Piercing Vulnerability Other IV
+            1155,  //Piercing Vulnerability Other V
+            1156,  //Piercing Vulnerability Other VI            
+            2074,  //Gossamer Flesh
+            2166,  //Tusker's Gift
+            2164,  //Swordsman's Gift 
+            2174,  //Archer's Gift 
+            2170,  //Inferno's Gift 
+            2168,  //Gelidite's Gift   
+            2162,  //Olthoi's Gift   
+            2172,  //Astyrrian's Gift     
+            4312,  //Incantation of Imperil Other
+            4473,  //Incantation of Acid
+            4475,  //Incantation of Blade
+            4485,  //Incantation of Piercing
+            4477,  //Incantation of Bludgeoning
+            4479,  //Incantation of Cold
+            4481,  //Incantation of Fire
+            4483   //Incantation of Lightning
+        };
     }
 }

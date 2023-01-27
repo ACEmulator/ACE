@@ -368,6 +368,12 @@ namespace ACE.Server.WorldObjects
 
                 critDamageMod = Math.Max(critDamageMod, cripplingBlowMod); 
             }
+
+            bool isPvP = wielder is Player && target is Player;
+
+            if (isPvP && weapon?.WeenieClassId == 37585)
+                critDamageMod = (float)1.5;
+
             return critDamageMod;
         }
 

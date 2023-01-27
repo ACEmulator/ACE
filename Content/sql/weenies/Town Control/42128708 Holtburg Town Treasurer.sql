@@ -78,7 +78,11 @@ VALUES (42128708,   1, 0x02000001) /* Setup */
      , (42128708,   3, 0x20000001) /* SoundTable */
      , (42128708,   4, 0x30000000) /* CombatTable */
      , (42128708,   8, 0x06001036) /* Icon */
+<<<<<<< Updated upstream
      , (42128708,  57,      20630) /* AlternateCurrency - Trade Note (250,000) */;
+=======
+     , (42128708,  57,      1000002) /* AlternateCurrency - Trade Note (250,000) */;
+>>>>>>> Stashed changes
 
 INSERT INTO `weenie_properties_attribute` (`object_Id`, `type`, `init_Level`, `level_From_C_P`, `c_P_Spent`)
 VALUES (42128708,   1, 290, 0, 0) /* Strength */
@@ -183,11 +187,32 @@ VALUES (42128708, 2, 22015,  0, 21, 0.9, False) /* Create Pwyll's Guard (22015) 
      , (42128708, 2, 29521,  0, 21, 0.9, False) /* Create Noble Gauntlets (29521) for Wield */
      , (42128708, 2, 29535,  0, 21, 0.9, False) /* Create Noble Leggings (29535) for Wield */
      , (42128708, 2, 29545,  0, 21, 0.9, False) /* Create Noble Sollerets (29545) for Wield */
+<<<<<<< Updated upstream
      , (42128708, 4, 524470,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
      , (42128708, 4, 4200017,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
      , (42128708, 4, 4200018,  0, 0, 0, False) /* Create Ground Anus (4200018) for Shop */
      , (42128708, 4, 4200019,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
      , (42128708, 4, 4200012,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */;
+=======
+	 , (42128708, 4, 4200021,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+	 , (42128708, 4, 4200017,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+	 , (42128708, 4, 4200020,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+     , (42128708, 4, 450619,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
+	 , (42128708, 4, 450621,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
+	 , (42128708, 4, 450622,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
+	 , (42128708, 4, 480000,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
+	 , (42128708, 4, 480001,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
+	 , (42128708, 4, 2031668,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
+	 , (42128708, 4, 480008,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
+	, (42128708, 4, 480009,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
+	, (42128708, 4, 480010,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
+	, (42128708, 4, 480011,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
+	 , (42128708, 4, 480014,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
+	 , (42128708, 4, 480017,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
+	, (42128708, 4, 480019,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
+	, (42128708, 4, 1910506,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
+	, (42128708, 4, 4200141,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */;
+>>>>>>> Stashed changes
 
 /* Lifestoned Changelog:
 {

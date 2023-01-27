@@ -78,7 +78,11 @@ VALUES (42128709,   1, 0x02000001) /* Setup */
      , (42128709,   3, 0x20000001) /* SoundTable */
      , (42128709,   4, 0x30000000) /* CombatTable */
      , (42128709,   8, 0x06001036) /* Icon */
+<<<<<<< Updated upstream
      , (42128709,  57,      20630) /* AlternateCurrency - Trade Note (250,000) */;
+=======
+     , (42128709,  57,      1000002) /* AlternateCurrency - Trade Note (250,000) */;
+>>>>>>> Stashed changes
 
 INSERT INTO `weenie_properties_attribute` (`object_Id`, `type`, `init_Level`, `level_From_C_P`, `c_P_Spent`)
 VALUES (42128709,   1, 290, 0, 0) /* Strength */
@@ -183,11 +187,29 @@ VALUES (42128709, 2, 12213,  0, 3, 0.9, False) /* Create Veil of Darkness (12213
      , (42128709, 2, 29521,  0, 93, 0.9, False) /* Create Noble Gauntlets (29521) for Wield */
      , (42128709, 2, 29535,  0, 93, 0.9, False) /* Create Noble Leggings (29535) for Wield */
      , (42128709, 2, 29545,  0, 93, 0.9, False) /* Create Noble Sollerets (29545) for Wield */
+<<<<<<< Updated upstream
      , (42128709, 4, 524470,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
      , (42128709, 4, 4200017,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
      , (42128709, 4, 4200021,  0, 0, 0, False) /* Create Covid Vaccine (4200021) for Shop */
      , (42128709, 4, 4200012,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */;
 
+=======
+	 , (42128709, 4, 4200021,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+	 , (42128709, 4, 4200017,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+	 , (42128709, 4, 4200020,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+	, (42128709, 4, 450615,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+	, (42128709, 4, 450616,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+	, (42128709, 4, 450620,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+	 , (42128709, 4, 450623,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+	 , (42128709, 4, 460001,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+	, (42128709, 4, 480003,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+	, (42128709, 4, 480005,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+    , (42128709, 4, 450610,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+    , (42128709, 4, 480022,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+	, (42128709, 4, 1910505,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+	, (42128709, 4, 4200141,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */;
+	
+>>>>>>> Stashed changes
 /* Lifestoned Changelog:
 {
   "Changelog": [

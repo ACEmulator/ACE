@@ -6,22 +6,14 @@ VALUES (1046551, 'ace1046551-oyoroigauntlets', 2, '2021-11-20 00:19:18') /* Clot
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`)
 VALUES (1046551,   1,          2) /* ItemType - Armor */
      , (1046551,   4,      32768) /* ClothingPriority - Hands */
-     , (1046551,   5,        919) /* EncumbranceVal */
+     , (1046551,   5,        0) /* EncumbranceVal */
      , (1046551,   9,         32) /* ValidLocations - HandWear */
      , (1046551,  16,          1) /* ItemUseable - No */
      , (1046551,  19,         20) /* Value */
-     , (1046551,  28,          1) /* ArmorLevel */
+     , (1046551,  28,          0) /* ArmorLevel */
      , (1046551,  33,          1) /* Bonded - Bonded */
      , (1046551,  53,        101) /* PlacementPosition - Resting */
-     , (1046551,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
-     , (1046551, 106,        100) /* ItemSpellcraft */
-     , (1046551, 107,          0) /* ItemCurMana */
-     , (1046551, 108,       1000) /* ItemMaxMana */
-     , (1046551, 109,          0) /* ItemDifficulty */
-     , (1046551, 158,          7) /* WieldRequirements - Level */
-     , (1046551, 159,          1) /* WieldSkillType - Axe */
-     , (1046551, 160,        180) /* WieldDifficulty */
-     , (1046551, 265,         14) /* EquipmentSetId - Adepts */;
+     , (1046551,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */;
 
 INSERT INTO `weenie_properties_bool` (`object_Id`, `type`, `value`)
 VALUES (1046551,  11, True ) /* IgnoreCollisions */
