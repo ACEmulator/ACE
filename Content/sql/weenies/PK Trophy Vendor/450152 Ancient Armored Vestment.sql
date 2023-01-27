@@ -9,7 +9,7 @@ VALUES (450152,   1,          2) /* ItemType - Armor */
      , (450152,   4,       1024) /* ClothingPriority - OuterwearChest, OuterwearUpperArms */
      , (450152,   5,        0) /* EncumbranceVal */
      , (450152,   8,       1000) /* Mass */
-     , (450152,   9,       2560) /* ValidLocations - ChestArmor, UpperArmArmor */
+     , (450152,   9,       512) /* ValidLocations - ChestArmor, UpperArmArmor */
      , (450152,  16,          1) /* ItemUseable - No */
      , (450152,  19,      20) /* Value */
      , (450152,  27,          8) /* ArmorType - Scalemail */

@@ -8,7 +8,7 @@ VALUES (450027,   1,          4) /* ItemType - Clothing */
      , (450027,   3,          2) /* PaletteTemplate - Blue */
      , (450027,   4,      1024) /* ClothingPriority - OuterwearUpperLegs, OuterwearLowerLegs, OuterwearChest, OuterwearAbdomen, OuterwearUpperArms, OuterwearLowerArms, Head, Feet */
      , (450027,   5,        0) /* EncumbranceVal */
-     , (450027,   9,      32513) /* ValidLocations - HeadWear, Armor */
+     , (450027,   9,      512) /* ValidLocations - HeadWear, Armor */
      , (450027,  16,          1) /* ItemUseable - No */
      , (450027,  19,     20) /* Value */
      , (450027,  28,        0) /* ArmorLevel */

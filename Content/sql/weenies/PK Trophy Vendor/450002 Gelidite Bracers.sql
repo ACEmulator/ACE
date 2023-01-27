@@ -11,8 +11,7 @@ VALUES (450002,   1,          2) /* ItemType - Armor */
      , (450002,   8,         90) /* Mass */
      , (450002,   9,       4096) /* ValidLocations - LowerArmArmor */
      , (450002,  16,          1) /* ItemUseable - No */
-     , (450002,  17,        213) /* RareId */
-	 , (450003,  19,      0) /* Value */
+	 , (450002,  19,      20) /* Value */
      , (450002,  26,          1) /* AccountRequirements - AsheronsCall_Subscription */
      , (450002,  27,          2) /* ArmorType - Leather */
      , (450002,  28,        0) /* ArmorLevel */

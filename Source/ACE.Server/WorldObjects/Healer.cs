@@ -139,6 +139,7 @@ namespace ACE.Server.WorldObjects
             var actionChain = new ActionChain();
             //actionChain.AddAction(healer, () => healer.EnqueueBroadcastMotion(motion));
             actionChain.AddAction(healer, () => healer.SendMotionAsCommands(motionCommand, currentStance));
+            var healerObject = StartHealing(healer, target);
             actionChain.AddDelaySeconds(animLength);
             actionChain.AddAction(healer, () =>
             {
@@ -150,7 +151,7 @@ namespace ACE.Server.WorldObjects
 
                 // only PKs affected by these caps?
                 if (dist < Healing_MaxMove || healer.PlayerKillerStatus == PlayerKillerStatus.NPK)
-                    DoHealing(healer, target);
+                    DoHealing(healer, target, healerObject);
                 else
                     healer.Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted healing!", ChatMessageType.Broadcast));
 
@@ -166,7 +167,20 @@ namespace ACE.Server.WorldObjects
             healer.NextUseTime = DateTime.UtcNow.AddSeconds(animLength);
         }
 
-        public void DoHealing(Player healer, Player target)
+        public HealerObject StartHealing(Player healer, Player target)
+        {
+            HealerObject healerObject = new HealerObject();
+            var vital = target.GetCreatureVital(BoosterEnum);
+            var missingHealth = vital.MaxValue - vital.Current;
+            var healAmount = GetHealAmount(healer, target, vital, out var critical, out var staminaCost);
+            healerObject.Critical = critical;
+            healerObject.HealAmount = healAmount;
+            healerObject.StaminaCost = staminaCost;
+            healerObject.MissingHealth = missingHealth;
+            return healerObject;
+        }
+
+        public void DoHealing(Player healer, Player target, HealerObject healerObject = null)
         {
             if (target.IsDead || target.Teleporting) return;
 
@@ -191,7 +205,7 @@ namespace ACE.Server.WorldObjects
 
             // skill check
             var difficulty = 0;
-            var skillCheck = DoSkillCheck(healer, target, vital, ref difficulty);
+            var skillCheck = DoSkillCheck(healer, target, vital, ref difficulty, healerObject);
             if (!skillCheck)
             {
                 var failMsg = new GameMessageSystemChat($"You fail to heal {targetName}.{remainingMsg}", ChatMessageType.Broadcast);
@@ -204,7 +218,20 @@ namespace ACE.Server.WorldObjects
             }
 
             // heal up
-            var healAmount = GetHealAmount(healer, target, vital, out var critical, out var staminaCost);
+            bool critical;
+            uint staminaCost;
+            uint healAmount;
+
+            if (healerObject == null)
+            {
+                healAmount = GetHealAmount(healer, target, vital, out critical, out staminaCost);
+            }
+            else
+            {
+                critical = healerObject.Critical;
+                staminaCost = healerObject.StaminaCost;
+                healAmount = healerObject.HealAmount;
+            }
 
             healer.UpdateVitalDelta(healer.Stamina, (int)-staminaCost);
             target.UpdateVitalDelta(vital, healAmount);
@@ -232,18 +259,18 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Determines if healer successfully heals target for attempt
         /// </summary>
-        public bool DoSkillCheck(Player healer, Player target, CreatureVital vital, ref int difficulty)
+        public bool DoSkillCheck(Player healer, Player target, CreatureVital vital, ref int difficulty, HealerObject healerObject = null)
         {
             // skill check:
             // (healing skill + healing kit boost) * trainedMod
             // vs. damage * 2 * combatMod
             var healingSkill = healer.GetCreatureSkill(Skill.Healing);
-            var trainedMod = healingSkill.AdvancementClass == SkillAdvancementClass.Specialized ? 1.5f : 1.1f;
+            var trainedMod = healingSkill.AdvancementClass == SkillAdvancementClass.Specialized ? 1.3f : 1.1f;
 
             var combatMod = healer.CombatMode == CombatMode.NonCombat ? 1.0f : 1.1f;
 
             var effectiveSkill = (int)Math.Round((healingSkill.Current + BoostValue) * trainedMod);
-            difficulty = (int)Math.Round((vital.MaxValue - vital.Current) * 2 * combatMod);
+            difficulty = (int)Math.Round((healerObject != null ? healerObject.MissingHealth : vital.MaxValue - vital.Current) * 2 * combatMod);
 
             var skillCheck = SkillCheck.GetSkillChance(effectiveSkill, difficulty);
             return skillCheck > ThreadSafeRandom.Next(0.0f, 1.0f);

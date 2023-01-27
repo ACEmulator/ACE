@@ -475,6 +475,28 @@ namespace ACE.Server.Entity
             {
                 // TODO: get randomly generated death treasure from LootGenerationFactory
                 //log.Debug($"{_generator.Name}.TreasureGenerator(): found death treasure {Biota.WeenieClassId}");
+
+                //Enforce whitelist on chests
+                var container = Generator as Container;
+                if(container != null)
+                {
+                    var landblockId = container.CurrentLandblock?.Id.Landblock;
+                    if (PropertyManager.GetBool("equipmentset_whitelist_enabled").Item)
+                    {
+                        deathTreasure.DisableSets = landblockId.HasValue ? !Whitelist.IsEquipmentSetWhitelistedLandblock(landblockId.Value) : true;
+                    }
+
+                    if (PropertyManager.GetBool("epic_whitelist_enabled").Item)
+                    {
+                        deathTreasure.DisableEpicCantrips = landblockId.HasValue ? !Whitelist.IsEpicWhitelistedLandblock(landblockId.Value) : true;
+                    }
+
+                    if (PropertyManager.GetBool("legendary_whitelist_enabled").Item)
+                    {
+                        deathTreasure.DisableLegendaryCantrips = landblockId.HasValue ? !Whitelist.IsLegendaryWhitelistedLandblock(landblockId.Value) : true;
+                    }
+                }
+
                 return LootGenerationFactory.CreateRandomLootObjects(deathTreasure);
             }
             else

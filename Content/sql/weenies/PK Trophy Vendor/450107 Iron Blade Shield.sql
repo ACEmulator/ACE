@@ -8,8 +8,9 @@ VALUES (450107,   1,          2) /* ItemType - Armor */
      , (450107,   5,        0) /* EncumbranceVal */
      , (450107,   9,    2097152) /* ValidLocations - Shield */
      , (450107,  16,          1) /* ItemUseable - No */
-	 , (450106,  19,       20) /* Value */
+	 , (450107,  19,       20) /* Value */
      , (450107,  51,          4) /* CombatUse - Shield */
+	 , (450107,  52,          3) /* ParentLocation - Shield */
      , (450107,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (450107, 151,          2) /* HookType - Wall */;
 

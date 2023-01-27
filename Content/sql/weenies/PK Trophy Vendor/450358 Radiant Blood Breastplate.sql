@@ -13,6 +13,7 @@ VALUES (450358,   1,          2) /* ItemType - Armor */
      , (450358,  19,      20) /* Value */
      , (450358,  27,         32) /* ArmorType - Metal */
      , (450358,  28,        0) /* ArmorLevel */
+	 , (450358, 159,        289) /* WieldSkillType */
      , (450358,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (450358, 150,        103) /* HookPlacement - Hook */
      , (450358, 151,          2) /* HookType - Wall */;

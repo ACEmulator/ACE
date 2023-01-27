@@ -1344,7 +1344,7 @@ namespace ACE.Server.WorldObjects.Managers
                     // instead of applying it on top like direct damage
 
                     if (damageType == DamageType.Nether)
-                        resistanceMod = (float)PropertyManager.GetDouble("void_pvp_modifier").Item;
+                        resistanceMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_void_dot").Item;
                 }
 
                 // with the halvening, this actually seems like the fairest balance currently..

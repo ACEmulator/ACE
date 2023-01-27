@@ -8,7 +8,7 @@ VALUES (450283,   1,          2) /* ItemType - Armor */
      , (450283,   3,         21) /* PaletteTemplate - Gold */
      , (450283,   4,      1024) /* ClothingPriority - OuterwearChest, OuterwearAbdomen, OuterwearUpperArms, OuterwearLowerArms */
      , (450283,   5,       0) /* EncumbranceVal */
-     , (450283,   9,       7680) /* ValidLocations - ChestArmor, AbdomenArmor, UpperArmArmor, LowerArmArmor */
+     , (450283,   9,       512) /* ValidLocations - ChestArmor, AbdomenArmor, UpperArmArmor, LowerArmArmor */
      , (450283,  16,          1) /* ItemUseable - No */
      , (450283,  19,       20) /* Value */
      , (450283,  26,          1) /* AccountRequirements - AsheronsCall_Subscription */

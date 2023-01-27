@@ -288,12 +288,11 @@ namespace ACE.Server.Factories
             {
                 var cantripLevel = CantripChance.RollCantripLevel(profile);
 
-                if(profile.DisableLegendaryCantrips)
+                if (cantripLevel == 4 && profile.DisableLegendaryCantrips)
                 {
                     cantripLevel = 3;
                 }
-
-                if (profile.DisableEpicCantrips)
+                else if (cantripLevel == 3 && profile.DisableEpicCantrips)
                 {
                     cantripLevel = 2;
                 }

@@ -15,7 +15,7 @@ VALUES (450081,   1,          2) /* ItemType - Armor */
      , (450081,  28,        150) /* ArmorLevel */
      , (450081,  51,          4) /* CombatUse - Shield */
      , (450081,  56,        0) /* ShieldValue */
-     , (450081,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity *//
+     , (450081,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (450081, 150,        103) /* HookPlacement - Hook */
      , (450081, 151,          2) /* HookType - Wall */;
 

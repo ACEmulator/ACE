@@ -46,6 +46,8 @@ namespace ACE.Server.WorldObjects
 
         public bool LastContact = true;
 
+        private List<double> recentJumps = new List<double>();
+
         public bool IsJumping
         {
             get
@@ -952,9 +954,24 @@ namespace ACE.Server.WorldObjects
             var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, AugmentationIncreasedCarryingCapacity);
             var burden = EncumbranceSystem.GetBurden(capacity, EncumbranceVal ?? 0);
 
+            // clear jump penalty if you're outside the bounds of the length
+            if (JumpTimer != null && JumpTimer + PropertyManager.GetLong("jump_penalty_length").Item < Time.GetUnixTime())
+                JumpTimer = null;
+            var nerfJumpRun = JumpTimer == null ? false : Time.GetUnixTime() > JumpTimer;
+            recentJumps.Add(Time.GetUnixTime()); // Add current time to recent run jumps
+            // Remove jumps that are outside the bounds of the tracking
+            recentJumps.RemoveAll(recentJump => recentJump + PropertyManager.GetLong("jump_second_timer").Item < Time.GetUnixTime());
+            var shouldGetFucked = false;
+            if (nerfJumpRun || recentJumps.Count >= PropertyManager.GetLong("jump_limit").Item)
+            {
+                shouldGetFucked = true;
+                if (JumpTimer == null)
+                    SetProperty(PropertyFloat.JumpTimer, Time.GetFutureUnixTime(PropertyManager.GetLong("jump_penalty_length").Item));
+            }
+
             // calculate stamina cost for this jump
             var extent = Math.Clamp(jump.Extent, 0.0f, 1.0f);
-            var staminaCost = MovementSystem.JumpStaminaCost(extent, burden, PKTimerActive);
+            var staminaCost = MovementSystem.JumpStaminaCost(extent, burden, PKTimerActive || shouldGetFucked);
 
             //Console.WriteLine($"Strength: {strength}, Capacity: {capacity}, Encumbrance: {EncumbranceVal ?? 0}, Burden: {burden}, StaminaCost: {staminaCost}");
 
@@ -991,9 +1008,17 @@ namespace ACE.Server.WorldObjects
                 PhysicsObj.calc_acceleration();
                 PhysicsObj.set_on_walkable(false);
                 PhysicsObj.set_local_velocity(jump.Velocity, false);
+                PhysicsObj.RemoveLinkAnimations();      // matches MotionInterp.LeaveGround more closely
+                PhysicsObj.MovementManager.MotionInterpreter.PendingMotions.Clear();        //hack
+                PhysicsObj.IsAnimating = false;
 
                 if (CombatMode == CombatMode.Magic && MagicState.IsCasting)
+                {
+                    // clear possible CastMotion out of InterpretedMotionState.ForwardCommand
+                    PhysicsObj.MovementManager.MotionInterpreter.StopCompletely();
+
                     FailCast();
+                }
             }
             else
             {
@@ -1004,10 +1029,13 @@ namespace ACE.Server.WorldObjects
                 //PhysicsObj.set_velocity(glob_velocity, true);
 
                 // perform jump in physics engine
-                PhysicsObj.TransientState &= ~(Physics.TransientStateFlags.Contact | Physics.TransientStateFlags.WaterContact);
+                PhysicsObj.TransientState &= ~(TransientStateFlags.Contact | TransientStateFlags.WaterContact);
                 PhysicsObj.calc_acceleration();
                 PhysicsObj.set_on_walkable(false);
                 PhysicsObj.set_local_velocity(jump.Velocity, false);
+                PhysicsObj.RemoveLinkAnimations();      // matches MotionInterp.LeaveGround more closely
+                PhysicsObj.MovementManager.MotionInterpreter.PendingMotions.Clear();        //hack
+                PhysicsObj.IsAnimating = false;
             }
 
             // this shouldn't be needed, but without sending this update motion / simulated movement event beforehand,

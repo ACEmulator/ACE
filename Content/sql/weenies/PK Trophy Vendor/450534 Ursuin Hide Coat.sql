@@ -9,7 +9,7 @@ VALUES (450534,   1,          2) /* ItemType - Armor */
      , (450534,   4,      1024) /* ClothingPriority - OuterwearChest, OuterwearAbdomen, OuterwearUpperArms, OuterwearLowerArms */
      , (450534,   5,        0) /* EncumbranceVal */
      , (450534,   8,        270) /* Mass */
-     , (450534,   9,       7680) /* ValidLocations - ChestArmor, AbdomenArmor, UpperArmArmor, LowerArmArmor */
+     , (450534,   9,       512) /* ValidLocations - ChestArmor, AbdomenArmor, UpperArmArmor, LowerArmArmor */
      , (450534,  16,          1) /* ItemUseable - No */
      , (450534,  19,       20) /* Value */
      , (450534,  27,          2) /* ArmorType - Leather */

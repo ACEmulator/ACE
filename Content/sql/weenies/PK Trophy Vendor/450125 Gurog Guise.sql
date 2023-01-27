@@ -8,7 +8,7 @@ VALUES (450125,   1,          4) /* ItemType - Armor */
      , (450125,   3,          4) /* PaletteTemplate - Brown */
      , (450125,   4,     1024) /* ClothingPriority - OuterwearUpperLegs, OuterwearLowerLegs, OuterwearChest, OuterwearAbdomen, OuterwearUpperArms, OuterwearLowerArms, Head, Hands, Feet */
      , (450125,   5,       0) /* EncumbranceVal */
-     , (450125,   9,      32545) /* ValidLocations - HeadWear, HandWear, Armor */
+     , (450125,   9,      512) /* ValidLocations - HeadWear, HandWear, Armor */
      , (450125,  19,         20) /* Value */
      , (450125,  28,         0) /* ArmorLevel */
      , (450125, 151,          9) /* HookType - Floor, Yard */;

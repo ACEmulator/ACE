@@ -8,7 +8,7 @@ VALUES (450539,   1,          2) /* ItemType - Armor */
      , (450539,   3,          4) /* PaletteTemplate - Brown */
      , (450539,   4,      15360) /* ClothingPriority - OuterwearChest, OuterwearAbdomen, OuterwearUpperArms, OuterwearLowerArms */
      , (450539,   5,       0) /* EncumbranceVal */
-     , (450539,   9,       7680) /* ValidLocations - ChestArmor, AbdomenArmor, UpperArmArmor, LowerArmArmor */
+     , (450539,   9,       512) /* ValidLocations - ChestArmor, AbdomenArmor, UpperArmArmor, LowerArmArmor */
      , (450539,  16,          1) /* ItemUseable - No */
      , (450539,  19,       20) /* Value */
      , (450539,  28,        0) /* ArmorLevel */
