@@ -621,9 +621,9 @@ namespace ACE.Server.WorldObjects
                 if (CurrentLandblock == null)
                     return;
 
-                if (TownControlLandblocks.IsTownControlLandcell(this.Location.Cell))
+                if (TownControlLandblocks.IsTownControlLandblock(this.Location.Landblock))
                 {
-                    var townId = TownControlLandblocks.GetTownIdByLandcellId(this.Location.Cell);
+                    var townId = TownControlLandblocks.GetTownIdByLandblockId(this.Location.Landblock);
 
                     if (townId.HasValue)
                     {
@@ -637,7 +637,7 @@ namespace ACE.Server.WorldObjects
                             var shouldDropTrophy = rnd.Next((int)PropertyManager.GetLong("tc_trophy_randomness").Item);
                             if (shouldDropTrophy == 1)
                             {
-                                var tcTrophy = WorldObjectFactory.CreateNewWorldObject(42127923);
+                                var tcTrophy = WorldObjectFactory.CreateNewWorldObject(1000002); //PK Trophy
                                 this.TryCreateInInventoryWithNetworking(tcTrophy);
                                 Session.Network.EnqueueSend(new GameMessageCreateObject(tcTrophy));
                                 var msg = new GameMessageSystemChat($"You have received a participation trophy.", ChatMessageType.Broadcast);

@@ -1,4 +1,4 @@
-DELETE FROM ace_world.quest WHERE `name` LIKE '%TownControlOwner'
+DELETE FROM ace_world.quest WHERE `name` LIKE '%TownControlOwner';
 
 INSERT INTO `quest` (`name`, `min_Delta`, `max_Solves`, `message`, `last_Modified`)
 VALUES ('ShoushiTownControlOwner', 0, -1, 'You are now the owner of Shoushi', '2022-01-01 00:00:01');

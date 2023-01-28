@@ -14,9 +14,9 @@ namespace ACE.Server.Entity.TownControl
                 {
                     _landblocks = new Dictionary<uint, uint[]>();
 
-                    uint[] shoushiLandblocks = { 0xDE51 };
-                    uint[] yaraqLandblocks = { 0x8164, 0x8165 };
-                    uint[] holtburgLandblocks = { 0xA9B4 };
+                    uint[] shoushiLandblocks = { 0xDE51, 0xE9F1 };
+                    uint[] yaraqLandblocks = { 0x8164, 0x8165, 0x00AB };
+                    uint[] holtburgLandblocks = { 0xA9B4, 0x4FF1 };
                     _landblocks.Add(
                         72, holtburgLandblocks
                     );
@@ -33,7 +33,7 @@ namespace ACE.Server.Entity.TownControl
                 return _landblocks;
             }
         }
-
+        /*
         private static Dictionary<uint, uint[]> _landcells;
         public static Dictionary<uint, uint[]> TownControlLandcellsMap
         {
@@ -78,6 +78,7 @@ namespace ACE.Server.Entity.TownControl
                 return _landcells;
             }
         }
+        */
 
         public static List<uint> _townControlLanblockList = null;
 
@@ -123,7 +124,7 @@ namespace ACE.Server.Entity.TownControl
             return null;
         }
 
-
+/*
         public static List<uint> _townControlLandcellList = null;
 
         public static List<uint> TownControlLandcellList
@@ -167,5 +168,6 @@ namespace ACE.Server.Entity.TownControl
 
             return null;
         }
+*/
     }
 }

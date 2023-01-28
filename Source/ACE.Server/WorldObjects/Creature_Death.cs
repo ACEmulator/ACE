@@ -1052,11 +1052,11 @@ namespace ACE.Server.WorldObjects
                         }
 
                         //Award bonus tears to attackers in the landblock
-                        var landcellList = TownControlLandblocks.TownControlLandcellsMap[town.TownId];
+                        var landblockList = TownControlLandblocks.TownControlLandblocksMap[town.TownId];
                         var attackerList = new List<Player>();
-                        foreach (var landcellId in landcellList)
+                        foreach (var landblockId in landblockList)
                         {
-                            var landblock = LandblockManager.GetLandblock(new LandblockId(landcellId), false);
+                            var landblock = LandblockManager.GetLandblock(new LandblockId(landblockId), false);
                             var players = landblock.GetCurrentLandblockPlayers();
                             foreach (var player in players)
                             {
@@ -1076,14 +1076,14 @@ namespace ACE.Server.WorldObjects
 
                         foreach (var player in attackerList)
                         {
-                            var tcTrophy = WorldObjectFactory.CreateNewWorldObject(42127923);
+                            var tcTrophy = WorldObjectFactory.CreateNewWorldObject(1000002); //PK Trophy
                             tcTrophy.SetStackSize((int)trophiesPerAttacker);
 
                             var invCreateResult = player.TryCreateInInventoryWithNetworking(tcTrophy);
                             if (invCreateResult)
                             {
                                 player.Session.Network.EnqueueSend(new GameMessageCreateObject(tcTrophy));
-                                var msg = new GameMessageSystemChat($"You have received {trophiesPerAttacker} bottled tears for successfully attacking {town.TownName}.", ChatMessageType.Broadcast);
+                                var msg = new GameMessageSystemChat($"You have received {trophiesPerAttacker} PK Trophies for successfully attacking {town.TownName}.", ChatMessageType.Broadcast);
                                 player.Session.Network.EnqueueSend(msg);
                             }
                         }
@@ -1127,11 +1127,11 @@ namespace ACE.Server.WorldObjects
                         DatabaseManager.TownControl.UpdateTownControlEvent(tcEvent);
 
                         //Award bonus tears to defenders in the landblock
-                        var landcellList = TownControlLandblocks.TownControlLandcellsMap[town.TownId];
+                        var landblockList = TownControlLandblocks.TownControlLandblocksMap[town.TownId];
                         var defenderList = new List<Player>();
-                        foreach (var landcellId in landcellList)
+                        foreach (var landblockId in landblockList)
                         {
-                            var landblock = LandblockManager.GetLandblock(new LandblockId(landcellId), false);
+                            var landblock = LandblockManager.GetLandblock(new LandblockId(landblockId), false);
                             var players = landblock.GetCurrentLandblockPlayers();
                             foreach (var player in players)
                             {
@@ -1151,14 +1151,14 @@ namespace ACE.Server.WorldObjects
 
                         foreach (var player in defenderList)
                         {
-                            var tcTrophy = WorldObjectFactory.CreateNewWorldObject(42127923);
+                            var tcTrophy = WorldObjectFactory.CreateNewWorldObject(1000002); //PK Trophy
                             tcTrophy.SetStackSize((int)trophiesPerDefender);
 
                             var invCreateResult = player.TryCreateInInventoryWithNetworking(tcTrophy);
                             if (invCreateResult)
                             {
                                 player.Session.Network.EnqueueSend(new GameMessageCreateObject(tcTrophy));
-                                var msg = new GameMessageSystemChat($"You have received {trophiesPerDefender} bottled tears for successfully defending {town.TownName}.", ChatMessageType.Broadcast);
+                                var msg = new GameMessageSystemChat($"You have received {trophiesPerDefender} PK Trophies for successfully defending {town.TownName}.", ChatMessageType.Broadcast);
                                 player.Session.Network.EnqueueSend(msg);
                             }
                         }
