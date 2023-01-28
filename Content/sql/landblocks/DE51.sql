@@ -52,7 +52,11 @@ VALUES (0x7DE51012, 4200047, 0xDE51000C, 47.6641, 74.3012, 16.083, -0.999949, 0,
 /* @teleloc 0xDE51000C [47.664101 74.301201 16.083000] -0.999949 0.000000 0.000000 -0.010079 */
 
 INSERT INTO `landblock_instance_link` (`parent_GUID`, `child_GUID`, `last_Modified`)
-VALUES (0x7DE51012, 0x7DE51015, '2022-01-11 13:43:25') /* Shoushi Governor (42153365) */;
+VALUES (0x7DE51012, 0x7DE51013, '2022-01-11 13:43:25') /* Shoushi Governor (42153365) */;
+
+INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
+VALUES (0x7DE51013, 42153365, 0xDE51000C, 47.635, 75.8188, 16.0409, -0.999949, 0, 0, -0.010079,  True, '2022-01-11 13:43:25'); /* Shoushi Governor */
+/* @teleloc 0xDE51000C [47.634998 75.818802 16.040899] -0.999949 0.000000 0.000000 -0.010079 */
 
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
 VALUES (0x7DE51014,   252, 0xDE51000C, 29.4532, 90.6395, 17.6006, -0.68424, 0, 0, 0.729257, False, '2023-01-25 13:49:39'); /* Stone Portal Frame */
