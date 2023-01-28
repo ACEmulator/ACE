@@ -204,32 +204,32 @@ namespace ACE.Server.Entity
 
         public void HandleTownControl()
         {
-            log.Info("Landblock.HandleTownControl");
+            log.Debug("Landblock.HandleTownControl");
             IsTownControlLandblock = TownControlLandblocks.IsTownControlLandblock(this.Id.Landblock);
             if (IsTownControlLandblock)
             {
-                try
-                {
-                    uint? townId = TownControlLandblocks.GetTownIdByLandblockId(this.Id.Landblock);
-                    var latestEvent = DatabaseManager.TownControl.GetLatestTownControlEventByTownId(townId.HasValue ? townId.Value : 0);
-                    if (latestEvent != null && townId.HasValue)
-                    {
-                        if (!latestEvent.EventEndDateTime.HasValue || !latestEvent.IsAttackSuccess.HasValue)
-                        {
-                            latestEvent.EventEndDateTime = DateTime.UtcNow;
-                            latestEvent.IsAttackSuccess = false;
-                            DatabaseManager.TownControl.UpdateTownControlEvent(latestEvent);
+                //try
+                //{
+                //    uint? townId = TownControlLandblocks.GetTownIdByLandblockId(this.Id.Landblock);
+                //    var latestEvent = DatabaseManager.TownControl.GetLatestTownControlEventByTownId(townId.HasValue ? townId.Value : 0);
+                //    if (latestEvent != null && townId.HasValue)
+                //    {
+                //        if (!latestEvent.EventEndDateTime.HasValue || !latestEvent.IsAttackSuccess.HasValue)
+                //        {
+                //            latestEvent.EventEndDateTime = DateTime.UtcNow;
+                //            latestEvent.IsAttackSuccess = false;
+                //            DatabaseManager.TownControl.UpdateTownControlEvent(latestEvent);
 
-                            var town = DatabaseManager.TownControl.GetTownById(townId.Value);
-                            town.IsInConflict = false;
-                            DatabaseManager.TownControl.UpdateTown(town);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    log.ErrorFormat("Landblock.HandleTownControl exception. Ex: {0}", ex);
-                }
+                //            var town = DatabaseManager.TownControl.GetTownById(townId.Value);
+                //            town.IsInConflict = false;
+                //            DatabaseManager.TownControl.UpdateTown(town);
+                //        }
+                //    }
+                //}
+                //catch (Exception ex)
+                //{
+                //    log.ErrorFormat("Landblock.HandleTownControl exception. Ex: {0}", ex);
+                //}
             }
         }
 

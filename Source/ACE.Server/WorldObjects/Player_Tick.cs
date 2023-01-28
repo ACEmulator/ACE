@@ -634,8 +634,8 @@ namespace ACE.Server.WorldObjects
                         if (PlayerKillerStatus == PlayerKillerStatus.PK && town.IsInConflict && tearsTimerLogic && satisfiesLevelReq)
                         {
                             Random rnd = new Random();
-                            var shouldDropTrophy = rnd.Next((int)PropertyManager.GetLong("tc_trophy_randomness").Item);
-                            if (shouldDropTrophy == 1)
+                            var shouldDropTrophy = rnd.NextDouble() <= PropertyManager.GetDouble("town_control_trophy_chance").Item;
+                            if (shouldDropTrophy)
                             {
                                 var tcTrophy = WorldObjectFactory.CreateNewWorldObject(1000002); //PK Trophy
                                 this.TryCreateInInventoryWithNetworking(tcTrophy);
