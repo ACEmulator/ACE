@@ -78,7 +78,7 @@ VALUES (42128708,   1, 0x02000001) /* Setup */
      , (42128708,   3, 0x20000001) /* SoundTable */
      , (42128708,   4, 0x30000000) /* CombatTable */
      , (42128708,   8, 0x06001036) /* Icon */
-     , (42128708,  57,      1000002) /* AlternateCurrency - PK Trophy */;
+     , (42128708,  57,      1000002) /* AlternateCurrency - Trade Note (250,000) */;
 
 INSERT INTO `weenie_properties_attribute` (`object_Id`, `type`, `init_Level`, `level_From_C_P`, `c_P_Spent`)
 VALUES (42128708,   1, 290, 0, 0) /* Strength */
@@ -197,8 +197,8 @@ VALUES (42128708, 2, 22015,  0, 21, 0.9, False) /* Create Pwyll's Guard (22015) 
 	, (42128708, 4, 480010,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
 	, (42128708, 4, 480011,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
 	 , (42128708, 4, 480014,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
-	 , (42128708, 4, 480017,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
-	, (42128708, 4, 480019,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
+	 , (42128708, 4, 30092,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
+	, (42128708, 4, 30093,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
 	, (42128708, 4, 1910506,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
 	, (42128708, 4, 4200141,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */;
 

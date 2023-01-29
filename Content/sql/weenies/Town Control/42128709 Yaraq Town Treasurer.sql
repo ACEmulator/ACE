@@ -78,7 +78,7 @@ VALUES (42128709,   1, 0x02000001) /* Setup */
      , (42128709,   3, 0x20000001) /* SoundTable */
      , (42128709,   4, 0x30000000) /* CombatTable */
      , (42128709,   8, 0x06001036) /* Icon */
-     , (42128709,  57,      1000002) /* AlternateCurrency - PK Trophy */;
+     , (42128709,  57,      1000002) /* AlternateCurrency - Trade Note (250,000) */;
 
 INSERT INTO `weenie_properties_attribute` (`object_Id`, `type`, `init_Level`, `level_From_C_P`, `c_P_Spent`)
 VALUES (42128709,   1, 290, 0, 0) /* Strength */
@@ -191,12 +191,15 @@ VALUES (42128709, 2, 12213,  0, 3, 0.9, False) /* Create Veil of Darkness (12213
 	, (42128709, 4, 450620,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
 	 , (42128709, 4, 450623,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
 	 , (42128709, 4, 460001,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+	 , (42128709, 4, 480002,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+	, (42128709, 4, 481000,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
 	, (42128709, 4, 480003,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
 	, (42128709, 4, 480005,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
     , (42128709, 4, 450610,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
     , (42128709, 4, 480022,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
 	, (42128709, 4, 1910505,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
 	, (42128709, 4, 4200141,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */;
+	
 /* Lifestoned Changelog:
 {
   "Changelog": [

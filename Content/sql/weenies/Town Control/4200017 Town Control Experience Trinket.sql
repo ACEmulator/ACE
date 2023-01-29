@@ -9,7 +9,7 @@ VALUES (4200017,   1,          8) /* ItemType - Jewelry */
      , (4200017,   9,   67108864) /* ValidLocations - TrinketOne */
      , (4200017,  16,          1) /* ItemUseable - No */
      , (4200017,  18,          1) /* UI Effects Magical */
-     , (4200017,  19,         25) /* Value */
+     , (4200017,  19,         10) /* Value */
      , (4200017,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (4200017, 106,         50) /* ItemSpellcraft */
      , (4200017, 107,       6000) /* ItemCurMana */

@@ -16,7 +16,7 @@ VALUES (450609,   1,        128) /* ItemType - Misc */
      , (450609,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (450609,  94,         16) /* TargetType - Creature */
      , (450609, 114,          1) /* Attuned - Attuned */
-     , (450609, 269,          1) /* UseCreateQuantity */;
+     , (450609, 269,          2) /* UseCreateQuantity */;
 
 INSERT INTO `weenie_properties_bool` (`object_Id`, `type`, `value`)
 VALUES (450609,  69, False) /* IsSellable */;
@@ -25,9 +25,9 @@ INSERT INTO `weenie_properties_float` (`object_Id`, `type`, `value`)
 VALUES (450609,  39,     0.5) /* DefaultScale */;
 
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)
-VALUES (450609,   1, 'Boxed Augmentation Gem') /* Name */
+VALUES (450609,   1, 'Boxed Augmentation Gems') /* Name */
      , (450609,  14, 'Use this crate to retrieve its contents.') /* Use */
-     , (450609,  16, 'A box containing a Blank Augmentation Gem.') /* LongDesc */;
+     , (450609,  16, 'A box containing two Blank Augmentation Gem.') /* LongDesc */;
 
 INSERT INTO `weenie_properties_d_i_d` (`object_Id`, `type`, `value`)
 VALUES (450609,   1, 0x0200011E) /* Setup */

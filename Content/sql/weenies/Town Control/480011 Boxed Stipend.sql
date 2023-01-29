@@ -16,7 +16,7 @@ VALUES (480011,   1,        128) /* ItemType - Misc */
      , (480011,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (480011, 114,          1) /* Attuned - Attuned */
 	 , (480011,  94,         16) /* TargetType - Creature */
-     , (480011, 269,         1) /* UseCreateQuantity */;;
+     , (480011, 269,         2) /* UseCreateQuantity */;;
 
 INSERT INTO `weenie_properties_bool` (`object_Id`, `type`, `value`)
 VALUES (480011,   1, False) /* Stuck */
@@ -27,9 +27,9 @@ VALUES (480011,   1, False) /* Stuck */
      , (480011,  69, False) /* IsSellable */;
 
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)
-VALUES (480011,   1, 'Boxed Stipend') /* Name */
+VALUES (480011,   1, 'Boxed Stipends') /* Name */
      , (480011,  14, 'Use this crate to retrieve its contents.') /* Use */
-     , (480011,  16, 'A box containing a stipend for service to Dereth. Stipends may be used to purchase special items at a stipend vendor.') /* LongDesc */;
+     , (480011,  16, 'A box containing two stipends for service to Dereth. Stipends may be used to purchase special items at a stipend vendor.') /* LongDesc */;
 
 
 INSERT INTO `weenie_properties_d_i_d` (`object_Id`, `type`, `value`)
