@@ -39,10 +39,24 @@ namespace ACE.Server.Mods
         public static void FindMods()
         {
             var modPath = Common.ConfigManager.Config.Server.ModsDirectory ??
-                Path.Combine(Directory.GetParent(Common.ConfigManager.Config.Server.DatFilesDirectory).FullName, "Mods");
+                Path.Combine(Directory.GetParent(Common.ConfigManager.Config.Server.DatFilesDirectory).Parent.FullName, "Mods");
 
             if (Common.ConfigManager.Config.Server.ModsDirectory is null)
                 log.Warn($"You are missing the ModsDirectory setting in your Config.js.  Defaulting to:\r\n{modPath}");
+
+            if (!Directory.Exists(modPath))
+            {
+                try
+                {
+                    Directory.CreateDirectory(modPath);
+                    log.Info($"Created mod folder at:\r\n{modPath}");
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"Failed to create mod folder:\r\n{modPath}");
+                    return;
+                }
+            }
 
             Mods = LoadMods(modPath);
             Mods = Mods.OrderByDescending(x => x.Meta.Priority).ToList();
