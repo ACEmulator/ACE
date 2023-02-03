@@ -33,6 +33,36 @@ namespace ACE.Server.Entity.TownControl
                 return _landblocks;
             }
         }
+
+        private static Dictionary<uint, uint[]> _rewardlandblocks;
+        public static Dictionary<uint, uint[]> TownControlRewardLandblocksMap
+        {
+            get
+            {
+                if (_rewardlandblocks == null)
+                {
+                    _rewardlandblocks = new Dictionary<uint, uint[]>();
+
+                    uint[] shoushiLandblocks = { 0xE9F1 };
+                    uint[] yaraqLandblocks = { 0x00AB };
+                    uint[] holtburgLandblocks = { 0x4FF1 };
+                    _rewardlandblocks.Add(
+                        72, holtburgLandblocks
+                    );
+
+                    _rewardlandblocks.Add(
+                        91, shoushiLandblocks
+                    );
+
+                    _rewardlandblocks.Add(
+                        102, yaraqLandblocks
+                    );
+                }
+
+                return _rewardlandblocks;
+            }
+        }
+
         /*
         private static Dictionary<uint, uint[]> _landcells;
         public static Dictionary<uint, uint[]> TownControlLandcellsMap
@@ -103,9 +133,36 @@ namespace ACE.Server.Entity.TownControl
             }
         }
 
+        public static List<uint> _townControlRewardLanblockList = null;
+        public static List<uint> TownControlRewardLanblockList
+        {
+            get
+            {
+                if (_townControlRewardLanblockList == null)
+                {
+                    _townControlRewardLanblockList = new List<uint>();
+
+                    foreach (uint key in TownControlRewardLandblocksMap.Keys)
+                    {
+                        foreach (uint landblockId in TownControlRewardLandblocksMap[key])
+                        {
+                            _townControlRewardLanblockList.Add(landblockId);
+                        }
+                    }
+                }
+
+                return _townControlRewardLanblockList;
+            }
+        }
+
         public static bool IsTownControlLandblock(uint landblockId)
         {
             return TownControlLandblocks.TownControlLanblockList.Contains(landblockId);
+        }
+
+        public static bool IsTownControlRewardLandblock(uint landblockId)
+        {
+            return TownControlLandblocks.TownControlRewardLanblockList.Contains(landblockId);
         }
 
         public static uint? GetTownIdByLandblockId(uint landblockId)

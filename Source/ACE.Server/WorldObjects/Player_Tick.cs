@@ -621,7 +621,7 @@ namespace ACE.Server.WorldObjects
                 if (CurrentLandblock == null)
                     return;
 
-                if (TownControlLandblocks.IsTownControlLandblock(this.Location.Landblock))
+                if (TownControlLandblocks.IsTownControlRewardLandblock(this.Location.Landblock))
                 {
                     var townId = TownControlLandblocks.GetTownIdByLandblockId(this.Location.Landblock);
 

@@ -1052,11 +1052,11 @@ namespace ACE.Server.WorldObjects
                         }
 
                         //Award bonus tears to attackers in the landblock
-                        var landblockList = TownControlLandblocks.TownControlLandblocksMap[town.TownId];
+                        var landblockList = TownControlLandblocks.TownControlRewardLandblocksMap[town.TownId];
                         var attackerList = new List<Player>();
                         foreach (var landblockId in landblockList)
                         {
-                            var landblock = LandblockManager.GetLandblock(new LandblockId(landblockId), false);
+                            var landblock = LandblockManager.GetLandblock(new LandblockId(landblockId << 16), false);
                             var players = landblock.GetCurrentLandblockPlayers();
                             foreach (var player in players)
                             {
@@ -1127,11 +1127,11 @@ namespace ACE.Server.WorldObjects
                         DatabaseManager.TownControl.UpdateTownControlEvent(tcEvent);
 
                         //Award bonus tears to defenders in the landblock
-                        var landblockList = TownControlLandblocks.TownControlLandblocksMap[town.TownId];
+                        var landblockList = TownControlLandblocks.TownControlRewardLandblocksMap[town.TownId];
                         var defenderList = new List<Player>();
                         foreach (var landblockId in landblockList)
                         {
-                            var landblock = LandblockManager.GetLandblock(new LandblockId(landblockId), false);
+                            var landblock = LandblockManager.GetLandblock(new LandblockId(landblockId << 16), false);
                             var players = landblock.GetCurrentLandblockPlayers();
                             foreach (var player in players)
                             {
