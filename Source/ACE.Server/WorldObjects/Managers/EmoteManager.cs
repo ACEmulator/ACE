@@ -1043,11 +1043,7 @@ namespace ACE.Server.WorldObjects.Managers
                         var currentPos = creature.Location;
 
                         var newPos = new Position();
-
-                        if ((emote.ObjCellId ?? 0) == 0)
-                            newPos.LandblockId = new LandblockId(currentPos.LandblockId.Raw);
-                        else
-                            newPos.LandblockId = new LandblockId(emote.ObjCellId.Value);
+                        newPos.LandblockId = new LandblockId(emote.ObjCellId ?? currentPos.LandblockId.Raw);
 
                         newPos.Pos = new Vector3(emote.OriginX ?? currentPos.Pos.X, emote.OriginY ?? currentPos.Pos.Y, emote.OriginZ ?? currentPos.Pos.Z);
 
