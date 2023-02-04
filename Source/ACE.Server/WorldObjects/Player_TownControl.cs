@@ -73,7 +73,7 @@ namespace ACE.Server.WorldObjects
             }
             catch(Exception ex)
             {
-                //TODO logging
+                log.Error($"Exception in HandleTownControlQuestStamps. Ex: {ex}");
             }
         }
     }
