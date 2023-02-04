@@ -661,15 +661,36 @@ namespace ACE.Server.WorldObjects
                     {
                         DeathTreasure.DisableSets = !Whitelist.IsEquipmentSetWhitelistedLandblock(this.CurrentLandblock.Id.Landblock);
                     }
+                    else
+                    {
+                        DeathTreasure.DisableSets = false;
+                    }
 
                     if (PropertyManager.GetBool("epic_whitelist_enabled").Item)
                     {
                         DeathTreasure.DisableEpicCantrips = !Whitelist.IsEpicWhitelistedLandblock(this.CurrentLandblock.Id.Landblock);
                     }
+                    else
+                    {
+                        DeathTreasure.DisableEpicCantrips = false;
+                    }
 
                     if (PropertyManager.GetBool("legendary_whitelist_enabled").Item)
                     {
                         DeathTreasure.DisableLegendaryCantrips = !Whitelist.IsLegendaryWhitelistedLandblock(this.CurrentLandblock.Id.Landblock);
+                    }
+                    else
+                    {
+                        DeathTreasure.DisableLegendaryCantrips = false;
+                    }
+
+                    if (PropertyManager.GetBool("aetheria_whitelist_enabled").Item)
+                    {
+                        DeathTreasure.DisableAetheria = !Whitelist.IsAetheriaWhitelistedLandblock(this.CurrentLandblock.Id.Landblock);
+                    }
+                    else
+                    {
+                        DeathTreasure.DisableAetheria = false;
                     }
                 }
 
