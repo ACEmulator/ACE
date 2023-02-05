@@ -129,6 +129,8 @@ namespace ACE.Server.WorldObjects
 
             HandleDBUpdates();
 
+            HandleTownControlQuestStamps();
+
             if (ServerManager.ShutdownInitiated)
             {
                 var actionChain = new ActionChain();

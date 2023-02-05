@@ -248,7 +248,7 @@ namespace ACE.Server.WorldObjects
                 var hasQuest = player.QuestManager.HasQuest(QuestRestriction);
                 var canSolve = player.QuestManager.CanSolve(QuestRestriction);
 
-                var success = hasQuest && !canSolve;
+                var success = (hasQuest && !canSolve) || QuestRestriction.Contains("TownControlOwner");
 
                 if (!success)
                 {

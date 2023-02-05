@@ -638,7 +638,7 @@ namespace ACE.Server.Managers
                 ("pvp_dispel_vuln_timer", new Property<long>(300, "the number of seconds where a player's dispel actions will not remove vulns after becoming involved in a PK battle")),
                 ("jump_limit", new Property<long>(7, "the number of jumps you can do before being penalized")),
                 ("jump_second_timer", new Property<long>(10, "the number of seconds cutoff for jumping")),
-                ("jump_penalty_length", new Property<long>(5, "the number of seconds you're penalized after hitting the jump limits"))
+                ("jump_penalty_length", new Property<long>(5, "the number of seconds you're penalized after hitting the jump limits"))                
                 );
 
         public static readonly ReadOnlyDictionary<string, Property<double>> DefaultDoubleProperties =
@@ -727,7 +727,8 @@ namespace ACE.Server.Managers
                 ("pvp_dmg_mod_tw_hollow", new Property<double>(1.0, "Scales the amount of damage for TW Hollow.")),
                 ("pvp_dmg_mod_tw_phantom", new Property<double>(1.0, "Scales the amount of damage for TW Phantom.")),
                 ("pvp_cs_critrate_mod", new Property<double>(1.0, "Scales the crit rate for CS")),
-                ("cloak_max_proc_rate", new Property<double>(25.0, "Cap cloak proc chance to this percentage (100.0 will effectively use the standard ACE proc rate)."))
+                ("cloak_max_proc_rate", new Property<double>(25.0, "Cap cloak proc chance to this percentage (100.0 will effectively use the standard ACE proc rate).")),
+                ("town_control_trophy_chance", new Property<double>(0.25, "the change that a town control trophy is given to a player that is within the landblock of an active town control event with each player tick"))
                 );
 
         public static readonly ReadOnlyDictionary<string, Property<string>> DefaultStringProperties =
