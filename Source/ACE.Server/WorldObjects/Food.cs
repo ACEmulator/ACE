@@ -100,8 +100,7 @@ namespace ACE.Server.WorldObjects
             var soundEvent = new GameMessageSound(player.Guid, GetUseSound(), 1.0f);
             player.EnqueueBroadcast(soundEvent);
 
-            if (!UnlimitedUse)
-                player.TryConsumeFromInventoryWithNetworking(this, 1);
+            player.TryConsumeFromInventoryWithNetworking(this, 1);
         }
 
         public void BoostVital(Player player)
