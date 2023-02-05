@@ -4,7 +4,7 @@ INSERT INTO `treasure_death` (`id`, `treasure_Type`, `tier`, `loot_Quality_Mod`,
 VALUES (2111 	/* id */
 	 , 2111		/* treasure_Type */
 	 , 8		/* tier */
-	 , 0.5		/* loot_Quality_Mod */
+	 , 0.3		/* loot_Quality_Mod */
 	 , 19		/* unknown_Chances */
 	 , 100		/* item_Chance */
 	 , 3		/* item_Min_Amount */

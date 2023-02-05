@@ -611,6 +611,7 @@ namespace ACE.Server.Managers
                 ("equipmentset_whitelist_enabled", new Property<bool>(true, "enable this to limit areas where Sets drop to whitelisted landblocks")),
                 ("epic_whitelist_enabled", new Property<bool>(true, "enable this to limit areas where Epic cantrips drop to whitelisted landblocks")),
                 ("legendary_whitelist_enabled", new Property<bool>(true, "enable this to limit areas where Legendary cantrips drop to whitelisted landblocks")),
+                ("aetheria_whitelist_enabled", new Property<bool>(true, "enable this to limit areas where aetheria drop to whitelisted landblocks")),
                 ("block_vpn_connections", new Property<bool>(false, "enable this to block user sessions from IPs identified as VPN proxies")),
                 ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world"))
                 );
@@ -741,9 +742,7 @@ namespace ACE.Server.Managers
                 ("server_motd", new Property<string>("", "Server message of the day")),
                 ("turbine_chat_webhook", new Property<string>("", "Webhook to be used for turbine chat. This is for copying ingame general chat channels to a Discord channel.")),
                 ("turbine_chat_webhook_audit", new Property<string>("", "Webhook to be used for ingame audit log.")),
-                ("proxycheck_api_key", new Property<string>("", "API key for proxycheck.io service for VPN detection")),
-                ("town_control_alleglist", new Property<string>("", "A comma separated list of MonarchID values to whitelist allegiances for participation in town control events")),
-                ("town_control_globals_webhook", new Property<string>("", "Webhook to be send Town Control global messages."))
+                ("proxycheck_api_key", new Property<string>("", "API key for proxycheck.io service for VPN detection"))
                 );
     }
 }
