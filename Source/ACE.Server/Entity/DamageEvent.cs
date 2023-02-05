@@ -526,6 +526,40 @@ namespace ACE.Server.Entity
                                     break;
 
                             }
+
+                            if(IsCritical)
+                            {
+                                switch (Weapon.WeaponSkill)
+                                {
+                                    case Skill.FinesseWeapons:
+                                        config_mod *= (float)PropertyManager.GetDouble("pvp_dmg_mod_fw_cb_crit").Item;
+                                        break;
+                                    case Skill.LightWeapons:
+                                        config_mod *= (float)PropertyManager.GetDouble("pvp_dmg_mod_lw_cb_crit").Item;
+                                        break;
+                                    case Skill.HeavyWeapons:
+                                        config_mod *= (float)PropertyManager.GetDouble("pvp_dmg_mod_hw_cb_crit").Item;
+                                        break;
+                                    case Skill.TwoHandedCombat:
+                                        config_mod *= (float)PropertyManager.GetDouble("pvp_dmg_mod_2h_cb_crit").Item;
+                                        break;
+                                    case Skill.MissileWeapons:
+                                        if (Weapon.DefaultCombatStyle != null && Weapon.DefaultCombatStyle == CombatStyle.Bow)
+                                        {
+                                            config_mod *= (float)PropertyManager.GetDouble("pvp_dmg_mod_bow_cb_crit").Item;
+                                        }
+                                        else if (Weapon.DefaultCombatStyle != null && Weapon.DefaultCombatStyle == CombatStyle.Crossbow)
+                                        {
+                                            config_mod *= (float)PropertyManager.GetDouble("pvp_dmg_mod_xbow_cb_crit").Item;
+                                        }
+                                        else if (Weapon.IsThrownWeapon || Weapon.IsAtlatl)
+                                        {
+                                            config_mod *= (float)PropertyManager.GetDouble("pvp_dmg_mod_tw_cb_crit").Item;
+                                        }
+                                        break;
+
+                                }
+                            }
                         }
                         else if (Weapon.HasImbuedEffect(ImbuedEffectType.CriticalStrike))
                         {

@@ -629,13 +629,25 @@ namespace ACE.Server.WorldObjects
                     if (SpellType == ProjectileSpellType.Streak)
                         dmgMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_war_streak").Item; // scales war streak damages
 
+                    if(criticalHit && weapon.HasImbuedEffect(ImbuedEffectType.CripplingBlow))
+                    {
+                        dmgMod *= (float)PropertyManager.GetDouble("pvp_dmg_mod_war_cb_crit").Item;
+                    }
+
                     finalDamage = finalDamage * dmgMod;
                 }
                 else if (Spell.DamageType == DamageType.Nether)
                 {
                     dmgMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_void").Item;
+
                     if (SpellType == ProjectileSpellType.Streak)
                         dmgMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_void_streak").Item; // scales void streak damages
+
+                    if (criticalHit && weapon.HasImbuedEffect(ImbuedEffectType.CripplingBlow))
+                    {
+                        dmgMod *= (float)PropertyManager.GetDouble("pvp_dmg_mod_void_cb_crit").Item;
+                    }
+
                     finalDamage = finalDamage * dmgMod;
                 }
             }
