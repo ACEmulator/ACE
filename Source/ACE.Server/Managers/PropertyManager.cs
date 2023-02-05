@@ -502,7 +502,6 @@ namespace ACE.Server.Managers
                 ("advanced_combat_pets", new Property<bool>(false, "(non-retail function) If enabled, Combat Pets can cast spells")),
                 ("advocate_fane_auto_bestow", new Property<bool>(false, "If enabled, Advocate Fane will automatically bestow new advocates to advocate_fane_auto_bestow_level")),
                 ("aetheria_heal_color", new Property<bool>(false, "If enabled, changes the aetheria healing over time messages from the default retail red color to green")),
-                ("allow_combat_mode_crafting", new Property<bool>(false, "If enabled, allows players to do crafting (recipes) from all stances. Forces players to NonCombat first, then continues to recipe action.")),
                 ("allow_door_hold", new Property<bool>(true, "enables retail behavior where standing on a door while it is closing keeps the door as ethereal until it is free from collisions, effectively holding the door open for other players")),
                 ("allow_fast_chug", new Property<bool>(true, "enables retail behavior where a player can consume food and drink faster than normal by breaking animation")),
                 ("allow_jump_loot", new Property<bool>(true, "enables retail behavior where a player can quickly loot items while jumping, bypassing the 'crouch down' animation")),
@@ -571,7 +570,7 @@ namespace ACE.Server.Managers
                 ("loot_quality_mod", new Property<bool>(true, "if FALSE then the loot quality modifier of a Death Treasure profile does not affect loot generation")),
                 ("npc_hairstyle_fullrange", new Property<bool>(false, "if TRUE, allows generated creatures to use full range of hairstyles. Retail only allowed first nine (0-8) out of 51")),
                 ("offline_xp_passup_limit", new Property<bool>(true, "if FALSE, allows unlimited xp to passup to offline characters in allegiances")),
-                ("olthoi_play_disabled", new Property<bool>(false, "if false, allows players to create and play as olthoi characters")),
+                ("olthoi_play_enabled", new Property<bool>(false, "allows players to create and play as olthoi characters")),
                 ("override_encounter_spawn_rates", new Property<bool>(false, "if enabled, landblock encounter spawns are overidden by double properties below.")),
                 ("permit_corpse_all", new Property<bool>(false, "If TRUE, /permit grants permittees access to all corpses of the permitter. Defaults to FALSE as per retail, where /permit only grants access to 1 locked corpse")),
                 ("persist_movement", new Property<bool>(false, "If TRUE, persists autonomous movements such as turns and sidesteps through non-autonomous server actions. Retail didn't appear to do this, but some players may prefer this.")),
@@ -612,7 +611,6 @@ namespace ACE.Server.Managers
                 ("equipmentset_whitelist_enabled", new Property<bool>(true, "enable this to limit areas where Sets drop to whitelisted landblocks")),
                 ("epic_whitelist_enabled", new Property<bool>(true, "enable this to limit areas where Epic cantrips drop to whitelisted landblocks")),
                 ("legendary_whitelist_enabled", new Property<bool>(true, "enable this to limit areas where Legendary cantrips drop to whitelisted landblocks")),
-                ("aetheria_whitelist_enabled", new Property<bool>(true, "enable this to limit areas where aetheria drop to whitelisted landblocks")),
                 ("block_vpn_connections", new Property<bool>(false, "enable this to block user sessions from IPs identified as VPN proxies")),
                 ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world"))
                 );
@@ -743,7 +741,9 @@ namespace ACE.Server.Managers
                 ("server_motd", new Property<string>("", "Server message of the day")),
                 ("turbine_chat_webhook", new Property<string>("", "Webhook to be used for turbine chat. This is for copying ingame general chat channels to a Discord channel.")),
                 ("turbine_chat_webhook_audit", new Property<string>("", "Webhook to be used for ingame audit log.")),
-                ("proxycheck_api_key", new Property<string>("", "API key for proxycheck.io service for VPN detection"))
+                ("proxycheck_api_key", new Property<string>("", "API key for proxycheck.io service for VPN detection")),
+                ("town_control_alleglist", new Property<string>("", "A comma separated list of MonarchID values to whitelist allegiances for participation in town control events")),
+                ("town_control_globals_webhook", new Property<string>("", "Webhook to be send Town Control global messages."))
                 );
     }
 }
