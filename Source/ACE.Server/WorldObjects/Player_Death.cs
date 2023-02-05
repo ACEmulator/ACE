@@ -17,6 +17,7 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Handlers;
 using ACE.Database;
+using ACE.Server.Entity.TownControl;
 
 namespace ACE.Server.WorldObjects
 {
@@ -630,6 +631,24 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         SetProperty(PropertyFloat.PkTrophyDropsToday, PkTrophyDropsToday.Value + 1);
+                    }
+                }
+
+                //Drop bonus trophy during active town control events
+                if (TownControlLandblocks.IsTownControlLandblock(this.Location.Landblock))
+                {
+                    //For Town Control landblocks that always drop a set number of pk trophies within a certain subset of cells
+                    var townId = TownControlLandblocks.GetTownIdByLandblockId(this.Location.Landblock);
+
+                    if (townId.HasValue)
+                    {
+                        var town = DatabaseManager.TownControl.GetTownById(townId.Value);
+                        if (town.IsInConflict)
+                        {
+                            var pkTrophy = WorldObjectFactory.CreateNewWorldObject(1000002);
+                            pkTrophy.SetStackSize(1);
+                            dropItems.Add(pkTrophy);
+                        }
                     }
                 }
             }
