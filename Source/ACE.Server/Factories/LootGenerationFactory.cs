@@ -129,7 +129,7 @@ namespace ACE.Server.Factories
                     // According to wiki, Weapon Mana Forge chests don't drop Aetheria
                     // An Aetheria drop was in addition to the normal drops of the mundane profile
                     // https://asheron.fandom.com/wiki/Announcements_-_2010/04_-_Shedding_Skin :: May 5th, 2010 entry
-                    if (profile.Tier > 4 && lootBias != LootBias.Weapons && dropRate > 0)
+                    if (profile.Tier > 4 && lootBias != LootBias.Weapons && dropRate > 0 && !profile.DisableAetheria)
                     {
                         if (ThreadSafeRandom.Next(1, (int) (100 * dropRateMod)) <= 2) // base 1% to drop aetheria?
                         {
@@ -257,6 +257,9 @@ namespace ACE.Server.Factories
 
         private static WorldObject TryRollAetheria(TreasureDeath profile)
         {
+            if (profile.DisableAetheria)
+                return null;
+
             var aetheria_drop_rate = (float)PropertyManager.GetDouble("aetheria_drop_rate").Item;
 
             if (aetheria_drop_rate <= 0.0f)
