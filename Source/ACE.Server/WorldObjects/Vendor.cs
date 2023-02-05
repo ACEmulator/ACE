@@ -15,6 +15,8 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Managers;
+using ACE.Server.Entity.TownControl;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -241,6 +243,41 @@ namespace ACE.Server.WorldObjects
             {
                 // should there be some sort of feedback to player here?
                 return;
+            }
+
+            //If this is a Town Control vendor, don't allow it to open inventory unless player's clan owns the town
+            if (TownControlVendors.IsTownControlVendor(this.WeenieClassId))
+            {
+                try
+                {
+                    bool playerOwnsTown = false;
+
+                    var tcVendor = TownControlVendors.TownControlVendorMap[this.WeenieClassId];
+                    var town = DatabaseManager.TownControl.GetTownById(tcVendor.TownID);
+
+                    var playerAlleg = AllegianceManager.GetAllegiance(player);
+                    if (playerAlleg != null)
+                    {
+                        var playerMonarchId = playerAlleg.MonarchId;
+                        var playerAllegName = playerAlleg.Monarch.Player.Name;
+
+                        if (town.CurrentOwnerID.HasValue && town.CurrentOwnerID.Value == playerMonarchId)
+                        {
+                            playerOwnsTown = true;
+                        }
+                    }
+
+                    if (!playerOwnsTown)
+                    {
+                        player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"Your clan does not own {town.TownName}!"));
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your clan does not own {town.TownName}.  Only the town owner may browse my wares.", ChatMessageType.Broadcast));
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.ErrorFormat("Exception applying Town Control behavior to vendor.  Vendor WeenieClassId = {0}, Ex: {1}", this.WeenieClassId, ex);
+                }
             }
 
             var rotateTime = Rotate(player);    // vendor rotates towards player
