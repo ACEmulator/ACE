@@ -608,10 +608,11 @@ namespace ACE.Server.Managers
                 ("use_wield_requirements", new Property<bool>(true, "disable this to bypass wield requirements. mostly for dev debugging")),
                 ("version_info_enabled", new Property<bool>(false, "toggles the /aceversion player command")),
                 ("vendor_shop_uses_generator", new Property<bool>(false, "enables or disables vendors using generator system in addition to createlist to create artificial scarcity")),
-                ("equipmentset_whitelist_enabled", new Property<bool>(true, "enable this to limit areas where Sets drop to whitelisted landblocks")),
-                ("epic_whitelist_enabled", new Property<bool>(true, "enable this to limit areas where Epic cantrips drop to whitelisted landblocks")),
-                ("legendary_whitelist_enabled", new Property<bool>(true, "enable this to limit areas where Legendary cantrips drop to whitelisted landblocks")),
-                ("aetheria_whitelist_enabled", new Property<bool>(true, "enable this to limit areas where aetheria drop to whitelisted landblocks")),
+                ("equipmentset_whitelist_enabled", new Property<bool>(false, "enable this to limit areas where Sets drop to whitelisted landblocks")),
+                ("epic_whitelist_enabled", new Property<bool>(false, "enable this to limit areas where Epic cantrips drop to whitelisted landblocks")),
+                ("legendary_whitelist_enabled", new Property<bool>(false, "enable this to limit areas where Legendary cantrips drop to whitelisted landblocks")),
+                ("aetheria_whitelist_enabled", new Property<bool>(false, "enable this to limit areas where aetheria drop to whitelisted landblocks")),
+                ("aetheria_highlevel_whitelist_enabled", new Property<bool>(false, "enable this to limit areas where level 4 and 5 aetheria drop to whitelisted landblocks")),
                 ("block_vpn_connections", new Property<bool>(false, "enable this to block user sessions from IPs identified as VPN proxies")),
                 ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world"))
                 );

@@ -516,6 +516,15 @@ namespace ACE.Server.Entity
                     {
                         deathTreasure.DisableAetheria = false;
                     }
+
+                    if (PropertyManager.GetBool("aetheria_highlevel_whitelist_enabled").Item)
+                    {
+                        deathTreasure.DisableHighLevelAetheria = landblockId.HasValue ? !Whitelist.IsAetheriaWhitelistedLandblock(landblockId.Value) : true;
+                    }
+                    else
+                    {
+                        deathTreasure.DisableHighLevelAetheria = false;
+                    }
                 }
 
                 return LootGenerationFactory.CreateRandomLootObjects(deathTreasure);

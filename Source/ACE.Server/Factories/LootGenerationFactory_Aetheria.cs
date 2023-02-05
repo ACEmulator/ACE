@@ -11,7 +11,7 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        private static WorldObject CreateAetheria(int tier, bool mutate = true)
+        private static WorldObject CreateAetheria(int tier, bool mutate = true, int maxLevel = 5)
         {
             int chance;
             uint aetheriaType;
@@ -45,7 +45,7 @@ namespace ACE.Server.Factories
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject(aetheriaType) as Gem;
 
             if (wo != null && mutate)
-                MutateAetheria(wo, tier);
+                MutateAetheria(wo, tier, maxLevel);
 
             return wo;
         }
@@ -59,7 +59,7 @@ namespace ACE.Server.Factories
             0x6006C38,  // 5
         };
 
-        private static void MutateAetheria(WorldObject wo, int tier)
+        private static void MutateAetheria(WorldObject wo, int tier, int maxLevel = 5)
         {
             // Initial roll for an Aetheria level 1 through 3
             wo.ItemMaxLevel = 1;
@@ -86,6 +86,9 @@ namespace ACE.Server.Factories
                     }
                 }
             }
+
+            wo.ItemMaxLevel = maxLevel < wo.ItemMaxLevel ? maxLevel : wo.ItemMaxLevel;
+
             wo.IconOverlayId = IconOverlay_ItemMaxLevel[wo.ItemMaxLevel.Value - 1];
         }
 
@@ -112,6 +115,8 @@ namespace ACE.Server.Factories
         private static void MutateAetheria_New(WorldObject wo, TreasureDeath profile)
         {
             wo.ItemMaxLevel = AetheriaChance.Roll_ItemMaxLevel(profile);
+
+            wo.ItemMaxLevel = profile.DisableHighLevelAetheria && wo.ItemMaxLevel > 3 ? 3 : wo.ItemMaxLevel;
 
             wo.IconOverlayId = IconOverlay_ItemMaxLevel[wo.ItemMaxLevel.Value - 1];
         }
