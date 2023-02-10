@@ -10,7 +10,7 @@ VALUES (450029,   1,          4) /* ItemType - Clothing */
      , (450029,   5,        0) /* EncumbranceVal */
      , (450029,   9,      512) /* ValidLocations - Armor */
      , (450029,  16,          1) /* ItemUseable - No */
-     , (450029,  19,         0) /* Value */
+     , (450029,  19,         20) /* Value */
      , (450029,  28,          20) /* ArmorLevel */
      , (450029,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */;
 

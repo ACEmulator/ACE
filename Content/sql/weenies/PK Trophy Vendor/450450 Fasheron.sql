@@ -188,6 +188,7 @@ VALUES (@parent_id,  0,   5 /* Motion */, 0, 1, 0x13000083 /* Nod */, NULL, NULL
 
 INSERT INTO `weenie_properties_create_list` (`object_Id`, `destination_Type`, `weenie_Class_Id`, `stack_Size`, `palette`, `shade`, `try_To_Bond`)
 VALUES (450450, 4, 450531,  0, 0, 0, False) /* Create Gelidite Robe (450531) for Shop */
+     , (450450, 4, 450789,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
      , (450450, 4, 450009,  0, 0, 0, False) /* Create Gelidite Robe (450009) for Shop */
      , (450450, 4, 450010,  0, 0, 0, False) /* Create Vestiri Robe (450010) for Shop */
      , (450450, 4, 450011,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
@@ -462,6 +463,7 @@ VALUES (450450, 4, 450531,  0, 0, 0, False) /* Create Gelidite Robe (450531) for
      , (450450, 4, 1030862,  0, 0, 0, False) /* Create Banished Nekode (1030862) for Shop */
      , (450450, 4, 1038910,  0, 0, 0, False) /* Create Blighted Claw (1038910) for Shop */
      , (450450, 4, 4200137,  0, 0, 0, False) /* Create Hamud's Pyreal Katar (4200137) for Shop */
+	 , (450450, 4, 450791,  0, 0, 0, False) /* Create Paradox-touched Olthoi Wand (450765) for Shop */
      , (450450, 4, 1025905,  0, 0, 0, False) /* Create Needletooth (1025905) for Shop */
      , (450450, 4, 1023547,  0, 0, 0, False) /* Create Fang Mace (1023547) for Shop */
      , (450450, 4, 1024027,  0, 0, 0, False) /* Create Scepter of Thunderous Might (1024027) for Shop */
@@ -565,10 +567,17 @@ VALUES (450450, 4, 450531,  0, 0, 0, False) /* Create Gelidite Robe (450531) for
      , (450450, 4, 450164,  0, 0, 0, False) /* Create Dusk Coat (450164) for Shop */
      , (450450, 4, 450165,  0, 0, 0, False) /* Create Dusk Leggings (450165) for Shop */
      , (450450, 4, 450168,  0, 0, 0, False) /* Create Valkeer's Helm (450168) for Shop */
+	 , (450450, 4, 450790,  0, 0, 0, False) /* Create Paradox-touched Olthoi Wand (450765) for Shop */
      , (450450, 4, 450169,  0, 0, 0, False) /* Create Adept's Fervor (450169) for Shop */
      , (450450, 4, 450162,  0, 0, 0, False) /* Create Footman's Boots (450162) for Shop */
      , (450450, 4, 450163,  0, 0, 0, False) /* Create Steel Wall Boots (450163) for Shop */
      , (450450, 4, 4200096,  0, 0, 0, False) /* Create Tracker Boots (4200096) for Shop */
+	 , (450450, 4, 450783,  0, 0, 0, False) /* Create Paradox-touched Olthoi Wand (450765) for Shop */
+	 , (450450, 4, 450784,  0, 0, 0, False) /* Create Banished Orb (450752) for Shop */
+     , (450450, 4, 450785,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
+     , (450450, 4, 450786,  0, 0, 0, False) /* Create Paradox-touched Olthoi Wand (450765) for Shop */
+	 , (450450, 4, 450787,  0, 0, 0, False) /* Create Paradox-touched Olthoi Wand (450765) for Shop */
+	 , (450450, 4, 450788,  0, 0, 0, False) /* Create Banished Orb (450752) for Shop */
      , (450450, 4, 450077,  0, 0, 0, False) /* Create Ursuin Guise (450077) for Shop */
      , (450450, 4, 450110,  0, 0, 0, False) /* Create Wooden Scarecrow Guise (450110) for Shop */
      , (450450, 4, 450112,  0, 0, 0, False) /* Create Mu-miyah Guise (450112) for Shop */
@@ -953,4 +962,26 @@ VALUES (450450, 4, 450531,  0, 0, 0, False) /* Create Gelidite Robe (450531) for
      , (450450, 4, 450752,  0, 0, 0, False) /* Create Banished Orb (450752) for Shop */
      , (450450, 4, 450754,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
      , (450450, 4, 450765,  0, 0, 0, False) /* Create Paradox-touched Olthoi Wand (450765) for Shop */
-	 , (450450, 4, 450753,  0, 0, 0, False) /* Create Paradox-touched Olthoi Wand (450765) for Shop */;
+	 , (450450, 4, 450753,  0, 0, 0, False) /* Create Paradox-touched Olthoi Wand (450765) for Shop */
+     , (450450, 4, 450770,  0, 0, 0, False) /* Create Herald's Staff of the Lightbringer (450743) for Shop */
+     , (450450, 4, 450771,  0, 0, 0, False) /* Create Shendolain Staff of the Lightbringer (450766) for Shop */
+     , (450450, 4, 450772,  0, 0, 0, False) /* Create Staff of the Painbringer (450751) for Shop */
+     , (450450, 4, 450773,  0, 0, 0, False) /* Create Banderling Wand (450744) for Shop */
+     , (450450, 4, 450774,  0, 0, 0, False) /* Create Drudge Wand (450745) for Shop */
+     , (450450, 4, 450775,  0, 0, 0, False) /* Create Mosswart Wand (450746) for Shop */
+     , (450450, 4, 450776,  0, 0, 0, False) /* Create Skull Wand (450747) for Shop */
+     , (450450, 4, 450777,  0, 0, 0, False) /* Create Tusker Wand (450748) for Shop */
+     , (450450, 4, 450778,  0, 0, 0, False) /* Create Tusker Paw Wand (450749) for Shop */
+     , (450450, 4, 450779,  0, 0, 0, False) /* Create Shendolain Soul Crystal Orb (450750) for Shop */
+     , (450450, 4, 450780,  0, 0, 0, False) /* Create Banished Orb (450752) for Shop */
+     , (450450, 4, 450781,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
+     , (450450, 4, 450782,  0, 0, 0, False) /* Create Paradox-touched Olthoi Wand (450765) for Shop */;
+	 
+	 
+
+	 
+	 
+
+
+	 
+	 
