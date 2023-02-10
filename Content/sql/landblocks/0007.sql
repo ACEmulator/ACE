@@ -705,5 +705,5 @@ VALUES (0x700070AF, 43004, 0x00070187, 146.565, -80.047, -0.063, 0.707107, 0, 0,
 /* @teleloc 0x00070187 [146.565002 -80.046997 -0.063000] 0.707107 0.000000 0.000000 -0.707107 */
 
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
-VALUES (0x700070B0, 4200005, 0x00070143, 70.0676, -64.9198, 0.005, 1, 0, 0, 0, False, '2022-11-09 21:43:31'); /* Anti Parazi */
+VALUES (0x700070B0, 4210005, 0x00070143, 70.0676, -64.9198, 0.005, 1, 0, 0, 0, False, '2022-11-09 21:43:31'); /* Anti Parazi */
 /* @teleloc 0x00070143 [70.067596 -64.919800 0.005000] 1.000000 0.000000 0.000000 0.000000 */
