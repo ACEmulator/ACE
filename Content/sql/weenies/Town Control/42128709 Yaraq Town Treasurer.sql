@@ -197,7 +197,6 @@ VALUES (42128709, 2, 12213,  0, 3, 0.9, False) /* Create Veil of Darkness (12213
 	, (42128709, 4, 480005,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
     , (42128709, 4, 450610,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
     , (42128709, 4, 480022,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
-	, (42128709, 4, 1910505,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
 	, (42128709, 4, 4200141,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */;
 	
 /* Lifestoned Changelog:

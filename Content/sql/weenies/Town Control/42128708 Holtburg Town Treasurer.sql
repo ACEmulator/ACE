@@ -199,7 +199,6 @@ VALUES (42128708, 2, 22015,  0, 21, 0.9, False) /* Create Pwyll's Guard (22015) 
 	 , (42128708, 4, 480014,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
 	 , (42128708, 4, 30092,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
 	, (42128708, 4, 30093,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
-	, (42128708, 4, 1910506,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
 	, (42128708, 4, 4200141,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */;
 
 /* Lifestoned Changelog:
