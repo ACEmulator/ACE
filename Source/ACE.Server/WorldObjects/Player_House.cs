@@ -48,11 +48,11 @@ namespace ACE.Server.WorldObjects
             // Housing Disabled (apartments only).
             if (slumlord.House.HouseType == HouseType.Apartment
                 || slumlord.House.HouseType == HouseType.Cottage
-                //|| slumlord.House.HouseType == HouseType.Villa
+                || slumlord.House.HouseType == HouseType.Villa
                 //|| slumlord.House.HouseType == HouseType.Mansion
                 )
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat("Only Mansions and Villas are available for purchase at this time...", ChatMessageType.Broadcast));
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Only Mansions are available for purchase at this time...", ChatMessageType.Broadcast));
                 return;
             }
 
