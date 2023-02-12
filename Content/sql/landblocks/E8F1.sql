@@ -99,3 +99,7 @@ VALUES (0x7E8F101A, 1910466, 0xE8F1003C, 175.574, 93.7928, 0.055, 0.017825, 0, 0
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
 VALUES (0x7E8F101B, 1910466, 0xE8F1003D, 174.427, 106.895, 0.055, -0.37809, 0, 0, -0.925769, False, '2023-02-11 20:28:00'); /* VRtree1 */
 /* @teleloc 0xE8F1003D [174.427002 106.894997 0.055000] -0.378090 0.000000 0.000000 -0.925769 */
+
+INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
+VALUES (0x7E8F101C, 5000216, 0xE8F10039, 184.0625, 13.01445, 0.055, 0.598707, 0, 0, 0.800968, False, '2023-02-12 10:14:54'); /* Gate */
+/* @teleloc 0xE8F10039 [184.062500 13.014450 0.055000] 0.598707 0.000000 0.000000 0.800968 */

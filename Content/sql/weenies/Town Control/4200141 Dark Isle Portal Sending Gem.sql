@@ -33,7 +33,7 @@ VALUES (4200141,  76,     0.5) /* Translucency */;
 
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)
 VALUES (4200141,   1, 'Dark Isle Portal Sending Gem') /* Name */
-     , (4200141,  14, 'Double Click on this portal gem to transport yourself to Dark Isle.') /* Use */
+     , (4200141,  14, 'Double Click on this portal gem to summon a portal to Dark Isle.') /* Use */
      , (4200141,  15, 'A glowing red gem.') /* ShortDesc */;
 
 INSERT INTO `weenie_properties_d_i_d` (`object_Id`, `type`, `value`)

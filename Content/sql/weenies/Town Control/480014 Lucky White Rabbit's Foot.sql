@@ -9,7 +9,7 @@ VALUES (480014,   1, 128) /* ItemType - TinkeringMaterial */
      , (480014,  11,          1) /* MaxStackSize */
      , (480014,  12,          1) /* StackSize */
      , (480014,  13,         25) /* StackUnitEncumbrance */
-     , (480014,  15,          0) /* StackUnitValue */
+     , (480014,  15,          250) /* StackUnitValue */
      , (480014,  16,     524296) /* ItemUseable - SourceContainedTargetContained */
      , (480014,  19,          250) /* Value */
      , (480014,  33,          1) /* Bonded - Bonded */

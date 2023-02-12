@@ -214,7 +214,8 @@ VALUES (42128708, 2, 22015,  0, 21, 0.9, False) /* Create Pwyll's Guard (22015) 
      , (42128708, 4, 30088,  0, 0, 0, False) /* Create Burning Blunt (4200020) for Shop */
      , (42128708, 4, 30089,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
 	 , (42128708, 4, 30090,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
-	 , (42128708, 4, 30091,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */;
+	 , (42128708, 4, 30091,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
+	 , (42128708, 4, 30082,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */;
 
 /* Lifestoned Changelog:
 {

@@ -211,8 +211,8 @@ VALUES (42128709, 2, 12213,  0, 3, 0.9, False) /* Create Veil of Darkness (12213
      , (42128709, 4, 30088,  0, 0, 0, False) /* Create Burning Blunt (4200020) for Shop */
      , (42128709, 4, 30089,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
 	 , (42128709, 4, 30090,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
-	 , (42128709, 4, 30091,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */;
-	
+	 , (42128709, 4, 30091,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
+	, (42128709, 4, 30082,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */;
 	
 
 	

@@ -9,7 +9,7 @@ VALUES (450610,   1,        128) /* ItemType - Misc */
      , (450610,  11,          1) /* MaxStackSize */
      , (450610,  12,          1) /* StackSize */
      , (450610,  13,         50) /* StackUnitEncumbrance */
-     , (450610,  15,          4) /* StackUnitValue */
+     , (450610,  15,          10) /* StackUnitValue */
      , (450610,  16,          8) /* ItemUseable - Contained */
      , (450610,  19,          10) /* Value */
      , (450610,  33,          1) /* Bonded - Bonded */

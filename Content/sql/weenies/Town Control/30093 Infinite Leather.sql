@@ -12,7 +12,7 @@ VALUES (30093,   1,        128) /* ItemType - Misc */
      , (30093,  12,          1) /* StackSize */
      , (30093,  13,          5) /* StackUnitEncumbrance */
      , (30093,  14,          5) /* StackUnitMass */
-     , (30093,  15,          0) /* StackUnitValue */
+     , (30093,  15,          500) /* StackUnitValue */
      , (30093,  16,     524296) /* ItemUseable - SourceContainedTargetContained */
      , (30093,  17,        152) /* RareId */
      , (30093,  19,          500) /* Value */

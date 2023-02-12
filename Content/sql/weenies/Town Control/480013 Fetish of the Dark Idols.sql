@@ -12,7 +12,7 @@ VALUES (480013,   1,        128) /* ItemType - Misc */
      , (480013,  12,          1) /* StackSize */
      , (480013,  13,        700) /* StackUnitEncumbrance */
      , (480013,  14,        700) /* StackUnitMass */
-     , (480013,  15,          1) /* StackUnitValue */
+     , (480013,  15,          250) /* StackUnitValue */
      , (480013,  16,     524296) /* ItemUseable - SourceContainedTargetContained */
      , (480013,  19,         250) /* Value */
      , (480013,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
