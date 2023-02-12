@@ -186,9 +186,6 @@ VALUES (42128708, 2, 22015,  0, 21, 0.9, False) /* Create Pwyll's Guard (22015) 
 	 , (42128708, 4, 4200021,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
 	 , (42128708, 4, 4200017,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
 	 , (42128708, 4, 4200020,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
-     , (42128708, 4, 450619,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
-	 , (42128708, 4, 450621,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
-	 , (42128708, 4, 450622,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
 	 , (42128708, 4, 480000,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
 	 , (42128708, 4, 480001,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
 	 , (42128708, 4, 2031668,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
@@ -199,7 +196,25 @@ VALUES (42128708, 2, 22015,  0, 21, 0.9, False) /* Create Pwyll's Guard (22015) 
 	 , (42128708, 4, 480014,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
 	 , (42128708, 4, 30092,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
 	, (42128708, 4, 30093,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
-	, (42128708, 4, 4200141,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */;
+	, (42128708, 4, 4200141,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+	, (42128708, 4, 8037,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+	, (42128708, 4, 8039,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
+	, (42128708, 4, 8041,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
+	, (42128708, 4, 8644,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
+     , (42128708, 4, 8646,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+     , (42128708, 4, 8648,  0, 0, 0, False) /* Create Burning Blunt (4200020) for Shop */
+     , (42128708, 4, 11553,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
+	 , (42128708, 4, 11554,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
+	 , (42128708, 4, 11555,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
+	 , (42128708, 4, 30083,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
+	, (42128708, 4, 30084,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
+	, (42128708, 4, 30085,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
+	, (42128708, 4, 30086,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
+     , (42128708, 4, 30087,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+     , (42128708, 4, 30088,  0, 0, 0, False) /* Create Burning Blunt (4200020) for Shop */
+     , (42128708, 4, 30089,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
+	 , (42128708, 4, 30090,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
+	 , (42128708, 4, 30091,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */;
 
 /* Lifestoned Changelog:
 {
