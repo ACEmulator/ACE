@@ -13,9 +13,9 @@ VALUES (11554,   1,    4194304) /* ItemType - CraftCookingBase */
      , (11554,  12,          1) /* StackSize */
      , (11554,  13,          5) /* StackUnitEncumbrance */
      , (11554,  14,         50) /* StackUnitMass */
-     , (11554,  15,         5) /* StackUnitValue */
+     , (11554,  15,         1) /* StackUnitValue */
      , (11554,  16,          1) /* ItemUseable - No */
-     , (11554,  19,         5) /* Value */
+     , (11554,  19,         1) /* Value */
      , (11554,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (11554, 150,        103) /* HookPlacement - Hook */
      , (11554, 151,          9) /* HookType - Floor, Yard */;

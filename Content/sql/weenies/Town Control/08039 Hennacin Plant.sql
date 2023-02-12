@@ -13,9 +13,9 @@ VALUES (8039,   1,    4194304) /* ItemType - CraftCookingBase */
      , (8039,  12,          1) /* StackSize */
      , (8039,  13,          5) /* StackUnitEncumbrance */
      , (8039,  14,         50) /* StackUnitMass */
-     , (8039,  15,         5) /* StackUnitValue */
+     , (8039,  15,         1) /* StackUnitValue */
      , (8039,  16,          1) /* ItemUseable - No */
-     , (8039,  19,         5) /* Value */
+     , (8039,  19,         1) /* Value */
      , (8039,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (8039, 150,        103) /* HookPlacement - Hook */
      , (8039, 151,          9) /* HookType - Floor, Yard */;
