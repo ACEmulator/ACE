@@ -5,6 +5,7 @@ using System.Numerics;
 
 using ACE.Common;
 using ACE.Database;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
@@ -628,23 +629,64 @@ namespace ACE.Server.WorldObjects
                     if (townId.HasValue)
                     {
                         //Console.WriteLine($"{inLandblock}");
-                        var town = DatabaseManager.TownControl.GetTownById(townId.Value);
-                        var tearsTimerLogic = TownControlTrophyTimer == null ? true : Time.GetUnixTime() > TownControlTrophyTimer;
-                        var satisfiesLevelReq = this.Level >= PropertyManager.GetLong("town_control_currency_level_minimum").Item;
-                        if (PlayerKillerStatus == PlayerKillerStatus.PK && town.IsInConflict && tearsTimerLogic && satisfiesLevelReq)
+                        var town = DatabaseManager.TownControl.GetTownById(townId.Value);                        
+                        if (!town.IsInConflict)
+                            return;
+
+                        bool shouldDropTrophy = true;
+
+                        //Don't award trophies to characters under the minimum level
+                        if (this.Level < PropertyManager.GetLong("town_control_reward_level_minimum").Item)
+                            shouldDropTrophy = false;
+
+                        //Don't award trohpies to characters who are not PK
+                        if (PlayerKillerStatus != PlayerKillerStatus.PK)
+                            shouldDropTrophy = false;
+
+                        //Don't award trophies to players who have received one too recently
+                        if (TownControlTrophyTimer == null ? false : Time.GetUnixTime() < TownControlTrophyTimer)
+                            shouldDropTrophy = false;
+
+                        //Check if too many players from same clan are in the same landblock
+                        if(shouldDropTrophy)
                         {
-                            Random rnd = new Random();
-                            var shouldDropTrophy = rnd.NextDouble() <= PropertyManager.GetDouble("town_control_trophy_chance").Item;
-                            if (shouldDropTrophy)
+                            var zergLimit = PropertyManager.GetLong("town_control_reward_zerg_limit").Item;
+                            var playersOnLandblock = this.CurrentLandblock?.GetCurrentLandblockPlayers();
+                            int playersInSameClan = 0;
+                            if (playersOnLandblock != null && playersOnLandblock.Count > 0)
                             {
-                                var tcTrophy = WorldObjectFactory.CreateNewWorldObject(1000002); //PK Trophy
-                                this.TryCreateInInventoryWithNetworking(tcTrophy);
-                                Session.Network.EnqueueSend(new GameMessageCreateObject(tcTrophy));
-                                var msg = new GameMessageSystemChat($"You have received a participation trophy.", ChatMessageType.Broadcast);
-                                Session.Network.EnqueueSend(msg);
+                                var thisPlayerAllegiance = AllegianceManager.GetAllegiance(this);
+                                if (thisPlayerAllegiance != null)
+                                {
+                                    foreach (var player in playersOnLandblock)
+                                    {
+                                        var landblockPlayerAllegiance = AllegianceManager.GetAllegiance(player);
+
+                                        if (landblockPlayerAllegiance != null)
+                                        {
+                                            if(thisPlayerAllegiance.MonarchId == landblockPlayerAllegiance.MonarchId)
+                                            {
+                                                playersInSameClan++;
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                            SetProperty(PropertyFloat.TownControlTrophyTimer, Time.GetFutureUnixTime(PropertyManager.GetLong("tc_trophy_seconds").Item)); // every 30 (default 30) seconds of participation, you get a town control trophy
+
+                            if (playersInSameClan > zergLimit)
+                                shouldDropTrophy = false;
                         }
+
+                        //If all validation passed, award a trophy and set the timestamp for next trophy award
+                        if (shouldDropTrophy)
+                        {
+                            var tcTrophy = WorldObjectFactory.CreateNewWorldObject(1000002); //PK Trophy
+                            this.TryCreateInInventoryWithNetworking(tcTrophy);
+                            Session.Network.EnqueueSend(new GameMessageCreateObject(tcTrophy));
+                            var msg = new GameMessageSystemChat($"You have received a participation trophy.", ChatMessageType.Broadcast);
+                            Session.Network.EnqueueSend(msg);
+                            SetProperty(PropertyFloat.TownControlTrophyTimer, Time.GetFutureUnixTime(PropertyManager.GetLong("town_control_periodic_reward_seconds").Item));
+                        }                        
                     }
                 }
             }
