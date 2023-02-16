@@ -634,6 +634,8 @@ namespace ACE.Server.WorldObjects
                             return;
 
                         bool shouldDropTrophy = true;
+                        string trophyValidationMsg = "";
+                        var isDefender = false;
 
                         //Don't award trophies to characters under the minimum level
                         if (this.Level < PropertyManager.GetLong("town_control_reward_level_minimum").Item)
@@ -658,6 +660,9 @@ namespace ACE.Server.WorldObjects
                                 var thisPlayerAllegiance = AllegianceManager.GetAllegiance(this);
                                 if (thisPlayerAllegiance != null)
                                 {
+                                    if (thisPlayerAllegiance.MonarchId == town.CurrentOwnerID)
+                                        isDefender = true;
+
                                     foreach (var player in playersOnLandblock)
                                     {
                                         var landblockPlayerAllegiance = AllegianceManager.GetAllegiance(player);
@@ -674,7 +679,10 @@ namespace ACE.Server.WorldObjects
                             }
 
                             if (playersInSameClan > zergLimit)
+                            {
                                 shouldDropTrophy = false;
+                                trophyValidationMsg = $"No participation trophy for you! Your clan has exceeded the zerg limit of {zergLimit} players.";
+                            }
                         }
 
                         //If all validation passed, award a trophy and set the timestamp for next trophy award
@@ -685,8 +693,12 @@ namespace ACE.Server.WorldObjects
                             Session.Network.EnqueueSend(new GameMessageCreateObject(tcTrophy));
                             var msg = new GameMessageSystemChat($"You have received a participation trophy.", ChatMessageType.Broadcast);
                             Session.Network.EnqueueSend(msg);
-                            SetProperty(PropertyFloat.TownControlTrophyTimer, Time.GetFutureUnixTime(PropertyManager.GetLong("town_control_periodic_reward_seconds").Item));
-                        }                        
+                            SetProperty(PropertyFloat.TownControlTrophyTimer, Time.GetFutureUnixTime(isDefender ? PropertyManager.GetLong("town_control_periodic_reward_defender_seconds").Item : PropertyManager.GetLong("town_control_periodic_reward_seconds").Item));
+                        }
+                        else if(!String.IsNullOrEmpty(trophyValidationMsg))
+                        {
+                            Session.Network.EnqueueSend(new GameMessageSystemChat(trophyValidationMsg, ChatMessageType.Broadcast));
+                        }
                     }
                 }
             }

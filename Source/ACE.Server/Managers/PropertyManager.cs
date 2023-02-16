@@ -642,7 +642,8 @@ namespace ACE.Server.Managers
                 ("jump_penalty_length", new Property<long>(5, "the number of seconds you're penalized after hitting the jump limits")),
                 ("town_control_reward_level_minimum", new Property<long>(100, "the minimum level a player has to be to receive town control rewards")),
                 ("town_control_reward_zerg_limit", new Property<long>(9, "the maximum numbers of players from the same clan allowed in the town control conflict landblock")), 
-                ("town_control_periodic_reward_seconds", new Property<long>(50, "the number seconds between periodic trophy awards during an active town control event"))
+                ("town_control_periodic_reward_seconds", new Property<long>(50, "the number seconds between periodic trophy awards during an active town control event")),
+                ("town_control_periodic_reward_defender_seconds", new Property<long>(25, "the number seconds between periodic trophy awards during an active town control event for the defending clan"))
                 );
 
         public static readonly ReadOnlyDictionary<string, Property<double>> DefaultDoubleProperties =
