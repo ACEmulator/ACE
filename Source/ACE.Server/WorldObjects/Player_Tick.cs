@@ -634,6 +634,7 @@ namespace ACE.Server.WorldObjects
                             return;
 
                         bool shouldDropTrophy = true;
+                        bool isTrophyTimerPast = false;
                         string trophyValidationMsg = "";
                         var isDefender = false;
 
@@ -647,7 +648,13 @@ namespace ACE.Server.WorldObjects
 
                         //Don't award trophies to players who have received one too recently
                         if (TownControlTrophyTimer == null ? false : Time.GetUnixTime() < TownControlTrophyTimer)
+                        {
                             shouldDropTrophy = false;
+                        }
+                        else
+                        {
+                            isTrophyTimerPast = true;
+                        }
 
                         //Check if too many players from same clan are in the same landblock
                         if(shouldDropTrophy)
@@ -682,6 +689,7 @@ namespace ACE.Server.WorldObjects
                             {
                                 shouldDropTrophy = false;
                                 trophyValidationMsg = $"No participation trophy for you! Your clan has exceeded the zerg limit of {zergLimit} players.";
+                                SetProperty(PropertyFloat.TownControlTrophyTimer, Time.GetFutureUnixTime(isDefender ? PropertyManager.GetLong("town_control_periodic_reward_defender_seconds").Item : PropertyManager.GetLong("town_control_periodic_reward_seconds").Item));
                             }
                         }
 
@@ -695,7 +703,7 @@ namespace ACE.Server.WorldObjects
                             Session.Network.EnqueueSend(msg);
                             SetProperty(PropertyFloat.TownControlTrophyTimer, Time.GetFutureUnixTime(isDefender ? PropertyManager.GetLong("town_control_periodic_reward_defender_seconds").Item : PropertyManager.GetLong("town_control_periodic_reward_seconds").Item));
                         }
-                        else if(!String.IsNullOrEmpty(trophyValidationMsg))
+                        else if(!String.IsNullOrEmpty(trophyValidationMsg) && isTrophyTimerPast)
                         {
                             Session.Network.EnqueueSend(new GameMessageSystemChat(trophyValidationMsg, ChatMessageType.Broadcast));
                         }
