@@ -827,9 +827,11 @@ namespace ACE.Server.WorldObjects
             0x5963,     // Gauntlet Arena Two (Eldritch Web)
             0x5964,     // Gauntlet Arena One (Radiant Blood)
             0x5965,     // Gauntlet Arena Two (Radiant Blood)
-            0xE9F1,     //Town Control Conflict Area
-            0x00AB,     //Town Control Conflict Area
-            0x4FF1      //Town Control Conflict Area
+            0x00AB,     //Town Control Conflict Area - Yaraq
+            0x4FF1,     //Town Control Conflict Area - Holt
+            0xE9F0,     //Town Control Conflict Area - Shoushi - Hidden Forest
+            0xE9F1,     //Town Control Conflict Area - Shoushi - Hidden Forest
+            0xE8F1      //Town Control Conflict Area - Shoushi - Hidden Forest
         };
 
         /// <summary>

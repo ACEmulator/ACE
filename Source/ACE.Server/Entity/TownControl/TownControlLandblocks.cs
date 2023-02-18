@@ -14,7 +14,7 @@ namespace ACE.Server.Entity.TownControl
                 {
                     _landblocks = new Dictionary<uint, uint[]>();
 
-                    uint[] shoushiLandblocks = { 0xDE51, 0xE9F1 };
+                    uint[] shoushiLandblocks = { 0xDE51, 0xE9F1, 0xE8F1, 0xE9F0 };
                     uint[] yaraqLandblocks = { 0x8164, 0x8165, 0x00AB };
                     uint[] holtburgLandblocks = { 0xA9B4, 0x4FF1 };
                     _landblocks.Add(
@@ -43,7 +43,7 @@ namespace ACE.Server.Entity.TownControl
                 {
                     _rewardlandblocks = new Dictionary<uint, uint[]>();
 
-                    uint[] shoushiLandblocks = { 0xE9F1 };
+                    uint[] shoushiLandblocks = { 0xE9F0, 0xE9F1, 0xE8F1 };
                     uint[] yaraqLandblocks = { 0x00AB };
                     uint[] holtburgLandblocks = { 0x4FF1 };
                     _rewardlandblocks.Add(
