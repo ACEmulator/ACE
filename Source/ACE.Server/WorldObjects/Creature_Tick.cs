@@ -69,6 +69,22 @@ namespace ACE.Server.WorldObjects
                             var dmgHistory = new DamageHistoryInfo(this);
                             OnDeath(dmgHistory, DamageType.Bludgeon);
                             Die(dmgHistory, dmgHistory);
+
+                            if (PropertyManager.GetBool("town_control_enable_webhook_debug").Item)
+                            {
+                                try
+                                {
+                                    var webhookUrl = PropertyManager.GetString("town_control_globals_webhook").Item;
+                                    if (!string.IsNullOrEmpty(webhookUrl))
+                                    {
+                                        _ = TurbineChatHandler.SendWebhookedChat("God of PK", $"DEBUG: {town.TownName} conflict boss exists but there is no active conflict, destroying the boss", webhookUrl, "General");
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    log.ErrorFormat("Failed sending TownControl global message to webhook. Ex:{0}", ex);
+                                }
+                            }
                         }
                         else
                         {
@@ -82,6 +98,22 @@ namespace ACE.Server.WorldObjects
                                 var dmgHistory = new DamageHistoryInfo(this);
                                 OnDeath(dmgHistory, DamageType.Bludgeon);
                                 Die(dmgHistory, dmgHistory);
+
+                                if (PropertyManager.GetBool("town_control_enable_webhook_debug").Item)
+                                {
+                                    try
+                                    {
+                                        var webhookUrl = PropertyManager.GetString("town_control_globals_webhook").Item;
+                                        if (!string.IsNullOrEmpty(webhookUrl))
+                                        {
+                                            _ = TurbineChatHandler.SendWebhookedChat("God of PK", "DEBUG: Creature_Tick.Heartbeat found conflict boss alive after event expiration", webhookUrl, "General");
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        log.ErrorFormat("Failed sending TownControl global message to webhook. Ex:{0}", ex);
+                                    }
+                                }
                             }
                             else
                             {

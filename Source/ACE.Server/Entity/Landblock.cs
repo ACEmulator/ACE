@@ -29,6 +29,10 @@ using ACE.Server.WorldObjects;
 using Position = ACE.Entity.Position;
 using ACE.Server.Entity.TownControl;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Adapter.GDLE.Models;
+using ACE.Database.Models.TownControl;
+using K4os.Compression.LZ4.Engine;
+using ACE.Server.Network.Handlers;
 
 namespace ACE.Server.Entity
 {
@@ -200,36 +204,88 @@ namespace ACE.Server.Entity
             });
 
             //LoadMeshes(objects);
+
+            if (this.IsTownControlLandblock)
+            {
+                log.Debug($"Town Control landblock {this.Id.Raw.ToString("X4")} initialized");
+
+                if (PropertyManager.GetBool("town_control_enable_webhook_debug").Item)
+                {
+                    try
+                    {
+                        var webhookUrl = PropertyManager.GetString("town_control_globals_webhook").Item;
+                        if (!string.IsNullOrEmpty(webhookUrl))
+                        {
+                            _ = TurbineChatHandler.SendWebhookedChat("God of PK", $"DEBUG: {this.Id.Raw.ToString("X4")} landblock initialized", webhookUrl, "General");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        log.ErrorFormat("Failed sending TownControl global message to webhook. Ex:{0}", ex);
+                    }
+                }
+            }
         }
 
         public void HandleTownControl()
         {
-            log.Debug("Landblock.HandleTownControl");
             IsTownControlLandblock = TownControlLandblocks.IsTownControlLandblock(this.Id.Landblock);
             if (IsTownControlLandblock)
             {
-                //try
-                //{
-                //    uint? townId = TownControlLandblocks.GetTownIdByLandblockId(this.Id.Landblock);
-                //    var latestEvent = DatabaseManager.TownControl.GetLatestTownControlEventByTownId(townId.HasValue ? townId.Value : 0);
-                //    if (latestEvent != null && townId.HasValue)
-                //    {
-                //        if (!latestEvent.EventEndDateTime.HasValue || !latestEvent.IsAttackSuccess.HasValue)
-                //        {
-                //            latestEvent.EventEndDateTime = DateTime.UtcNow;
-                //            latestEvent.IsAttackSuccess = false;
-                //            DatabaseManager.TownControl.UpdateTownControlEvent(latestEvent);
+                try
+                {
+                    uint? townId = TownControlLandblocks.GetTownIdByLandblockId(this.Id.Landblock);
+                    var latestEvent = DatabaseManager.TownControl.GetLatestTownControlEventByTownId(townId.HasValue ? townId.Value : 0);
+                    if (latestEvent != null && townId.HasValue)
+                    {
+                        if (!latestEvent.EventEndDateTime.HasValue || !latestEvent.IsAttackSuccess.HasValue)
+                        {
+                            var town = DatabaseManager.TownControl.GetTownById(townId.Value);
+                            if (town != null)
+                            {
+                                var tcEventDurationExpiredTime = latestEvent.EventStartDateTime.Value.AddSeconds(town.ConflictLength);
 
-                //            var town = DatabaseManager.TownControl.GetTownById(townId.Value);
-                //            town.IsInConflict = false;
-                //            DatabaseManager.TownControl.UpdateTown(town);
-                //        }
-                //    }
-                //}
-                //catch (Exception ex)
-                //{
-                //    log.ErrorFormat("Landblock.HandleTownControl exception. Ex: {0}", ex);
-                //}
+                                //If there's an active town control event and the duration is more than 2 minutes past the expiration,
+                                //something went wrong with ending the event the normal way (via Creature_Death or Creature_Tick)
+                                //end the TC event with defenders winning, but don't award any rewards
+                                if (DateTime.UtcNow > tcEventDurationExpiredTime.AddMinutes(2))
+                                {
+                                    var msg = $"Landblock.HandleTownControl - Found active TC event that is more than 2 minutes past its expiration. TownID = {town.TownId}, TownName = {town.TownName}, TC Event ID = {latestEvent.EventId}";
+                                    log.Warn(msg);
+
+                                    if (PropertyManager.GetBool("town_control_enable_webhook_debug").Item)
+                                    {
+                                        try
+                                        {
+                                            var webhookUrl = PropertyManager.GetString("town_control_globals_webhook").Item;
+                                            if (!string.IsNullOrEmpty(webhookUrl))
+                                            {
+                                                _ = TurbineChatHandler.SendWebhookedChat("God of PK", msg, webhookUrl, "General");
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            log.ErrorFormat("Failed sending TownControl global message to webhook. Ex:{0}", ex);
+                                        }
+                                    }
+
+                                    //Update the Town's conflict status
+                                    town.IsInConflict = false;
+                                    DatabaseManager.TownControl.UpdateTown(town);
+
+                                    //End the TownControlEvent
+                                    latestEvent.IsAttackSuccess = false;
+                                    latestEvent.EventEndDateTime = DateTime.UtcNow;
+                                    DatabaseManager.TownControl.UpdateTownControlEvent(latestEvent);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.ErrorFormat("Landblock.HandleTownControl exception. Ex: {0}", ex);
+                }
             }
         }
 
@@ -647,6 +703,8 @@ namespace ACE.Server.Entity
                 }
             }
             ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Landblock_Tick_WorldObject_Heartbeat, stopwatch.Elapsed.TotalSeconds);
+
+            HandleTownControl();
 
             Monitor5m.RegisterEventEnd();
             Monitor1h.RegisterEventEnd();
