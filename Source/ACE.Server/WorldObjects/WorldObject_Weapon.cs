@@ -954,7 +954,7 @@ namespace ACE.Server.WorldObjects
             return HasProc && ProcSpell == spellID;
         }
 
-        public void TryProcItem(WorldObject attacker, Creature target)
+        public void TryProcItem(WorldObject attacker, Creature target, bool selfTarget)
         {
             // roll for a chance of casting spell
             var chance = ProcSpellRate ?? 0.0f;
@@ -981,10 +981,28 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            // not sure if this should go before or after the resist check
+            // after would match Player_Magic, but would require changing the signature of TryCastSpell yet again
+            // starting with the simpler check here
+            if (!selfTarget && target != null && target.NonProjectileMagicImmune && !spell.IsProjectile)
+            {
+                if (attacker is Player player)
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {target.Name} with {spell.Name}", ChatMessageType.Magic));
+
+                return;
+            }
+
             var itemCaster = this is Creature ? null : this;
 
             if (spell.NonComponentTargetType == ItemType.None)
                 attacker.TryCastSpell(spell, null, itemCaster, itemCaster, true, true);
+            else if (spell.NonComponentTargetType == ItemType.Vestements)
+            {
+                // TODO: spell.NonComponentTargetType should probably always go through TryCastSpell_WithItemRedirects,
+                // however i don't feel like testing every possible known type of item procspell in the current db to ensure there are no regressions
+                // current test case: 33990 Composite Bow casting Tattercoat
+                attacker.TryCastSpell_WithRedirects(spell, target, itemCaster, itemCaster, true, true);
+            }
             else
                 attacker.TryCastSpell(spell, target, itemCaster, itemCaster, true, true);
         }

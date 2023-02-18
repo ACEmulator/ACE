@@ -589,17 +589,28 @@ namespace ACE.Database
 
             var results = query.ToList();
 
-            query.Include(r => r.CharacterPropertiesContractRegistry).Load();
-            query.Include(r => r.CharacterPropertiesFillCompBook).Load();
-            query.Include(r => r.CharacterPropertiesFriendList).Load();
-            query.Include(r => r.CharacterPropertiesQuestRegistry).Load();
-            query.Include(r => r.CharacterPropertiesShortcutBar).Load();
-            query.Include(r => r.CharacterPropertiesSpellBar).Load();
-            query.Include(r => r.CharacterPropertiesSquelch).Load();
-            query.Include(r => r.CharacterPropertiesTitleBook).Load();
+            for (int i = 0; i < results.Count; i++)
+            {
+                // Do we have a reference to this Character already?
+                var existingChar = CharacterContexts.FirstOrDefault(r => r.Key.Id == results[i].Id);
 
-            foreach (var result in results)
-                CharacterContexts.Add(result, context);
+                if (existingChar.Key != null)
+                    results[i] = existingChar.Key;
+                else
+                {
+                    // No reference, pull all the properties and add it to the cache
+                    query.Include(r => r.CharacterPropertiesContractRegistry).Load();
+                    query.Include(r => r.CharacterPropertiesFillCompBook).Load();
+                    query.Include(r => r.CharacterPropertiesFriendList).Load();
+                    query.Include(r => r.CharacterPropertiesQuestRegistry).Load();
+                    query.Include(r => r.CharacterPropertiesShortcutBar).Load();
+                    query.Include(r => r.CharacterPropertiesSpellBar).Load();
+                    query.Include(r => r.CharacterPropertiesSquelch).Load();
+                    query.Include(r => r.CharacterPropertiesTitleBook).Load();
+
+                    CharacterContexts.Add(results[i], context);
+                }
+            }
 
             return results;
         }

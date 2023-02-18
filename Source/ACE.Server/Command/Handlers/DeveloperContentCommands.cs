@@ -59,6 +59,8 @@ namespace ACE.Server.Command.Handlers.Processors
                     return FileType.Recipe;
                 else if (fileType.StartsWith("weenie"))
                     return FileType.Weenie;
+                else if (fileType.StartsWith("spell"))
+                    return FileType.Spell;
             }
             return FileType.Undefined;
         }
@@ -211,6 +213,13 @@ namespace ACE.Server.Command.Handlers.Processors
                 ImportJsonQuest(session, json_folder, file.Name);
         }
 
+        [CommandHandler("import-sql-folders", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Imports all weenie sql data from the Content folder and all sub-folders", "<wcid>")]
+        public static void HandleImportSQLFolders(Session session, params string[] parameters)
+        {
+            var param = parameters[0];
+            ImportSQLWeenie(session, param, true);
+        }
+
         [CommandHandler("import-sql", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Imports sql data from the Content folder", "<wcid>")]
         public static void HandleImportSQL(Session session, params string[] parameters)
         {
@@ -243,6 +252,10 @@ namespace ACE.Server.Command.Handlers.Processors
                         ImportSQLRecipe(session, param);
                         break;
 
+                    case FileType.Spell:
+                        ImportSQLSpell(session, param);
+                        break;
+
                     case FileType.Weenie:
                         ImportSQLWeenie(session, param);
                         break;
@@ -254,7 +267,7 @@ namespace ACE.Server.Command.Handlers.Processors
             }
         }
 
-        public static void ImportSQLWeenie(Session session, string wcid)
+        public static void ImportSQLWeenie(Session session, string wcid, bool withFolders = false)
         {
             DirectoryInfo di = VerifyContentFolder(session);
             if (!di.Exists) return;
@@ -270,7 +283,9 @@ namespace ACE.Server.Command.Handlers.Processors
 
             di = new DirectoryInfo(sql_folder);
 
-            var files = di.Exists ? di.GetFiles($"{prefix}*.sql") : null;
+            EnumerationOptions options = new EnumerationOptions();
+            options.RecurseSubdirectories = withFolders;
+            var files = di.Exists ? di.GetFiles($"{prefix}*.sql", options) : null;
 
             if (files == null || files.Length == 0)
             {
@@ -279,7 +294,8 @@ namespace ACE.Server.Command.Handlers.Processors
             }
 
             foreach (var file in files)
-                ImportSQLWeenie(session, sql_folder, file.Name);
+                ImportSQLWeenie(session, file.DirectoryName + sep, file.Name);
+                
         }
 
         public static void ImportSQLRecipe(Session session, string recipeId)
@@ -364,6 +380,34 @@ namespace ACE.Server.Command.Handlers.Processors
 
             foreach (var file in files)
                 ImportSQLQuest(session, sql_folder, file.Name);
+        }
+
+        public static void ImportSQLSpell(Session session, string spellId)
+        {
+            DirectoryInfo di = VerifyContentFolder(session);
+            if (!di.Exists) return;
+
+            var sep = Path.DirectorySeparatorChar;
+
+            var sql_folder = $"{di.FullName}{sep}sql{sep}spells{sep}";
+
+            var prefix = spellId.PadLeft(5, '0') + " ";
+
+            if (spellId.Equals("all", StringComparison.OrdinalIgnoreCase))
+                prefix = "";
+
+            di = new DirectoryInfo(sql_folder);
+
+            var files = di.Exists ? di.GetFiles($"{prefix}*.sql") : null;
+
+            if (files == null || files.Length == 0)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find {sql_folder}{prefix}*.sql");
+                return;
+            }
+
+            foreach (var file in files)
+                ImportSQLSpell(session, sql_folder, file.Name);
         }
 
         /// <summary>
@@ -557,6 +601,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
         public static CookBookSQLWriter CookBookSQLWriter;
         public static RecipeSQLWriter RecipeSQLWriter;
+        public static SpellSQLWriter SpellSQLWriter;
 
         public static string json2sql_recipe(Session session, string folder, string json_filename)
         {
@@ -892,6 +937,26 @@ namespace ACE.Server.Command.Handlers.Processors
 
             // convert to json file
             sql2json_quest(session, quest, sql_folder, sql_file);
+        }
+
+        private static void ImportSQLSpell(Session session, string sql_folder, string sql_file)
+        {
+            if (!uint.TryParse(Regex.Match(sql_file, @"\d+").Value, out var spellId))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find spell id from {sql_file}");
+                return;
+            }
+
+            // import sql to db
+            ImportSQL(sql_folder + sql_file);
+            CommandHandlerHelper.WriteOutputInfo(session, $"Imported {sql_file}");
+
+            // clear this spell out of the cache (and everything else)
+            DatabaseManager.World.ClearSpellCache();
+            WorldObject.ClearSpellCache();
+
+            // load spell from db
+            var spell = DatabaseManager.World.GetCachedSpell(spellId);
         }
 
         /// <summary>
@@ -1853,7 +1918,7 @@ namespace ACE.Server.Command.Handlers.Processors
             }
 
             var cookbooks = DatabaseManager.World.GetCookbooksByRecipeId(recipeId);
-            if (cookbooks == null)
+            if (cookbooks == null || cookbooks.Count == 0)
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find recipe id {recipeId}");
                 return;
@@ -2009,6 +2074,10 @@ namespace ACE.Server.Command.Handlers.Processors
                     ExportSQLRecipe(session, param);
                     break;
 
+                case FileType.Spell:
+                    ExportSQLSpell(session, param);
+                    break;
+
                 case FileType.Weenie:
                     ExportSQLWeenie(session, param);
                     break;
@@ -2116,7 +2185,7 @@ namespace ACE.Server.Command.Handlers.Processors
             }
 
             var cookbooks = DatabaseManager.World.GetCookbooksByRecipeId(recipeId);
-            if (cookbooks == null)
+            if (cookbooks == null || cookbooks.Count == 0)
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find recipe id {recipeId}");
                 return;
@@ -2262,6 +2331,60 @@ namespace ACE.Server.Command.Handlers.Processors
                 sqlFile.WriteLine();
 
                 QuestSQLWriter.CreateSQLINSERTStatement(quest, sqlFile);
+
+                sqlFile.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                CommandHandlerHelper.WriteOutputInfo(session, $"Failed to export {sql_folder}{sql_filename}");
+                return;
+            }
+
+            CommandHandlerHelper.WriteOutputInfo(session, $"Exported {sql_folder}{sql_filename}");
+        }
+
+
+        public static void ExportSQLSpell(Session session, string param)
+        {
+            DirectoryInfo di = VerifyContentFolder(session, false);
+
+            var sep = Path.DirectorySeparatorChar;
+
+            if (!uint.TryParse(param, out var spellId))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"{param} not a valid spell id");
+                return;
+            }
+
+            var spell = DatabaseManager.World.GetCachedSpell(spellId);
+
+            if (spell == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Couldn't find spell id {spellId}");
+                return;
+            }
+
+            var sql_folder = $"{di.FullName}{sep}sql{sep}spells{sep}";
+
+            di = new DirectoryInfo(sql_folder);
+
+            if (!di.Exists)
+                di.Create();
+
+            if (SpellSQLWriter == null)
+                SpellSQLWriter = new SpellSQLWriter();
+
+            var sql_filename = SpellSQLWriter.GetDefaultFileName(spell);
+
+            try
+            {
+                var sqlFile = new StreamWriter(sql_folder + sql_filename);
+
+                SpellSQLWriter.CreateSQLDELETEStatement(spell, sqlFile);
+                sqlFile.WriteLine();
+
+                SpellSQLWriter.CreateSQLINSERTStatement(spell, sqlFile);
 
                 sqlFile.Close();
             }

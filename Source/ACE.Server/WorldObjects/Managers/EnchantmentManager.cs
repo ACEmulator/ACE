@@ -182,7 +182,7 @@ namespace ACE.Server.WorldObjects.Managers
                 // should be update the StatModVal here?
 
                 var duration = spell.Duration;
-                if (caster is Player player && player.AugmentationIncreasedSpellDuration > 0 && !spell.IsDamageOverTime)
+                if (caster is Player player && player.AugmentationIncreasedSpellDuration > 0 && spell.DotDuration == 0)
                     duration *= 1.0f + player.AugmentationIncreasedSpellDuration * 0.2f;
 
                 var timeRemaining = refreshSpell.Duration + refreshSpell.StartTime;
@@ -219,7 +219,7 @@ namespace ACE.Server.WorldObjects.Managers
             {
                 entry.Duration = spell.Duration;
 
-                if (caster is Player player && player.AugmentationIncreasedSpellDuration > 0 && !spell.IsDamageOverTime)
+                if (caster is Player player && player.AugmentationIncreasedSpellDuration > 0 && spell.DotDuration == 0)
                     entry.Duration *= 1.0f + player.AugmentationIncreasedSpellDuration * 0.2f;
             }
             else
@@ -727,7 +727,7 @@ namespace ACE.Server.WorldObjects.Managers
             // should be additive in database, update when everything is in sync
             var modifier = 0.0f;
 
-            foreach (var enchantment in enchantments)
+            foreach (var enchantment in enchantments.OrderByDescending(i => i.PowerLevel).Take(1))
             {
                 if (enchantment.StatModType.HasFlag(EnchantmentTypeFlags.Multiplicative))
                     modifier += enchantment.StatModValue - 1.0f;

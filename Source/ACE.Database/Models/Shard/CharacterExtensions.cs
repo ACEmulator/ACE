@@ -313,6 +313,32 @@ namespace ACE.Database.Models.Shard
             }
         }
 
+        public static bool ClearAllFriends(this Character character, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                rwLock.EnterWriteLock();
+                try
+                {
+                    character.CharacterPropertiesFriendList.Clear();
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+                finally
+                {
+                    rwLock.ExitWriteLock();
+                }
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
 
         // =====================================
         // CharacterPropertiesQuestRegistry
