@@ -162,3 +162,7 @@ VALUES (0x700AB021, 0x700AB009, '2021-11-01 00:00:00') /* Statue of Extreme Illu
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
 VALUES (0x700AB022, 4200004, 0x00AB0109, 54.7766, -34.7032, -29.945, -0.008167, 0, 0, 0.999967, False, '2022-12-13 13:52:31'); /* towncontrolevent1 */
 /* @teleloc 0x00AB0109 [54.776600 -34.703201 -29.945000] -0.008167 0.000000 0.000000 0.999967 */
+
+INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
+VALUES (0x700AB023, 80007, 0x00AB012D, 50.02918, -49.65062, -23.945, -0.610272, 0, 0, -0.792192, False, '2023-02-19 20:44:33'); /* Landblock KeepAlive */
+/* @teleloc 0x00AB012D [50.029179 -49.650620 -23.945000] -0.610272 0.000000 0.000000 -0.792192 */

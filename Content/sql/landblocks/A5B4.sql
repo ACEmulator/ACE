@@ -83,5 +83,9 @@ VALUES (0x7A5B4016,   252, 0xA5B4002E, 128.294, 125.666, 56.055, -0.704984, 0, 0
 /* @teleloc 0xA5B4002E [128.294006 125.666000 56.055000] -0.704984 0.000000 0.000000 0.709223 */
 
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
-VALUES (0x7A5B4017, 4200002, 0xA5B4002E, 128.2939, 125.6663, 56.055, -0.704984, 0, 0, 0.709223, False, '2023-01-24 23:39:00'); /* Holtburg Generator Switch */
-/* @teleloc 0xA5B4002E [128.293900 125.666298 56.055000] -0.704984 0.000000 0.000000 0.709223 */
+VALUES (0x7A5B4017, 4200002, 0xA5B4002E, 128.294, 125.666, 56.055, -0.704984, 0, 0, 0.709223, False, '2023-01-24 23:39:00'); /* Holtburg Generator Switch */
+/* @teleloc 0xA5B4002E [128.294006 125.666000 56.055000] -0.704984 0.000000 0.000000 0.709223 */
+
+INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
+VALUES (0x7A5B4018, 80007, 0xA5B4002E, 137.4655, 126.2177, 56.055, 0.081212, 0, 0, 0.996697, False, '2023-02-19 12:30:42'); /* Landblock KeepAlive */
+/* @teleloc 0xA5B4002E [137.465500 126.217697 56.055000] 0.081212 0.000000 0.000000 0.996697 */

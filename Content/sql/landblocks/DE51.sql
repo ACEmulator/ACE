@@ -63,5 +63,9 @@ VALUES (0x7DE51014,   252, 0xDE51000C, 29.4532, 90.6395, 17.6006, -0.68424, 0, 0
 /* @teleloc 0xDE51000C [29.453199 90.639503 17.600599] -0.684240 0.000000 0.000000 0.729257 */
 
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
-VALUES (0x7DE51015, 42111556, 0xDE51000C, 29.45324, 90.63947, 17.33573, -0.68424, 0, 0, 0.729257, False, '2023-01-25 13:54:48'); /* Shoushi Generator Switch */
-/* @teleloc 0xDE51000C [29.453239 90.639473 17.335730] -0.684240 0.000000 0.000000 0.729257 */
+VALUES (0x7DE51015, 42111556, 0xDE51000C, 29.4532, 90.6395, 17.3357, -0.68424, 0, 0, 0.729257, False, '2023-01-25 13:54:48'); /* Shoushi Generator Switch */
+/* @teleloc 0xDE51000C [29.453199 90.639503 17.335699] -0.684240 0.000000 0.000000 0.729257 */
+
+INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
+VALUES (0x7DE51016, 80007, 0xDE51000C, 38.14262, 89.62283, 16.87645, 0.387291, 0, 0, -0.921958, False, '2023-02-19 20:07:36'); /* Landblock KeepAlive */
+/* @teleloc 0xDE51000C [38.142620 89.622833 16.876450] 0.387291 0.000000 0.000000 -0.921958 */

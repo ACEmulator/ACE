@@ -42,3 +42,7 @@ VALUES (0x7816400C, 4200006, 0x8164000D, 45.3878, 117.284, 31.8373, -0.985984, 0
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
 VALUES (0x7816400D,   252, 0x81640010, 35.6308, 168.192, 23.0858, 0.01869, 0, 0, -0.999825, False, '2023-01-24 22:57:25'); /* Stone Portal Frame */
 /* @teleloc 0x81640010 [35.630798 168.192001 23.085800] 0.018690 0.000000 0.000000 -0.999825 */
+
+INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
+VALUES (0x7816400E, 80007, 0x81640017, 54.32533, 150.6621, 22.055, 0.920373, 0, 0, -0.391043, False, '2023-02-19 20:39:39'); /* Landblock KeepAlive */
+/* @teleloc 0x81640017 [54.325329 150.662094 22.055000] 0.920373 0.000000 0.000000 -0.391043 */
