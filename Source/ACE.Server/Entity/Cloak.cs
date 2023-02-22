@@ -2,6 +2,7 @@ using System;
 
 using ACE.Common;
 using ACE.Entity.Enum;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 
@@ -10,9 +11,58 @@ namespace ACE.Server.Entity
     public class Cloak
     {
         /// <summary>
+        /// Opt out of the standarad ACE formula and proc at a custom rate
+        /// This setting will affect cloaks with any proc, including -200
+        /// </summary>
+        private static bool UseCustomMath => PropertyManager.GetBool("use_cloak_proc_custom_scale", false).Item;
+
+        /// <summary>
         /// The maximum frequency of cloak procs, in seconds
         /// </summary>
-        private static readonly float MinDelay = 5.0f;
+        private static double MinDelay
+        {
+            get
+            {
+                if (!UseCustomMath)
+                {
+                    return 5.0;
+                }
+                return PropertyManager.GetDouble("cloak_cooldown_seconds").Item;
+            }
+        }
+
+        /// <summary>
+        /// The base maximum percentage at which cloaks will proc
+        /// </summary>
+        private static float MaxProcBase
+        {
+            get
+            {
+                if (!UseCustomMath)
+                {
+                    return 0.25f;
+                }
+                return Convert.ToSingle(PropertyManager.GetDouble("cloak_max_proc_base").Item);
+            }
+        }
+
+        /// <summary>
+        /// The base maxiumum percentage at which cloaks with
+        /// -200 will proc
+        /// </summary>
+        private static float MaxProcBase200
+        {
+            get
+            {
+                if (!UseCustomMath)
+                {
+                    return 0.15f;
+                }
+                return Convert.ToSingle(PropertyManager.GetDouble("cloak_max_proc_base").Item);
+            }
+        }
+
+        private static readonly float TwoThirds = 2.0f / 3.0f;
 
         /// <summary>
         /// Rolls for a chance at procing a cloak spell
@@ -27,11 +77,6 @@ namespace ACE.Server.Entity
 
             return HandleProcSpell(defender, attacker, cloak);
         }
-
-        private static readonly float MaxProcBase = 0.25f;
-        private static readonly float MaxProcBase200 = 0.15f;
-
-        private static readonly float TwoThirds = 2.0f / 3.0f;
 
         /// <summary>
         /// Rolls for a chance at procing a cloak spell
@@ -60,6 +105,14 @@ namespace ACE.Server.Entity
             }
 
             var maxProcRate = maxProcBase + (itemLevel - 1) * 0.0125f;
+
+            if (UseCustomMath)
+            {
+                // The proc chance should only plateau for damage above a certain configured percentage
+                var maxProcAtDamagePercent = Convert.ToSingle(PropertyManager.GetDouble("cloak_max_proc_damage_percentage", 30.0).Item);
+                // Reduce the damage percent for the calculation if necessary to a fraction of the percentage based on the configuration
+                damage_percent = maxProcRate * 100 * (damage_percent * 100 / (maxProcAtDamagePercent * 100f)) / 100;
+            }
 
             var chance = Math.Min(damage_percent, maxProcRate);
 
