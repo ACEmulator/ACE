@@ -111,7 +111,7 @@ namespace ACE.Server.Entity
                 // The proc chance should only plateau for damage above a certain configured percentage
                 var maxProcAtDamagePercent = Convert.ToSingle(PropertyManager.GetDouble("cloak_max_proc_damage_percentage", 30.0).Item);
                 // Reduce the damage percent for the calculation if necessary to a fraction of the percentage based on the configuration
-                damage_percent = maxProcRate * 100 * (damage_percent * 100 / (maxProcAtDamagePercent * 100f)) / 100;
+                damage_percent = maxProcRate * (damage_percent / maxProcAtDamagePercent);
             }
 
             var chance = Math.Min(damage_percent, maxProcRate);
