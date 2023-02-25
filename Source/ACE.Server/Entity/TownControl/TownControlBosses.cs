@@ -127,6 +127,8 @@ namespace ACE.Server.Entity.TownControl
         public uint TownID { get; set; }
 
         public string TownName { get; set; }
+
+        public string EventName { get; set; }
     }
 
     public enum TownControlBossType

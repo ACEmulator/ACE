@@ -207,23 +207,7 @@ namespace ACE.Server.Entity
 
             if (this.IsTownControlLandblock)
             {
-                log.Debug($"Town Control landblock {this.Id.Raw.ToString("X4")} initialized");
-
-                if (PropertyManager.GetBool("town_control_enable_webhook_debug").Item)
-                {
-                    try
-                    {
-                        var webhookUrl = PropertyManager.GetString("town_control_globals_webhook").Item;
-                        if (!string.IsNullOrEmpty(webhookUrl))
-                        {
-                            _ = TurbineChatHandler.SendWebhookedChat("God of PK", $"DEBUG: {this.Id.Raw.ToString("X4")} landblock initialized", webhookUrl, "General");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        log.ErrorFormat("Failed sending TownControl global message to webhook. Ex:{0}", ex);
-                    }
-                }
+                log.Debug($"Town Control landblock {this.Id.Raw.ToString("X4")} initialized");                
             }
         }
 
@@ -277,6 +261,12 @@ namespace ACE.Server.Entity
                                     latestEvent.IsAttackSuccess = false;
                                     latestEvent.EventEndDateTime = DateTime.UtcNow;
                                     DatabaseManager.TownControl.UpdateTownControlEvent(latestEvent);
+
+                                    //End the content generated event
+                                    if(TownControlLandblocks.LandblockEventsMap.TryGetValue(this.Id.Landblock, out var eventName))
+                                    {
+                                        EventManager.StopEvent(eventName, null, null);
+                                    }
                                 }
                             }
                         }

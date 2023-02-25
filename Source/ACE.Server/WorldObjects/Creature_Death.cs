@@ -846,13 +846,14 @@ namespace ACE.Server.WorldObjects
                 if (deadBoss.BossType.Equals(TownControlBossType.InitiationBoss))
                 {
                     log.DebugFormat("Town Control - {0} Init boss killed by player guid = {1}", town.TownName, killer.Guid);
+                    bool validationFailed = false;
 
                     if (!killer.IsPlayer)
                     {
                         //TODO - what to do if the killer isn't a player?                        
                         //PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - Init boss killer is not a player, conflict event not started", ChatMessageType.Broadcast));
                         log.DebugFormat("Town Control - {0} Init boss killer is not a player, conflict event not started", town.TownName);
-                        return;
+                        validationFailed = true;
                     }
 
                     //Get the attacking clan ID and name
@@ -872,7 +873,7 @@ namespace ACE.Server.WorldObjects
                         log.DebugFormat("Town Control - {0} Init boss killer is not in an allegiance.  Killer PlayerID = {1}", town.TownName, killerPlayer.Guid);
                         //PlayerManager.BroadcastToAll(new GameMessageSystemChat("DEBUG - Killer isn't part of any allegiance.  Conflict event not started", ChatMessageType.Broadcast));
                         this.CurrentLandblock?.EnqueueBroadcast(null, true, null, null, new GameMessageSystemChat($"{deadBossName} has been killed by a poor lone wolf with no allegiance.  {town.TownName} will not yield to an incel.", ChatMessageType.Broadcast));
-                        return;
+                        validationFailed = true;
                     }
 
                     //Verify that the killer is in an allegiance that is whitelisted                    
@@ -880,7 +881,7 @@ namespace ACE.Server.WorldObjects
                     {
                         log.DebugFormat("Town Control - {0} Init boss killer is in an allegiance that is not whitelisted.  Killer PlayerID = {1}, Killer MonarchID = {2}", town.TownName, killerPlayer.Guid, killerMonarchId);
                         this.CurrentLandblock?.EnqueueBroadcast(null, true, null, null, new GameMessageSystemChat($"{deadBossName} has been killed by an allegiance who has not been enabled for town control events.  As such, a conflict event will not be started.  Please reach out to an admin to have your clan enabled for town control.", ChatMessageType.Broadcast));
-                        return;
+                        validationFailed = true;
                     }
 
                     //Get the defending clan ID and name, if the town has an owner already
@@ -941,7 +942,7 @@ namespace ACE.Server.WorldObjects
                         this.CurrentLandblock?.EnqueueBroadcast(null, true, null, null, new GameMessageSystemChat($"{deadBossName} has been killed by a member of the allegiance who owns {town.TownName}.  You worthless dickbag, your name is now on the terrorist list and Im fucking coming for you.", ChatMessageType.Broadcast));
                         log.DebugFormat("Town Control - {0} Init boss killer is from clan that owns the town.  Conflict event not started", town.TownName);
 
-                        return;
+                        validationFailed = true;
                     }
 
 
@@ -961,8 +962,19 @@ namespace ACE.Server.WorldObjects
                             this.CurrentLandblock?.EnqueueBroadcast(null, true, null, null, new GameMessageSystemChat($"{deadBossName} has been killed by a member of {killerAllegName}, but Clan {killerAllegName} has attacked {town.TownName} too recently.  Your respite time expires in {(sameAttackerRespiteExpiration - DateTime.UtcNow).ToString("h'h 'm'm 's's'")}", ChatMessageType.Broadcast));
                             log.DebugFormat("Town Control - {0} Init boss killer is from clan whose respite timer is not expired.  Conflict event not started.", town.TownName);
 
-                            return;
+                            validationFailed = true;
                         }
+                    }
+
+                    if(validationFailed)
+                    {                        
+                        //End the content generated event
+                        if (TownControlLandblocks.LandblockEventsMap.TryGetValue(this.CurrentLandblock?.Id.Landblock ?? 0, out var eventName))
+                        {
+                            EventManager.StopEvent(eventName, null, null);
+                        }
+
+                        return;
                     }
 
                     //create the conflict event and update the town status in the DB
@@ -981,6 +993,13 @@ namespace ACE.Server.WorldObjects
                     {
                         conflictStartMsg = $"{killerPlayer.Name} has slain {deadBossName} throwing {town.TownName} into conflict.  With no current owner, clan {killerAllegName} is poised to claim ownership of {town.TownName}.  Who will try to stop them?";
                     }
+
+                    //End the content generated event
+                    if (TownControlLandblocks.LandblockEventsMap.TryGetValue(this.CurrentLandblock?.Id.Landblock ?? 0, out var evtName))
+                    {
+                        EventManager.StartEvent(evtName, null, null);
+                    }
+
 
                     PlayerManager.BroadcastToAll(new GameMessageSystemChat(conflictStartMsg, ChatMessageType.Broadcast));
 
@@ -1016,6 +1035,13 @@ namespace ACE.Server.WorldObjects
                 {
                     //verify that a conflict event is still active for this town
                     var tcEvent = DatabaseManager.TownControl.GetLatestTownControlEventByTownId(town.TownId);
+
+                    //End the content generated event
+                    if (TownControlLandblocks.LandblockEventsMap.TryGetValue(this.CurrentLandblock?.Id.Landblock ?? 0, out var eventName))
+                    {
+                        EventManager.StopEvent(eventName, null, null);
+                    }
+
                     if (!town.IsInConflict || tcEvent == null || !tcEvent.EventStartDateTime.HasValue || tcEvent.EventEndDateTime.HasValue)
                     {
                         //A conflict event isn't active
@@ -1025,7 +1051,6 @@ namespace ACE.Server.WorldObjects
 
                         this.CurrentLandblock?.EnqueueBroadcast(null, true, null, null, new GameMessageSystemChat($"{deadBossName} has been killed but there is no active conflict event found for {town.TownName}.  {deadBossName} fucks off.", ChatMessageType.Broadcast));
                         log.DebugFormat("Town Control - {0} conflict boss killed but no active conflict event found.", town.TownName);
-
                         return;
                     }
 
@@ -1033,6 +1058,7 @@ namespace ACE.Server.WorldObjects
 
                     //TODO - for future we may want multiple conflict bosses and need to track 
                     ////Check if all conflict bosses for this town are now dead and if so, end the event and determine whether the attackers succeeded within the time limit
+
 
                     string conflictEndMsg = "";
 

@@ -27,8 +27,7 @@ VALUES (42111556,  41,       0) /* RegenerationInterval */
      , (42111556,  54,     250) /* UseRadius */;
 
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)
-VALUES (42111556,   1, 'Shoushi Generator Switch') /* Name */
-     , (42111556,  17, 'A TOWN CONTROL CRYSTAL HAS SPAWNED!') /* ActivationTalk */;
+VALUES (42111556,   1, 'Shoushi Generator Switch') /* Name */;
 
 INSERT INTO `weenie_properties_d_i_d` (`object_Id`, `type`, `value`)
 VALUES (42111556,   1, 0x020018C0) /* Setup */
@@ -40,5 +39,5 @@ INSERT INTO `weenie_properties_i_i_d` (`object_Id`, `type`, `value`)
 VALUES (42111556,  16, 0x00000000) /* ActivationTarget */;
 
 INSERT INTO `weenie_properties_generator` (`object_Id`, `probability`, `weenie_Class_Id`, `delay`, `init_Create`, `max_Create`, `when_Create`, `where_Create`, `stack_Size`, `palette_Id`, `shade`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`)
-VALUES (42111556, -1, 452000, 1, 1, 1, 1, 4, 0, 0, 0, 0xDE51000C, 29.453243, 90.639473,  17.550562, -0.684240, 0, 0,  0.729257) /* Generate Custom Chest (38457)  Location to (re)Generate: Static */;
+VALUES (42111556, -1, 452000, 1, 1, 1, 1, 4, 0, 0, 0, 0xDE51000C, 29.453243, 90.639473,  17.550562, -0.684240, 0, 0,  0.729257) /* Generate Shoushi Combat Arena (452000)  Location to (re)Generate: Static */;
 

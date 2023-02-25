@@ -15,8 +15,7 @@ VALUES (42132032,   1,         16) /* ItemType - Creature */
      , (42132032,  67,          1) /* Tolerance - NoAttack */
      , (42132032,  93,       1032) /* PhysicsState - ReportCollisions, Gravity */
      , (42132032, 101,          1) /* AiAllowedCombatStyle - Unarmed */
-     , (42132032, 133,          4) /* ShowableOnRadar - ShowAlways */
-	 , (42132032, 267,       1830) /* Lifespan */;
+     , (42132032, 133,          4) /* ShowableOnRadar - ShowAlways */;
 
 INSERT INTO `weenie_properties_bool` (`object_Id`, `type`, `value`)
 VALUES (42132032,   1, True ) /* Stuck */

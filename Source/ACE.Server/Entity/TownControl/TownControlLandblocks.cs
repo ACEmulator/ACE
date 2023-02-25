@@ -116,13 +116,13 @@ namespace ACE.Server.Entity.TownControl
         {
             get
             {
-                if(_townControlLanblockList == null)
+                if (_townControlLanblockList == null)
                 {
                     _townControlLanblockList = new List<uint>();
 
-                    foreach(uint key in TownControlLandblocksMap.Keys)
+                    foreach (uint key in TownControlLandblocksMap.Keys)
                     {
-                        foreach(uint landblockId in TownControlLandblocksMap[key])
+                        foreach (uint landblockId in TownControlLandblocksMap[key])
                         {
                             _townControlLanblockList.Add(landblockId);
                         }
@@ -167,11 +167,11 @@ namespace ACE.Server.Entity.TownControl
 
         public static uint? GetTownIdByLandblockId(uint landblockId)
         {
-            foreach(uint key in TownControlLandblocksMap.Keys)
+            foreach (uint key in TownControlLandblocksMap.Keys)
             {
-                foreach(uint value in TownControlLandblocksMap[key])
+                foreach (uint value in TownControlLandblocksMap[key])
                 {
-                    if(value == landblockId)
+                    if (value == landblockId)
                     {
                         return key;
                     }
@@ -181,50 +181,74 @@ namespace ACE.Server.Entity.TownControl
             return null;
         }
 
-/*
-        public static List<uint> _townControlLandcellList = null;
+        /*
+                public static List<uint> _townControlLandcellList = null;
 
-        public static List<uint> TownControlLandcellList
+                public static List<uint> TownControlLandcellList
+                {
+                    get
+                    {
+                        if (_townControlLandcellList == null)
+                        {
+                            _townControlLandcellList = new List<uint>();
+
+                            foreach (uint key in TownControlLandcellsMap.Keys)
+                            {
+                                foreach (uint landcellId in TownControlLandcellsMap[key])
+                                {
+                                    _townControlLandcellList.Add(landcellId);
+                                }
+                            }
+                        }
+
+                        return _townControlLandcellList;
+                    }
+                }
+
+                public static bool IsTownControlLandcell(uint landcellId)
+                {
+                    return TownControlLandblocks.TownControlLandcellList.Contains(landcellId);
+                }
+
+                public static uint? GetTownIdByLandcellId(uint landcellId)
+                {
+                    foreach (uint key in TownControlLandcellsMap.Keys)
+                    {
+                        foreach (uint value in TownControlLandcellsMap[key])
+                        {
+                            if (value == landcellId)
+                            {
+                                return key;
+                            }
+                        }
+                    }
+
+                    return null;
+                }
+        */
+
+        private static Dictionary<uint, string> _landblockEvents;
+        public static Dictionary<uint, string> LandblockEventsMap
         {
             get
             {
-                if (_townControlLandcellList == null)
+                if (_landblockEvents == null)
                 {
-                    _townControlLandcellList = new List<uint>();
+                    _landblockEvents = new Dictionary<uint, string>();
+                    _landblockEvents.Add(0xDE51, "towncontrol3"); //shoushi
+                    _landblockEvents.Add(0xE9F1, "towncontrol3"); //shoushi
+                    _landblockEvents.Add(0xE8F1, "towncontrol3"); //shoushi
+                    _landblockEvents.Add(0xE9F0, "towncontrol3"); //shoushi
 
-                    foreach (uint key in TownControlLandcellsMap.Keys)
-                    {
-                        foreach (uint landcellId in TownControlLandcellsMap[key])
-                        {
-                            _townControlLandcellList.Add(landcellId);
-                        }
-                    }
+                    _landblockEvents.Add(0x8164, "towncontrol1"); //yaraq
+                    _landblockEvents.Add(0x00AB, "towncontrol1"); //yaraq
+
+                    _landblockEvents.Add(0xA5B4, "towncontrol2"); //holtburg
+                    _landblockEvents.Add(0x4FF1, "towncontrol2"); //holtburg
                 }
 
-                return _townControlLandcellList;
+                return _landblockEvents;
             }
         }
-
-        public static bool IsTownControlLandcell(uint landcellId)
-        {
-            return TownControlLandblocks.TownControlLandcellList.Contains(landcellId);
-        }
-
-        public static uint? GetTownIdByLandcellId(uint landcellId)
-        {
-            foreach (uint key in TownControlLandcellsMap.Keys)
-            {
-                foreach (uint value in TownControlLandcellsMap[key])
-                {
-                    if (value == landcellId)
-                    {
-                        return key;
-                    }
-                }
-            }
-
-            return null;
-        }
-*/
     }
 }

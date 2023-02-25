@@ -27,8 +27,7 @@ VALUES (4200002,  41,       0) /* RegenerationInterval */
      , (4200002,  54,     250) /* UseRadius */;
 
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)
-VALUES (4200002,   1, 'Holtburg Generator Switch') /* Name */
-     , (4200002,  17, 'A TOWN CONTROL CRYSTAL HAS SPAWNED!') /* ActivationTalk */;
+VALUES (4200002,   1, 'Holtburg Generator Switch') /* Name */;
 
 INSERT INTO `weenie_properties_d_i_d` (`object_Id`, `type`, `value`)
 VALUES (4200002,   1, 0x020018C0) /* Setup */
@@ -40,6 +39,6 @@ INSERT INTO `weenie_properties_i_i_d` (`object_Id`, `type`, `value`)
 VALUES (4200002,  16, 0x00000000) /* ActivationTarget */;
 
 INSERT INTO `weenie_properties_generator` (`object_Id`, `probability`, `weenie_Class_Id`, `delay`, `init_Create`, `max_Create`, `when_Create`, `where_Create`, `stack_Size`, `palette_Id`, `shade`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`)
-VALUES (4200002, -1, 451000, 1, 1, 1, 1, 4, 0, 0, 0, 0xA5B4002E, 128.293854, 125.666321,  56.005001, -0.704984, 0, 0,  0.709223) /* Generate Custom Chest (38457)  Location to (re)Generate: Static */;
+VALUES (4200002, -1, 451000, 1, 1, 1, 1, 4, 0, 0, 0, 0xA5B4002E, 128.293854, 125.666321,  56.005001, -0.704984, 0, 0,  0.709223) /* 451000 - Holtburg Combat Arena */;
 
 
