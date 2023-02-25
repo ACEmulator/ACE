@@ -122,7 +122,7 @@ namespace ACE.Server.WorldObjects
                                 {
                                     if (this.Health.Percent < 0.75 || DateTime.UtcNow > tcEvent.EventStartDateTime.Value.AddSeconds(town.ConflictLength / 4))
                                     {
-                                        string msg = $"The conflict for ownership of {town.TownName} rages on!  Join the battle, if you dare.  But be quick, clan {tcEvent.AttackingClanName} has reduced the town's defenses to {Math.Round(this.Health.Percent * 100, 0)}% with {Math.Round((tcEventDurationExpiredTime - DateTime.UtcNow).TotalMinutes, 0, MidpointRounding.AwayFromZero)} minutes remaining.";
+                                        string msg = $"{town.TownName} is under attack! Clan {tcEvent.AttackingClanName} has reduced the town's defenses to {Math.Round(this.Health.Percent * 100, 0)}% with {Math.Round((tcEventDurationExpiredTime - DateTime.UtcNow).TotalMinutes, 0, MidpointRounding.AwayFromZero)} minutes remaining.";
                                         PlayerManager.BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
                                         TownControl_ConflictBroadcast1Sent = true;
 
@@ -145,7 +145,7 @@ namespace ACE.Server.WorldObjects
                                 {
                                     if (this.Health.Percent < 0.5 || DateTime.UtcNow > tcEvent.EventStartDateTime.Value.AddSeconds(town.ConflictLength / 2))
                                     {
-                                        string msg = $"The conflict for ownership of {town.TownName} rages on!  Join the battle, if you dare.  But be quick, clan {tcEvent.AttackingClanName} has reduced the town's defenses to {Math.Round(this.Health.Percent * 100, 0)}% with {Math.Round((tcEventDurationExpiredTime - DateTime.UtcNow).TotalMinutes, 0, MidpointRounding.AwayFromZero)} minutes remaining.";
+                                        string msg = $"{town.TownName} is under attack! Clan {tcEvent.AttackingClanName} has reduced the town's defenses to {Math.Round(this.Health.Percent * 100, 0)}% with {Math.Round((tcEventDurationExpiredTime - DateTime.UtcNow).TotalMinutes, 0, MidpointRounding.AwayFromZero)} minutes remaining.";
                                         PlayerManager.BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
                                         TownControl_ConflictBroadcast2Sent = true;
 
@@ -168,7 +168,7 @@ namespace ACE.Server.WorldObjects
                                 {
                                     if (this.Health.Percent < 0.25 || DateTime.UtcNow > tcEvent.EventStartDateTime.Value.AddSeconds(town.ConflictLength / 1.25))
                                     {
-                                        string msg = $"The conflict for ownership of {town.TownName} rages on!  Join the battle, if you dare.  But be quick, clan {tcEvent.AttackingClanName} has reduced the town's defenses to {Math.Round(this.Health.Percent * 100, 0)}% with {Math.Round((tcEventDurationExpiredTime - DateTime.UtcNow).TotalMinutes, 0, MidpointRounding.AwayFromZero)} minutes remaining.";
+                                        string msg = $"{town.TownName} is under attack! Clan {tcEvent.AttackingClanName} has reduced the town's defenses to {Math.Round(this.Health.Percent * 100, 0)}% with {Math.Round((tcEventDurationExpiredTime - DateTime.UtcNow).TotalMinutes, 0, MidpointRounding.AwayFromZero)} minutes remaining.";
                                         PlayerManager.BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
                                         TownControl_ConflictBroadcast3Sent = true;
 
