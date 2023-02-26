@@ -47,6 +47,21 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
+        /// The minimum proc chance of a cloak
+        /// </summary>
+        private static float MinProc
+        {
+            get
+            {
+                if (!UseCustomMath)
+                {
+                    return 0f;
+                }
+                return Convert.ToSingle(PropertyManager.GetDouble("cloak_min_proc_base", 0f));
+            }
+        }
+
+        /// <summary>
         /// The base maxiumum percentage at which cloaks with
         /// -200 will proc
         /// </summary>
@@ -114,7 +129,9 @@ namespace ACE.Server.Entity
                 damage_percent = maxProcRate * (damage_percent / maxProcAtDamagePercent);
             }
 
-            var chance = Math.Min(damage_percent, maxProcRate);
+            // take the lowest of the chance between damage and proc rate, then override
+            // with min proc if necessary
+            var chance = Math.Max(Math.Min(damage_percent, maxProcRate), MinProc);
 
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
 
