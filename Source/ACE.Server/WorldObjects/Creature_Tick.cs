@@ -198,7 +198,7 @@ namespace ACE.Server.WorldObjects
                             if (this.Health.Percent < 0.33f)
                             {
                                 string bossName = this.Weenie?.PropertiesString.FirstOrDefault(x => x.Key == ACE.Entity.Enum.Properties.PropertyString.Name).Value;
-                                var msg = $"The town of {town.TownName} is under attack!  {bossName} is faltering and can't hold up much longer.  All those who seek to rule {town.TownName} must come at once, for when {bossName} falls the town will be thrust into full blown conflict!";
+                                var msg = $"{town.TownName} is under attack! {bossName} is faltering and can't hold up much longer.  All those who seek to rule {town.TownName} must come at once.";
                                 PlayerManager.BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
                                 this.TownControl_InitLowHpBroadcastSent = true;
 
