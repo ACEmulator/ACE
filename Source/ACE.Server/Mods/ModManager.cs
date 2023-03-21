@@ -39,7 +39,7 @@ namespace ACE.Server.Mods
         public static void FindMods()
         {
             var modPath = Common.ConfigManager.Config.Server.ModsDirectory ??
-                Path.Combine(Directory.GetParent(Common.ConfigManager.Config.Server.DatFilesDirectory).Parent.FullName, "Mods");
+                Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "Mods");
 
             if (Common.ConfigManager.Config.Server.ModsDirectory is null)
                 log.Warn($"You are missing the ModsDirectory setting in your Config.js.  Defaulting to:\r\n{modPath}");
