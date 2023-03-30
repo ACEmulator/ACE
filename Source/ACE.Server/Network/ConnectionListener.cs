@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 
 using log4net;
 
@@ -10,6 +11,7 @@ using ACE.Server.Network.Managers;
 
 namespace ACE.Server.Network
 {
+    // Reference: https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets.socket.beginreceivefrom?view=net-7.0
     public class ConnectionListener
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -135,7 +137,10 @@ namespace ACE.Server.Network
                 }
             }
 
-            Listen();
+            if (result.CompletedSynchronously)
+                Task.Run(() => Listen());
+            else
+                Listen();
         }
     }
 }
