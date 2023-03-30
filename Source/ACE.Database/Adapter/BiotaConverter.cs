@@ -529,7 +529,6 @@ namespace ACE.Database.Adapter
 
                     // Entity Framework is unable to store NaN floats in the database and results in an error of:
                     // ERROR 1054: Unknown column 'NaN' in 'field list'
-
                     if (float.IsNaN(entity.AnglesX) || float.IsNaN(entity.AnglesY) || float.IsNaN(entity.AnglesZ) || float.IsNaN(entity.AnglesW))
                     {
                         entity.AnglesW = 1;
