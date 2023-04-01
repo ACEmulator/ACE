@@ -64,12 +64,17 @@ namespace ACE.Server.Managers
 
                 lock (playerAccounts)
                 {
-                    if (!playerAccounts.TryGetValue(offlinePlayer.Account.AccountId, out var playerAccountsDict))
+                    if (offlinePlayer.Account != null)
                     {
-                        playerAccountsDict = new Dictionary<uint, IPlayer>();
-                        playerAccounts[offlinePlayer.Account.AccountId] = playerAccountsDict;
+                        if (!playerAccounts.TryGetValue(offlinePlayer.Account.AccountId, out var playerAccountsDict))
+                        {
+                            playerAccountsDict = new Dictionary<uint, IPlayer>();
+                            playerAccounts[offlinePlayer.Account.AccountId] = playerAccountsDict;
+                        }
+                        playerAccountsDict[offlinePlayer.Guid.Full] = offlinePlayer;
                     }
-                    playerAccountsDict[offlinePlayer.Guid.Full] = offlinePlayer;
+                    else
+                        log.Error($"PlayerManager.Initialize: couldn't find account for player {offlinePlayer.Name} ({offlinePlayer.Guid})");
                 }
             });
         }
