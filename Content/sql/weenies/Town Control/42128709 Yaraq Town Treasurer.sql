@@ -212,7 +212,11 @@ VALUES (42128709, 2, 12213,  0, 3, 0.9, False) /* Create Veil of Darkness (12213
      , (42128709, 4, 30089,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
 	 , (42128709, 4, 30090,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
 	 , (42128709, 4, 30091,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
-	, (42128709, 4, 30082,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */;
+	, (42128709, 4, 30082,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
+	, (42128709, 4, 4200026,  0, 0, 0, False) /* Create Vestiri Robe (450010) for Shop */
+     , (42128709, 4, 4200023,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
+	 , (42128709, 4, 480483,  0, 0, 0, False) /* Create Vestiri Robe (450010) for Shop */
+     , (42128709, 4, 480484,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */;
 	
 
 	

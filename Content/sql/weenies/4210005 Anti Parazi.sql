@@ -64,7 +64,8 @@ VALUES (4210005,   1,       5) /* HeartbeatInterval */
      , (4210005,  74,       1) /* ResistManaDrain */
      , (4210005,  75,       1) /* ResistManaBoost */
      , (4210005, 104,      10) /* ObviousRadarRange */
-     , (4210005, 125,       1) /* ResistHealthDrain */;
+     , (4210005, 125,       1) /* ResistHealthDrain */
+	 , (4210005,  76,     0.2) /* Translucency */;
 
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)
 VALUES (4210005,   1, 'Anti Parazi') /* Name */
