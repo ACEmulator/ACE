@@ -239,6 +239,26 @@ namespace ACE.Database.SQLFormatters
                         return GetValuesForTreasureDID(TreasureWielded[value]);
                     }
                     break;
+                case PropertyDataId.InventoryTreasureType:
+                    if (TreasureWielded != null && TreasureWielded.ContainsKey(value))
+                    {
+                        return GetValuesForTreasureDID(TreasureWielded[value]);
+                    }
+                    else if (TreasureDeath != null && TreasureDeath.ContainsKey(value))
+                    {
+                        return $"Loot Tier: {TreasureDeath[value].Tier}";
+                    }
+                    break;
+                case PropertyDataId.ShopTreasureType:
+                    if (TreasureWielded != null && TreasureWielded.ContainsKey(value))
+                    {
+                        return GetValuesForTreasureDID(TreasureWielded[value]);
+                    }
+                    else if (TreasureDeath != null && TreasureDeath.ContainsKey(value))
+                    {
+                        return $"Loot Tier: {TreasureDeath[value].Tier}";
+                    }
+                    break;
                 case PropertyDataId.PCAPRecordedObjectDesc:
                     return ((ObjectDescriptionFlag)value).ToString();
                 case PropertyDataId.PCAPRecordedPhysicsDesc:
