@@ -32,7 +32,7 @@ VALUES (1035297,  11, True ) /* IgnoreCollisions */
 
 INSERT INTO `weenie_properties_float` (`object_Id`, `type`, `value`)
 VALUES (1035297,   5, -0.05000000074505806) /* ManaRate */
-     , (1035297,  21,       2) /* WeaponLength */;
+     , (1035297,  21,       1) /* WeaponLength */;
 
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)
 VALUES (1035297,   1, 'Greatsword of Flame') /* Name */

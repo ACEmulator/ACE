@@ -5,7 +5,7 @@ VALUES (10416114, 'ace10416114-greatswordofironacid', 6, '2021-11-20 00:19:18') 
 
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`)
 VALUES (10416114,   1,          1) /* ItemType - MeleeWeapon */
-     , (10416114,   5,       6400) /* EncumbranceVal */
+     , (10416114,   5,       0) /* EncumbranceVal */
      , (10416114,   9,   33554432) /* ValidLocations - TwoHanded */
      , (10416114,  16,          1) /* ItemUseable - No */
      , (10416114,  18,        256) /* UiEffects - Acid */

@@ -228,6 +228,8 @@ VALUES (450450, 4, 450531,  0, 0, 0, False) /* Create Gelidite Robe (450531) for
      , (450450, 4, 450046,  0, 0, 0, False) /* Create Swarthy Mattekar Robe (450046) for Shop */
      , (450450, 4, 450047,  0, 0, 0, False) /* Create Empyrean Robe (450047) for Shop */
      , (450450, 4, 450048,  0, 0, 0, False) /* Create Martine's Robe (450048) for Shop */
+	 , (450450, 4, 480576,  0, 0, 0, False) /* Create Martine's Robe (450048) for Shop */ 
+	 , (450450, 4, 480577,  0, 0, 0, False) /* Create Martine's Robe (450048) for Shop */
      , (450450, 4, 450049,  0, 0, 0, False) /* Create Elemental Master Robe (450049) for Shop */
      , (450450, 4, 450050,  0, 0, 0, False) /* Create Elemental Master Robe (450050) for Shop */
      , (450450, 4, 450051,  0, 0, 0, False) /* Create Robe of the Tundra (450051) for Shop */
@@ -350,6 +352,7 @@ VALUES (450450, 4, 450531,  0, 0, 0, False) /* Create Gelidite Robe (450531) for
      , (450450, 4, 450101,  0, 0, 0, False) /* Create Celestial Hand Shield (450101) for Shop */
      , (450450, 4, 450103,  0, 0, 0, False) /* Create Eldrytch Web Shield (450103) for Shop */
      , (450450, 4, 450104,  0, 0, 0, False) /* Create Radiant Blood Shield (450104) for Shop */
+	 , (450450, 4, 480516,  0, 0, 0, False) /* Create Radiant Blood Shield (450104) for Shop */
      , (450450, 4, 450108,  0, 0, 0, False) /* Create Shield of the Gold Gear (450108) for Shop */
      , (450450, 4, 450367,  0, 0, 0, False) /* Create Sanguinary Aegis (450367) for Shop */
      , (450450, 4, 450369,  0, 0, 0, False) /* Create Sanguinary Aegis (450369) for Shop */
@@ -364,6 +367,12 @@ VALUES (450450, 4, 450531,  0, 0, 0, False) /* Create Gelidite Robe (450531) for
      , (450450, 4, 1036227,  0, 0, 0, False) /* Create Coral Shield (1036227) for Shop */
      , (450450, 4, 1036228,  0, 0, 0, False) /* Create Coral Shield (1036228) for Shop */
      , (450450, 4, 450764,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480515,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480512,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480513,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480514,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480517,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480518,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
      , (450450, 4, 1036254,  0, 0, 0, False) /* Create  (1036254) for Shop */
      , (450450, 4, 1038922,  0, 0, 0, False) /* Create T'thuun Shield (1038922) for Shop */
      , (450450, 4, 1043130,  0, 0, 0, False) /* Create Iron Blade Aegis (1043130) for Shop */
@@ -426,12 +435,17 @@ VALUES (450450, 4, 450531,  0, 0, 0, False) /* Create Gelidite Robe (450531) for
      , (450450, 4, 1035547,  0, 0, 0, False) /* Create Doom Hammer (1035547) for Shop */
      , (450450, 4, 1034024,  0, 0, 0, False) /* Create Silifi of Crimson Night (1034024) for Shop */
      , (450450, 4, 1028490,  0, 0, 0, False) /* Create Noble War Maul (1028490) for Shop */
+	 , (450450, 4, 480567,  0, 0, 0, False) /* Create Noble War Maul (1028490) for Shop */ 
+	 , (450450, 4, 480574,  0, 0, 0, False) /* Create Noble War Maul (1028490) for Shop */
      , (450450, 4, 1008788,  0, 0, 0, False) /* Create Obsidian Dagger (1008788) for Shop */
      , (450450, 4, 1023536,  0, 0, 0, False) /* Create Fetid Dirk (1023536) for Shop */
      , (450450, 4, 1026031,  0, 0, 0, False) /* Create Bone Dagger (1026031) for Shop */
      , (450450, 4, 1025904,  0, 0, 0, False) /* Create Atakir's Blade (1025904) for Shop */
      , (450450, 4, 1028218,  0, 0, 0, False) /* Create Sable Tooth Dirk (1028218) for Shop */
      , (450450, 4, 1043046,  0, 0, 0, False) /* Create Paradox-touched Olthoi Dagger (1043046) for Shop */
+	 , (450450, 4, 480564,  0, 0, 0, False) /* Create Paradox-touched Olthoi Dagger (1043046) for Shop */ 
+	 , (450450, 4, 480565,  0, 0, 0, False) /* Create Paradox-touched Olthoi Dagger (1043046) for Shop */ 
+	 , (450450, 4, 480566,  0, 0, 0, False) /* Create Paradox-touched Olthoi Dagger (1043046) for Shop */ 
      , (450450, 4, 1008799,  0, 0, 0, False) /* Create Great Work Staff of the Lightbringer (1008799) for Shop */
      , (450450, 4, 1011329,  0, 0, 0, False) /* Create Aun Tanua's War Taiaha (1011329) for Shop */
      , (450450, 4, 1011431,  0, 0, 0, False) /* Create Audetaunga's Taiaha of the Mountains (1011431) for Shop */
@@ -446,8 +460,28 @@ VALUES (450450, 4, 450531,  0, 0, 0, False) /* Create Gelidite Robe (450531) for
      , (450450, 4, 1040089,  0, 0, 0, False) /* Create Empowered Sword of Lost Hope (1040089) for Shop */
      , (450450, 4, 1040517,  0, 0, 0, False) /* Create Olthoibane Sword of Lost Light (1040517) for Shop */
      , (450450, 4, 1040519,  0, 0, 0, False) /* Create Skeletonbane Sword of Lost Light (1040519) for Shop */
-     , (450450, 4, 1035297,  0, 0, 0, False) /* Create Greatsword of Flame (1035297) for Shop */
      , (450450, 4, 1031291,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */
+     , (450450, 4, 450792,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */
+     , (450450, 4, 450793,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */	 
+	 , (450450, 4, 450794,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */ 
+     , (450450, 4, 450795,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */	 
+     , (450450, 4, 450796,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */	 
+     , (450450, 4, 450797,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */	 
+     , (450450, 4, 450798,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */	 
+     , (450450, 4, 450799,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */	 
+	 , (450450, 4, 450800,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */ 
+	 , (450450, 4, 450801,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */
+     , (450450, 4, 450802,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */	 
+	 , (450450, 4, 480504,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */ 
+     , (450450, 4, 480505,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */	 
+     , (450450, 4, 480506,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */	 
+     , (450450, 4, 480507,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */	 
+     , (450450, 4, 480508,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */	 
+     , (450450, 4, 480509,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */	 
+	 , (450450, 4, 480510,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */ 
+	 , (450450, 4, 480511,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */ 
+	 , (450450, 4, 480573,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */ 
+	 , (450450, 4, 1035297,  0, 0, 0, False) /* Create Greatsword of Flame (1035297) for Shop */
      , (450450, 4, 10352971,  0, 0, 0, False) /* Create Greatsword of Frost (10352971) for Shop */
      , (450450, 4, 10352972,  0, 0, 0, False) /* Create Greatsword of Lightning (10352972) for Shop */
      , (450450, 4, 10352973,  0, 0, 0, False) /* Create Greatsword of Acid (10352973) for Shop */
@@ -458,6 +492,9 @@ VALUES (450450, 4, 450531,  0, 0, 0, False) /* Create Gelidite Robe (450531) for
      , (450450, 4, 10416114,  0, 0, 0, False) /* Create Greatsword of Iron Acid (10416114) for Shop */
      , (450450, 4, 10416115,  0, 0, 0, False) /* Create Greatsword of Iron Slashing and Piercing (10416115) for Shop */
      , (450450, 4, 10416116,  0, 0, 0, False) /* Create Greatsword of Iron Bludgeoning (10416116) for Shop */
+	 , (450450, 4, 480561,  0, 0, 0, False) /* Create Greatsword of Iron Bludgeoning (10416116) for Shop */
+	 , (450450, 4, 480562,  0, 0, 0, False) /* Create Greatsword of Iron Bludgeoning (10416116) for Shop */
+	 , (450450, 4, 480563,  0, 0, 0, False) /* Create Greatsword of Iron Bludgeoning (10416116) for Shop */
      , (450450, 4, 1024028,  0, 0, 0, False) /* Create Crescent Moons (1024028) for Shop */
      , (450450, 4, 1023538,  0, 0, 0, False) /* Create Basalt Blade (1023538) for Shop */
      , (450450, 4, 1030862,  0, 0, 0, False) /* Create Banished Nekode (1030862) for Shop */
@@ -465,6 +502,9 @@ VALUES (450450, 4, 450531,  0, 0, 0, False) /* Create Gelidite Robe (450531) for
      , (450450, 4, 4200137,  0, 0, 0, False) /* Create Hamud's Pyreal Katar (4200137) for Shop */
 	 , (450450, 4, 450791,  0, 0, 0, False) /* Create Paradox-touched Olthoi Wand (450765) for Shop */
      , (450450, 4, 1025905,  0, 0, 0, False) /* Create Needletooth (1025905) for Shop */
+	, (450450, 4, 480558,  0, 0, 0, False) /* Create Needletooth (1025905) for Shop */
+	, (450450, 4, 480559,  0, 0, 0, False) /* Create Needletooth (1025905) for Shop */
+	, (450450, 4, 480560,  0, 0, 0, False) /* Create Needletooth (1025905) for Shop */
      , (450450, 4, 1023547,  0, 0, 0, False) /* Create Fang Mace (1023547) for Shop */
      , (450450, 4, 1024027,  0, 0, 0, False) /* Create Scepter of Thunderous Might (1024027) for Shop */
      , (450450, 4, 1025906,  0, 0, 0, False) /* Create Mace of Dissonance (1025906) for Shop */
@@ -472,11 +512,16 @@ VALUES (450450, 4, 450531,  0, 0, 0, False) /* Create Gelidite Robe (450531) for
      , (450450, 4, 1030860,  0, 0, 0, False) /* Create Banished Mace (1030860) for Shop */
      , (450450, 4, 1031500,  0, 0, 0, False) /* Create Worn Old Mace (1031500) for Shop */
      , (450450, 4, 1035407,  0, 0, 0, False) /* Create Burnja's Board with Nails (1035407) for Shop */
+	 , (450450, 4, 480568,  0, 0, 0, False) /* Create Burnja's Board with Nails (1035407) for Shop */
+	 , (450450, 4, 480569,  0, 0, 0, False) /* Create Burnja's Board with Nails (1035407) for Shop */
+	 , (450450, 4, 480570,  0, 0, 0, False) /* Create Burnja's Board with Nails (1035407) for Shop */
+	 , (450450, 4, 480571,  0, 0, 0, False) /* Create Burnja's Board with Nails (1035407) for Shop */
      , (450450, 4, 1038926,  0, 0, 0, False) /* Create T'thuun Mace (1038926) for Shop */
      , (450450, 4, 1032773,  0, 0, 0, False) /* Create Spinning Staff of Death (1032773) for Shop */
      , (450450, 4, 1030634,  0, 0, 0, False) /* Create Cyphis Suldow's Half Moon Spear (1030634) for Shop */
      , (450450, 4, 1023539,  0, 0, 0, False) /* Create Serpent's Fang (1023539) for Shop */
      , (450450, 4, 1035615,  0, 0, 0, False) /* Create Blessed Spear of the Mosswart Gods (1035615) for Shop */
+	 , (450450, 4, 480572,  0, 0, 0, False) /* Create Blessed Spear of the Mosswart Gods (1035615) for Shop */
      , (450450, 4, 4200094,  0, 0, 0, False) /* Create Spear of Winter Flame (4200094) for Shop */
      , (450450, 4, 4200106,  0, 0, 0, False) /* Create Royal Runed Partizan (4200106) for Shop */
      , (450450, 4, 4200108,  0, 0, 0, False) /* Create Auroch Horn Spear (4200108) for Shop */
@@ -491,6 +536,13 @@ VALUES (450450, 4, 450531,  0, 0, 0, False) /* Create Gelidite Robe (450531) for
      , (450450, 4, 4200168,  0, 0, 0, False) /* Create Gear Crossbow (4200168) for Shop */
      , (450450, 4, 4200169,  0, 0, 0, False) /* Create Gear Crossbow (4200169) for Shop */
      , (450450, 4, 4200164,  0, 0, 0, False) /* Create Wretched Crossbow (4200164) for Shop */
+	 , (450450, 4, 480543,  0, 0, 0, False) /* Create Wretched Crossbow (4200164) for Shop */ 
+	 , (450450, 4, 480544,  0, 0, 0, False) /* Create Wretched Crossbow (4200164) for Shop */ 
+	 , (450450, 4, 480545,  0, 0, 0, False) /* Create Wretched Crossbow (4200164) for Shop */ 
+	 , (450450, 4, 480546,  0, 0, 0, False) /* Create Wretched Crossbow (4200164) for Shop */ 
+	 , (450450, 4, 480547,  0, 0, 0, False) /* Create Wretched Crossbow (4200164) for Shop */ 
+	 , (450450, 4, 480548,  0, 0, 0, False) /* Create Wretched Crossbow (4200164) for Shop */ 
+	 , (450450, 4, 480549,  0, 0, 0, False) /* Create Wretched Crossbow (4200164) for Shop */ 
      , (450450, 4, 1038923,  0, 0, 0, False) /* Create T'thuun Bow (1038923) for Shop */
      , (450450, 4, 1033050,  0, 0, 0, False) /* Create Red Rune Silveran Dagger (1033050) for Shop */
      , (450450, 4, 1033058,  0, 0, 0, False) /* Create Red Rune Silveran Axe (1033058) for Shop */
@@ -716,6 +768,8 @@ VALUES (450450, 4, 450531,  0, 0, 0, False) /* Create Gelidite Robe (450531) for
      , (450450, 4, 450277,  0, 0, 0, False) /* Create Royal Dye (450277) for Shop */
      , (450450, 4, 450707,  0, 0, 0, False) /* Create Royal Oil (450707) for Shop */
      , (450450, 4, 450711,  0, 0, 0, False) /* Create Swamp Lord's War Paint (450711) for Shop */
+	 , (450450, 4, 480578,  0, 0, 0, False) /* Create Royal Oil (450707) for Shop */
+     , (450450, 4, 480579,  0, 0, 0, False) /* Create Swamp Lord's War Paint (450711) for Shop */
      , (450450, 4, 105280,  0, 0, 0, False) /* Create Holiday Sweater (105280) for Shop */
      , (450450, 4, 450532,  0, 0, 0, False) /* Create Mattekar Hide Coat (450532) for Shop */
      , (450450, 4, 450533,  0, 0, 0, False) /* Create Furry Mattekar Hide Coat (450533) for Shop */
@@ -767,11 +821,13 @@ VALUES (450450, 4, 450531,  0, 0, 0, False) /* Create Gelidite Robe (450531) for
      , (450450, 4, 450457,  0, 0, 0, False) /* Create Alfric's Bull (450457) for Shop */
      , (450450, 4, 450460,  0, 0, 0, False) /* Create The Red Bull (450460) for Shop */
      , (450450, 4, 450072,  0, 0, 0, False) /* Create The Stag of Bellenesse (450072) for Shop */
+     , (450450, 4, 480550,  0, 0, 0, False) /* Create The Stag of Bellenesse (450072) for Shop */	 
      , (450450, 4, 4200104,  0, 0, 0, False) /* Create Koji's Beast (4200104) for Shop */
      , (450450, 4, 4200454,  0, 0, 0, False) /* Create  (4200454) for Shop */
      , (450450, 4, 450459,  0, 0, 0, False) /* Create Koji's Visage (450459) for Shop */
      , (450450, 4, 4200452,  0, 0, 0, False) /* Create  (4200452) for Shop */
      , (450450, 4, 4200105,  0, 0, 0, False) /* Create Veil of Darkness (4200105) for Shop */
+	 , (450450, 4, 450597,  0, 0, 0, False) /* Create Shroud of Night (450597) for Shop */
      , (450450, 4, 450458,  0, 0, 0, False) /* Create The Poet's Mask (450458) for Shop */
      , (450450, 4, 450070,  0, 0, 0, False) /* Create Mask of the Malik (450070) for Shop */
      , (450450, 4, 450069,  0, 0, 0, False) /* Create The Dragon of Power (450069) for Shop */
@@ -780,6 +836,8 @@ VALUES (450450, 4, 450531,  0, 0, 0, False) /* Create Gelidite Robe (450531) for
      , (450450, 4, 450119,  0, 0, 0, False) /* Create Koji's Visage (450119) for Shop */
      , (450450, 4, 450073,  0, 0, 0, False) /* Create The Boar of Cinghalle (450073) for Shop */
      , (450450, 4, 1021373,  0, 0, 0, False) /* Create Martine's Mask (1021373) for Shop */
+	 , (450450, 4, 480551,  0, 0, 0, False) /* Create Martine's Mask (1021373) for Shop */ 
+	 , (450450, 4, 480553,  0, 0, 0, False) /* Create Martine's Mask (1021373) for Shop */
      , (450450, 4, 1008805,  0, 0, 0, False) /* Create Nexus Helm of the Lightbringer (1008805) for Shop */
      , (450450, 4, 1008806,  0, 0, 0, False) /* Create Fenmalain Helm of the Lightbringer (1008806) for Shop */
      , (450450, 4, 1008807,  0, 0, 0, False) /* Create Caulnalain Helm of the Lightbringer (1008807) for Shop */
@@ -797,6 +855,7 @@ VALUES (450450, 4, 450531,  0, 0, 0, False) /* Create Gelidite Robe (450531) for
      , (450450, 4, 450111,  0, 0, 0, False) /* Create Fletcher's Cap (450111) for Shop */
      , (450450, 4, 450117,  0, 0, 0, False) /* Create Stocking Cap (450117) for Shop */
      , (450450, 4, 450118,  0, 0, 0, False) /* Create Tall Stocking Cap (450118) for Shop */
+	 , (450450, 4, 480552,  0, 0, 0, False) /* Create Tall Stocking Cap (450118) for Shop */
      , (450450, 4, 450755,  0, 0, 0, False) /* Create Scribe Hat (450755) for Shop */
      , (450450, 4, 450757,  0, 0, 0, False) /* Create Miner's Hat (450757) for Shop */
      , (450450, 4, 450758,  0, 0, 0, False) /* Create Timberman's Hat (450758) for Shop */
@@ -850,6 +909,7 @@ VALUES (450450, 4, 450531,  0, 0, 0, False) /* Create Gelidite Robe (450531) for
      , (450450, 4, 450490,  0, 0, 0, False) /* Create Armored Sclavus Mask (450490) for Shop */
      , (450450, 4, 450508,  0, 0, 0, False) /* Create Skull Mask (450508) for Shop */
      , (450450, 4, 450491,  0, 0, 0, False) /* Create Zombie Mask (450491) for Shop */
+	 , (450450, 4, 480554,  0, 0, 0, False) /* Create Zombie Mask (450491) for Shop */
      , (450450, 4, 450492,  0, 0, 0, False) /* Create Scarecrow Mask (450492) for Shop */
      , (450450, 4, 450537,  0, 0, 0, False) /* Create Accursed Scarecrow Mask (450537) for Shop */
      , (450450, 4, 450493,  0, 0, 0, False) /* Create Scary Minion Mask (450493) for Shop */
@@ -910,7 +970,6 @@ VALUES (450450, 4, 450531,  0, 0, 0, False) /* Create Gelidite Robe (450531) for
      , (450450, 4, 450592,  0, 0, 0, False) /* Create Purified Mouryou Nodachi (450592) for Shop */
      , (450450, 4, 450593,  0, 0, 0, False) /* Create Purified Mouryou Wakizashi (450593) for Shop */
      , (450450, 4, 450594,  0, 0, 0, False) /* Create Purified Mouryou Nekode (450594) for Shop */
-     , (450450, 4, 450597,  0, 0, 0, False) /* Create Shroud of Night (450597) for Shop */
      , (450450, 4, 450598,  0, 0, 0, False) /* Create Tome of Caustics (450598) for Shop */
      , (450450, 4, 450599,  0, 0, 0, False) /* Create Tome of Flame (450599) for Shop */
      , (450450, 4, 450600,  0, 0, 0, False) /* Create Tome of Chill (450600) for Shop */
@@ -975,8 +1034,31 @@ VALUES (450450, 4, 450531,  0, 0, 0, False) /* Create Gelidite Robe (450531) for
      , (450450, 4, 450779,  0, 0, 0, False) /* Create Shendolain Soul Crystal Orb (450750) for Shop */
      , (450450, 4, 450780,  0, 0, 0, False) /* Create Banished Orb (450752) for Shop */
      , (450450, 4, 450781,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
-     , (450450, 4, 450782,  0, 0, 0, False) /* Create Paradox-touched Olthoi Wand (450765) for Shop */;
-	 
+     , (450450, 4, 450782,  0, 0, 0, False) /* Create Paradox-touched Olthoi Wand (450765) for Shop */
+	 , (450450, 4, 480519,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480520,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480521,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480523,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480524,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480525,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480526,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480527,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480528,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480529,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480530,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480531,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480532,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480533,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480534,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480535,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480536,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480537,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480538,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480539,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480540,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480541,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480542,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */
+	 , (450450, 4, 480580,  0, 0, 0, False) /* Create Shield of Isin Dule (450764) for Shop */;
 	 
 
 	 
