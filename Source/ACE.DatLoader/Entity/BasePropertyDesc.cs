@@ -93,7 +93,6 @@ namespace ACE.DatLoader.Entity
                     default:
                         // Should never hit this!
                         throw new NotImplementedException();
-                        break;
                 }
             }
             hasMax = reader.ReadBoolean();
@@ -125,10 +124,6 @@ namespace ACE.DatLoader.Entity
 
             /* Confident Var Names */
             m_fPredictionTimeout = reader.ReadSingle(); // const float Const_DefaultPredictedExpirationTime =  1.5; // idb
-            if(m_fPredictionTimeout != 1.5)
-            {
-                var test = false;
-            }
             m_inheritanceType = (PropertyInheritanceType)reader.ReadByte();
             m_datFileType = (PropertyDatFileType)reader.ReadByte();
             m_propagationType = (PropertyPropagationType)reader.ReadByte();
