@@ -32,7 +32,8 @@ namespace ACE.Server.Network
         private const int timeBetweenAck = 2000; // 2s
 
         private readonly Session session;
-        private readonly ConnectionListener connectionListener;
+        private readonly ConnectionListener connectionC2S; // This is the connection the client transmits on. In retail this would be port 9000 for GLS; For world servers, examples would be port 9002 / 9004 / 9006 / 9008.
+        private readonly ConnectionListener connectionS2C; // This is the connection the server transmits on. In retail this would be port 9001 for GLS; For world servers, examples would be port 9003 / 9005 / 9007 / 9009.
 
         private readonly Object[] currentBundleLocks = new Object[(int)GameMessageGroup.QueueMax];
         private readonly NetworkBundle[] currentBundles = new NetworkBundle[(int)GameMessageGroup.QueueMax];
@@ -92,7 +93,8 @@ namespace ACE.Server.Network
         public NetworkSession(Session session, ConnectionListener connectionListener, ushort clientId, ushort serverId)
         {
             this.session = session;
-            this.connectionListener = connectionListener;
+            connectionC2S = connectionListener;
+            connectionS2C = SocketManager.GetMatchedConnectionListener(connectionC2S);
 
             ClientId = clientId;
             ServerId = serverId;
@@ -722,7 +724,9 @@ namespace ACE.Server.Network
 
             try
             {
-                var socket = connectionListener.Socket;
+                // On connection to server, client expects response on the connection it initiated, once that occurs, the client connects to the +1 port and then the server transmits on that connection, while the client continues to transmit on the initial port.
+                //var socket = packet.Header.HasFlag(PacketHeaderFlags.ConnectRequest) || session.State < SessionState.AuthConnectResponse ? connectionC2S.Socket: connectionS2C.Socket;
+                var socket = packet.Header.HasFlag(PacketHeaderFlags.ConnectRequest) ? connectionC2S.Socket : connectionS2C.Socket;
 
                 packet.CreateReadyToSendPacket(buffer, out var size);
 
