@@ -110,7 +110,7 @@ namespace ACE.Server.Physics.Common
 
             var strength = (int)player.Strength.Current;
 
-            var numAugs = player.AugmentationIncreasedCarryingCapacity;
+            var numAugs = player.AugmentationIncreasedCarryingCapacity + (player.EnlightenmentCustomLevel >= 2 ? 1 : 0); //Extra 20% burden capacity at second enlighten
 
             var capacity = EncumbranceSystem.EncumbranceCapacity(strength, numAugs);
 

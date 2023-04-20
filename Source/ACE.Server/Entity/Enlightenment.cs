@@ -68,17 +68,17 @@ namespace ACE.Server.Entity
                 return false;
             }
 
-            if (!VerifyLumAugs(player))
-            {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You must have all luminance auras for enlightenment.", ChatMessageType.Broadcast));
-                return false;
-            }
+            //if (!VerifyLumAugs(player))
+            //{
+            //    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You must have all luminance auras for enlightenment.", ChatMessageType.Broadcast));
+            //    return false;
+            //}
 
-            if (!VerifySocietyMaster(player))
-            {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You must be a Master of one of the Societies of Dereth for enlightenment.", ChatMessageType.Broadcast));
-                return false;
-            }
+            //if (!VerifySocietyMaster(player))
+            //{
+            //    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You must be a Master of one of the Societies of Dereth for enlightenment.", ChatMessageType.Broadcast));
+            //    return false;
+            //}
 
             if (player.GetFreeInventorySlots() < 25)
             {
@@ -86,7 +86,7 @@ namespace ACE.Server.Entity
                 return false;
             }
 
-            if (player.Enlightenment >= 5)
+            if (player.EnlightenmentCustomLevel >= 5)
             {
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have already reached the maximum enlightenment level!", ChatMessageType.Broadcast));
                 return false;
@@ -297,14 +297,40 @@ namespace ACE.Server.Entity
 
         public static void AddPerks(WorldObject npc, Player player)
         {
-            // +1 to all skills
-            // this could be handled through InitLevel, since we are always using deltas when modifying that field
-            // (ie. +5/-5, instead of specifically setting to 5 trained / 10 specialized in SkillAlterationDevice)
-            // however, it just feels safer to handle this dynamically in CreatureSkill, based on Enlightenment (similar to augs)
-            //var enlightenment = player.Enlightenment + 1;
-            //player.UpdateProperty(player, PropertyInt.Enlightenment, enlightenment);
+            /* 
+              Custom enlightenment behavior
+              Lvl 1 is +6 vitality, +3 all skills, 10% xp reduction, +2 to all attributes, +25 % salvage
+              Lvl 2 is +10 vitality, +5 all skills, 30% xp reduction, +4 to all attributes, +20 % burden
+              Lvl 3 is +14 vitality, +7 all skills, 50% xp reduction, +6 to all attributes , +20 % spell timer
+              Lvl 4 is +18 vitality, +9 all skills, 70% xp reduction, +8 to all attributes, +1 Damage Rating
+              Lvl 5 is +20 vitality, +10 all skills, 80% xp reduction, +10 to all attributes, +1 Damage Reduction rating
+            */
 
-            player.Enlightenment += 1;
+            //We want to add more than just +2 vitality per enlightenment, but that is hard coded at the client and can't be changed server-side
+            //so we have to increment the enlightenment level more than once per
+            int newEnlightenmentLevel = 0;
+            if(player.Enlightenment < 3)
+            {
+                newEnlightenmentLevel = 3;
+            }
+            else if(player.Enlightenment < 5)
+            {
+                newEnlightenmentLevel = 5;
+            }
+            else if (player.Enlightenment < 7)
+            {
+                newEnlightenmentLevel = 7;
+            }
+            else if (player.Enlightenment < 9)
+            {
+                newEnlightenmentLevel = 9;
+            }
+            else if (player.Enlightenment < 10)
+            {
+                newEnlightenmentLevel = 10;
+            }
+
+            player.Enlightenment = newEnlightenmentLevel;
             player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.Enlightenment, player.Enlightenment));
 
             player.SendMessage("You have become enlightened and view the world with new eyes.", ChatMessageType.Broadcast);
@@ -314,7 +340,7 @@ namespace ACE.Server.Entity
             var lvl = "";
 
             // add title
-            switch (player.Enlightenment)
+            switch (player.EnlightenmentCustomLevel)
             {
                 case 1:
                     player.AddTitle(CharacterTitle.Awakened);

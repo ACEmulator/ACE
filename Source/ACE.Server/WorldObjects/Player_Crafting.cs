@@ -197,7 +197,7 @@ namespace ACE.Server.WorldObjects
                 // if bags aren't being combined here
                 var valueFactor = (float)added / amountProduced;
                 if (item.ItemType != ItemType.TinkeringMaterial)
-                    valueFactor *= GetCreatureSkill(Skill.Salvaging).Current / 387.0f * (1.0f + 0.25f * AugmentationBonusSalvage);
+                    valueFactor *= GetCreatureSkill(Skill.Salvaging).Current / 387.0f * (1.0f + 0.25f * (AugmentationBonusSalvage + (EnlightenmentCustomLevel >= 1 ? 1 : 0)));
 
                 var addedValue = (int)Math.Round((item.Value ?? 0) * valueFactor);
 
@@ -295,7 +295,7 @@ namespace ACE.Server.WorldObjects
             var highestTrainedTinkeringSkill = highestTinkeringSkill.AdvancementClass >= SkillAdvancementClass.Trained ? highestTinkeringSkill.Current : 0;
 
             // take augs into account for salvaging only
-            var salvageAmount = CalcNumUnits((int)salvageSkill, workmanship, AugmentationBonusSalvage) * stackSize;
+            var salvageAmount = CalcNumUnits((int)salvageSkill, workmanship, AugmentationBonusSalvage + (EnlightenmentCustomLevel >= 1 ? 1 : 0)) * stackSize;
             var tinkeringAmount = CalcNumUnits((int)highestTrainedTinkeringSkill, workmanship, 0);
 
             // cap tinkeringAmount to item workmanship

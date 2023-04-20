@@ -49,7 +49,7 @@ namespace ACE.Server.WorldObjects
                 return 10000000;
             var strength = Attributes[PropertyAttribute.Strength].Current;
 
-            return (int)((150 * strength) + (AugmentationIncreasedCarryingCapacity * 30 * strength));
+            return (int)((150 * strength) + ((AugmentationIncreasedCarryingCapacity + (EnlightenmentCustomLevel >= 2 ? 1 : 0)) * 30 * strength));
         }
 
         public bool HasEnoughBurdenToAddToInventory(WorldObject worldObject)

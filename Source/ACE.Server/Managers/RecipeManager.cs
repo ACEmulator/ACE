@@ -218,6 +218,11 @@ namespace ACE.Server.Managers
 
                 if (player.AugmentationBonusImbueChance > 0)
                     successChance += player.AugmentationBonusImbueChance * 0.05f;
+
+                if (player.Enlightenment > 0)
+                {
+                    successChance += player.EnlightenmentCustomLevel * 0.1f;
+                }
             }
 
             // todo: remove this once foolproof salvage recipes are updated
@@ -313,6 +318,11 @@ namespace ACE.Server.Managers
 
             if (numAugs > 0)
                 floorMsg += $"\n{numAugs * 5} percent is due to your augmentation.";
+
+            if(player.Enlightenment > 0)
+            {
+                floorMsg += $"\n{player.EnlightenmentCustomLevel * 10} percent is due to your enlightenment.";
+            }
 
             if (!player.ConfirmationManager.EnqueueSend(new Confirmation_CraftInteration(player.Guid, source.Guid, target.Guid), floorMsg))
             {

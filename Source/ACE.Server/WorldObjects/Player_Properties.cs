@@ -1088,6 +1088,37 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyInt.Enlightenment); else SetProperty(PropertyInt.Enlightenment, value); }
         }
 
+        public int EnlightenmentCustomLevel
+        {
+            get
+            {
+                if (Enlightenment < 3)
+                {
+                    return 0;
+                }
+                else if (Enlightenment < 5)
+                {
+                    return 1;
+                }
+                else if (Enlightenment < 7)
+                {
+                    return 2;
+                }
+                else if (Enlightenment < 9)
+                {
+                    return 3;
+                }
+                else if (Enlightenment < 10)
+                {
+                    return 4;
+                }
+                else
+                {
+                    return 5;
+                }
+            } 
+        }
+
         public int LumAugVitality
         {
             get => GetProperty(PropertyInt.LumAugVitality) ?? 0;

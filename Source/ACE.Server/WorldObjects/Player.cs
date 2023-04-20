@@ -951,7 +951,7 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"JumpPack: Velocity: {jump.Velocity}, Extent: {jump.Extent}");
 
             var strength = Strength.Current;
-            var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, AugmentationIncreasedCarryingCapacity);
+            var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, AugmentationIncreasedCarryingCapacity + (EnlightenmentCustomLevel >= 2 ? 1 : 0));
             var burden = EncumbranceSystem.GetBurden(capacity, EncumbranceVal ?? 0);
 
             // clear jump penalty if you're outside the bounds of the length
@@ -1114,7 +1114,7 @@ namespace ACE.Server.WorldObjects
         {
             var strength = Strength.Current;
 
-            var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, AugmentationIncreasedCarryingCapacity);
+            var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, AugmentationIncreasedCarryingCapacity + (EnlightenmentCustomLevel >= 2 ? 1 : 0));
 
             var burden = EncumbranceSystem.GetBurden(capacity, EncumbranceVal ?? 0);
 

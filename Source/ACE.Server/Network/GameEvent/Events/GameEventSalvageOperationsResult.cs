@@ -16,7 +16,7 @@ namespace ACE.Server.Network.GameEvent.Events
             foreach (var message in messages)
                 Writer.Write(new SalvageResult(message));
 
-            Writer.Write(skill == Skill.Salvaging ? session.Player.AugmentationBonusSalvage * 25 : 0);
+            Writer.Write(skill == Skill.Salvaging ? (session.Player.AugmentationBonusSalvage + (session.Player.EnlightenmentCustomLevel >= 1 ? 1 : 0))* 25 : 0);
         }
     }
 }

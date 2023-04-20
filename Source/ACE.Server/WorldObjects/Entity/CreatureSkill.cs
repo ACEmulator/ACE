@@ -223,7 +223,7 @@ namespace ACE.Server.WorldObjects.Entity
             //}
 
             if (AdvancementClass >= SkillAdvancementClass.Trained && player.Enlightenment != 0)
-                total += (uint)player.Enlightenment;
+                total += (uint)player.EnlightenmentCustomLevel;
 
             return total;
         }
