@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 
 using ACE.Database.Models.World;
 
@@ -60,6 +61,8 @@ namespace ACE.Database.SQLFormatters.World
             });
 
             ValuesWriter(input.Count, lineGenerator, writer);
+
+            writer.WriteLine($"/* {GetValuesForTreasureDID(input.ToList()).Replace("                                   ", "    ")}" + Environment.NewLine + "*/");
         }
     }
 }

@@ -26,7 +26,7 @@ WORKDIR /ace
 
 # install net-tools (netstat for health check) & cleanup
 RUN apt-get update && \
-    apt-get install -y \
+    apt-get install --no-install-recommends -y \
     net-tools && \
     apt-get clean && \
     rm -rf \
