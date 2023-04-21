@@ -220,14 +220,9 @@ namespace ACE.Database.SQLFormatters
                     }
                     break;
                 case PropertyDataId.WieldedTreasureType:
-                    string treasureW = "";
                     if (TreasureWielded != null && TreasureWielded.ContainsKey(value))
                     {
-                        foreach (var item in TreasureWielded[value])
-                        {
-                            treasureW += GetValueForTreasureDID(item);
-                        }
-                        return treasureW;
+                        return GetValuesForTreasureDID(TreasureWielded[value]);
                     }
                     else if (TreasureDeath != null && TreasureDeath.ContainsKey(value))
                     {
@@ -235,18 +230,33 @@ namespace ACE.Database.SQLFormatters
                     }
                     break;
                 case PropertyDataId.DeathTreasureType:
-                    string treasureD = "";
                     if (TreasureDeath != null && TreasureDeath.ContainsKey(value))
                     {
                         return $"Loot Tier: {TreasureDeath[value].Tier}";
                     }
                     else if (TreasureWielded != null && TreasureWielded.ContainsKey(value))
                     {
-                        foreach (var item in TreasureWielded[value])
-                        {
-                            treasureD += GetValueForTreasureDID(item, true);
-                        }
-                        return treasureD;
+                        return GetValuesForTreasureDID(TreasureWielded[value]);
+                    }
+                    break;
+                case PropertyDataId.InventoryTreasureType:
+                    if (TreasureWielded != null && TreasureWielded.ContainsKey(value))
+                    {
+                        return GetValuesForTreasureDID(TreasureWielded[value]);
+                    }
+                    else if (TreasureDeath != null && TreasureDeath.ContainsKey(value))
+                    {
+                        return $"Loot Tier: {TreasureDeath[value].Tier}";
+                    }
+                    break;
+                case PropertyDataId.ShopTreasureType:
+                    if (TreasureWielded != null && TreasureWielded.ContainsKey(value))
+                    {
+                        return GetValuesForTreasureDID(TreasureWielded[value]);
+                    }
+                    else if (TreasureDeath != null && TreasureDeath.ContainsKey(value))
+                    {
+                        return $"Loot Tier: {TreasureDeath[value].Tier}";
                     }
                     break;
                 case PropertyDataId.PCAPRecordedObjectDesc:
@@ -262,19 +272,136 @@ namespace ACE.Database.SQLFormatters
             return property.GetValueEnumName(value);
         }
 
-        protected string GetValueForTreasureDID(TreasureWielded item, bool isUsedInDeath = false)
+        protected string GetValuesForTreasureDID(List<TreasureWielded> treasureWieldedList)
         {
             string treasure = "";
 
-            treasure += Environment.NewLine + $"                                   {(isUsedInDeath ? " Drop" : "Wield")} ";
-            if (item.StackSize > 1)
-                treasure += $"{item.StackSize}x ";
-            treasure += $"{WeenieNames[item.WeenieClassId]} ({item.WeenieClassId})";
-            if (item.PaletteId > 0)
-                treasure += $" | Palette: {Enum.GetName(typeof(PaletteTemplate), item.PaletteId)} ({item.PaletteId})";
-            if (item.Shade > 0)
-                treasure += $" | Shade: {item.Shade}";
-            treasure += $" | Probability: {item.Probability * 100}%";
+            var setNumber = 0;
+            var setTotalProbability = 0.0f;
+            var nextItemIsStartOfSubSet = false;
+            var nextItemIsPartOfSubSet = false;
+            var depth = 0;
+            var subSetTotalProbability = new Dictionary<int, float>();
+
+            foreach (var item in treasureWieldedList)
+            {
+                var treasureItem = "";
+                if (item.StackSize > 1 && item.StackSizeVariance == 0)
+                    treasureItem += $"{item.StackSize}x ";
+
+                if (item.StackSize > 1 && item.StackSizeVariance > 0)
+                {
+                    var minStack = Math.Max(1, (int)Math.Round(item.StackSize * (1.0f - item.StackSizeVariance), 0, MidpointRounding.AwayFromZero));
+                    var maxStack = item.StackSize;
+                    if (minStack != maxStack)
+                        treasureItem += $"{minStack}x to {maxStack}x ";
+                    else
+                        treasureItem += $"{maxStack}x ";
+                }
+
+                treasureItem += $"{WeenieNames[item.WeenieClassId]} ({item.WeenieClassId})";
+
+                if (item.PaletteId > 0)
+                    treasureItem += $" | Palette: {Enum.GetName(typeof(PaletteTemplate), item.PaletteId)} ({item.PaletteId})";
+
+                if (item.Shade > 0)
+                    treasureItem += $" | Shade: {item.Shade}";
+
+                if (item.StackSizeVariance > 0)
+                    treasureItem += $" | StackSizeVariance: {item.StackSizeVariance}";
+
+                if (item.SetStart || (setTotalProbability >= 1.0f && !nextItemIsPartOfSubSet))
+                {
+                    if ((!nextItemIsStartOfSubSet && !item.ContinuesPreviousSet) || (nextItemIsStartOfSubSet && item.ContinuesPreviousSet) || (setTotalProbability >= 1.0f && !nextItemIsStartOfSubSet))
+                    {
+                        if (setTotalProbability > 0.0f && setTotalProbability < 1.0f)
+                        {
+                            var setProbabilityLeftover = (1.0f - setTotalProbability) * 100;
+                            if (setProbabilityLeftover < 0.01f)
+                                treasure += Environment.NewLine + $"                                   | {Math.Ceiling(setProbabilityLeftover),6:#.00}% chance of nothing from this set";
+                            else
+                                treasure += Environment.NewLine + $"                                   | {(1.0f - setTotalProbability) * 100,6:#.00}% chance of nothing from this set";
+                        }
+
+                        if (depth > 0 && subSetTotalProbability[depth] > 0.0f && subSetTotalProbability[depth] < 1.0f)
+                        {
+                            var setProbabilityLeftover = (1.0f - subSetTotalProbability[depth]) * 100;
+                            if (setProbabilityLeftover < 0.01f)
+                                treasure += Environment.NewLine + $"                                   |          {new string(' ', 1 * depth)} {Math.Ceiling(setProbabilityLeftover),6:#.00}% chance of nothing from this subset";
+                            else
+                                treasure += Environment.NewLine + $"                                   |          {new string(' ', 1 * depth)} {(1.0f - subSetTotalProbability[depth]) * 100,6:#.00}% chance of nothing from this subset";
+                        }
+
+                        treasure += Environment.NewLine + $"                                   # Set: {++setNumber}";
+                        nextItemIsStartOfSubSet = false;
+                        nextItemIsPartOfSubSet = false;
+                        setTotalProbability = 0.0f;
+                        if (depth > 0)
+                            depth--;
+                    }
+                    else if (nextItemIsStartOfSubSet)
+                    {
+                        treasure += Environment.NewLine + $"                                   |       {new string(' ', 1 * depth)} with";
+                        nextItemIsStartOfSubSet = false;
+                        nextItemIsPartOfSubSet = true;
+                    }
+                    else if (nextItemIsPartOfSubSet && item.ContinuesPreviousSet)
+                    {
+                        nextItemIsStartOfSubSet = false;
+                        nextItemIsPartOfSubSet = false;
+                        if (depth > 0)
+                            depth--;
+                    }
+                }
+
+                if (!nextItemIsPartOfSubSet)
+                {
+                    if ((setTotalProbability + item.Probability) > 1.0f)
+                    {
+                        var realProbability = item.Probability - (setTotalProbability + item.Probability - 1.0f);
+
+                        if ($"{realProbability:#.00}" != $"{item.Probability:#.00}")
+                            treasureItem += $" | Chance adjusted down from {item.Probability * 100:#.00}% due to overage for this set";
+
+                        treasure += Environment.NewLine + $"                                   | {realProbability * 100,6:#.00}% chance of {treasureItem}";
+                    }
+                    else
+                        treasure += Environment.NewLine + $"                                   | {item.Probability * 100,6:#.00}% chance of {treasureItem}";
+
+                    setTotalProbability += item.Probability;
+                }
+                else
+                {
+                    treasure += Environment.NewLine + $"                                   |          {new string(' ', 1 * depth)} {item.Probability * 100,6:#.00}% chance of {treasureItem}";
+                    subSetTotalProbability[depth] += item.Probability;
+                }
+
+                if (item.HasSubSet)
+                {
+                    nextItemIsStartOfSubSet = true;
+                    nextItemIsPartOfSubSet = false;
+                    depth++;
+                    subSetTotalProbability[depth] = 0.0f;
+                }
+            }
+
+            if (depth > 0 && subSetTotalProbability[depth] > 0.0f && subSetTotalProbability[depth] < 1.0f)
+            {
+                var setProbabilityLeftover = (1.0f - subSetTotalProbability[depth]) * 100;
+                if (setProbabilityLeftover < 0.01f)
+                    treasure += Environment.NewLine + $"                                   |          {new string(' ', 1 * depth)} {Math.Ceiling(setProbabilityLeftover),6:#.00}% chance of nothing from this subset";
+                else
+                    treasure += Environment.NewLine + $"                                   |          {new string(' ', 1 * depth)} {(1.0f - subSetTotalProbability[depth]) * 100,6:#.00}% chance of nothing from this subset";
+            }
+
+            if (setTotalProbability > 0.0f && setTotalProbability < 1.0f)
+            {
+                var setProbabilityLeftover = (1.0f - setTotalProbability) * 100;
+                if (setProbabilityLeftover < 0.01f)
+                    treasure += Environment.NewLine + $"                                   | {Math.Ceiling(setProbabilityLeftover),6:#.00}% chance of nothing from this set";
+                else
+                    treasure += Environment.NewLine + $"                                   | {(1.0f - setTotalProbability) * 100,6:#.00}% chance of nothing from this set";
+            }
 
             return treasure;
         }
@@ -308,16 +435,8 @@ namespace ACE.Database.SQLFormatters
                 }
                 else if (TreasureWielded != null && TreasureWielded.ContainsKey(wieldedTreasureType.Value))
                 {
-                    label = "";
-                    foreach (var item in TreasureWielded[wieldedTreasureType.Value])
-                    {
-                        var wName = "";
-                        if (WeenieNames != null && WeenieNames.ContainsKey(item.WeenieClassId))
-                            wName = WeenieNames[item.WeenieClassId];
-
-                        label += $"{(item.StackSize > 0 ? $"{item.StackSize}" : "1")}x {wName} ({item.WeenieClassId}), ";
-                    }
-                    label = label.Substring(0, label.Length - 2) + $" from Wielded Treasure Table id: {wieldedTreasureType}";
+                    label = $"something from one or more sets from Wielded Treasure Table id: {wieldedTreasureType}";
+                    label += GetValuesForTreasureDID(TreasureWielded[wieldedTreasureType.Value]);
                 }
             }
             else

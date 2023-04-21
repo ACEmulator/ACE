@@ -280,8 +280,8 @@ namespace ACE.Server.Managers
             var received = (factor1 + factor2 * (leadership / SkillCap) * (1.0f + vassalFactor * (timeRealAvg / RealCap) * (timeGameAvg / GameCap))) * 0.01f;
             var passup = generated * received;
 
-            var generatedAmount = (uint)(amount * generated);
-            var passupAmount = (uint)(amount * passup);
+            var generatedAmount = (ulong)(amount * generated);
+            var passupAmount = (ulong)(amount * passup);
 
             /*Console.WriteLine("---");
             Console.WriteLine("AllegianceManager.PassXP(" + amount + ")");
