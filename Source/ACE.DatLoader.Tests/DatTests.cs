@@ -67,7 +67,7 @@ namespace ACE.DatLoader.Tests
 
             foreach (var kvp in dat.AllFiles)
             {
-                if (kvp.Key == 0xFFFF0001) // Not sure what this is, EOF record maybe?
+                if (kvp.Key == 0xFFFF0001) // // Iteration info
                     continue;
 
                 if (kvp.Value.FileSize == 0) // DatFileType.LandBlock files can be empty
@@ -124,7 +124,7 @@ namespace ACE.DatLoader.Tests
 
             foreach (var kvp in dat.AllFiles)
             {
-                if (kvp.Key == 0xFFFF0001) // Not sure what this is, EOF record maybe?
+                if (kvp.Key == 0xFFFF0001) // Iteration info
                     continue;
 
                 var fileType = kvp.Value.GetFileType(DatDatabaseType.Portal);
@@ -138,12 +138,11 @@ namespace ACE.DatLoader.Tests
                 if (fileType == DatFileType.MaterialModifier) continue;
                 if (fileType == DatFileType.MaterialInstance) continue;
                 if (fileType == DatFileType.ActionMap) continue;
-                if (fileType == DatFileType.MasterProperty) continue;
                 if (fileType == DatFileType.DbProperties) continue;
 
                 var type = types
-                    .SelectMany(m => m.GetCustomAttributes(typeof(DatFileTypeAttribute), false), (m, a) => new {m, a})
-                    .Where(t => ((DatFileTypeAttribute) t.a).FileType == fileType)
+                    .SelectMany(m => m.GetCustomAttributes(typeof(DatFileTypeAttribute), false), (m, a) => new { m, a })
+                    .Where(t => ((DatFileTypeAttribute)t.a).FileType == fileType)
                     .Select(t => t.m);
 
                 var first = type.FirstOrDefault();
@@ -184,7 +183,7 @@ namespace ACE.DatLoader.Tests
 
             foreach (var kvp in dat.AllFiles)
             {
-                if (kvp.Key == 0xFFFF0001) // Not sure what this is, EOF record maybe?
+                if (kvp.Key == 0xFFFF0001) // Iteration info
                     continue;
 
                 var fileType = kvp.Value.GetFileType(DatDatabaseType.Language);
