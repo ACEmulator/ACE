@@ -1072,6 +1072,21 @@ namespace ACE.Server.Entity
                             target.ImbuedEffect = roll == 0 ? ImbuedEffectType.ArmorRending : ImbuedEffectType.CripplingBlow;
                         }
 
+                        switch(target.ImbuedEffect)
+                        {
+                            case ImbuedEffectType.ArmorRending:
+                                target.IconUnderlayId = 0x06003356;
+                                break;
+                            case ImbuedEffectType.CriticalStrike:
+                                target.IconUnderlayId = 0x06003358;
+                                break;
+                            case ImbuedEffectType.CripplingBlow:
+                                target.IconUnderlayId = 0x06003357;
+                                break;
+                            default:
+                                break;
+                        }
+
                         break;
                     #endregion MorphGemRandomizeWeaponImbue
 
