@@ -8,6 +8,8 @@ namespace ACE.Common
 
         public MySqlConfiguration World { get; set; }
 
+        public MySqlConfiguration PKKills { get; set; }
+
         public MySqlConfiguration Log { get; set; }
 
         public MySqlConfiguration TownControl { get; set; }

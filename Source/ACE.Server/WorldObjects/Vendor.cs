@@ -17,6 +17,7 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Managers;
 using ACE.Server.Entity.TownControl;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Entity.Arenas;
 
 namespace ACE.Server.WorldObjects
 {
@@ -279,6 +280,30 @@ namespace ACE.Server.WorldObjects
                     log.ErrorFormat("Exception applying Town Control behavior to vendor.  Vendor WeenieClassId = {0}, Ex: {1}", this.WeenieClassId, ex);
                 }
             }
+
+            //If this is an Arena vendor, don't allow it to open vendor inventory unless player has sufficient ELO rank
+            if (ArenaVendors.IsArenaVendor(this.WeenieClassId))
+            {
+                try
+                {
+                    var arenaVendor = ArenaVendors.ArenaVendorMap[this.WeenieClassId];
+
+                    //TODO look up the player's current rank
+                    var currentRank = 0;
+
+                    //If the player doesn't have enough rank for this vendor, don't allow the transaction to complete
+                    if (arenaVendor.RankRequirement > currentRank)
+                    {
+                        player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"Message about not having enough rank to open the vendor goes here"));
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.ErrorFormat("Exception applying Arena behavior to vendor.  Vendor WeenieClassId = {0}, Ex: {1}", this.WeenieClassId, ex);
+                }
+            }
+
 
             var rotateTime = Rotate(player);    // vendor rotates towards player
 

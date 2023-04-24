@@ -1,4 +1,4 @@
-﻿{
+{
   "Server": {
     "WorldName": "ACEmulator",
     "Welcome": "Welcome to this ACE server!\nFor more information visit https://emulator.ac",
@@ -34,6 +34,13 @@
       "Database": "ace_world",
       "Username": "root",
       "Password": "Password12!"
-    }
+        },
+    "PKKills": {
+       "Host": "127.0.0.1",
+       "Port": 3306,
+       "Database": "ace_pk_kills",
+        "Username": "root",
+        "Password": "Password12!"
+     }
   }
 }

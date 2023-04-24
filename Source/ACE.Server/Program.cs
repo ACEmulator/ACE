@@ -285,6 +285,9 @@ namespace ACE.Server
             else
                 log.Info("Precaching World Database Disabled...");
 
+            log.Info("Initializing ArenasManager...");
+            ArenasManager.Initialize();
+
             log.Info("Initializing PlayerManager...");
             PlayerManager.Initialize();
 

@@ -16,6 +16,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
@@ -45,6 +46,8 @@ namespace ACE.Server.WorldObjects
         public ContractManager ContractManager;
 
         public bool LastContact = true;
+
+        public bool IsInArena { get; set; } = false;
 
         private List<double> recentJumps = new List<double>();
 
@@ -515,6 +518,15 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool LogOut(bool clientSessionTerminatedAbruptly = false, bool forceImmediate = false)
         {
+            ArenasManager.RemovePlayer(this);
+
+            if (IsInArena)
+            {
+                var arena = ArenasManager.WhichArenaIsPlayerIn(this);
+                var teamPlayer = arena.GetTeamPlayerObjByPlayer(this);
+                arena.PlayerPussiedOut(teamPlayer);
+            }
+
             if (PKLogoutActive && !forceImmediate)
             {
                 //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
@@ -1255,6 +1267,15 @@ namespace ACE.Server.WorldObjects
                 innerChain.EnqueueChain();
             });
             actionChain.EnqueueChain();
+        }
+
+        public void GiveArenaTrophy()
+        {
+            var trophy = WorldObjectFactory.CreateNewWorldObject(1000003);
+            trophy.SetStackSize(1);
+            this.TryCreateInInventoryWithNetworking(trophy);
+            Session.Network.EnqueueSend(new GameMessageCreateObject(trophy));
+
         }
     }
 }

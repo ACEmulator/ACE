@@ -5,6 +5,7 @@ using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Arenas;
 using ACE.Server.Entity.TownControl;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -76,6 +77,31 @@ namespace ACE.Server.WorldObjects
                     log.ErrorFormat("Exception applying Town Control behavior to vendor.  VendorGuid = {0}, Vendor WeenieClassId = {1}, Ex: {2}", vendorGuid, this.WeenieClassId, ex);
                 }
             }
+
+            //If the vendor is an Arena vendor, check ELO rank before allowing purchase
+            if (ArenaVendors.IsArenaVendor(vendor.WeenieClassId))
+            {
+                try
+                {
+                    var arenaVendor = ArenaVendors.ArenaVendorMap[vendor.WeenieClassId];
+
+                    //TODO look up the player's current rank
+                    var currentRank = 0;
+
+                    //If the player doesn't have enough rank for this vendor, don't allow the transaction to complete
+                    if (arenaVendor.RankRequirement > currentRank)
+                    {
+                        this.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(this.Session, $"Message about not having enough rank to open the vendor goes here"));
+                        SendUseDoneEvent(WeenieError.YouChickenOut);
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.ErrorFormat("Exception applying Arena behavior to vendor.  VendorGuid = {0}, Vendor WeenieClassId = {1}, Ex: {2}", vendorGuid, this.WeenieClassId, ex);
+                }
+            }
+
 
             // if this succeeds, it automatically calls player.FinalizeBuyTransaction()
             vendor.BuyItems_ValidateTransaction(items, this);

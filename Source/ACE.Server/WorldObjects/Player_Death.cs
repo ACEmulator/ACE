@@ -477,8 +477,25 @@ namespace ACE.Server.WorldObjects
 
             // if player dies on a No Drop landblock,
             // they don't drop any items
+            Player killer = null;
+            if (IsPKDeath(corpse.KillerId))
+            {
+                killer = (Player)PlayerManager.FindByGuid(new ObjectGuid((uint)corpse.KillerId));
+                DatabaseManager.PKKills.CreateKill((uint)corpse.VictimId, (uint)killer.Guid.Full, this.IsInArena);
+                if (this.IsInArena)
+                {
+                    var pkTrophy = WorldObjectFactory.CreateNewWorldObject(1000002);
+                    pkTrophy.SetStackSize(1);
+                    killer.TryCreateInInventoryWithNetworking(pkTrophy);
+                    Session.Network.EnqueueSend(new GameMessageCreateObject(pkTrophy));
+                    killer.SendMessage("You have received a trophy for the kill.");
+                    var whichArena = ArenasManager.WhichArenaIsPlayerIn(this);
+                    ArenasManager.PlayerDeath(this, whichArena);
+                    return new List<WorldObject>();
+                }
+            }
 
-            if (corpse.IsOnNoDropLandblock || IsPKLiteDeath(corpse.KillerId))
+            if (corpse.IsOnNoDropLandblock || IsPKLiteDeath(corpse.KillerId) || this.IsInArena)
                 return new List<WorldObject>();
 
             var numItemsDropped = GetNumItemsDropped(corpse);
@@ -579,10 +596,10 @@ namespace ACE.Server.WorldObjects
                 }
 
                 //Don't drop trophy if killer is in same clan
-                var killer = PlayerManager.FindByGuid(new ObjectGuid((uint)corpse.KillerId));
+                var _killer = PlayerManager.FindByGuid(new ObjectGuid((uint)corpse.KillerId));
                 var victimMonarch = this.MonarchId != null ? this.MonarchId : this.Guid.Full;
-                var killerMonarch = killer.MonarchId != null ? killer.MonarchId : killer.Guid.Full;                
-                if(victimMonarch == killerMonarch)
+                var killerMonarch = _killer.MonarchId != null ? _killer.MonarchId : _killer.Guid.Full;
+                if (victimMonarch == killerMonarch)
                 {
                     shouldDropTrophy = false;
                 }
