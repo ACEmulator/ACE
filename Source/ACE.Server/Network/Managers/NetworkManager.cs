@@ -64,7 +64,7 @@ namespace ACE.Server.Network.Managers
                                  k != null &&
                                  k.State == SessionState.AuthConnectResponse &&
                                  k.Network.ConnectionData.ConnectionCookie == connectResponse.Check &&
-                                 k.EndPoint.Address.Equals(endPoint.Address)
+                                 k.EndPointC2S.Address.Equals(endPoint.Address)
                              select k).FirstOrDefault();
                     }
                     finally
@@ -73,6 +73,7 @@ namespace ACE.Server.Network.Managers
                     }
                     if (session != null)
                     {
+                        session.SetS2CEndpoint(endPoint);
                         session.State = SessionState.AuthConnected;
                         session.Network.sendResync = true;
                         AuthenticationHandler.HandleConnectResponse(session);
@@ -148,10 +149,10 @@ namespace ACE.Server.Network.Managers
                     var session = sessionMap[packet.Header.Id];
                     if (session != null)
                     {
-                        if (session.EndPoint.Equals(endPoint))
+                        if (session.EndPointC2S.Equals(endPoint))
                             session.ProcessPacket(packet);
                         else
-                            log.DebugFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPoint, endPoint);
+                            log.DebugFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPointC2S, endPoint);
                     }
                     else
                     {
@@ -227,7 +228,7 @@ namespace ACE.Server.Network.Managers
                 foreach (var s in sessionMap)
                 {
                     if (s != null)
-                        ipAddresses.Add(s.EndPoint.Address);
+                        ipAddresses.Add(s.EndPointC2S.Address);
                 }
 
                 return ipAddresses.Count;
@@ -247,7 +248,7 @@ namespace ACE.Server.Network.Managers
 
                 foreach (var s in sessionMap)
                 {
-                    if (s != null && s.EndPoint.Address.Equals(address))
+                    if (s != null && s.EndPointC2S.Address.Equals(address))
                         result++;
                 }
 
@@ -266,7 +267,7 @@ namespace ACE.Server.Network.Managers
             sessionLock.EnterUpgradeableReadLock();
             try
             {
-                session = sessionMap.SingleOrDefault(s => s != null && endPoint.Equals(s.EndPoint));
+                session = sessionMap.SingleOrDefault(s => s != null && endPoint.Equals(s.EndPointC2S));
                 if (session == null)
                 {
                     sessionLock.EnterWriteLock();
@@ -331,7 +332,7 @@ namespace ACE.Server.Network.Managers
             sessionLock.EnterWriteLock();
             try
             {
-                log.DebugFormat("Removing session for {0} with id {1}", session.EndPoint, session.Network.ClientId);
+                log.DebugFormat("Removing session for {0} with id {1}", session.EndPointC2S, session.Network.ClientId);
                 if (sessionMap[session.Network.ClientId] == session)
                     sessionMap[session.Network.ClientId] = null;
             }
