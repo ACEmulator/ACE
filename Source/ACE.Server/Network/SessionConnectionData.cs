@@ -14,17 +14,6 @@ namespace ACE.Server.Network
         /// This gives server a high degree of confidence that whoever is replying to the connection request is the same as the one who logged in.
         /// It's assumed that in most cases only the intended recipient of the cookie, the one who logged in,
         /// knows the cookie and can prove it in a ConnectionResponse packet.
-        ///
-        /// New strategy:
-        /// 1) Client initial packet containing login credentials at listener 0
-        /// 2) server send unique cookie to originating socket via listener 0
-        /// 3) client send response containing cookie to listener 1
-        /// 4) server and client from then on only use listener 0
-        /// 
-        /// The connection cookie was meant to authenticate and establish another unidirectional port for listener 1.
-        /// But the old dual unidirectional port approach doesn't work for some firewalls.
-        /// For some reason some firewalls without special configuration don't accept the listener 1 traffic even though the client initiated it.
-        /// It evolved to use only listener 0 with the exception of the ConnectionResponse packet and CICMDCommand packets
         /// </summary>
         public ulong ConnectionCookie { get; private set; }
 
