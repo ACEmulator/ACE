@@ -2435,7 +2435,7 @@ namespace ACE.Server.Command.Handlers
                 //    player.LogOut();
 
                 var msg = $"Player {player.Name} (0x{player.Guid}) found in PlayerManager.onlinePlayers.\n";
-                msg += $"------- Session: {(player.Session != null ? $"{player.Session.EndPointC2S}" : "NULL")}\n";
+                msg += $"------- Session: {(player.Session != null ? $"C2S: {player.Session.EndPointC2S} | S2C: {player.Session.EndPointS2C}" : "NULL")}\n";
                 msg += $"------- CurrentLandblock: {(player.CurrentLandblock != null ? $"0x{player.CurrentLandblock.Id:X4}" : "NULL")}\n";
                 msg += $"------- Location: {(player.Location != null ? $"{player.Location.ToLOCString()}" : "NULL")}\n";
                 msg += $"------- IsLoggingOut: {player.IsLoggingOut}\n";
