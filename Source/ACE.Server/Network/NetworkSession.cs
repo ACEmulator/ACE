@@ -725,8 +725,8 @@ namespace ACE.Server.Network
             try
             {
                 // On connection to server, client expects response on the connection it initiated, once that occurs, the client connects to the +1 port and then the server transmits on that connection, while the client continues to transmit on the initial port.
-                var socket = (session.State < SessionState.AuthConnected || session.State == SessionState.TerminationStarted) ? connectionC2S.Socket : connectionS2C.Socket;
-                var endPoint = (session.State < SessionState.AuthConnected || session.State == SessionState.TerminationStarted) ? session.EndPointC2S : session.EndPointS2C;
+                var socket = (session.EndPointS2C is null) ? connectionC2S.Socket : connectionS2C.Socket;
+                var endPoint = (session.EndPointS2C is null) ? session.EndPointC2S : session.EndPointS2C;
 
                 packet.CreateReadyToSendPacket(buffer, out var size);
 
