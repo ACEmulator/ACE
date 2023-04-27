@@ -1075,6 +1075,20 @@ namespace ACE.Server.Managers
             else
                 BroadcastTinkering(player, source, target, successChance, success);
 
+
+            //Custom tinkering Lotto
+            if(recipe.IsTinkering() && success)
+            {
+                //new LogDatabase().LogTinkeringEvent(player.Character.Id, player.Name, target.Biota.Id, (float)successChance, (float)roll, success, (uint)target.NumTimesTinkered, (uint)(target.Workmanship ?? 0), sourceName, (uint)(source.Workmanship ?? 0));
+                var salvageType = Regex.Replace(source.NameWithMaterial, @" \(\d+\)$", "");
+                salvageType = salvageType.Remove(salvageType.IndexOf(" Salvage")); //Removing the word Salvage from the end, i.e. change "Steel Salvage" to just "Steel"
+
+                var lottoResult = target.TinkeringLotto_Mutate(salvageType, (int)(source.Workmanship ?? 0));
+
+                if(!string.IsNullOrEmpty(lottoResult))
+                    player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} won the tinkering lottery! The following improvement were made to your {target.NameWithMaterial}\n{lottoResult}", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
+            }
+
             return modified;
         }
 
