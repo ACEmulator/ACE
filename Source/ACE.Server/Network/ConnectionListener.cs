@@ -69,12 +69,12 @@ namespace ACE.Server.Network
             }
             catch (SocketException socketException)
             {
-                log.DebugFormat("ConnectionListener.Listen() has thrown {0}: {1}", socketException.SocketErrorCode, socketException.Message);
+                log.DebugFormat("ConnectionListener.Listen({2}, {3}) has thrown {0}: {1}", socketException.SocketErrorCode, socketException.Message, listeningHost, listeningPort);
                 Listen();
             }
             catch (Exception exception)
             {
-                log.FatalFormat("ConnectionListener.Listen() has thrown: {0}", exception.Message);
+                log.FatalFormat("ConnectionListener.Listen({2}, {3}) has thrown: {0}", exception.Message, listeningHost, listeningPort);
             }
         }
 
@@ -118,11 +118,11 @@ namespace ACE.Server.Network
                     socketException.SocketErrorCode == SocketError.NetworkReset ||
                     socketException.SocketErrorCode == SocketError.ConnectionReset)
                 {
-                    log.DebugFormat("ConnectionListener.OnDataReceieve() has thrown {0}: {1} from client {2}", socketException.SocketErrorCode, socketException.Message, clientEndPoint != null ? clientEndPoint.ToString() : "Unknown");
+                    log.DebugFormat("ConnectionListener({3}, {4}).OnDataReceieve() has thrown {0}: {1} from client {2}", socketException.SocketErrorCode, socketException.Message, clientEndPoint != null ? clientEndPoint.ToString() : "Unknown", listeningHost, listeningPort);
                 }
                 else
                 {
-                    log.FatalFormat("ConnectionListener.OnDataReceieve() has thrown {0}: {1} from client {2}", socketException.SocketErrorCode, socketException.Message, clientEndPoint != null ? clientEndPoint.ToString() : "Unknown");
+                    log.FatalFormat("ConnectionListener({3}, {4}).OnDataReceieve() has thrown {0}: {1} from client {2}", socketException.SocketErrorCode, socketException.Message, clientEndPoint != null ? clientEndPoint.ToString() : "Unknown", listeningHost, listeningPort);
                     return;
                 }
             }
