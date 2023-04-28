@@ -2840,7 +2840,13 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyString.TinkerLog);
             set { if (value == null) RemoveProperty(PropertyString.TinkerLog); else SetProperty(PropertyString.TinkerLog, value); }
         }
-        
+
+        public string TinkerLottoLog
+        {
+            get => GetProperty(PropertyString.TinkerLottoLog);
+            set { if (value == null) RemoveProperty(PropertyString.TinkerLottoLog); else SetProperty(PropertyString.TinkerLottoLog, value); }
+        }
+
         public int? CreatureKills
         {
             get => GetProperty(PropertyInt.CreatureKills);

@@ -57,6 +57,7 @@ namespace ACE.Server.WorldObjects
                 //Add 20 AL
                 this.ArmorLevel += 20;
                 resultMsg = "Jackpot! Improved Armor Level by 20";
+                HandleTinkerLottoLog($"AL+20");
             }
             else if (roll < 0.075)
             {
@@ -64,6 +65,7 @@ namespace ACE.Server.WorldObjects
                 var alBonus = rand.Next(1, 6);
                 this.ArmorLevel += alBonus;
                 resultMsg = $"Improved Armor Level by {alBonus}";
+                HandleTinkerLottoLog($"AL+{alBonus}");
             }
 
             return resultMsg;
@@ -71,18 +73,17 @@ namespace ACE.Server.WorldObjects
 
         private string TinkeringLotto_PlayIronLottery(int salvageWorkmanship)
         {
-            //Iron - chance to add extra + 1 damage, chance to add slayers(I think I did this section in the code), chance to add rend for that element type.
-
             string resultMsg = "";
 
             Random rand = new Random();
-            var dmgBonusroll = rand.NextDouble();
+            var dmgBonusRoll = rand.NextDouble();
 
-            if (dmgBonusroll < 0.05)
+            if (dmgBonusRoll < 0.05)
             {
                 //Add +1 dmg
                 this.Damage += 1;
                 resultMsg = "Improved Damage by 1";
+                HandleTinkerLottoLog("Dmg1");
             }
 
             var slayerRoll = rand.NextDouble();
@@ -110,8 +111,6 @@ namespace ACE.Server.WorldObjects
 
         private string TinkeringLotto_PlayGraniteLottery(int salvageWorkmanship)
         {
-            //Granite - chance to add improve variance by equivalent of extra bag of granite, chance to add slayers(I think I did this section in the code), chance to add rend for that element type.
-
             string resultMsg = "";
 
             Random rand = new Random();
@@ -122,6 +121,7 @@ namespace ACE.Server.WorldObjects
                 //Add +1 variance
                 this.DamageVariance *= 0.8f;
                 resultMsg = "Improved Damage Variance by 20%";
+                HandleTinkerLottoLog("DmgVar20%");
             }
 
             var slayerRoll = rand.NextDouble();
@@ -148,8 +148,6 @@ namespace ACE.Server.WorldObjects
 
         private string TinkeringLotto_PlayGreenGarnetLottery(int salvageWorkmanship)
         {
-            //Green Garnet - chance to add extra + 1% damage, chance to add slayers (I think I did this section in the code), chance to add rend for that element type. 
-
             string resultMsg = "";
 
             Random rand = new Random();
@@ -160,6 +158,7 @@ namespace ACE.Server.WorldObjects
                 //Add +1% dmg bonus
                 this.ElementalDamageMod = (this.ElementalDamageMod ?? 0.0f) + 0.01f;
                 resultMsg = "Improved Elemental Damage Bonus by 1% vs Monsters and 0.25% against Players";
+                HandleTinkerLottoLog("CasterDmgBonus1%");
             }
 
             var slayerRoll = rand.NextDouble();
@@ -186,8 +185,6 @@ namespace ACE.Server.WorldObjects
 
         private string TinkeringLotto_PlayMahoganyLottery(int salvageWorkmanship)
         {
-            //Mahogany - chance to add extra + 4% damage mod, chance to add slayers (I think I did this section in the code), chance to add rend for that element type.
-
             string resultMsg = "";
 
             Random rand = new Random();
@@ -198,6 +195,7 @@ namespace ACE.Server.WorldObjects
                 //Add +4% dmg mod
                 this.DamageMod += 0.04f;
                 resultMsg = "Improved Missile Damage Mod by 4%";
+                HandleTinkerLottoLog("MissileDmgMod4%");
             }
 
             var slayerRoll = rand.NextDouble();
@@ -310,6 +308,8 @@ namespace ACE.Server.WorldObjects
                     return "";
             }
 
+            HandleTinkerLottoLog($"{this.SlayerCreatureType}Slayer");
+
             return $"Added {this.SlayerCreatureType} slayer";
         }
 
@@ -325,6 +325,7 @@ namespace ACE.Server.WorldObjects
                         this.ImbuedEffect |= ImbuedEffectType.AcidRending;
                         this.SetProperty(PropertyDataId.IconUnderlay, 0x06003355);
                         resultMsg = $"Added Acid Rending";
+                        HandleTinkerLottoLog("AcidRend");
                     }
                     break;
 
@@ -334,6 +335,7 @@ namespace ACE.Server.WorldObjects
                         this.ImbuedEffect |= ImbuedEffectType.ColdRending;
                         this.SetProperty(PropertyDataId.IconUnderlay, 0x06003353);
                         resultMsg = $"Added Cold Rending";
+                        HandleTinkerLottoLog("ColdRend");
                     }
                     break;
 
@@ -343,6 +345,7 @@ namespace ACE.Server.WorldObjects
                         this.ImbuedEffect = ImbuedEffectType.ElectricRending;
                         this.SetProperty(PropertyDataId.IconUnderlay, 0x06003354);
                         resultMsg = $"Added Lightning Rending";
+                        HandleTinkerLottoLog("LitRend");
                     }
                     break;
 
@@ -352,6 +355,7 @@ namespace ACE.Server.WorldObjects
                         this.ImbuedEffect = ImbuedEffectType.FireRending;
                         this.SetProperty(PropertyDataId.IconUnderlay, 0x06003359);
                         resultMsg = $"Added Fire Rending";
+                        HandleTinkerLottoLog("FireRend");
                     }
                     break;
 
@@ -361,6 +365,7 @@ namespace ACE.Server.WorldObjects
                         this.ImbuedEffect = ImbuedEffectType.PierceRending;
                         this.SetProperty(PropertyDataId.IconUnderlay, 0x0600335b);
                         resultMsg = $"Added Pierce Rending";
+                        HandleTinkerLottoLog("PierceRend");
                     }
                     break;
 
@@ -370,6 +375,7 @@ namespace ACE.Server.WorldObjects
                         this.ImbuedEffect = ImbuedEffectType.SlashRending;
                         this.SetProperty(PropertyDataId.IconUnderlay, 0x0600335c);
                         resultMsg = $"Added Slash Rending";
+                        HandleTinkerLottoLog("SlashRend");
                     }
                     break;
 
@@ -379,6 +385,7 @@ namespace ACE.Server.WorldObjects
                         this.ImbuedEffect = ImbuedEffectType.BludgeonRending;
                         this.SetProperty(PropertyDataId.IconUnderlay, 0x0600335a);
                         resultMsg = $"Added Bludgeon Rending";
+                        HandleTinkerLottoLog("BludgRend");
                     }
                     break;
 
@@ -388,17 +395,27 @@ namespace ACE.Server.WorldObjects
                         this.ImbuedEffect = ImbuedEffectType.PierceRending;
                         this.SetProperty(PropertyDataId.IconUnderlay, 0x0600335b);
                         resultMsg = $"Added Pierce and Slash Rending";
+                        HandleTinkerLottoLog("PierceSlashRend");
                     }
                     if (!this.ImbuedEffect.HasFlag(ImbuedEffectType.SlashRending))
                     {
                         this.ImbuedEffect = ImbuedEffectType.SlashRending;
                         this.SetProperty(PropertyDataId.IconUnderlay, 0x0600335c);
                         resultMsg = $"Added Pierce and Slash Rending";
+                        HandleTinkerLottoLog("PierceSlashRend");
                     }
                     break;
             }
 
             return resultMsg;
+        }
+
+        private void HandleTinkerLottoLog(string lottoResult)
+        {
+            if (!string.IsNullOrEmpty(this.TinkerLottoLog))
+                this.TinkerLottoLog += ",";
+
+            this.TinkerLottoLog += lottoResult;
         }
     }
 }

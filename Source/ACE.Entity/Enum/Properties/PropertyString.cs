@@ -96,6 +96,8 @@ namespace ACE.Entity.Enum.Properties
         GodState                        = 9006,
         [ServerOnly]
         TinkerLog                       = 9007,
+        [ServerOnly]
+        TinkerLottoLog = 9008,
 
         [ServerOnly]
         CurrentRareEnchantmentIds = 52029,
