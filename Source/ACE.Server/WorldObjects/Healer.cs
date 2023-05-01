@@ -128,6 +128,14 @@ namespace ACE.Server.WorldObjects
 
             healer.IsBusy = true;
 
+            //Skill check and amount healed are locked at the beginning of the attempt
+            var difficulty = 0;
+            var critical = false;
+            uint staminaCost = 0;
+            var vital = target.GetCreatureVital(BoosterEnum);
+            var skillCheck = DoSkillCheck(healer, target, vital, ref difficulty);
+            var healAmount = skillCheck ? GetHealAmount(healer, target, vital, out critical, out staminaCost) : 0;
+
             var motionCommand = healer.Equals(target) ? MotionCommand.SkillHealSelf : MotionCommand.SkillHealOther;
 
             var motion = new Motion(healer, motionCommand);
@@ -150,7 +158,7 @@ namespace ACE.Server.WorldObjects
 
                 // only PKs affected by these caps?
                 if (dist < Healing_MaxMove || healer.PlayerKillerStatus == PlayerKillerStatus.NPK)
-                    DoHealing(healer, target);
+                    DoHealing(healer, target, skillCheck, healAmount, critical, staminaCost, difficulty, vital);
                 else
                     healer.Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted healing!", ChatMessageType.Broadcast));
 
@@ -166,7 +174,7 @@ namespace ACE.Server.WorldObjects
             healer.NextUseTime = DateTime.UtcNow.AddSeconds(animLength);
         }
 
-        public void DoHealing(Player healer, Player target)
+        public void DoHealing(Player healer, Player target, bool skillCheck, uint healAmount, bool critical, uint staminaCost, int difficulty, CreatureVital vital)
         {
             if (target.IsDead || target.Teleporting) return;
 
@@ -187,11 +195,6 @@ namespace ACE.Server.WorldObjects
             var stackSize = new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, UsesLeft.Value);
             var targetName = healer == target ? "yourself" : target.Name;
 
-            var vital = target.GetCreatureVital(BoosterEnum);
-
-            // skill check
-            var difficulty = 0;
-            var skillCheck = DoSkillCheck(healer, target, vital, ref difficulty);
             if (!skillCheck)
             {
                 var failMsg = new GameMessageSystemChat($"You fail to heal {targetName}.{remainingMsg}", ChatMessageType.Broadcast);
@@ -202,9 +205,6 @@ namespace ACE.Server.WorldObjects
                     healer.TryConsumeFromInventoryWithNetworking(this, 1);
                 return;
             }
-
-            // heal up
-            var healAmount = GetHealAmount(healer, target, vital, out var critical, out var staminaCost);
 
             healer.UpdateVitalDelta(healer.Stamina, (int)-staminaCost);
             target.UpdateVitalDelta(vital, healAmount);
