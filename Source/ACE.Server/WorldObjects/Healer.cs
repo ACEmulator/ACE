@@ -263,12 +263,6 @@ namespace ACE.Server.WorldObjects
             var healMax = healBase * 0.5f;
             var healAmount = ThreadSafeRandom.Next(healMin, healMax);
 
-            // verify healing boost comes from target instead of healer?
-            // sounds like target in LumAugHealingRating...
-            var ratingMod = target.GetHealingRatingMod();
-
-            healAmount *= ratingMod;
-
             // chance for critical healing
             criticalHeal = ThreadSafeRandom.Next(0.0f, 1.0f) < 0.1f;
             if (criticalHeal) healAmount *= 2;
@@ -277,6 +271,12 @@ namespace ACE.Server.WorldObjects
             var missingVital = vital.MaxValue - vital.Current;
             if (healAmount > missingVital)
                 healAmount = missingVital;
+
+            // verify healing boost comes from target instead of healer?
+            // sounds like target in LumAugHealingRating...
+            var ratingMod = target.GetHealingRatingMod();
+
+            healAmount *= ratingMod;
 
             // stamina check? On the Q&A board a dev posted that stamina directly effects the amount of damage you can heal
             // low stam = less vital healed. I don't have exact numbers for it. Working through forum archive.
