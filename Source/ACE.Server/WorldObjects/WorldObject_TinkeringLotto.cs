@@ -52,20 +52,26 @@ namespace ACE.Server.WorldObjects
             Random rand = new Random();
             var roll = rand.NextDouble();
 
-            if(roll < 0.025)
+            var currentLottoAlBonus = GetCumulativeArmorLevelLottoBonus();
+
+            if (currentLottoAlBonus < 40)
             {
-                //Add 20 AL
-                this.ArmorLevel += 20;
-                resultMsg = "Jackpot! Improved Armor Level by 20";
-                HandleTinkerLottoLog($"AL+20");
-            }
-            else if (roll < 0.075)
-            {
-                //Add between 1 - 5 AL
-                var alBonus = rand.Next(1, 6);
-                this.ArmorLevel += alBonus;
-                resultMsg = $"Improved Armor Level by {alBonus}";
-                HandleTinkerLottoLog($"AL+{alBonus}");
+                if (roll < 0.025)
+                {
+                    //Add 20 AL
+                    var alBonus = currentLottoAlBonus <= 20 ? 20 : 40 - currentLottoAlBonus;
+                    this.ArmorLevel += alBonus;
+                    resultMsg = $"Jackpot! Improved Armor Level by {alBonus}";
+                    HandleTinkerLottoLog($"AL+{alBonus}");
+                }
+                else if (roll < 0.075)
+                {
+                    //Add between 1 - 5 AL
+                    var alBonus = rand.Next(1, 6);
+                    this.ArmorLevel += alBonus;
+                    resultMsg = $"Improved Armor Level by {alBonus}";
+                    HandleTinkerLottoLog($"AL+{alBonus}");
+                }
             }
 
             return resultMsg;
@@ -416,6 +422,30 @@ namespace ACE.Server.WorldObjects
                 this.TinkerLottoLog += ",";
 
             this.TinkerLottoLog += lottoResult;
+        }
+
+        private int GetCumulativeArmorLevelLottoBonus()
+        {
+            if (string.IsNullOrEmpty(this.TinkerLottoLog))
+                return 0;
+
+            var alBonus = 0;
+
+            var lottoEvents = this.TinkerLottoLog.Split(',');
+
+            foreach (var lottoEvent in lottoEvents)
+            {
+                if(lottoEvent.StartsWith("AL+"))
+                {
+                    var eventAlString = lottoEvent.Substring(3);
+                    if(int.TryParse(eventAlString, out int eventAlAmount))
+                    {
+                        alBonus += eventAlAmount;
+                    }
+                }
+            }
+
+            return alBonus;
         }
     }
 }
