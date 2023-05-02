@@ -14,7 +14,7 @@ updates:
 
   # Maintain dependencies for NuGet
   - package-ecosystem: "nuget"
-    directory: "/Source/ACE.Server"
+    directory: "/Source"
     schedule:
       interval: "weekly"
 
