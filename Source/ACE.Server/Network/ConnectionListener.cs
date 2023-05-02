@@ -45,13 +45,13 @@ namespace ACE.Server.Network
                 Socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    var sioUdpConnectionReset = -1744830452;
-                    var inValue = new byte[] { 0 };
-                    var outValue = new byte[] { 0 };
-                    Socket.IOControl(sioUdpConnectionReset, inValue, outValue);
-                }
+                //if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                //{
+                //    var sioUdpConnectionReset = -1744830452;
+                //    var inValue = new byte[] { 0 };
+                //    var outValue = new byte[] { 0 };
+                //    Socket.IOControl(sioUdpConnectionReset, inValue, outValue);
+                //}
 
                 Socket.Bind(ListenerEndpoint);
                 Listen();
