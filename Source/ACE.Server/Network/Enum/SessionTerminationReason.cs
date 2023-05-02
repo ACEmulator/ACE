@@ -29,7 +29,7 @@ namespace ACE.Server.Network.Enum
         AccountLoggedIn,
         ServerShuttingDown,
         AccountBanned,
-        ClientOutOfDate,
+        ClientVersionIncorrect,
         ForcedLogOffRequested,
         CharacterSaveFailed,
         BiotaSaveFailed,
