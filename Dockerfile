@@ -20,7 +20,7 @@ COPY . ../.
 RUN dotnet publish ./ACE.Server/ACE.Server.csproj -c release -o /ace --no-restore
 
 # final stage/image
-FROM mcr.microsoft.com/dotnet/runtime:6.0-bullseye-slim
+FROM mcr.microsoft.com/dotnet/runtime:7.0-bullseye-slim
 ARG DEBIAN_FRONTEND="noninteractive"
 WORKDIR /ace
 
