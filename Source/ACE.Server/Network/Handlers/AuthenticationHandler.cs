@@ -109,6 +109,12 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
+            if (loginRequest.ClientVersion == null || !loginRequest.ClientVersion.Equals("1802"))
+            {
+                session.Terminate(SessionTerminationReason.ClientVersionIncorrect, new GameMessageBootAccount(" because your client is not the correct version for this server. Please visit http://play.emu.ac/ to update to latest client"));
+                return;
+            }
+
             var connectRequest = new PacketOutboundConnectRequest(
                 Timers.PortalYearTicks,
                 session.Network.ConnectionData.ConnectionCookie,
