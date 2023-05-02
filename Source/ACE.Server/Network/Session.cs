@@ -19,7 +19,6 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.Managers;
 
-
 namespace ACE.Server.Network
 {
     public class Session
