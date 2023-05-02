@@ -14,7 +14,7 @@ updates:
 
   # Maintain dependencies for NuGet
   - package-ecosystem: "nuget"
-    directory: "/"
+    directory: "/Source/ACE.Server"
     schedule:
       interval: "weekly"
 
@@ -23,3 +23,10 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "dotnet/sdk"
+        # For dotnet/runtime, ignore all updates for version 7
+        versions: ["7.x"]
+      - dependency-name: "dotnet/runtime"
+        # For dotnet/runtime, ignore all updates for version 7
+        versions: ["7.x"]
