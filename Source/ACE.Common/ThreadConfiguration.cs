@@ -11,7 +11,7 @@ namespace ACE.Common
     public class ThreadConfiguration
     {
         private double worldThreadCountMultiplier = 0.34;
-        private double databaseThreadCountMultiplier = 0;
+        private double databaseThreadCountMultiplier = 0.66;
 
         /*
          * Multiplier of 0.34:
