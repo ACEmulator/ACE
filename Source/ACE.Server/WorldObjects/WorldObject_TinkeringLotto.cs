@@ -38,6 +38,15 @@ namespace ACE.Server.WorldObjects
                 case "Mahogany":
                     resultMessage = TinkeringLotto_PlayMahoganyLottery(salvageWorkmanship);
                     break;
+                case "Aquamarine":
+                case "Black Garnet":
+                case "Emerald":                
+                case "Imperial Topaz":
+                case "Jet":
+                case "Red Garnet":
+                case "White Sapphire":
+                    resultMessage = TinkeringLotto_PlayRendLottery(salvageWorkmanship);
+                    break;
                 default:
                     return "";
             }
@@ -226,6 +235,121 @@ namespace ACE.Server.WorldObjects
             return resultMsg;
         }
 
+        private string TinkeringLotto_PlayRendLottery(int salvageWorkmanship)
+        {
+            string resultMsg = "";
+
+            Random rand = new Random();
+            var roll = rand.NextDouble();
+
+            //Roll for 30% chance to add...
+            //+1 dmg to melee weapons
+            //+4% mod for missile weapons
+            //+5% elemental dmg for casters
+            if (roll < 0.3)
+            {
+                if (this.ItemType == ItemType.MissileWeapon)
+                {
+                    //Add +4% dmg mod
+                    this.DamageMod += 0.04f;
+                    resultMsg = "Improved Missile Damage Mod by 4%";
+                    HandleTinkerLottoLog("MissileDmgMod4%");
+                }
+                else if(this.ItemType == ItemType.MeleeWeapon)
+                {
+                    //Add +1 dmg
+                    this.Damage += 1;
+                    resultMsg = "Improved Damage by 1";
+                    HandleTinkerLottoLog("Dmg1");
+                }
+                else if(this.ItemType == ItemType.Caster)
+                {
+                    //Add +5% elemental dmg bonus
+                    this.ElementalDamageMod = (this.ElementalDamageMod ?? 0.0f) + 0.05f;
+                    resultMsg = "Improved Elemental Damage Bonus by 5% vs Monsters and 1.25% against Players";
+                    HandleTinkerLottoLog("CasterDmgBonus5%");
+                }
+            }
+
+            //If you're using WS 10 salvage and your target item is <= WS 6
+            if(salvageWorkmanship == 10 && this.Workmanship <= 6)
+            {
+                //roll again for a 15% chance to add...
+                //+1 cleave target for 2H/HW/LW/FW
+                //CS or CB for magic casters
+                //Shield hollow for missile weps
+                roll = rand.NextDouble();
+                if(roll < 0.15)
+                {
+                    var currRollResultMsg = "";
+
+                    if (this.ItemType == ItemType.MissileWeapon)
+                    {
+                        //Add 100% ignore shield
+                        this.IgnoreShield = 1;
+                        currRollResultMsg = "Added Shield Hollow";
+                        HandleTinkerLottoLog("ShieldHollow");
+                    }
+                    else if (this.ItemType == ItemType.MeleeWeapon)
+                    {
+                        //Add +1 cleave
+                        if(!this.GetProperty(PropertyInt.Cleaving).HasValue || this.GetProperty(PropertyInt.Cleaving) < 2)
+                        {
+                            this.SetProperty(PropertyInt.Cleaving, 2);
+                        }
+                        else
+                        {
+                            this.SetProperty(PropertyInt.Cleaving, 3);
+                        }
+                        
+                        currRollResultMsg = "Added +1 Cleaving Target";
+                        HandleTinkerLottoLog("Cleave1");
+                    }
+                    else if (this.ItemType == ItemType.Caster)
+                    {
+                        //Add CS or CB
+                        roll = rand.NextDouble();
+                        if(roll < 0.5)
+                        {
+                            //Add CS
+                            this.ImbuedEffect |= ImbuedEffectType.CriticalStrike;
+                            currRollResultMsg = "Added Critical Strike";
+                            HandleTinkerLottoLog("CS");
+                        }
+                        else
+                        {
+                            //Add CB
+                            this.ImbuedEffect |= ImbuedEffectType.CripplingBlow;
+                            currRollResultMsg = "Added Crippling Blow";
+                            HandleTinkerLottoLog("CB");
+                        }                                                
+                    }
+
+                    resultMsg = string.IsNullOrEmpty(resultMsg) ? currRollResultMsg : $"{resultMsg}\n{currRollResultMsg}";
+                }
+
+                //roll again for a 15% chance to add...
+                //cast on strike imperil for melee/missile weps
+                //cast on strike magic yield for casters
+                roll = rand.NextDouble();
+                if (roll < 0.15)
+                {
+                    this.ProcSpellRate = 0.15f;
+                    this.ProcSpellSelfTargeted = false;
+                    this.ItemSpellcraft = 450;
+                    if (this.ItemType == ItemType.Caster)
+                    {
+                        this.ProcSpell = (uint)SpellId.MagicYieldOther8;
+                    }
+                    else
+                    {
+                        this.ProcSpell = (uint)SpellId.ImperilOther8;
+                    }
+                }
+            }            
+
+            return resultMsg;
+        }
 
         private string TinkeringLotto_ApplySlayerMutation()
         {
