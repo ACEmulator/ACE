@@ -1,17 +1,17 @@
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace ACE.Adapter.GDLE.Models
 {
     public class StatMod
     {
-        [JsonProperty("key")]
+        [JsonPropertyName("key")]
         public uint Key { get; set; }
 
-        [JsonProperty("type")]
+        [JsonPropertyName("type")]
         public uint Type { get; set; }
 
-        [JsonProperty("val")]
+        [JsonPropertyName("val")]
         public double Val { get; set; }
     }
 }

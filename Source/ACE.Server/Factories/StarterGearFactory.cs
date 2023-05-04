@@ -1,11 +1,12 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 using ACE.Server.Entity;
 
 using log4net;
-using Newtonsoft.Json;
 
 namespace ACE.Server.Factories
 {
@@ -35,7 +36,7 @@ namespace ACE.Server.Factories
             {
                 var starterGearText = File.ReadAllText(starterGearFile);
 
-                config = JsonConvert.DeserializeObject<StarterGearConfiguration>(starterGearText);
+                config = JsonSerializer.Deserialize<StarterGearConfiguration>(starterGearText, new JsonSerializerOptions { ReadCommentHandling = JsonCommentHandling.Skip, NumberHandling = JsonNumberHandling.AllowReadingFromString, });
 
                 return config;
             }
@@ -57,6 +58,36 @@ namespace ACE.Server.Factories
             {
                 return null;
             }
+        }
+
+        public class StringToBoolConverter : JsonConverter<bool>
+        {
+            public override bool Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            {
+
+                if (reader.TokenType == JsonTokenType.String)
+                {
+                    var boolString = reader.GetString();
+
+                    return Convert.ToBoolean(boolString);
+                }
+                else if (reader.TokenType == JsonTokenType.True)
+                {
+                    return true;
+                }
+                else if (reader.TokenType == JsonTokenType.False)
+                {
+                    return false;
+                }
+
+                throw new JsonException();
+            }
+
+            public override void Write(Utf8JsonWriter writer, bool value, JsonSerializerOptions options)
+            {
+                writer.WriteBooleanValue(value);
+            }
+
         }
     }
 }

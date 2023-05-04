@@ -3,8 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 using ACE.Adapter.GDLE.Models;
 using ACE.Database.Models.World;
@@ -19,7 +19,7 @@ namespace ACE.Adapter.Lifestoned
             {
                 var fileText = File.ReadAllText(file);
 
-                result = JsonConvert.DeserializeObject<global::Lifestoned.DataModel.Gdle.Weenie>(fileText);
+                result = JsonSerializer.Deserialize<global::Lifestoned.DataModel.Gdle.Weenie>(fileText);
 
                 return true;
             }
@@ -85,7 +85,7 @@ namespace ACE.Adapter.Lifestoned
             {
                 var fileText = File.ReadAllText(file);
 
-                var lifestonedModel = JsonConvert.DeserializeObject<global::Lifestoned.DataModel.Gdle.Weenie>(fileText);
+                var lifestonedModel = JsonSerializer.Deserialize<global::Lifestoned.DataModel.Gdle.Weenie>(fileText);
 
                 return LifestonedConverter.TryConvert(lifestonedModel, out result, correctForEnumShift);
             }

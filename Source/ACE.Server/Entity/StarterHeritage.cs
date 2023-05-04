@@ -1,26 +1,26 @@
 using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace ACE.Server.Entity
 {
     public class StarterHeritage
     {
-        [JsonProperty("id")]
+        [JsonPropertyName("id")]
         public ushort HeritageId { get; set; }
 
         /// <summary>
         /// not used, but the file has it for readability
         /// </summary>
-        [JsonProperty("name")]
+        [JsonPropertyName("name")]
         public string Name { get; set; }
 
-        [JsonProperty("gear")]
+        [JsonPropertyName("gear")]
         public List<StarterItem> Gear { get; set; } = new List<StarterItem>();
 
         /// <summary>
         /// Only needed to give an Olthoi Spitter starter spells.
         /// </summary>
-        [JsonProperty("spells")]
+        [JsonPropertyName("spells")]
         public List<StarterSpell> Spells { get; set; } = new List<StarterSpell>();
     }
 }

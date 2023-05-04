@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
-using Newtonsoft.Json;
-
+using System.Text.Json;
 using ACE.Adapter.Enum;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
@@ -1102,7 +1100,7 @@ namespace ACE.Adapter.Lifestoned
                 {
                     if (TryConvert(weenie, out var result))
                     {
-                        results.Add(JsonConvert.SerializeObject(result));
+                        results.Add(JsonSerializer.Serialize(result, SerializerSettings));
                     }
                 }
 
@@ -1115,15 +1113,17 @@ namespace ACE.Adapter.Lifestoned
             }
         }
 
-        public static JsonSerializerSettings SerializerSettings = new JsonSerializerSettings();
+        public static JsonSerializerOptions SerializerSettings = new JsonSerializerOptions();
 
         static LifestonedConverter()
         {
-            //SerializerSettings.Converters.Add(new JavaScriptDateTimeConverter());
-            SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-            SerializerSettings.DateFormatHandling = DateFormatHandling.IsoDateFormat;
+            ////SerializerSettings.Converters.Add(new JavaScriptDateTimeConverter());
+            //SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+            //SerializerSettings.DateFormatHandling = DateFormatHandling.IsoDateFormat;
 
-            SerializerSettings.Formatting = Formatting.Indented;
+            //SerializerSettings.Formatting = Formatting.Indented;
+
+            SerializerSettings.WriteIndented = true;
         }
 
         public static bool TryConvertACEWeenieToLSDJSON(Weenie weenie, out string result, out global::Lifestoned.DataModel.Gdle.Weenie lsdWeenie)
@@ -1134,7 +1134,7 @@ namespace ACE.Adapter.Lifestoned
                 {
                     try
                     {
-                        result = JsonConvert.SerializeObject(lsdWeenie, SerializerSettings);
+                        result = JsonSerializer.Serialize(lsdWeenie, SerializerSettings);
                     }
                     catch
                     {

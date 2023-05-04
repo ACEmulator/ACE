@@ -4,11 +4,10 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
-using ACE.Common;
 
-using DouglasCrockford.JsMin;
-using Newtonsoft.Json;
+using ACE.Common;
 
 namespace ACE.Server
 {
@@ -40,7 +39,7 @@ namespace ACE.Server
             }
 
             var fileText = File.ReadAllText(configFile);
-            var config = JsonConvert.DeserializeObject<MasterConfiguration>(new JsMinifier().Minify(fileText));
+            var config = JsonSerializer.Deserialize<MasterConfiguration>(fileText);
 
             Console.WriteLine("Performing setup for ACEmulator...");
             Console.WriteLine();
@@ -260,14 +259,17 @@ namespace ACE.Server
             }
 
             Console.WriteLine("commiting configuration to memory...");
-            using (StreamWriter file = File.CreateText(configFile))
-            {
-                JsonSerializer serializer = new JsonSerializer();
-                serializer.Formatting = Formatting.Indented;
-                //serializer.NullValueHandling = NullValueHandling.Ignore;
-                //serializer.DefaultValueHandling = DefaultValueHandling.Ignore;
-                serializer.Serialize(file, config);
-            }
+            //using (StreamWriter file = File.CreateText(configFile))
+            //{
+            //    JsonSerializer serializer = new JsonSerializer();
+            //    serializer.Formatting = Formatting.Indented;
+            //    //serializer.NullValueHandling = NullValueHandling.Ignore;
+            //    //serializer.DefaultValueHandling = DefaultValueHandling.Ignore;
+            //    serializer.Serialize(file, config);
+            //}
+
+            var jsonString = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(configFile, jsonString);
 
 
             Console.WriteLine();
@@ -395,7 +397,7 @@ namespace ACE.Server
                 using var client = new WebClient();
                 var html = client.GetStringFromURL(url).Result;
 
-                dynamic json = JsonConvert.DeserializeObject(html);
+                dynamic json = JsonSerializer.Deserialize<dynamic>(html);
                 string tag = json.tag_name;
                 string dbURL = json.assets[0].browser_download_url;
                 string dbFileName = json.assets[0].name;

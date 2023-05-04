@@ -1,4 +1,3 @@
-using Newtonsoft.Json;
 
 namespace ACE.Common
 {
@@ -17,22 +16,16 @@ namespace ACE.Common
         /// <summary>
         /// whether or not this landblock is permaloaded
         /// </summary>
-        [System.ComponentModel.DefaultValue(false)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public bool Permaload { get; set; }
+        public bool Permaload { get; set; } = false;
 
         /// <summary>
         /// whether or not this landblock should also load adjacents, if Permaload is true, the ajacent landblocks will also be marked permaload
         /// </summary>
-        [System.ComponentModel.DefaultValue(false)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public bool IncludeAdjacents { get; set; }
+        public bool IncludeAdjacents { get; set; } = false;
 
         /// <summary>
         /// whether or not this landblock is included for preload.
         /// </summary>
-        [System.ComponentModel.DefaultValue(false)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public bool Enabled { get; set; }
+        public bool Enabled { get; set; } = false;
     }
 }

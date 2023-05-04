@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 using Lifestoned.DataModel.Gdle;
 using Lifestoned.DataModel.Shared;

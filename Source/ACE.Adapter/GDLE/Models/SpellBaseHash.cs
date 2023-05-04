@@ -1,14 +1,14 @@
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace ACE.Adapter.GDLE.Models
 {
     public class SpellBaseHash
     {
-        [JsonProperty("key")]
+        [JsonPropertyName("key")]
         public uint Key { get; set; }
 
-        [JsonProperty("value")]
+        [JsonPropertyName("value")]
         public SpellValue Value { get; set; }
     }
 }
