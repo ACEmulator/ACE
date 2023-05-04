@@ -15,31 +15,33 @@ namespace ACE.Server
     {
         private static void DoOutOfBoxSetup(string configFile)
         {
-            var exeLocation = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            var configJsExample = Path.Combine(exeLocation, "Config.js.example");
-            var exampleFile = new FileInfo(configJsExample);
-            if (!exampleFile.Exists)
-            {
-                log.Error("config.js.example Configuration file is missing.  Please copy the file config.js.example to config.js and edit it to match your needs before running ACE.");
-                throw new Exception("missing config.js configuration file");
-            }
-            else
-            {
-                if (!IsRunningInContainer)
-                {
-                    Console.WriteLine("config.js Configuration file is missing,  cloning from example file.");
-                    File.Copy(configJsExample, configFile, true);
-                }
-                else
-                {
-                    Console.WriteLine("config.js Configuration file is missing, ACEmulator is running in a container,  cloning from docker file.");
-                    var configJsDocker = Path.Combine(exeLocation, "Config.js.docker");
-                    File.Copy(configJsDocker, configFile, true);
-                }
-            }
+            //var exeLocation = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            //var configJsExample = Path.Combine(exeLocation, "Config.js.example");
+            //var exampleFile = new FileInfo(configJsExample);
+            //if (!exampleFile.Exists)
+            //{
+            //    log.Error("config.js.example Configuration file is missing.  Please copy the file config.js.example to config.js and edit it to match your needs before running ACE.");
+            //    throw new Exception("missing config.js configuration file");
+            //}
+            //else
+            //{
+            //    if (!IsRunningInContainer)
+            //    {
+            //        Console.WriteLine("config.js Configuration file is missing,  cloning from example file.");
+            //        File.Copy(configJsExample, configFile, true);
+            //    }
+            //    else
+            //    {
+            //        Console.WriteLine("config.js Configuration file is missing, ACEmulator is running in a container,  cloning from docker file.");
+            //        var configJsDocker = Path.Combine(exeLocation, "Config.js.docker");
+            //        File.Copy(configJsDocker, configFile, true);
+            //    }
+            //}
 
-            var fileText = File.ReadAllText(configFile);
-            var config = JsonSerializer.Deserialize<MasterConfiguration>(fileText);
+            //var fileText = File.ReadAllText(configFile);
+            //var config = JsonSerializer.Deserialize<MasterConfiguration>(fileText);
+
+            var config = new MasterConfiguration();
 
             Console.WriteLine("Performing setup for ACEmulator...");
             Console.WriteLine();
@@ -258,7 +260,7 @@ namespace ACE.Server
                     config.MySql.World.Password = variable.Trim();
             }
 
-            Console.WriteLine("commiting configuration to memory...");
+            Console.WriteLine("commiting configuration to disk...");
             //using (StreamWriter file = File.CreateText(configFile))
             //{
             //    JsonSerializer serializer = new JsonSerializer();
@@ -397,10 +399,10 @@ namespace ACE.Server
                 using var client = new WebClient();
                 var html = client.GetStringFromURL(url).Result;
 
-                dynamic json = JsonSerializer.Deserialize<dynamic>(html);
-                string tag = json.tag_name;
-                string dbURL = json.assets[0].browser_download_url;
-                string dbFileName = json.assets[0].name;
+                var json = JsonSerializer.Deserialize<JsonElement>(html);
+                string tag = json.GetProperty("tag_name").GetString();
+                string dbURL = json.GetProperty("assets")[0].GetProperty("browser_download_url").GetString();
+                string dbFileName = json.GetProperty("assets")[0].GetProperty("name").GetString();
 
                 Console.WriteLine($"Found {tag} !");
 
