@@ -1086,7 +1086,7 @@ namespace ACE.Server.Managers
                 var lottoResult = target.TinkeringLotto_Mutate(salvageType, (int)(source.Workmanship ?? 0));
 
                 if(!string.IsNullOrEmpty(lottoResult))
-                    player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} won the tinkering lottery! The following improvement were made to your {target.NameWithMaterial}\n{lottoResult}", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
+                    player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} won the tinkering lottery! The following improvements were made to your {target.NameWithMaterial}\n{lottoResult}", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
             }
 
             return modified;
