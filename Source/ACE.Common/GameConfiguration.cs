@@ -6,9 +6,9 @@ namespace ACE.Common
     {
         public string WorldName { get; set; } = "ACEmulator";
 
-        public NetworkSettings Network { get; set; }
+        public NetworkSettings Network { get; set; } = new NetworkSettings();
 
-        public AccountDefaults Accounts { get; set; }
+        public AccountDefaults Accounts { get; set; } = new AccountDefaults();
 
         public string DatFilesDirectory { get; set; } = "c:\\ACE\\Dats\\";
 
