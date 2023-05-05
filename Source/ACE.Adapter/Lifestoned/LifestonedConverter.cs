@@ -1117,12 +1117,6 @@ namespace ACE.Adapter.Lifestoned
 
         static LifestonedConverter()
         {
-            ////SerializerSettings.Converters.Add(new JavaScriptDateTimeConverter());
-            //SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-            //SerializerSettings.DateFormatHandling = DateFormatHandling.IsoDateFormat;
-
-            //SerializerSettings.Formatting = Formatting.Indented;
-
             SerializerSettings.WriteIndented = true;
         }
 
