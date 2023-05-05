@@ -15,32 +15,6 @@ namespace ACE.Server
     {
         private static void DoOutOfBoxSetup(string configFile)
         {
-            //var exeLocation = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            //var configJsExample = Path.Combine(exeLocation, "Config.js.example");
-            //var exampleFile = new FileInfo(configJsExample);
-            //if (!exampleFile.Exists)
-            //{
-            //    log.Error("config.js.example Configuration file is missing.  Please copy the file config.js.example to config.js and edit it to match your needs before running ACE.");
-            //    throw new Exception("missing config.js configuration file");
-            //}
-            //else
-            //{
-            //    if (!IsRunningInContainer)
-            //    {
-            //        Console.WriteLine("config.js Configuration file is missing,  cloning from example file.");
-            //        File.Copy(configJsExample, configFile, true);
-            //    }
-            //    else
-            //    {
-            //        Console.WriteLine("config.js Configuration file is missing, ACEmulator is running in a container,  cloning from docker file.");
-            //        var configJsDocker = Path.Combine(exeLocation, "Config.js.docker");
-            //        File.Copy(configJsDocker, configFile, true);
-            //    }
-            //}
-
-            //var fileText = File.ReadAllText(configFile);
-            //var config = JsonSerializer.Deserialize<MasterConfiguration>(fileText);
-
             var config = new MasterConfiguration();
 
             Console.WriteLine("Performing setup for ACEmulator...");
@@ -261,14 +235,6 @@ namespace ACE.Server
             }
 
             Console.WriteLine("commiting configuration to disk...");
-            //using (StreamWriter file = File.CreateText(configFile))
-            //{
-            //    JsonSerializer serializer = new JsonSerializer();
-            //    serializer.Formatting = Formatting.Indented;
-            //    //serializer.NullValueHandling = NullValueHandling.Ignore;
-            //    //serializer.DefaultValueHandling = DefaultValueHandling.Ignore;
-            //    serializer.Serialize(file, config);
-            //}
 
             var jsonString = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(configFile, jsonString);
