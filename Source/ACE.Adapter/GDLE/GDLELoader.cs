@@ -113,7 +113,7 @@ namespace ACE.Adapter.GDLE
 
                 foreach (var weenie in landblock.value.weenies)
                 {
-                    var newGuid = (0x70000000 | ((weenie.pos.objcell_id & 0xFFFF0000) >> 4) | currentOffset);
+                    var newGuid = (0x70000000 | ((weenie.pos.LandCellId & 0xFFFF0000) >> 4) | currentOffset);
                     currentOffset++;
 
                     if (!idChanges[landblock.key].ContainsKey(weenie.id))

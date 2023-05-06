@@ -18,7 +18,7 @@ namespace ACE.Adapter.GDLE.Models
 
         public bool IsDone { get; set; }
 
-        public Metadata(Weenie weenie)
+        public Metadata(LSDWeenie weenie)
         {
             LastModified = weenie.LastModified;
             ModifiedBy = weenie.ModifiedBy;
