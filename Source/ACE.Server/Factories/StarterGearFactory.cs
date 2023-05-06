@@ -36,7 +36,7 @@ namespace ACE.Server.Factories
             {
                 var starterGearText = File.ReadAllText(starterGearFile);
 
-                config = JsonSerializer.Deserialize<StarterGearConfiguration>(starterGearText, new JsonSerializerOptions { ReadCommentHandling = JsonCommentHandling.Skip, NumberHandling = JsonNumberHandling.AllowReadingFromString, });
+                config = JsonSerializer.Deserialize<StarterGearConfiguration>(starterGearText, new JsonSerializerOptions { ReadCommentHandling = JsonCommentHandling.Skip, NumberHandling = JsonNumberHandling.AllowReadingFromString });
 
                 return config;
             }
