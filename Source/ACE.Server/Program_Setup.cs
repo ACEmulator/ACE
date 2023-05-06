@@ -15,7 +15,32 @@ namespace ACE.Server
     {
         private static void DoOutOfBoxSetup(string configFile)
         {
-            var config = new MasterConfiguration();
+            MasterConfiguration config;
+
+            var exeLocation = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            var configJsExample = Path.Combine(exeLocation, "Config.js.example");
+            var exampleFile = new FileInfo(configJsExample);
+            if (!exampleFile.Exists)
+            {
+                config = new MasterConfiguration();
+            }
+            else
+            {
+                if (!IsRunningInContainer)
+                {
+                    Console.WriteLine("config.js Configuration file is missing, cloning from example file.");
+                    File.Copy(configJsExample, configFile, true);
+                }
+                else
+                {
+                    Console.WriteLine("config.js Configuration file is missing, ACEmulator is running in a container, cloning from docker file.");
+                    var configJsDocker = Path.Combine(exeLocation, "Config.js.docker");
+                    File.Copy(configJsDocker, configFile, true);
+                }
+
+                var fileText = File.ReadAllText(configFile);
+                config = JsonSerializer.Deserialize<MasterConfiguration>(fileText);
+            }
 
             Console.WriteLine("Performing setup for ACEmulator...");
             Console.WriteLine();
