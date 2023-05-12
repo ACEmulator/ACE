@@ -1,7 +1,9 @@
 using System;
 
+using ACE.Common;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -72,7 +74,23 @@ namespace ACE.Server.WorldObjects
 
             player.EnqueueBroadcast(new GameMessageSound(player.Guid, UseSound));
 
-            base.OnActivate(activator);
+            if (Time.GetUnixTime() < ResetTimestamp)
+            {
+                var activationFailure = GetProperty(PropertyString.ActivationFailure);
+                if (activationFailure != null)
+                {
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(activationFailure, ChatMessageType.Broadcast));
+                }
+            }
+            else
+            {
+                base.OnActivate(activator);
+
+                if (ResetInterval > 0)
+                {
+                    ResetTimestamp = Time.GetFutureUnixTime(ResetInterval ?? 0);
+                }
+            }
         }
 
         public override void ActOnUse(WorldObject wo)
