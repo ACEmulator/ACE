@@ -116,6 +116,16 @@ namespace ACE.Database.Adapter
                     existingValue.AnglesX = kvp.Value.RotationX;
                     existingValue.AnglesY = kvp.Value.RotationY;
                     existingValue.AnglesZ = kvp.Value.RotationZ;
+
+                    // Entity Framework is unable to store NaN floats in the database and results in an error of:
+                    // ERROR 1054: Unknown column 'NaN' in 'field list'
+                    if (float.IsNaN(existingValue.AnglesX) || float.IsNaN(existingValue.AnglesY) || float.IsNaN(existingValue.AnglesZ) || float.IsNaN(existingValue.AnglesW))
+                    {
+                        existingValue.AnglesW = 1;
+                        existingValue.AnglesX = 0;
+                        existingValue.AnglesY = 0;
+                        existingValue.AnglesZ = 0;
+                    }
                 }
             }
             foreach (var value in targetBiota.BiotaPropertiesPosition)

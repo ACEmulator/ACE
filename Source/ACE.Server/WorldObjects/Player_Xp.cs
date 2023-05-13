@@ -23,8 +23,11 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.EarnXP({amount}, {sharable}, {fixedAmount})");
 
-            // apply xp modifier
+            // apply xp modifiers.  Quest XP is multiplicative with general XP modification
+            var questModifier = PropertyManager.GetDouble("quest_xp_modifier").Item;
             var modifier = PropertyManager.GetDouble("xp_modifier").Item;
+            if (xpType == XpType.Quest)
+                modifier *= questModifier;
 
             // should this be passed upstream to fellowship / allegiance?
             var enchantment = GetXPAndLuminanceModifier(xpType);

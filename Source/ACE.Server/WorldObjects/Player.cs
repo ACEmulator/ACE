@@ -965,9 +965,17 @@ namespace ACE.Server.WorldObjects
                 PhysicsObj.calc_acceleration();
                 PhysicsObj.set_on_walkable(false);
                 PhysicsObj.set_local_velocity(jump.Velocity, false);
+                PhysicsObj.RemoveLinkAnimations();      // matches MotionInterp.LeaveGround more closely
+                PhysicsObj.MovementManager.MotionInterpreter.PendingMotions.Clear();        //hack
+                PhysicsObj.IsAnimating = false;
 
                 if (CombatMode == CombatMode.Magic && MagicState.IsCasting)
+                {
+                    // clear possible CastMotion out of InterpretedMotionState.ForwardCommand
+                    PhysicsObj.MovementManager.MotionInterpreter.StopCompletely();
+
                     FailCast();
+                }
             }
             else
             {
@@ -978,10 +986,13 @@ namespace ACE.Server.WorldObjects
                 //PhysicsObj.set_velocity(glob_velocity, true);
 
                 // perform jump in physics engine
-                PhysicsObj.TransientState &= ~(Physics.TransientStateFlags.Contact | Physics.TransientStateFlags.WaterContact);
+                PhysicsObj.TransientState &= ~(TransientStateFlags.Contact | TransientStateFlags.WaterContact);
                 PhysicsObj.calc_acceleration();
                 PhysicsObj.set_on_walkable(false);
                 PhysicsObj.set_local_velocity(jump.Velocity, false);
+                PhysicsObj.RemoveLinkAnimations();      // matches MotionInterp.LeaveGround more closely
+                PhysicsObj.MovementManager.MotionInterpreter.PendingMotions.Clear();        //hack
+                PhysicsObj.IsAnimating = false;
             }
 
             // this shouldn't be needed, but without sending this update motion / simulated movement event beforehand,
