@@ -21,7 +21,8 @@ namespace ACE.Server.Factories
 
         public static Dictionary<int, HashSet<int>> RareWCIDs;
 
-        public static void InitRares() {
+        public static void InitRares() 
+		{
             RareWCIDs = new Dictionary<int, HashSet<int>>();
 
             var tier1Rares = new HashSet<int>() { 30183, 30184, 30186, 30187, 30188, 30189, 30194, 30195, 30196, 30197, 30199, 30200, 30202, 30205, 30206, 30209, 30214, 30215, 30216, 30217, 30218, 30221, 30222, 30224, 30225, 30226, 30228, 30229, 30232, 30233, 30234, 30240, 30242, 30245, 30246, 41257, 43407, 45360, 45366, 45367, 45368, 45369 };
