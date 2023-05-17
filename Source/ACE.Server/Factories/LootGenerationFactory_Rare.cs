@@ -40,7 +40,8 @@ namespace ACE.Server.Factories
             RareWCIDs.Add(6, tier6Rares);
         }
 
-        public static WorldObject TryCreateRare(int luck = 0) {
+        public static WorldObject TryCreateRare(int luck = 0)
+		{
             //var t1_chance = 2500; // 1 in 2,500 chance // Old rate. Property default is 0.04 (which is 0.04%, or the same 1/2500)
             double rare_drop_rate_percent = (float)Managers.PropertyManager.GetDouble("rare_drop_rate_percent").Item;
 
@@ -98,7 +99,8 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Returns the tier for a rare wcid
         /// </summary>
-        public static int GetRareTier(uint rareWCID) {
+        public static int GetRareTier(uint rareWCID)
+		{
             var wcid = (int)rareWCID;
 
             foreach (var kvp in RareWCIDs)
