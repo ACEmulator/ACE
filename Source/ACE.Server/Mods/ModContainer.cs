@@ -16,7 +16,7 @@ namespace ACE.Server.Mods
         public ModMetadata Meta { get; set; }
         public ModStatus Status = ModStatus.Unloaded;
 
-        public Assembly ModAssembly { get; set; }   //Todo: decide what actually makes sense to keep
+        public Assembly ModAssembly { get; set; }   
         public Type ModType { get; set; }
         public IHarmonyMod Instance { get; set; }
 
@@ -146,8 +146,15 @@ namespace ACE.Server.Mods
 
             this.UnregisterCommandHandlers();
 
-            Instance?.Dispose();
-            Instance = null;
+            try
+            {
+                Instance?.Dispose();
+                Instance = null;
+            }
+            catch (TypeInitializationException ex)
+            {
+                ModManager.Log($"Failed to dispose {FolderName}: {ex.Message}", ModManager.LogLevel.Error);
+            }
             Status = ModStatus.Inactive;
         }
 
@@ -197,7 +204,6 @@ namespace ACE.Server.Mods
         {
             try
             {
-                //var m = Activator.CreateInstance(ModType);
                 Instance = Activator.CreateInstance(ModType) as IHarmonyMod;
                 log.Info($"Created instance of {Meta.Name}");
             }
