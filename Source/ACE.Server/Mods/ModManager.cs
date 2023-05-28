@@ -14,6 +14,9 @@ namespace ACE.Server.Mods
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        public static string ModPath { get; } = ACE.Common.ConfigManager.Config.Server.ModsDirectory ??
+                Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "Mods");
+
         /// <summary>
         /// Mods with at least metadata loaded
         /// </summary>
@@ -38,27 +41,24 @@ namespace ACE.Server.Mods
         /// </summary>
         public static void FindMods()
         {
-            var modPath = Common.ConfigManager.Config.Server.ModsDirectory ??
-                Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "Mods");
+            if (ACE.Common.ConfigManager.Config.Server.ModsDirectory is null)
+                log.Warn($"You are missing the ModsDirectory setting in your Config.js.  Defaulting to:\r\n{ModPath}");
 
-            if (Common.ConfigManager.Config.Server.ModsDirectory is null)
-                log.Warn($"You are missing the ModsDirectory setting in your Config.js.  Defaulting to:\r\n{modPath}");
-
-            if (!Directory.Exists(modPath))
+            if (!Directory.Exists(ModPath))
             {
                 try
                 {
-                    Directory.CreateDirectory(modPath);
-                    log.Info($"Created mod folder at:\r\n{modPath}");
+                    Directory.CreateDirectory(ModPath);
+                    log.Info($"Created mod folder at:\r\n{ModPath}");
                 }
                 catch (Exception ex)
                 {
-                    log.Error($"Failed to create mod folder:\r\n{modPath}");
+                    log.Error($"Failed to create mod folder:\r\n{ModPath}");
                     return;
                 }
             }
 
-            Mods = LoadMods(modPath);
+            Mods = LoadMods(ModPath);
             Mods = Mods.OrderByDescending(x => x.Meta.Priority).ToList();
 
             //Todo: Filter out bad mods here or when loading entries?
@@ -276,10 +276,16 @@ namespace ACE.Server.Mods
             }
         }
 
-        public static string GetFolder(IHarmonyMod mod)
+        public static string GetFolder(this IHarmonyMod mod)
         {
             var match = Mods.Where(x => x.Instance == mod).FirstOrDefault();
             return match is null ? "" : match.FolderPath;
+        }
+        public static ModContainer GetModContainer(this IHarmonyMod mod)
+        {
+            var match = Mods.Where(x => x.Instance == mod).FirstOrDefault();
+
+            return match;
         }
 
         public static ModContainer GetModContainerByName(string name, bool allowPartial = true) => allowPartial ?
