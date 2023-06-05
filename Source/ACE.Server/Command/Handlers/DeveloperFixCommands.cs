@@ -1728,6 +1728,7 @@ namespace ACE.Server.Command.Handlers
             var adjustedRaresPre = 0;
             var adjustedRaresPost = 0;
             var validPostRares = 0;
+            var validPostRaresV1 = 0;
 
             using (var ctx = new WorldDbContext())
             {
@@ -1860,6 +1861,11 @@ namespace ACE.Server.Command.Handlers
                     {
                         validPostRares++;
                         continue;
+                    }
+
+                    if (rare.Value.Biota.WeenieClassId == 45461)
+                    {
+                        validPostRaresV1++;
                     }
 
                     foundIssues = true;
@@ -2078,6 +2084,17 @@ namespace ACE.Server.Command.Handlers
 
                         ctx.SaveChanges();
                     }
+                    else
+                    {
+                        if (rare.Value.Biota.WeenieClassId == 45461)
+                        {
+                            logline += "\n\\----- Version needs updating, no other changes required.";
+                        }
+                        else
+                        {
+                            logline += $"\n\\----- Rare obtained from Melee Rare Vendor, needs to be deleted and replaced with a random newly generated melee rare.";
+                        }
+                    }
 
                     Console.WriteLine(logline);
                 }
@@ -2247,6 +2264,12 @@ namespace ACE.Server.Command.Handlers
                             logline += $"\n\\----- Unable to change WCID from {rare.Value.Biota.WeenieClassId} for 0x{rare.Key:X8}. Not a melee rare?";
                         }    
                     }
+                    else
+                    {
+                        var oldWCID = rare.Value.Biota.WeenieClassId;
+                        PreToPostMeleeRareConversions.TryGetValue(rare.Value.Biota.WeenieClassId, out var newWCID);
+                        logline += $"\n\\----- Rare needs to change WCID from {oldWCID} to {newWCID} and have its version updated.";
+                    }
 
                     Console.WriteLine(logline);
                 }
@@ -2254,7 +2277,7 @@ namespace ACE.Server.Command.Handlers
                 if (!fix && foundIssues)
                 {
                     Console.WriteLine($"Found {foundRaresPre:N0} Pre-MoA Rares. These need to be converted to Post-MoA WCIDs and their version updated to V2.");
-                    Console.WriteLine($"Found {foundRaresPost:N0} Post-MoA Rares. {foundRaresPost - validPostRares:N0} are invalid and need to be regenerated due to incorrectly being distributed by Melee Rare Vendor.");
+                    Console.WriteLine($"Found {foundRaresPost:N0} Post-MoA Rares. {foundRaresPost - validPostRares - validPostRaresV1:N0} are invalid and need to be regenerated due to incorrectly being distributed by Melee Rare Vendor. {validPostRaresV1:N0} need to have their version updated to V2.");
                     Console.WriteLine($"Dry run completed. Type 'verify-melee-rares fix' to fix any issues.");
                 }
 
