@@ -1723,6 +1723,9 @@ namespace ACE.Server.Command.Handlers
             var foundIssues = false;
             var foundRaresPre = 0;
             var foundRaresPost = 0;
+            var foundRareCoins = 0;
+            var deletedRareCoins = 0;
+            var newRaresFromCoins = 0;
             var deletedPostRares = 0;
             var replacedPostRares = 0;
             var adjustedRaresPre = 0;
@@ -1854,6 +1857,27 @@ namespace ACE.Server.Command.Handlers
                                    };
                 var postRares = queryPostMoA.ToDictionary(i => i.Biota.Id, i => i);
                 foundRaresPost = postRares.Count;
+
+                // get Rare Coins 
+                //var queryRareCoin = ctx.Biota.Where(i => i.WeenieClassId == 45493).Select(i => i.Id).ToList();
+                var queryRareCoin = from biota in ctx.Biota
+                                    join name in ctx.BiotaPropertiesString on biota.Id equals name.ObjectId
+                                    where name.Type == (ushort)PropertyString.Name && biota.WeenieClassId == 45493
+                                    from container in ctx.BiotaPropertiesIID.Where(x => x.ObjectId == biota.Id && x.Type == (ushort)PropertyInstanceId.Container).DefaultIfEmpty()
+                                    from placement in ctx.BiotaPropertiesInt.Where(x => x.ObjectId == biota.Id && x.Type == (ushort)PropertyInt.PlacementPosition).DefaultIfEmpty()
+                                    from location in ctx.BiotaPropertiesPosition.Where(x => x.ObjectId == biota.Id && x.PositionType == (ushort)PositionType.Location).DefaultIfEmpty()
+                                    from shortcut in ctx.CharacterPropertiesShortcutBar.Where(x => x.ShortcutObjectId == biota.Id).DefaultIfEmpty()
+                                    select new
+                                    {
+                                        Biota = biota,
+                                        Name = name,
+                                        Container = container ?? null,
+                                        PlacementPosition = placement ?? null,
+                                        Location = location ?? null,
+                                        Shortcut = shortcut ?? null,
+                                    };
+                var rareCoins = queryRareCoin.ToDictionary(i => i.Biota.Id, i => i);
+                foundRareCoins = rareCoins.Count;
 
                 foreach (var rare in postRares)
                 {
@@ -2274,10 +2298,192 @@ namespace ACE.Server.Command.Handlers
                     Console.WriteLine(logline);
                 }
 
+                foreach (var coin in rareCoins)
+                {
+                    foundIssues = true;
+
+                    var logline = $"0x{coin.Key:X8} {coin.Value.Name.Value} ({coin.Value.Biota.WeenieClassId}) is";
+
+                    if (coin.Value.Container is not null)
+                    {
+                        logline += " contained by: ";
+
+                        var queryContainer = from biota in ctx.Biota
+                                             join name in ctx.BiotaPropertiesString on biota.Id equals name.ObjectId
+                                             where name.Type == (ushort)PropertyString.Name && biota.Id == coin.Value.Container.Value
+                                             from placement in ctx.BiotaPropertiesInt.Where(x => x.ObjectId == biota.Id && x.Type == (ushort)PropertyInt.PlacementPosition).DefaultIfEmpty()
+                                             from parentcontainer in ctx.BiotaPropertiesIID.Where(x => x.ObjectId == biota.Id && x.Type == (ushort)PropertyInstanceId.Container).DefaultIfEmpty()
+                                             select new
+                                             {
+                                                 Biota = biota,
+                                                 Name = name,
+                                                 PlacementPosition = placement ?? null,
+                                                 ParentContainer = parentcontainer ?? null,
+                                             };
+
+                        var container = queryContainer.FirstOrDefault();
+
+                        if (container is null)
+                        {
+                            logline += $"\n Unable to find 0x{coin.Value.Container.Value} in database. Orphaned object?";
+                        }
+                        else
+                        {
+                            if (container.Biota.WeenieType == (int)WeenieType.Container)
+                            {
+                                var queryParentContainer = from biota in ctx.Biota
+                                                           join name in ctx.BiotaPropertiesString on biota.Id equals name.ObjectId
+                                                           where name.Type == (ushort)PropertyString.Name && biota.Id == container.ParentContainer.Value
+                                                           select new
+                                                           {
+                                                               Biota = biota,
+                                                               Name = name,
+                                                           };
+
+                                var parentContainer = queryParentContainer.FirstOrDefault();
+
+                                logline += $"\n 0x{parentContainer.Biota.Id:X8} {parentContainer.Name.Value}{(parentContainer.Biota.WeenieType == (int)WeenieType.Storage ? "" : "'s")} Sub Pack 0x{container.Biota.Id:X8} {container.Name.Value} (Slot {container.PlacementPosition?.Value ?? 0}) at placement position {coin.Value.PlacementPosition?.Value ?? 0}";
+                            }
+                            else if (container.Biota.WeenieType == (int)WeenieType.Hook)
+                            {
+                                var queryHook = from biota in ctx.Biota
+                                                join name in ctx.BiotaPropertiesString on biota.Id equals name.ObjectId
+                                                where name.Type == (ushort)PropertyString.Name && biota.Id == coin.Value.Container.Value
+                                                from hooktype in ctx.BiotaPropertiesInt.Where(x => x.ObjectId == biota.Id && x.Type == (ushort)PropertyInt.HookType).DefaultIfEmpty()
+                                                from location in ctx.BiotaPropertiesPosition.Where(x => x.ObjectId == biota.Id && x.PositionType == (ushort)PositionType.Location).DefaultIfEmpty()
+                                                select new
+                                                {
+                                                    Biota = biota,
+                                                    Name = name,
+                                                    HookType = hooktype,
+                                                    Location = location ?? null,
+                                                };
+
+                                var hook = queryHook.FirstOrDefault();
+
+                                logline += $"\n 0x{container.Biota.Id:X8} {(HookType)hook.HookType.Value} Hook located at:\n 0x{hook.Location.ObjCellId:X8} [{hook.Location.OriginX:F6} {hook.Location.OriginY:F6} {hook.Location.OriginZ:F6}] {hook.Location.AnglesW:F6} {hook.Location.AnglesX:F6} {hook.Location.AnglesY:F6} {hook.Location.AnglesZ:F6}";
+                            }
+                            else if (container.Biota.WeenieType == (int)WeenieType.Storage || container.Biota.WeenieType == (int)WeenieType.Chest || container.Biota.WeenieType == (int)WeenieType.SlumLord)
+                            {
+                                var queryStorage = from biota in ctx.Biota
+                                                   join name in ctx.BiotaPropertiesString on biota.Id equals name.ObjectId
+                                                   where name.Type == (ushort)PropertyString.Name && biota.Id == coin.Value.Container.Value
+                                                   from location in ctx.BiotaPropertiesPosition.Where(x => x.ObjectId == biota.Id && x.PositionType == (ushort)PositionType.Location).DefaultIfEmpty()
+                                                   select new
+                                                   {
+                                                       Biota = biota,
+                                                       Name = name,
+                                                       Location = location ?? null,
+                                                   };
+
+                                var storage = queryStorage.FirstOrDefault();
+
+                                logline += $"\n 0x{container.Biota.Id:X8} {container.Name.Value} Main Pack at placement position {coin.Value.PlacementPosition?.Value ?? 0} and located at:\n 0x{storage.Location.ObjCellId:X8} [{storage.Location.OriginX:F6} {storage.Location.OriginY:F6} {storage.Location.OriginZ:F6}] {storage.Location.AnglesW:F6} {storage.Location.AnglesX:F6} {storage.Location.AnglesY:F6} {storage.Location.AnglesZ:F6}";
+                            }
+                            else if (container.Biota.WeenieType == (int)WeenieType.Corpse)
+                            {
+                                var queryCorpse = from biota in ctx.Biota
+                                                  join name in ctx.BiotaPropertiesString on biota.Id equals name.ObjectId
+                                                  where name.Type == (ushort)PropertyString.Name && biota.Id == coin.Value.Container.Value
+                                                  from location in ctx.BiotaPropertiesPosition.Where(x => x.ObjectId == biota.Id && x.PositionType == (ushort)PositionType.Location).DefaultIfEmpty()
+                                                  select new
+                                                  {
+                                                      Biota = biota,
+                                                      Name = name,
+                                                      Location = location ?? null
+                                                  };
+
+                                var corpse = queryCorpse.FirstOrDefault();
+
+                                logline += $"\n 0x{corpse.Biota.Id:X8} {corpse.Name.Value}'s Main Pack 0x{container.Biota.Id:X8} at placement position {coin.Value.PlacementPosition?.Value ?? 0} and located at:\n 0x{corpse.Location.ObjCellId:X8} [{corpse.Location.OriginX:F6} {corpse.Location.OriginY:F6} {corpse.Location.OriginZ:F6}] {corpse.Location.AnglesW:F6} {corpse.Location.AnglesX:F6} {corpse.Location.AnglesY:F6} {corpse.Location.AnglesZ:F6}";
+                            }
+                            else if (container.Biota.WeenieType == (int)WeenieType.Creature || container.Biota.WeenieType == (int)WeenieType.Admin || container.Biota.WeenieType == (int)WeenieType.Sentinel || container.Biota.WeenieType == (int)WeenieType.Cow || container.Biota.WeenieType == (int)WeenieType.Pet || container.Biota.WeenieType == (int)WeenieType.CombatPet || container.Biota.WeenieType == (int)WeenieType.Vendor)
+                            {
+                                logline += $"\n 0x{container.Biota.Id:X8} {container.Name.Value}'s Main Pack at placement position {coin.Value.PlacementPosition?.Value ?? 0}";
+                            }
+                            else
+                            {
+                                logline += $"\n Unexpected WeenieType '{container.Biota.WeenieType}' for container 0x{container.Biota.Id:X8} {container.Name.Value}. Invalid custom content?";
+                            }
+                        }
+                    }
+                    else if (coin.Value.Location is not null)
+                    {
+                        logline += $" on a landblock and located at:\n 0x{coin.Value.Location.ObjCellId:X8} [{coin.Value.Location.OriginX:F6} {coin.Value.Location.OriginY:F6} {coin.Value.Location.OriginZ:F6}] {coin.Value.Location.AnglesW:F6} {coin.Value.Location.AnglesX:F6} {coin.Value.Location.AnglesY:F6} {coin.Value.Location.AnglesZ:F6}";
+                    }
+                    else
+                    {
+                        logline += $" found in database but does not have a Container, Wielder, or Location. Orphaned object?";
+                    }
+
+                    if (fix)
+                    {
+                        // this coin was distributed by Emissary of Asheron (45492) incorrectly to be used at the Melee Rare Vendor. Generate a new v2 rare, copy over "link" data to effectively mutate in place "illegally" swapped coin for another randomly generated V2 rare.
+
+                        var tierRares = PreToPostMeleeRareConversions.Values.ToList();
+
+                        //tierRares.Remove(coin.Value.Biota.WeenieClassId);
+
+                        var rng = ThreadSafeRandom.Next(0, tierRares.Count - 1);
+
+                        var rareWCID = tierRares[rng];
+
+                        var wo = WorldObjectFactory.CreateNewWorldObject(rareWCID);
+
+                        if (wo != null)
+                        {
+                            if (coin.Value.Container != null)
+                            {
+                                wo.ContainerId = coin.Value.Container.Value;
+                            }
+
+                            if (coin.Value.PlacementPosition != null)
+                            {
+                                wo.PlacementPosition = coin.Value.PlacementPosition.Value;
+                            }
+
+                            if (coin.Value.Location != null)
+                            {
+                                wo.Location = new ACE.Entity.Position(coin.Value.Location.ObjCellId, coin.Value.Location.OriginX, coin.Value.Location.OriginY, coin.Value.Location.OriginZ, coin.Value.Location.AnglesX, coin.Value.Location.AnglesY, coin.Value.Location.AnglesZ, coin.Value.Location.AnglesW);
+                            }
+
+                            if (coin.Value.Shortcut != null)
+                            {
+                                var shortcut = ctx.CharacterPropertiesShortcutBar.Where(x => x.ShortcutObjectId == coin.Value.Biota.Id).FirstOrDefault();
+
+                                if (shortcut != null)
+                                    shortcut.ShortcutObjectId = wo.Biota.Id;
+                            }
+
+                            wo.SaveBiotaToDatabase();
+                            newRaresFromCoins++;
+
+                            ctx.Biota.Remove(coin.Value.Biota);
+                            deletedRareCoins++;
+
+                            logline += $"\n\\----- Replaced with 0x{wo.Guid} {wo.Name} ({wo.WeenieClassId})";
+                        }
+                        else
+                        {
+                            logline += $"\n\\----- Unable to replace with ({rareWCID}). Rare not found in database.";
+                            return;
+                        }
+
+                        ctx.SaveChanges();
+                    }
+                    else
+                    {
+                        logline += $"\n\\----- Rare Coin obtained from Emissary of Asheron (45492), needs to be deleted and replaced with a random newly generated melee rare.";
+                    }
+
+                    Console.WriteLine(logline);
+                }
+
                 if (!fix && foundIssues)
                 {
                     Console.WriteLine($"Found {foundRaresPre:N0} Pre-MoA Rares. These need to be converted to Post-MoA WCIDs and their version updated to V2.");
                     Console.WriteLine($"Found {foundRaresPost:N0} Post-MoA Rares. {foundRaresPost - validPostRares - validPostRaresV1:N0} are invalid and need to be regenerated due to incorrectly being distributed by Melee Rare Vendor. {validPostRaresV1:N0} need to have their version updated to V2.");
+                    Console.WriteLine($"Found {foundRareCoins:N0} Rare Coins. These need to be deleted and replaced with newly randomly generated rare.");
                     Console.WriteLine($"Dry run completed. Type 'verify-melee-rares fix' to fix any issues.");
                 }
 
@@ -2290,6 +2496,7 @@ namespace ACE.Server.Command.Handlers
                 {
                     Console.WriteLine($"Found {foundRaresPre:N0} Pre-MoA Rares. {adjustedRaresPre:N0} were converted to Post-MoA WCIDs and their version updated to V2.");
                     Console.WriteLine($"Found {foundRaresPost:N0} Post-MoA Rares. {deletedPostRares:N0} deleted, {replacedPostRares:N0} replaced, {adjustedRaresPost:N0} updated to V2.");
+                    Console.WriteLine($"Found {foundRareCoins:N0} Rare Coins. {deletedRareCoins:N0} deleted, {newRaresFromCoins:N0} replaced.");
                 }
             }
         }
