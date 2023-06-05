@@ -2223,7 +2223,7 @@ namespace ACE.Server.Command.Handlers
 
                         var newWCIDFound = PreToPostMeleeRareConversions.TryGetValue(rare.Value.Biota.WeenieClassId, out var newWCID);
 
-                        if (!newWCIDFound)
+                        if (newWCIDFound)
                         {
                             var oldWCID = rare.Value.Biota.WeenieClassId;
 
