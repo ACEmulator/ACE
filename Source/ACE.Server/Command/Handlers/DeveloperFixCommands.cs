@@ -2495,7 +2495,7 @@ namespace ACE.Server.Command.Handlers
                 if (foundIssues && fix)
                 {
                     Console.WriteLine($"Found {foundRaresPre:N0} Pre-MoA Rares. {adjustedRaresPre:N0} were converted to Post-MoA WCIDs and their version updated to V2.");
-                    Console.WriteLine($"Found {foundRaresPost:N0} Post-MoA Rares. {deletedPostRares:N0} deleted, {replacedPostRares:N0} replaced, {adjustedRaresPost:N0} updated to V2.");
+                    Console.WriteLine($"Found {foundRaresPost:N0} Post-MoA Rares. {validPostRares:N0} valid, {deletedPostRares:N0} deleted, {replacedPostRares:N0} replaced, {adjustedRaresPost:N0} updated to V2.");
                     Console.WriteLine($"Found {foundRareCoins:N0} Rare Coins. {deletedRareCoins:N0} deleted, {newRaresFromCoins:N0} replaced.");
                 }
             }
