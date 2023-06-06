@@ -41,8 +41,8 @@ namespace ACE.Server.Mods
         /// </summary>
         public static void FindMods()
         {
-            if (ACE.Common.ConfigManager.Config.Server.ModsDirectory is null)
-                log.Warn($"You are missing the ModsDirectory setting in your Config.js.  Defaulting to:\r\n{ModPath}");
+            //if (ACE.Common.ConfigManager.Config.Server.ModsDirectory is null)
+            //    log.Warn($"You are missing the ModsDirectory setting in your Config.js.  Defaulting to:\r\n{ModPath}");
 
             if (!Directory.Exists(ModPath))
             {
@@ -53,7 +53,7 @@ namespace ACE.Server.Mods
                 }
                 catch (Exception ex)
                 {
-                    log.Error($"Failed to create mod folder:\r\n{ModPath}");
+                    log.Error($"Failed to create mod folder:\r\n{ModPath}\n{ex}");
                     return;
                 }
             }
@@ -153,7 +153,7 @@ namespace ACE.Server.Mods
             }
             catch (Exception ex)
             {
-                log.Error($"Unable to deserialize mod metadata from: {metadataPath}");
+                log.Error($"Unable to deserialize mod metadata from: {metadataPath}\n{ex}");
                 return false;
             }
         }
