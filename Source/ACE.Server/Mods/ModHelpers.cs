@@ -71,7 +71,7 @@ namespace ACE.Server.Mods
             {
                 Task.Run(async () => await file.WriteWithRetryAsync(TimeSpan.FromSeconds(1), content, retryCount));
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
@@ -94,7 +94,7 @@ namespace ACE.Server.Mods
                 content = task.Result;
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }

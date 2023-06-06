@@ -210,7 +210,7 @@ namespace ACE.Server.Mods
             catch (Exception ex)
             {
                 Status = ModStatus.LoadFailure;
-                log.Error($"Failed to create Mod instance: {Meta.Name}");
+                log.Error($"Failed to create Mod instance: {Meta.Name}: {ex}");
                 return false;
             }
 
