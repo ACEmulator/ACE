@@ -449,62 +449,62 @@ namespace ACE.DatLoader
 
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeIdRange(0x0E000001, 0x0E000001)]
-        WeenieDefaults          = 268435457, // DB_TYPE_WEENIE_DEF
+        WeenieDefaults          = 0x10000001, // DB_TYPE_WEENIE_DEF
 
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeIdRange(0x0E000002, 0x0E000002)]
-        CharacterGenerator      = 268435458, // DB_TYPE_CHAR_GEN_0
+        CharacterGenerator      = 0x10000002, // DB_TYPE_CHAR_GEN_0
 
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeIdRange(0x0E000003, 0x0E000003)]
-        SecondaryAttributeTable = 268435459, // DB_TYPE_ATTRIBUTE_2ND_TABLE_0
+        SecondaryAttributeTable = 0x10000003, // DB_TYPE_ATTRIBUTE_2ND_TABLE_0
 
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeIdRange(0x0E000004, 0x0E000004)]
-        SkillTable              = 268435460, // DB_TYPE_SKILL_TABLE_0
+        SkillTable              = 0x10000004, // DB_TYPE_SKILL_TABLE_0
 
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeIdRange(0x0E00000E, 0x0E00000E)]
-        SpellTable              = 268435461, // DB_TYPE_SPELL_TABLE_0
+        SpellTable              = 0x10000005, // DB_TYPE_SPELL_TABLE_0
 
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeIdRange(0x0E00000F, 0x0E00000F)]
-        SpellComponentTable     = 268435462, // DB_TYPE_SPELLCOMPONENT_TABLE_0
+        SpellComponentTable     = 0x10000006, // DB_TYPE_SPELLCOMPONENT_TABLE_0
 
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeIdRange(0x0E000001, 0x0E000001)]
-        TreasureTable           = 268435463, // DB_TYPE_W_TREASURE_SYSTEM
+        TreasureTable           = 0x10000007, // DB_TYPE_W_TREASURE_SYSTEM
 
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeIdRange(0x0E000019, 0x0E000019)]
-        CraftTable              = 268435464, // DB_TYPE_W_CRAFT_TABLE
+        CraftTable              = 0x10000008, // DB_TYPE_W_CRAFT_TABLE
 
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeIdRange(0x0E000018, 0x0E000018)]
-        XpTable                 = 268435465, // DB_TYPE_XP_TABLE_0
+        XpTable                 = 0x10000009, // DB_TYPE_XP_TABLE_0
 
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeIdRange(0x0E00001B, 0x0E00001B)]
-        Quests                  = 268435466, // DB_TYPE_QUEST_DEF_DB_0
+        Quests                  = 0x1000000A, // DB_TYPE_QUEST_DEF_DB_0
 
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeIdRange(0x0E00001C, 0x0E00001C)]
-        GameEventTable          = 268435467, // DB_TYPE_GAME_EVENT_DB
+        GameEventTable          = 0x1000000B, // DB_TYPE_GAME_EVENT_DB
 
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeIdRange(0x0E010000, 0x0E01FFFF)]
-        QualityFilter           = 268435468, // DB_TYPE_QUALITY_FILTER_0
+        QualityFilter           = 0x1000000C, // DB_TYPE_QUALITY_FILTER_0
 
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeIdRange(0x30000000, 0x3000FFFF)]
-        CombatTable             = 268435469, // DB_TYPE_COMBAT_TABLE_0
+        CombatTable             = 0x1000000D, // DB_TYPE_COMBAT_TABLE_0
 
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeIdRange(0x38000000, 0x3800FFFF)]
-        ItemMutation            = 268435470, // DB_TYPE_MUTATE_FILTER
+        ItemMutation            = 0x1000000E, // DB_TYPE_MUTATE_FILTER
 
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeIdRange(0x0E00001D, 0x0E00001D)]
-        ContractTable           = 268435472, // DB_TYPE_CONTRACT_TABLE_0
+        ContractTable           = 0x10000010, // DB_TYPE_CONTRACT_TABLE_0
     }
 }
