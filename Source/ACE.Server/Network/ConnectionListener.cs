@@ -69,12 +69,12 @@ namespace ACE.Server.Network
             }
             catch (SocketException socketException)
             {
-                log.DebugFormat("ConnectionListener.Listen({2}, {3}) has thrown {0}: {1}", socketException.SocketErrorCode, socketException.Message, listeningHost, listeningPort);
+                log.DebugFormat("ConnectionListener({2}, {3}).Listen() has thrown {0}: {1}", socketException.SocketErrorCode, socketException.Message, listeningHost, listeningPort);
                 Listen();
             }
             catch (Exception exception)
             {
-                log.FatalFormat("ConnectionListener.Listen({2}, {3}) has thrown: {0}", exception.Message, listeningHost, listeningPort);
+                log.FatalFormat("ConnectionListener({1}, {2}).Listen() has thrown: {0}", exception.Message, listeningHost, listeningPort);
             }
         }
 
