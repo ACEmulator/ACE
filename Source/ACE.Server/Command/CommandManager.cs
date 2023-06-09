@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -28,6 +29,70 @@ namespace ACE.Server.Command
         public static IEnumerable<CommandHandlerInfo> GetCommandByName(string commandname)
         {
             return commandHandlers.Select(p => p.Value).Where(p => p.Attribute.Command == commandname);
+        }
+
+        public static CommandHandler GetDelegate(Action<Session, string[]> handler) => (CommandHandler)Delegate.CreateDelegate(typeof(CommandHandler), handler.Method);
+
+        public static bool TryAddCommand(MethodInfo handler, string command, AccessLevel access, CommandHandlerFlag flags = CommandHandlerFlag.None, string description = "", string usage = "", bool overrides = true)
+        {
+            var del = (CommandHandler)Delegate.CreateDelegate(typeof(CommandHandler), handler);
+
+            var info = new CommandHandlerInfo()
+            {
+                Attribute = new CommandHandlerAttribute(command, access, flags, description, usage),
+                Handler = del,
+            };
+            return TryAddCommand(info, overrides);
+        }
+
+        public static bool TryAddCommand(Action<Session, string[]> handler, string command, AccessLevel access, CommandHandlerFlag flags = CommandHandlerFlag.None, string description = "", string usage = "", bool overrides = true)
+        {
+            var del = (CommandHandler)Delegate.CreateDelegate(typeof(CommandHandler), handler.Method);
+            var info = new CommandHandlerInfo()
+            {
+                Attribute = new CommandHandlerAttribute(command, access, flags, description, usage),
+                Handler = del
+            };
+
+            if (TryAddCommand(info, overrides))
+                return true;
+
+            return false;
+        }
+
+        public static bool TryAddCommand(CommandHandlerInfo commandHandler, bool overrides = true)
+        {
+            if (commandHandler is null)
+                return false;
+
+            var command = commandHandler.Attribute.Command;
+
+            //Add if the command doesn't exist
+            if (!commandHandlers.ContainsKey(command))
+            {
+                commandHandlers.Add(command, commandHandler);
+                log.Info($"Command created: {command}");
+                return true;
+            }
+            //Update if overriding and the command exists
+            else if (overrides)
+            {
+                log.Info($"Command updated: {command}");
+                commandHandlers[command] = commandHandler;
+                return true;
+            }
+            log.Warn($"Failed to add command: {command}");
+            return false;
+        }
+
+        public static bool TryRemoveCommand(string command)
+        {
+            if (!commandHandlers.ContainsKey(command))
+                return false;
+
+            log.Info($"Removed command: {command}");
+            commandHandlers.Remove(command);
+            return true;
         }
 
         public static void Initialize()
@@ -70,7 +135,7 @@ namespace ACE.Server.Command
             Console.WriteLine("Type \"acecommands\" for help.");
             Console.WriteLine("");
 
-            for (;;)
+            for (; ; )
             {
                 Console.Write("ACE >> ");
 
@@ -134,11 +199,11 @@ namespace ACE.Server.Command
                 parameters = null;
                 return;
             }
-            var commandSplit = commandLine.Split(' ',StringSplitOptions.RemoveEmptyEntries);
+            var commandSplit = commandLine.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             command = commandSplit[0];
 
             // remove leading '/' or '@' if erroneously entered in console
-            if(command.StartsWith("/") || command.StartsWith("@"))
+            if (command.StartsWith("/") || command.StartsWith("@"))
                 command = command.Substring(1);
 
             parameters = new string[commandSplit.Length - 1];
@@ -227,7 +292,7 @@ namespace ACE.Server.Command
             {
                 bool isAdvocate = session.Player.IsAdvocate;
                 bool isSentinel = session.Player.IsSentinel;
-                bool isEnvoy = session.Player.IsEnvoy; 
+                bool isEnvoy = session.Player.IsEnvoy;
                 bool isArch = session.Player.IsArch;
                 bool isAdmin = session.Player.IsAdmin;
 

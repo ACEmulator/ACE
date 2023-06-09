@@ -25,7 +25,9 @@ namespace ACE.Server.Network
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public IPEndPoint EndPoint { get; }
+        public IPEndPoint EndPointC2S { get; }
+
+        public IPEndPoint EndPointS2C { get; private set; }
 
         public NetworkSession Network { get; set; }
 
@@ -83,7 +85,7 @@ namespace ACE.Server.Network
 
         public Session(ConnectionListener connectionListener, IPEndPoint endPoint, ushort clientId, ushort serverId)
         {
-            EndPoint = endPoint;
+            EndPointC2S = endPoint;
             Network = new NetworkSession(this, connectionListener, clientId, serverId);
         }
 
@@ -300,9 +302,9 @@ namespace ACE.Server.Network
                     reas = reas + ", " + PendingTermination.ExtraReason;
                 }
                 if (WorldManager.WorldStatus == WorldManager.WorldStatusState.Open)
-                    log.Info($"Session {Network?.ClientId}\\{EndPoint} dropped. Account: {Account}, Player: {Player?.Name}{reas}");
+                    log.Info($"Session {Network?.ClientId}\\{EndPointC2S} dropped. Account: {Account}, Player: {Player?.Name}{reas}");
                 else
-                    log.Debug($"Session {Network?.ClientId}\\{EndPoint} dropped. Account: {Account}, Player: {Player?.Name}{reas}");
+                    log.Debug($"Session {Network?.ClientId}\\{EndPointC2S} dropped. Account: {Account}, Player: {Player?.Name}{reas}");
             }
 
             if (Player != null)
@@ -338,6 +340,12 @@ namespace ACE.Server.Network
             Network.EnqueueSend(worldBroadcastMessage);
         }
 
+
+        public void SetS2CEndpoint(IPEndPoint endPoint)
+        {
+            EndPointS2C = endPoint;
+        }
+      
         /// <summary>
         /// This will enqueue a file to be sent by ProcessDDDQueue.
         /// </summary>
