@@ -222,5 +222,13 @@
      // When retrieving a file list of .sql files in the AutoApplyWorldCustomizations process
      // this will cause the file search to retrieve all files recursively from each directory
      "RecurseWorldCustomizationPaths": true
+  },
+  // This section configures handling of client DAT patching from server's DAT files
+  "DDD": {
+    // Allow server to patch client DAT files using server's DAT files via DDDManager
+    "EnableDATPatching": false,
+
+    // Upon server startup, precache all DAT files that would be sent as compressed data
+    "PrecacheCompressedDATFiles": false
   }
 }
