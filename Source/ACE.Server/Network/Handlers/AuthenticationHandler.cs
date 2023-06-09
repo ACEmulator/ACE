@@ -47,7 +47,7 @@ namespace ACE.Server.Network.Handlers
             }
             catch (Exception ex)
             {
-                log.ErrorFormat("Received LoginRequest from {0} that threw an exception.", session.EndPoint);
+                log.ErrorFormat("Received LoginRequest from {0} that threw an exception.", session.EndPointC2S);
                 log.Error(ex);
             }
         }
@@ -80,7 +80,7 @@ namespace ACE.Server.Network.Handlers
                             log.Warn($"Automatically setting account AccessLevel to Admin for account \"{loginRequest.Account}\" because there are no admin accounts in the current database.");
                         }
 
-                        account = DatabaseManager.Authentication.CreateAccount(loginRequest.Account.ToLower(), loginRequest.Password, accessLevel, session.EndPoint.Address);
+                        account = DatabaseManager.Authentication.CreateAccount(loginRequest.Account.ToLower(), loginRequest.Password, accessLevel, session.EndPointC2S.Address);
                     }
                 }
             }
@@ -220,7 +220,7 @@ namespace ACE.Server.Network.Handlers
                 }
             }
 
-            account.UpdateLastLogin(session.EndPoint.Address);
+            account.UpdateLastLogin(session.EndPointC2S.Address);
 
             session.SetAccount(account.AccountId, account.AccountName, (AccessLevel)account.AccessLevel);
             session.State = SessionState.AuthConnectResponse;
