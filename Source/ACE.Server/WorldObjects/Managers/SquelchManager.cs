@@ -125,9 +125,7 @@ namespace ACE.Server.WorldObjects.Managers
 
         public void SquelchCharacter(IPlayer player, ChatMessageType messageType)
         {
-            var squelches = Player.Character.GetSquelches(Player.CharacterDatabaseLock);
-
-            var existing = squelches.FirstOrDefault(i => i.SquelchCharacterId == player.Guid.Full);
+            Squelches.Characters.TryGetValue(player.Guid.Full, out SquelchInfo existing);
 
             var newMask = messageType.ToMask();
 
@@ -135,7 +133,7 @@ namespace ACE.Server.WorldObjects.Managers
 
             if (existing != null)
             {
-                var existingMask = (SquelchMask)existing.Type;
+                var existingMask = existing.Filters[0];
 
                 newMask = existingMask.Add(newMask);
 
@@ -154,9 +152,7 @@ namespace ACE.Server.WorldObjects.Managers
 
         public void UnsquelchCharacter(IPlayer player, ChatMessageType messageType)
         {
-            var squelches = Player.Character.GetSquelches(Player.CharacterDatabaseLock);
-
-            var existing = squelches.FirstOrDefault(i => i.SquelchCharacterId == player.Guid.Full);
+            Squelches.Characters.TryGetValue(player.Guid.Full, out SquelchInfo existing);
 
             if (existing == null)
             {
@@ -173,7 +169,7 @@ namespace ACE.Server.WorldObjects.Managers
             }
             else
             {
-                var existingMask = (SquelchMask)existing.Type;
+                var existingMask = existing.Filters[0];
                 var removeMask = messageType.ToMask();
 
                 if (!existingMask.HasFlag(removeMask))
