@@ -3,7 +3,7 @@ using System;
 namespace ACE.Entity.Enum
 {
     [Flags]
-    public enum CellFlags
+    public enum EnvCellFlags
     {
         SeenOutside       = 0x1,
         HasStaticObjs     = 0x2,
