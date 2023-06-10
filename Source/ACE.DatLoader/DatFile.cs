@@ -75,7 +75,7 @@ namespace ACE.DatLoader
                 if ((ObjectId & 0xFFFF) == 0xFFFE)
                     return DatFileType.LandBlockInfo;
 
-                return DatFileType.EnvCell;
+                return DatFileType.Cell;
             }
 
             if (datDatabaseType == DatDatabaseType.Portal)

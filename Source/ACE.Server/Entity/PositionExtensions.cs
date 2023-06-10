@@ -265,7 +265,7 @@ namespace ACE.Server.Entity
 
         public static void FindZ(this Position pos)
         {
-            var envCell = DatManager.CellDat.ReadFromDat<DatLoader.FileTypes.EnvCell>(pos.Cell);
+            var envCell = DatManager.CellDat.ReadFromDat<DatLoader.FileTypes.Cell>(pos.Cell);
             pos.PositionZ = envCell.Position.Origin.Z;
         }
 

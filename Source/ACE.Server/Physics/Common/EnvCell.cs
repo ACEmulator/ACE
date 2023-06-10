@@ -28,9 +28,9 @@ namespace ACE.Server.Physics.Common
         public int InCellTimestamp;
         public List<ushort> VisibleCellIDs;
         public new Dictionary<uint, EnvCell> VisibleCells;
-        public EnvCellFlags Flags;
+        public CellFlags Flags;
         public uint EnvironmentID;
-        public DatLoader.FileTypes.EnvCell _envCell;
+        public DatLoader.FileTypes.Cell _envCell;
         public DatLoader.FileTypes.Environment Environment;
 
         public EnvCell() : base()
@@ -38,7 +38,7 @@ namespace ACE.Server.Physics.Common
             Init();
         }
 
-        public EnvCell(DatLoader.FileTypes.EnvCell envCell): base()
+        public EnvCell(DatLoader.FileTypes.Cell envCell): base()
         {
             _envCell = envCell;
 

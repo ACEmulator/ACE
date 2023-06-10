@@ -16,10 +16,10 @@ namespace ACE.DatLoader.FileTypes
     /// <remarks>
     /// Very special thanks again to David Simpson for his early work on reading the cell.dat. Even bigger thanks for his documentation of it!
     /// </remarks>
-    [DatFileType(DatFileType.EnvCell)]
-    public class EnvCell : FileType
+    [DatFileType(DatFileType.Cell)]
+    public class Cell : FileType
     {
-        public EnvCellFlags Flags { get; private set; }
+        public CellFlags Flags { get; private set; }
         // 0x08000000 surfaces (which contains degrade/quality info to reference the specific 0x06000000 graphics)
         public List<uint> Surfaces { get; } = new List<uint>();
         // the 0x0D000000 model of the pre-fab dungeon block
@@ -31,13 +31,13 @@ namespace ACE.DatLoader.FileTypes
         public List<Stab> StaticObjects { get; } = new List<Stab>();
         public uint RestrictionObj { get; private set; }
 
-        public bool SeenOutside => Flags.HasFlag(EnvCellFlags.SeenOutside);
+        public bool SeenOutside => Flags.HasFlag(CellFlags.SeenOutside);
 
         public override void Unpack(BinaryReader reader)
         {
             Id = reader.ReadUInt32();
 
-            Flags = (EnvCellFlags)reader.ReadUInt32();
+            Flags = (CellFlags)reader.ReadUInt32();
 
             reader.BaseStream.Position += 4; // Skip ahead 4 bytes, because this is the CellId. Again. Twice.
 
@@ -60,10 +60,10 @@ namespace ACE.DatLoader.FileTypes
             for (uint i = 0; i < numStabs; i++)
                 VisibleCells.Add(reader.ReadUInt16());
 
-            if ((Flags & EnvCellFlags.HasStaticObjs) != 0)
+            if ((Flags & CellFlags.HasStaticObjs) != 0)
                 StaticObjects.Unpack(reader);
 
-            if ((Flags & EnvCellFlags.HasRestrictionObj) != 0)
+            if ((Flags & CellFlags.HasRestrictionObj) != 0)
                 RestrictionObj = reader.ReadUInt32();
         }
     }

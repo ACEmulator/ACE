@@ -8,7 +8,7 @@ namespace ACE.Server.Physics.Util
 {
     public class Environment
     {
-        public EnvCell EnvCell;
+        public Cell EnvCell;
         public List<DatLoader.FileTypes.Environment> Environments = new List<DatLoader.FileTypes.Environment>();
 
         public List<DatLoader.Entity.Polygon> Polygons = new List<DatLoader.Entity.Polygon>();
@@ -18,7 +18,7 @@ namespace ACE.Server.Physics.Util
 
         public BBox BBox;
 
-        public Environment(EnvCell envCell)
+        public Environment(Cell envCell)
         {
             EnvCell = envCell;
             LoadEnv(envCell.EnvironmentId);
