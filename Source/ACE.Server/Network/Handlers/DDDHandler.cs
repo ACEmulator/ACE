@@ -242,7 +242,7 @@ namespace ACE.Server.Network.Handlers
                 //    log.Warn($"[DDD] The server does not have the requested data on 0x{qdid_ID_FFFE:X8} | {qdid_type} to send.");
             }
 
-            if (qdid_type == DatFileType.LandBlock || qdid_type == DatFileType.LandBlockInfo || qdid_type == DatFileType.Cell)
+            if (qdid_type == DatFileType.LandBlock || qdid_type == DatFileType.LandBlockInfo || qdid_type == DatFileType.EnvCell)
             {
                 if (DatManager.CellDat.AllFiles.TryGetValue(qdid_ID, out var datFile))
                     //session.Network.EnqueueSend(new GameMessageDDDDataMessage(qdid_ID, DatDatabaseType.Cell));
