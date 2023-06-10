@@ -53,7 +53,7 @@ namespace ACE.DatLoader
         LandBlockInfo           = 2, // DB_TYPE_LBI
 
         [DatDatabaseType(DatDatabaseType.Cell)]
-        EnvCell                 = 3, // DB_TYPE_CELL
+        EnvCell                    = 3, // DB_TYPE_CELL
 
         /// <summary>
         /// usage of this is currently unknown.  exists in the client, but has no discernable
