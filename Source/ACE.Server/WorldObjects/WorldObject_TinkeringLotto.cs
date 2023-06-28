@@ -93,7 +93,9 @@ namespace ACE.Server.WorldObjects
             Random rand = new Random();
             var dmgBonusRoll = rand.NextDouble();
 
-            if (dmgBonusRoll < 0.05)
+            //Capped at 2 dmg bonuses for any given item
+            var lottoDmgBonusCount = GetCountDmgLottoBonus();
+            if (dmgBonusRoll < 0.05 && lottoDmgBonusCount < 2)
             {
                 //Add +1 dmg
                 this.Damage += 1;
@@ -115,7 +117,7 @@ namespace ACE.Server.WorldObjects
             var rendRoll = rand.NextDouble();
             if (rendRoll < 0.025)
             {
-                var rendResult = TinkeringLotto_ApplyRendMutation();
+                var rendResult = TinkeringLotto_ApplyResistanceCleaveMutation();
                 if (!string.IsNullOrEmpty(rendResult))
                     resultMsg = string.IsNullOrEmpty(resultMsg) ? rendResult : $"{resultMsg}\n{rendResult}";
             }
@@ -131,7 +133,9 @@ namespace ACE.Server.WorldObjects
             Random rand = new Random();
             var varianceBonusroll = rand.NextDouble();
 
-            if (varianceBonusroll < 0.05)
+            //Capped at 2 dmg bonuses for any given item
+            var lottoDmgBonusCount = GetCountDmgLottoBonus();
+            if (varianceBonusroll < 0.05 && lottoDmgBonusCount < 2)
             {
                 //Add +1 variance
                 this.DamageVariance *= 0.8f;
@@ -153,7 +157,7 @@ namespace ACE.Server.WorldObjects
             var rendRoll = rand.NextDouble();
             if (rendRoll < 0.025)
             {
-                var rendResult = TinkeringLotto_ApplyRendMutation();
+                var rendResult = TinkeringLotto_ApplyResistanceCleaveMutation();
                 if (!string.IsNullOrEmpty(rendResult))
                     resultMsg = string.IsNullOrEmpty(resultMsg) ? rendResult : $"{resultMsg}\n{rendResult}";
             }
@@ -168,7 +172,9 @@ namespace ACE.Server.WorldObjects
             Random rand = new Random();
             var dmgBonusroll = rand.NextDouble();
 
-            if (dmgBonusroll < 0.05)
+            //Capped at 2 dmg bonuses for any given item
+            var lottoDmgBonusCount = GetCountDmgLottoBonus();
+            if (dmgBonusroll < 0.05 && lottoDmgBonusCount < 2)
             {
                 //Add +1% dmg bonus
                 this.ElementalDamageMod = (this.ElementalDamageMod ?? 0.0f) + 0.01f;
@@ -190,7 +196,7 @@ namespace ACE.Server.WorldObjects
             var rendRoll = rand.NextDouble();
             if (rendRoll < 0.025)
             {
-                var rendResult = TinkeringLotto_ApplyRendMutation();
+                var rendResult = TinkeringLotto_ApplyResistanceCleaveMutation();
                 if (!string.IsNullOrEmpty(rendResult))
                     resultMsg = string.IsNullOrEmpty(resultMsg) ? rendResult : $"{resultMsg}\n{rendResult}";
             }
@@ -205,7 +211,9 @@ namespace ACE.Server.WorldObjects
             Random rand = new Random();
             var dmgBonusroll = rand.NextDouble();
 
-            if (dmgBonusroll < 0.05)
+            //Capped at 2 dmg bonuses for any given item
+            var lottoDmgBonusCount = GetCountDmgLottoBonus();
+            if (dmgBonusroll < 0.05 && lottoDmgBonusCount < 2)
             {
                 //Add +4% dmg mod
                 this.DamageMod += 0.04f;
@@ -227,7 +235,7 @@ namespace ACE.Server.WorldObjects
             var rendRoll = rand.NextDouble();
             if (rendRoll < 0.025)
             {
-                var rendResult = TinkeringLotto_ApplyRendMutation();
+                var rendResult = TinkeringLotto_ApplyResistanceCleaveMutation();
                 if(!string.IsNullOrEmpty(rendResult))
                     resultMsg = string.IsNullOrEmpty(resultMsg) ? rendResult : $"{resultMsg}\n{rendResult}";
             }
@@ -246,7 +254,9 @@ namespace ACE.Server.WorldObjects
             //+1 dmg to melee weapons
             //+4% mod for missile weapons
             //+5% elemental dmg for casters
-            if (roll < 0.3)
+            //Capped at 2 dmg bonuses for any given item
+            var lottoDmgBonusCount = GetCountDmgLottoBonus();
+            if (roll < 0.3 && lottoDmgBonusCount < 2)
             {
                 if (this.ItemType == ItemType.MissileWeapon)
                 {
@@ -276,7 +286,7 @@ namespace ACE.Server.WorldObjects
             {
                 //roll again for a 15% chance to add...
                 //+1 cleave target for 2H/HW/LW/FW
-                //CS or CB for magic casters
+                //BS or CB for magic casters
                 //Shield hollow for missile weps
                 roll = rand.NextDouble();
                 if(roll < 0.15)
@@ -307,20 +317,20 @@ namespace ACE.Server.WorldObjects
                     }
                     else if (this.ItemType == ItemType.Caster)
                     {
-                        //Add CS or CB
+                        //Add BS or CB
                         roll = rand.NextDouble();
                         if(roll < 0.5)
                         {
-                            //Add CS
-                            this.ImbuedEffect |= ImbuedEffectType.CriticalStrike;
-                            currRollResultMsg = "Added Critical Strike";
-                            HandleTinkerLottoLog("CS");
+                            //Add Biting Strike
+                            this.SetProperty(PropertyFloat.CriticalFrequency, 0.25);
+                            currRollResultMsg = "Added Biting Strike";
+                            HandleTinkerLottoLog("BS");
                         }
                         else
                         {
                             //Add CB
-                            this.ImbuedEffect |= ImbuedEffectType.CripplingBlow;
-                            currRollResultMsg = "Added Crippling Blow";
+                            this.SetProperty(PropertyFloat.CriticalMultiplier, 2.5);
+                            currRollResultMsg = "Added Crushing Blow";
                             HandleTinkerLottoLog("CB");
                         }                                                
                     }
@@ -540,6 +550,76 @@ namespace ACE.Server.WorldObjects
             return resultMsg;
         }
 
+        private string TinkeringLotto_ApplyResistanceCleaveMutation()
+        {
+            string resultMsg = "";
+
+            //If resistance cleave is already set, return
+            if (this.ResistanceModifier >= 1.5)
+                return "";
+
+            switch (this.W_DamageType)
+            {
+                case DamageType.Acid: // acid
+                    this.ResistanceModifierType = this.W_DamageType;
+                    this.ResistanceModifier = 1.5;
+                    resultMsg = $"Added Acid Cleaving";
+                    HandleTinkerLottoLog("AcidCleaving");                    
+                    break;
+
+                case DamageType.Cold: // Cold
+                    this.ResistanceModifierType = this.W_DamageType;
+                    this.ResistanceModifier = 1.5;
+                    resultMsg = $"Added Cold Cleaving";
+                    HandleTinkerLottoLog("ColdCleaving");
+                    break;
+
+                case DamageType.Electric: // Electric
+                    this.ResistanceModifierType = this.W_DamageType;
+                    this.ResistanceModifier = 1.5;
+                    resultMsg = $"Added Electric Cleaving";
+                    HandleTinkerLottoLog("ElectricCleaving");
+                    break;
+
+                case DamageType.Fire: // Fire
+                    this.ResistanceModifierType = this.W_DamageType;
+                    this.ResistanceModifier = 1.5;
+                    resultMsg = $"Added Fire Cleaving";
+                    HandleTinkerLottoLog("FireCleaving");
+                    break;
+
+                case DamageType.Pierce: // Pierce
+                    this.ResistanceModifierType = this.W_DamageType;
+                    this.ResistanceModifier = 1.5;
+                    resultMsg = $"Added Pierce Cleaving";
+                    HandleTinkerLottoLog("PierceCleaving");
+                    break;
+
+                case DamageType.Slash: // Slash
+                    this.ResistanceModifierType = this.W_DamageType;
+                    this.ResistanceModifier = 1.5;
+                    resultMsg = $"Added Slash Cleaving";
+                    HandleTinkerLottoLog("SlashCleaving");
+                    break;
+
+                case DamageType.Bludgeon: // Bludgeon
+                    this.ResistanceModifierType = this.W_DamageType;
+                    this.ResistanceModifier = 1.5;
+                    resultMsg = $"Added Bludgeon Cleaving";
+                    HandleTinkerLottoLog("BludgeonCleaving");
+                    break;
+
+                case DamageType.Pierce | DamageType.Slash:
+                    this.ResistanceModifierType = this.W_DamageType;
+                    this.ResistanceModifier = 1.5;
+                    resultMsg = $"Added Pierce and Slash Cleaving";
+                    HandleTinkerLottoLog("PierceSlashCleaving");
+                    break;
+            }
+
+            return resultMsg;
+        }
+
         private void HandleTinkerLottoLog(string lottoResult)
         {
             if (!string.IsNullOrEmpty(this.TinkerLottoLog))
@@ -571,5 +651,27 @@ namespace ACE.Server.WorldObjects
 
             return alBonus;
         }
+
+        private int GetCountDmgLottoBonus()
+        {
+            if (string.IsNullOrEmpty(this.TinkerLottoLog))
+                return 0;
+
+            var dmgBonusCount = 0;
+
+            var lottoEvents = this.TinkerLottoLog.Split(',');
+
+            foreach (var lottoEvent in lottoEvents)
+            {
+                if (lottoEvent.Contains("Dmg"))
+                {
+                    dmgBonusCount++;
+                }
+            }
+
+            return dmgBonusCount;
+        }
     }
+
+
 }
