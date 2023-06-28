@@ -708,34 +708,27 @@ INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `ori
 VALUES (0x700070B0, 4210005, 0x00070143, 70.0676, -64.9198, 0.005, 1, 0, 0, 0, False, '2022-11-09 21:43:31'); /* Anti Parazi */
 /* @teleloc 0x00070143 [70.067596 -64.919800 0.005000] 1.000000 0.000000 0.000000 0.000000 */
 
+/* 
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
-VALUES (0x700070B1, 480480, 0x00070145, 69.9289, -75.3934, 0.008, 0, 0, 0, -1, False, '2023-04-01 22:14:01'); /* Darkbeat */
-/* @teleloc 0x00070145 [69.928902 -75.393402 0.008000] 0.000000 0.000000 0.000000 -1.000000 */
+VALUES (0x700070B1, 480480, 0x00070145, 69.9289, -75.3934, 0.008, 0, 0, 0, -1, False, '2023-04-01 22:14:01'); 
 
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
-VALUES (0x700070B2, 480493, 0x0007014E, 67.9956, -172.771, 0.055, -0.007939, 0, 0, -0.999969, False, '2023-04-01 22:29:47'); /* PKEvent1gen */
-/* @teleloc 0x0007014E [67.995598 -172.770996 0.055000] -0.007939 0.000000 0.000000 -0.999969 */
+VALUES (0x700070B2, 480493, 0x0007014E, 67.9956, -172.771, 0.055, -0.007939, 0, 0, -0.999969, False, '2023-04-01 22:29:47'); 
 
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
-VALUES (0x700070B3, 480494, 0x0007014E, 66.8783, -172.753, 0.055, -0.007939, 0, 0, -0.999969, False, '2023-04-01 22:30:00'); /* PKEvent2gen */
-/* @teleloc 0x0007014E [66.878304 -172.753006 0.055000] -0.007939 0.000000 0.000000 -0.999969 */
+VALUES (0x700070B3, 480494, 0x0007014E, 66.8783, -172.753, 0.055, -0.007939, 0, 0, -0.999969, False, '2023-04-01 22:30:00'); 
 
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
-VALUES (0x700070B4, 480495, 0x0007014E, 65.6368, -172.733, 0.055, -0.007939, 0, 0, -0.999969, False, '2023-04-01 22:30:09'); /* PKEvent3gen */
-/* @teleloc 0x0007014E [65.636803 -172.733002 0.055000] -0.007939 0.000000 0.000000 -0.999969 */
+VALUES (0x700070B4, 480495, 0x0007014E, 65.6368, -172.733, 0.055, -0.007939, 0, 0, -0.999969, False, '2023-04-01 22:30:09');
 
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
-VALUES (0x700070B5, 480496, 0x0007013B, 64.6187, -172.717, 0.055, -0.007939, 0, 0, -0.999969, False, '2023-04-01 22:30:15'); /* PKEvent4gen */
-/* @teleloc 0x0007013B [64.618698 -172.716995 0.055000] -0.007939 0.000000 0.000000 -0.999969 */
+VALUES (0x700070B5, 480496, 0x0007013B, 64.6187, -172.717, 0.055, -0.007939, 0, 0, -0.999969, False, '2023-04-01 22:30:15'); 
 
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
-VALUES (0x700070B6, 480497, 0x0007013B, 63.6874, -172.702, 0.055, -0.007939, 0, 0, -0.999969, False, '2023-04-01 22:30:25'); /* PKEvent5gen */
-/* @teleloc 0x0007013B [63.687401 -172.701996 0.055000] -0.007939 0.000000 0.000000 -0.999969 */
+VALUES (0x700070B6, 480497, 0x0007013B, 63.6874, -172.702, 0.055, -0.007939, 0, 0, -0.999969, False, '2023-04-01 22:30:25'); 
 
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
-VALUES (0x700070B7, 480500, 0x0007013B, 62.6478, -172.686, 0.055, -0.007939, 0, 0, -0.999969, False, '2023-04-01 22:30:35'); /* PKEvent6gen */
-/* @teleloc 0x0007013B [62.647800 -172.686005 0.055000] -0.007939 0.000000 0.000000 -0.999969 */
+VALUES (0x700070B7, 480500, 0x0007013B, 62.6478, -172.686, 0.055, -0.007939, 0, 0, -0.999969, False, '2023-04-01 22:30:35'); 
 
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
-VALUES (0x700070B8, 480501, 0x0007013B, 61.5662, -172.669, 0.055, -0.007939, 0, 0, -0.999969, False, '2023-04-01 22:30:42'); /* PKEvent7gen */
-/* @teleloc 0x0007013B [61.566200 -172.669006 0.055000] -0.007939 0.000000 0.000000 -0.999969 */
+VALUES (0x700070B8, 480501, 0x0007013B, 61.5662, -172.669, 0.055, -0.007939, 0, 0, -0.999969, False, '2023-04-01 22:30:42'); */

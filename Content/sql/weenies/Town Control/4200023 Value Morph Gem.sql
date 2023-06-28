@@ -1,7 +1,7 @@
 DELETE FROM `weenie` WHERE `class_Id` = 4200023;
 
 INSERT INTO `weenie` (`class_Id`, `class_Name`, `type`, `last_Modified`)
-VALUES (4200023, 'ace4200023-armorvaluemorphgem', 38, '2022-01-29 01:15:03') /* Gem */;
+VALUES (4200023, 'ace4200023-valuemorphgem', 38, '2022-01-29 01:15:03') /* Gem */;
 
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`)
 VALUES (4200023,   1,       2048) /* ItemType - Gem */
@@ -14,7 +14,7 @@ VALUES (4200023,   1,       2048) /* ItemType - Gem */
      , (4200023,  19,         50) /* Value */
      , (4200023,  65,        101) /* Placement - Resting */
      , (4200023,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
-     , (4200023,  94,          6) /* TargetType - Vestements */;
+     , (4200023,  94,          35215) /* TargetType - Vestements */;
 
 INSERT INTO `weenie_properties_bool` (`object_Id`, `type`, `value`)
 VALUES (4200023,   1, False) /* Stuck */
@@ -26,8 +26,8 @@ VALUES (4200023,   1, False) /* Stuck */
      , (4200023,  69, False) /* IsSellable */;
 
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)
-VALUES (4200023,   1, 'Armor Value Morph Gem') /* Name */
-     , (4200023,  14, 'Applying this gem to loot type armor has a chance to decrease its value...or increase it.') /* Use */;
+VALUES (4200023,   1, 'Value Morph Gem') /* Name */
+     , (4200023,  14, 'Applying this gem to loot type items has a chance to decrease its value...or increase it.') /* Use */;
 
 INSERT INTO `weenie_properties_d_i_d` (`object_Id`, `type`, `value`)
 VALUES (4200023,   1, 0x02000179) /* Setup */
