@@ -216,7 +216,9 @@ VALUES (42128709, 2, 12213,  0, 3, 0.9, False) /* Create Veil of Darkness (12213
 	, (42128709, 4, 4200026,  0, 0, 0, False) /* Create Vestiri Robe (450010) for Shop */
      , (42128709, 4, 4200023,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
 	 , (42128709, 4, 480483,  0, 0, 0, False) /* Create Vestiri Robe (450010) for Shop */
-     , (42128709, 4, 480484,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */;
+     , (42128709, 4, 480484,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
+	 , (42128709, 4, 480502,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
+	 , (42128709, 4, 480503,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */;
 	
 
 	

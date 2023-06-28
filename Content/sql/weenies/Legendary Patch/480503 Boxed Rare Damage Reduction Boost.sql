@@ -11,7 +11,7 @@ VALUES (480503,   1,        128) /* ItemType - Misc */
      , (480503,  13,         50) /* StackUnitEncumbrance */
      , (480503,  15,          100) /* StackUnitValue */
      , (480503,  16,          8) /* ItemUseable - Contained */
-     , (480503,  19,          3) /* Value */
+     , (480503,  19,          100) /* Value */
      , (480503,  33,          1) /* Bonded - Bonded */
      , (480503,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (480503,  94,         16) /* TargetType - Creature */
