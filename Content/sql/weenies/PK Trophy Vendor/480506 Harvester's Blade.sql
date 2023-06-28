@@ -10,7 +10,7 @@ VALUES (480506,   1,          1) /* ItemType - MeleeWeapon */
      , (480506,  16,          1) /* ItemUseable - No */
      , (480506,  19,       20) /* Value */
      , (480506,  44,        0) /* Damage */
-     , (480506,  45,         `3) /* DamageType - Fire */
+     , (480506,  45,          3) /* DamageType - Fire */
      , (480506,  46,          2) /* DefaultCombatStyle - OneHanded */
      , (480506,  47,          6) /* AttackType - Thrust, Slash */
      , (480506,  48,         44) /* WeaponSkill - HeavyWeapons */
