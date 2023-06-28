@@ -615,6 +615,7 @@ namespace ACE.Server.Managers
                 ("aetheria_whitelist_enabled", new Property<bool>(false, "enable this to limit areas where aetheria drop to whitelisted landblocks")),
                 ("aetheria_highlevel_whitelist_enabled", new Property<bool>(false, "enable this to limit areas where level 4 and 5 aetheria drop to whitelisted landblocks")),
                 ("block_vpn_connections", new Property<bool>(false, "enable this to block user sessions from IPs identified as VPN proxies")),
+                ("tinker_lotto_enabled", new Property<bool>(false, "enables the tinkering lotto feature")),
                 ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world")),
                 ("arenas_enabled_ones", new Property<bool>(false, "Enables/disables ones arenas")),
                 ("arenas_enabled_threes", new Property<bool>(false, "Enables/disables threes arenas")),

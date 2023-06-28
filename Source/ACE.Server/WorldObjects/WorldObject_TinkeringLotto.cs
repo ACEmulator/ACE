@@ -7,6 +7,7 @@ using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Managers;
 using Org.BouncyCastle.Asn1.X509;
 
 namespace ACE.Server.WorldObjects
@@ -17,7 +18,10 @@ namespace ACE.Server.WorldObjects
         {
             var resultMessage = "";
 
-            switch(salvageType)
+            if (!PropertyManager.GetBool("tinker_lotto_enabled").Item)
+                return "";
+
+            switch (salvageType)
             {
                 case "Steel":
                     resultMessage = TinkeringLotto_PlaySteelLottery(salvageWorkmanship);
