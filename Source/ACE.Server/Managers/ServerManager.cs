@@ -9,6 +9,7 @@ using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Managers;
+using ACE.Server.Mods;
 
 namespace ACE.Server.Managers
 {
@@ -194,6 +195,9 @@ namespace ACE.Server.Managers
 
             // Disabled thread update loop
             WorldManager.StopWorld();
+
+            // Halt mods
+            ModManager.Shutdown();
 
             // Wait for world to end
             logUpdateTS = DateTime.MinValue;

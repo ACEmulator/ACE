@@ -6,8 +6,10 @@ using System.Threading;
 using log4net;
 
 using ACE.Common;
+using ACE.Common.Performance;
 using ACE.Database;
 using ACE.Database.Models.Shard;
+using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
 using ACE.Server.Managers;
@@ -23,7 +25,9 @@ namespace ACE.Server.Network
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public IPEndPoint EndPoint { get; }
+        public IPEndPoint EndPointC2S { get; }
+
+        public IPEndPoint EndPointS2C { get; private set; }
 
         public NetworkSession Network { get; set; }
 
@@ -58,13 +62,30 @@ namespace ACE.Server.Network
         public bool DatWarnLanguage;
 
         /// <summary>
+        /// This boolean is set to true if GameMessageDDDBeginDDD is sent to the client. Used to determine when response is needed for DDD_EndDDD
+        /// </summary>
+        public bool BeginDDDSent;
+        /// <summary>
+        /// The time at which the BeginDDD message was sent to the client. Used to determine when to start processing dddDataQueue initially.
+        /// </summary>
+        public DateTime BeginDDDSentTime;
+        /// <summary>
+        /// Queue for data files missing at time of connection (Portal/Cell/Language DAT), and data files requested by client (Cell DAT)
+        /// </summary>
+        private Queue<(uint DatFileId, DatDatabaseType DatDatabaseType)> dddDataQueue;
+        /// <summary>
+        /// The rate at which ProcessDDDQueue executes (and sends DDD patch data out to client)
+        /// </summary>
+        private static readonly RateLimiter dddDataQueueRateLimiter = new RateLimiter(1000, TimeSpan.FromMinutes(1));
+
+        /// <summary>
         /// Rate limiter for /passwd command
         /// </summary>
         public DateTime LastPassTime { get; set; }
 
         public Session(ConnectionListener connectionListener, IPEndPoint endPoint, ushort clientId, ushort serverId)
         {
-            EndPoint = endPoint;
+            EndPointC2S = endPoint;
             Network = new NetworkSession(this, connectionListener, clientId, serverId);
         }
 
@@ -142,6 +163,8 @@ namespace ACE.Server.Network
             }
             else if (lastCharacterSelectPingReply != DateTime.MinValue)
                 lastCharacterSelectPingReply = DateTime.MinValue;
+
+            ProcessDDDQueue();
         }
 
 
@@ -279,9 +302,9 @@ namespace ACE.Server.Network
                     reas = reas + ", " + PendingTermination.ExtraReason;
                 }
                 if (WorldManager.WorldStatus == WorldManager.WorldStatusState.Open)
-                    log.Info($"Session {Network?.ClientId}\\{EndPoint} dropped. Account: {Account}, Player: {Player?.Name}{reas}");
+                    log.Info($"Session {Network?.ClientId}\\{EndPointC2S} dropped. Account: {Account}, Player: {Player?.Name}{reas}");
                 else
-                    log.Debug($"Session {Network?.ClientId}\\{EndPoint} dropped. Account: {Account}, Player: {Player?.Name}{reas}");
+                    log.Debug($"Session {Network?.ClientId}\\{EndPointC2S} dropped. Account: {Account}, Player: {Player?.Name}{reas}");
             }
 
             if (Player != null)
@@ -315,6 +338,53 @@ namespace ACE.Server.Network
         {
             var worldBroadcastMessage = new GameMessageSystemChat(broadcastMessage, ChatMessageType.WorldBroadcast);
             Network.EnqueueSend(worldBroadcastMessage);
+        }
+
+
+        public void SetS2CEndpoint(IPEndPoint endPoint)
+        {
+            EndPointS2C = endPoint;
+        }
+      
+        /// <summary>
+        /// This will enqueue a file to be sent by ProcessDDDQueue.
+        /// </summary>
+        public bool AddToDDDQueue(uint datFileId, DatDatabaseType datDatabaseType)
+        {
+            if (dddDataQueue == null)
+                dddDataQueue = new();
+
+            //Network.EnqueueSend(new GameMessageDDDDataMessage(datFileId, datDatabaseType);
+            dddDataQueue.Enqueue((datFileId, datDatabaseType));
+
+            return true;
+        }
+
+        /// <summary>
+        /// This will Network.EnqueueSend queued data files from DDDManager/DDDHandler.
+        /// </summary>
+        private void ProcessDDDQueue()
+        {
+            if (dddDataQueue == null)
+                return;
+
+            if (dddDataQueueRateLimiter.GetSecondsToWaitBeforeNextEvent() > 0)
+                return;
+
+            // give a few seconds breathing room for BeginDDD pack to be sent and arrive before starting transmission from queue
+            if (BeginDDDSentTime != DateTime.MinValue && DateTime.UtcNow < BeginDDDSentTime.AddSeconds(5))
+                return;
+
+            if (BeginDDDSentTime != DateTime.MinValue)
+                BeginDDDSentTime = DateTime.MinValue;
+
+            var success = dddDataQueue.TryDequeue(out var dataFile);
+            if (success)
+            {
+                //Console.WriteLine($"{Account}.ProcessDDDQueue: 0x{dataFile.DatFileId:X8}, {dataFile.DatDatabaseType}; Remaining in Queue: {dddDataQueue.Count}");
+                Network.EnqueueSend(new GameMessageDDDDataMessage(dataFile.DatFileId, dataFile.DatDatabaseType));
+                dddDataQueueRateLimiter.RegisterEvent();
+            }
         }
     }
 }

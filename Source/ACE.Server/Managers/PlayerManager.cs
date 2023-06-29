@@ -32,6 +32,12 @@ namespace ACE.Server.Managers
         private static readonly Dictionary<uint, Player> onlinePlayers = new Dictionary<uint, Player>();
         private static readonly Dictionary<uint, OfflinePlayer> offlinePlayers = new Dictionary<uint, OfflinePlayer>();
 
+        // indexed by player name
+        private static readonly Dictionary<string, IPlayer> playerNames = new Dictionary<string, IPlayer>(StringComparer.OrdinalIgnoreCase);
+
+        // indexed by account id
+        private static readonly Dictionary<uint, Dictionary<uint, IPlayer>> playerAccounts = new Dictionary<uint, Dictionary<uint, IPlayer>>();
+
         /// <summary>
         /// OfflinePlayers will be saved to the database every 1 hour
         /// </summary>
@@ -52,6 +58,24 @@ namespace ACE.Server.Managers
 
                 lock (offlinePlayers)
                     offlinePlayers[offlinePlayer.Guid.Full] = offlinePlayer;
+
+                lock (playerNames)
+                    playerNames[offlinePlayer.Name] = offlinePlayer;
+
+                lock (playerAccounts)
+                {
+                    if (offlinePlayer.Account != null)
+                    {
+                        if (!playerAccounts.TryGetValue(offlinePlayer.Account.AccountId, out var playerAccountsDict))
+                        {
+                            playerAccountsDict = new Dictionary<uint, IPlayer>();
+                            playerAccounts[offlinePlayer.Account.AccountId] = playerAccountsDict;
+                        }
+                        playerAccountsDict[offlinePlayer.Guid.Full] = offlinePlayer;
+                    }
+                    else
+                        log.Error($"PlayerManager.Initialize: couldn't find account for player {offlinePlayer.Name} ({offlinePlayer.Guid})");
+                }
             });
         }
 
@@ -129,6 +153,15 @@ namespace ACE.Server.Managers
             {
                 var offlinePlayer = new OfflinePlayer(player.Biota);
                 offlinePlayers[offlinePlayer.Guid.Full] = offlinePlayer;
+
+                playerNames[offlinePlayer.Name] = offlinePlayer;
+
+                if (!playerAccounts.TryGetValue(offlinePlayer.Account.AccountId, out var playerAccountsDict))
+                {
+                    playerAccountsDict = new Dictionary<uint, IPlayer>();
+                    playerAccounts[offlinePlayer.Account.AccountId] = playerAccountsDict;
+                }
+                playerAccountsDict[offlinePlayer.Guid.Full] = offlinePlayer;
             }
             finally
             {
@@ -197,6 +230,20 @@ namespace ACE.Server.Managers
             allPlayers.AddRange(onlinePlayers);
 
             return allPlayers;
+        }
+
+        public static Dictionary<uint, IPlayer> GetAccountPlayers(uint accountId)
+        {
+            playersLock.EnterReadLock();
+            try
+            {
+                playerAccounts.TryGetValue(accountId, out var accountPlayers);
+                return accountPlayers;
+            }
+            finally
+            {
+                playersLock.ExitReadLock();
+            }
         }
 
         public static int GetOfflineCount()
@@ -333,6 +380,10 @@ namespace ACE.Server.Managers
 
                 if (!onlinePlayers.TryAdd(player.Guid.Full, player))
                     return false;
+
+                playerNames[offlinePlayer.Name] = player;
+
+                playerAccounts[offlinePlayer.Account.AccountId][offlinePlayer.Guid.Full] = player;
             }
             finally
             {
@@ -365,6 +416,10 @@ namespace ACE.Server.Managers
 
                 if (!offlinePlayers.TryAdd(offlinePlayer.Guid.Full, offlinePlayer))
                     return false;
+
+                playerNames[offlinePlayer.Name] = offlinePlayer;
+
+                playerAccounts[offlinePlayer.Account.AccountId][offlinePlayer.Guid.Full] = offlinePlayer;
             }
             finally
             {
@@ -398,6 +453,10 @@ namespace ACE.Server.Managers
             {
                 if (!offlinePlayers.Remove(guid, out var offlinePlayer))
                     return false; // This should never happen
+
+                playerNames.Remove(offlinePlayer.Name);
+
+                playerAccounts[offlinePlayer.Account.AccountId].Remove(offlinePlayer.Guid.Full);
             }
             finally
             {
@@ -424,27 +483,16 @@ namespace ACE.Server.Managers
             playersLock.EnterReadLock();
             try
             {
-                var onlinePlayer = onlinePlayers.Values.FirstOrDefault(p => p.Name.TrimStart('+').Equals(name.TrimStart('+'), StringComparison.OrdinalIgnoreCase));
+                playerNames.TryGetValue(name.TrimStart('+'), out var player);
 
-                if (onlinePlayer != null)
-                {
-                    isOnline = true;
-                    return onlinePlayer;
-                }
+                isOnline = player != null && player is Player;
 
-                isOnline = false;
-
-                var offlinePlayer = offlinePlayers.Values.FirstOrDefault(p => p.Name.TrimStart('+').Equals(name.TrimStart('+'), StringComparison.OrdinalIgnoreCase) && !p.IsPendingDeletion);
-
-                if (offlinePlayer != null)
-                    return offlinePlayer;
+                return player;
             }
             finally
             {
                 playersLock.ExitReadLock();
             }
-
-            return null;
         }
 
         /// <summary>
@@ -510,6 +558,7 @@ namespace ACE.Server.Managers
             playersLock.EnterReadLock();
             try
             {
+                // this kind of sucks, possibly investigate?
                 var onlinePlayersResult = onlinePlayers.Values.Where(p => p.MonarchId == monarch.Full);
                 var offlinePlayersResult = offlinePlayers.Values.Where(p => p.MonarchId == monarch.Full);
 

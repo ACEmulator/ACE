@@ -15,30 +15,27 @@ namespace ACE.DatLoader.FileTypes
     {
         internal const uint FILE_ID = 0xFFFF0001;
 
-        public List<int> Ints { get; private set; }
-        public bool Sorted { get; private set; }
+        public int TotalIterations { get; private set; }
+        public Dictionary<int, int> Ints { get; private set; }
 
         public override void Unpack(BinaryReader reader)
         {
-            Ints = new List<int>();
-            Ints.Add(reader.ReadInt32());
-            Ints.Add(reader.ReadInt32());
-            Sorted = reader.ReadBoolean();
-            reader.AlignBoundary();
+            TotalIterations = reader.ReadInt32();
+
+            var iterationCount = TotalIterations;
+            Ints = new Dictionary<int, int>();
+            while (iterationCount > 0)
+            {
+                var consecutiveIterations = reader.ReadInt32();
+                var startingIteration = reader.ReadInt32();
+                Ints.Add(startingIteration, consecutiveIterations);
+                iterationCount += consecutiveIterations;
+            }
         }
 
         public override string ToString()
         {
-            string s = "";
-            for (var i = 0; i < Ints.Count; i++)
-            {
-                s += Ints[i] + ",";
-            }
-            if (Sorted)
-                s += "1";
-            else
-                s += "0";
-            return s;
+            return TotalIterations.ToString();
         }
     }
 }

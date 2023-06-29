@@ -136,7 +136,7 @@ namespace ACE.Server.Network.Handlers
             {
                 if (result == PlayerFactory.CreateResult.ClientServerSkillsMismatch)
                 {
-                    session.Terminate(SessionTerminationReason.ClientOutOfDate, new GameMessageBootAccount(" because your client is not the correct version for this server. Please visit http://play.emu.ac/ to update to latest client"));
+                    session.Terminate(SessionTerminationReason.ClientVersionIncorrect, new GameMessageBootAccount(" because your client is not the correct version for this server. Please visit http://play.emu.ac/ to update to latest client"));
                     return;
                 }
 

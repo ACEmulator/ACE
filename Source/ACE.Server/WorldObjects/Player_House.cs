@@ -979,8 +979,9 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var accountPlayers = Player.GetAccountPlayers(Account.AccountId).Select(p => p.Guid).ToList();
-            if (Guests.ContainsKey(guest.Guid) || accountPlayers.Contains(guest.Guid))
+            var accountPlayers = PlayerManager.GetAccountPlayers(Account.AccountId);
+
+            if (Guests.ContainsKey(guest.Guid) || accountPlayers.ContainsKey(guest.Guid.Full))
             {
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{guest.Name} is already on your guest list.", ChatMessageType.Broadcast));
                 return;
@@ -1740,16 +1741,11 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameMessageSystemChat($"You have revoked your monarchy's access to the allegiance housing storage.", ChatMessageType.Broadcast));
         }
 
-        public static List<IPlayer> GetAccountPlayers(uint accountID)
-        {
-            return PlayerManager.GetAllPlayers().Where(i => i.Account != null && i.Account.AccountId == accountID).ToList();
-        }
-
         public IPlayer GetAccountHouseOwner()
         {
-            var accountPlayers = GetAccountPlayers(Account.AccountId);
+            var accountPlayers = PlayerManager.GetAccountPlayers(Account.AccountId);
 
-            var accountHouseOwners = accountPlayers.Where(i => i.HouseInstance != null);
+            var accountHouseOwners = accountPlayers.Values.Where(i => i.HouseInstance != null);
 
             return accountHouseOwners.OrderBy(i => i.HousePurchaseTimestamp).FirstOrDefault();
         }
