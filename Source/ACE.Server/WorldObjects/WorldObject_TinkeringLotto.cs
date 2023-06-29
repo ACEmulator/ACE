@@ -348,17 +348,25 @@ namespace ACE.Server.WorldObjects
                 roll = rand.NextDouble();
                 if (roll < 0.15)
                 {
+                    var currRollResultMsg = "";
+
                     this.ProcSpellRate = 0.15f;
                     this.ProcSpellSelfTargeted = false;
                     this.ItemSpellcraft = 450;
                     if (this.ItemType == ItemType.Caster)
                     {
                         this.ProcSpell = (uint)SpellId.MagicYieldOther8;
+                        currRollResultMsg = "Added Cast on Strike Magic Yield";
+                        HandleTinkerLottoLog("COSYIELD");
                     }
                     else
                     {
                         this.ProcSpell = (uint)SpellId.ImperilOther8;
+                        currRollResultMsg = "Added Cast on Strike Imperil";
+                        HandleTinkerLottoLog("COSIMP");
                     }
+
+                    resultMsg = string.IsNullOrEmpty(resultMsg) ? currRollResultMsg : $"{resultMsg}\n{currRollResultMsg}";
                 }
             }            
 
