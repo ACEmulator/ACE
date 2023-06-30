@@ -42,6 +42,12 @@ namespace ACE.Server.WorldObjects
                 case "Mahogany":
                     resultMessage = TinkeringLotto_PlayMahoganyLottery(salvageWorkmanship);
                     break;
+                case "Velvet":
+                    resultMessage = TinkeringLotto_PlayVelvetLottery(salvageWorkmanship);
+                    break;
+                case "Brass":
+                    resultMessage = TinkeringLotto_PlayBrassLottery(salvageWorkmanship);
+                    break;
                 case "Aquamarine":
                 case "Black Garnet":
                 case "Emerald":                
@@ -241,6 +247,84 @@ namespace ACE.Server.WorldObjects
             {
                 var rendResult = TinkeringLotto_ApplyResistanceCleaveMutation();
                 if(!string.IsNullOrEmpty(rendResult))
+                    resultMsg = string.IsNullOrEmpty(resultMsg) ? rendResult : $"{resultMsg}\n{rendResult}";
+            }
+
+            return resultMsg;
+        }
+
+        private string TinkeringLotto_PlayVelvetLottery(int salvageWorkmanship)
+        {
+            string resultMsg = "";
+
+            Random rand = new Random();
+            var dmgBonusroll = rand.NextDouble();
+
+            //Capped at 2 dmg bonuses for any given item
+            var lottoDmgBonusCount = GetCountDmgLottoBonus();
+            if (dmgBonusroll < 0.05 && lottoDmgBonusCount < 2)
+            {
+                //Add +4% dmg mod
+                this.WeaponOffense += 0.01f;
+                resultMsg = "Improved Attack Mod by 1%";
+                HandleTinkerLottoLog("AttackMod1");
+            }
+
+            var slayerRoll = rand.NextDouble();
+            if (slayerRoll < 0.025)
+            {
+                if (!this.SlayerCreatureType.HasValue)
+                {
+                    var slayerResult = TinkeringLotto_ApplySlayerMutation();
+                    if (!string.IsNullOrEmpty(slayerResult))
+                        resultMsg = string.IsNullOrEmpty(resultMsg) ? slayerResult : $"{resultMsg}\n{slayerResult}";
+                }
+            }
+
+            var rendRoll = rand.NextDouble();
+            if (rendRoll < 0.025)
+            {
+                var rendResult = TinkeringLotto_ApplyResistanceCleaveMutation();
+                if (!string.IsNullOrEmpty(rendResult))
+                    resultMsg = string.IsNullOrEmpty(resultMsg) ? rendResult : $"{resultMsg}\n{rendResult}";
+            }
+
+            return resultMsg;
+        }
+
+        private string TinkeringLotto_PlayBrassLottery(int salvageWorkmanship)
+        {
+            string resultMsg = "";
+
+            Random rand = new Random();
+            var dmgBonusroll = rand.NextDouble();
+
+            //Capped at 2 dmg bonuses for any given item
+            var lottoDmgBonusCount = GetCountDmgLottoBonus();
+            if (dmgBonusroll < 0.05 && lottoDmgBonusCount < 2)
+            {
+                //Add +1% melee d
+                this.WeaponDefense += 0.01f;
+                resultMsg = "Improved Melee Defence Mod by 1%";
+                HandleTinkerLottoLog("MeleeDMod1");
+            }
+
+            var slayerRoll = rand.NextDouble();
+            if (slayerRoll < 0.025)
+            {
+                if (!this.SlayerCreatureType.HasValue)
+                {
+                    var slayerResult = TinkeringLotto_ApplySlayerMutation();
+                    if (!string.IsNullOrEmpty(slayerResult))
+                        resultMsg = string.IsNullOrEmpty(resultMsg) ? slayerResult : $"{resultMsg}\n{slayerResult}";
+                }
+            }
+
+            var rendRoll = rand.NextDouble();
+            if (rendRoll < 0.025)
+            {
+                var rendResult = TinkeringLotto_ApplyResistanceCleaveMutation();
+                if (!string.IsNullOrEmpty(rendResult))
                     resultMsg = string.IsNullOrEmpty(resultMsg) ? rendResult : $"{resultMsg}\n{rendResult}";
             }
 
@@ -699,7 +783,7 @@ namespace ACE.Server.WorldObjects
 
             foreach (var lottoEvent in lottoEvents)
             {
-                if (lottoEvent.Contains("Dmg"))
+                if (lottoEvent.Contains("Dmg") || lottoEvent.Contains("AttackMod1") || lottoEvent.Contains("MeleeDMod1"))
                 {
                     dmgBonusCount++;
                 }
@@ -708,6 +792,4 @@ namespace ACE.Server.WorldObjects
             return dmgBonusCount;
         }
     }
-
-
 }
