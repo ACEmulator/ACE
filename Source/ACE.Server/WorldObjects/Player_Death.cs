@@ -480,19 +480,7 @@ namespace ACE.Server.WorldObjects
             Player killer = null;
             if (IsPKDeath(corpse.KillerId))
             {
-                killer = (Player)PlayerManager.FindByGuid(new ObjectGuid((uint)corpse.KillerId));
-                DatabaseManager.PKKills.CreateKill((uint)corpse.VictimId, (uint)killer.Guid.Full, this.IsInArena);
-                if (this.IsInArena)
-                {
-                    var pkTrophy = WorldObjectFactory.CreateNewWorldObject(1000002);
-                    pkTrophy.SetStackSize(1);
-                    killer.TryCreateInInventoryWithNetworking(pkTrophy);
-                    Session.Network.EnqueueSend(new GameMessageCreateObject(pkTrophy));
-                    killer.SendMessage("You have received a trophy for the kill.");
-                    var whichArena = ArenasManager.WhichArenaIsPlayerIn(this);
-                    ArenasManager.PlayerDeath(this, whichArena);
-                    return new List<WorldObject>();
-                }
+                killer = (Player)PlayerManager.FindByGuid(new ObjectGuid((uint)corpse.KillerId));                
             }
 
             if (corpse.IsOnNoDropLandblock || IsPKLiteDeath(corpse.KillerId) || this.IsInArena)

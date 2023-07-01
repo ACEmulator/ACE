@@ -517,16 +517,7 @@ namespace ACE.Server.WorldObjects
         /// If you want to force a player to logout, use Session.LogOffPlayer().
         /// </summary>
         public bool LogOut(bool clientSessionTerminatedAbruptly = false, bool forceImmediate = false)
-        {
-            ArenasManager.RemovePlayer(this);
-
-            if (IsInArena)
-            {
-                var arena = ArenasManager.WhichArenaIsPlayerIn(this);
-                var teamPlayer = arena.GetTeamPlayerObjByPlayer(this);
-                arena.PlayerPussiedOut(teamPlayer);
-            }
-
+        {            
             if (PKLogoutActive && !forceImmediate)
             {
                 //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
