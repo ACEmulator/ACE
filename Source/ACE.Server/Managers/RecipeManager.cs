@@ -1081,7 +1081,9 @@ namespace ACE.Server.Managers
             {
                 //new LogDatabase().LogTinkeringEvent(player.Character.Id, player.Name, target.Biota.Id, (float)successChance, (float)roll, success, (uint)target.NumTimesTinkered, (uint)(target.Workmanship ?? 0), sourceName, (uint)(source.Workmanship ?? 0));
                 var salvageType = Regex.Replace(source.NameWithMaterial, @" \(\d+\)$", "");
-                salvageType = salvageType.Remove(salvageType.IndexOf(" Salvage")); //Removing the word Salvage from the end, i.e. change "Steel Salvage" to just "Steel"
+                //Removing the word Salvage or Foolproof from the end, i.e. change "Steel Salvage" to just "Steel"
+                salvageType = salvageType.Contains(" Salvage") ? salvageType.Remove(salvageType.IndexOf(" Salvage")) :salvageType;
+                salvageType = salvageType.Contains(" Foolproof") ? salvageType.Remove(salvageType.IndexOf(" Foolproof")) : salvageType;
 
                 var lottoResult = target.TinkeringLotto_Mutate(salvageType, (int)(source.Workmanship ?? 0));
 
