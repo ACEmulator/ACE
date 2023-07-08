@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace ACE.Database.Models.EventLog
+namespace ACE.Database.Models.Log
 {
     public partial class CharacterLoginLog
     {

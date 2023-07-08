@@ -2,7 +2,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace ACE.Database.Models.EventLog
+namespace ACE.Database.Models.Log
 {
     public partial class LogDbContext : DbContext
     {
@@ -22,6 +22,10 @@ namespace ACE.Database.Models.EventLog
         public virtual DbSet<CharacterLoginLog> CharacterLogins { get; set; }
 
         public virtual DbSet<TinkerLog> TinkeringEvents { get; set; }
+
+        public virtual DbSet<ArenaEvent> ArenaEvents { get; set; }
+
+        public virtual DbSet<ArenaPlayer> ArenaPlayers { get; set; }
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -166,6 +170,96 @@ namespace ACE.Database.Models.EventLog
 
                 entity.Property(e => e.KillDateTime)
                     .HasColumnName("kill_datetime");
+            });
+
+            modelBuilder.Entity<ArenaEvent>(entity =>
+            {
+                entity.HasKey(e => e.Id)
+                    .HasName("PRIMARY");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.ToTable("arena_event");
+
+                entity.Property(e => e.EventType)
+                    .HasColumnName("event_type");
+
+                entity.Property(e => e.Status)
+                    .HasColumnName("status");
+
+                entity.Property(e => e.Location)
+                    .HasColumnName("location");
+
+                entity.Property(e => e.StartDateTime)
+                    .HasColumnName("start_datetime");
+
+                entity.Property(e => e.EndDateTime)
+                    .HasColumnName("end_datetime");
+
+                entity.Property(e => e.WinningTeamGuid)
+                    .HasColumnName("winning_team_guid");
+
+                entity.Property(e => e.CancelReason)
+                    .HasColumnName("cancel_reason");
+
+                entity.Property(e => e.CreatedDateTime)
+                    .HasColumnName("create_datetime");
+            });
+
+            modelBuilder.Entity<ArenaPlayer>(entity =>
+            {
+                entity.HasKey(e => e.Id)
+                    .HasName("PRIMARY");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.ToTable("arena_player");
+
+                entity.Property(e => e.CharacterId)
+                    .HasColumnName("character_id");
+
+                entity.Property(e => e.CharacterName)
+                    .HasColumnName("character_name");
+
+                entity.Property(e => e.CharacterLevel)
+                    .HasColumnName("character_level");
+
+                entity.Property(e => e.EventType)
+                    .HasColumnName("event_type");
+
+                entity.Property(e => e.MonarchId)
+                    .HasColumnName("monarch_id");
+
+                entity.Property(e => e.MonarchName)
+                    .HasColumnName("monarch_name");                
+
+                entity.Property(e => e.EventId)
+                    .HasColumnName("event_id");
+
+                entity.Property(e => e.TeamGuid)
+                    .HasColumnName("team_guid");
+
+                entity.Property(e => e.PlayerIP)
+                    .HasColumnName("player_ip");
+
+                entity.Property(e => e.IsEliminated)
+                    .HasColumnName("is_eliminated");
+
+                entity.Property(e => e.TotalDeaths)
+                    .HasColumnName("total_deaths");
+
+                entity.Property(e => e.TotalKills)
+                    .HasColumnName("total_kills");
+
+                entity.Property(e => e.TotalDmgDealt)
+                    .HasColumnName("total_dmg_dealt");
+
+                entity.Property(e => e.TotalDmgReceived)
+                    .HasColumnName("total_dmg_received");
+
+                entity.Property(e => e.CreateDateTime)
+                    .HasColumnName("create_datetime");
+
             });
 
             OnModelCreatingPartial(modelBuilder);

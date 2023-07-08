@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using log4net;
 
@@ -14,7 +15,9 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
+using ACE.Database.Models.Log;
 using System.Text;
+
 
 namespace ACE.Server.Command.Handlers
 {
@@ -536,6 +539,157 @@ namespace ACE.Server.Command.Handlers
             msg += "\n\n\n\n";
 
             session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.AdminTell));
+        }
+
+
+        [CommandHandler("arena", AccessLevel.Player, CommandHandlerFlag.None, 1,
+            "The arena command is used to join an arena event or get information about arena statistics")]
+        public static void HandleArena(Session session, params string[] parameters)
+        {
+            if (parameters.Count() < 1)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Invalid parameters.  Proper syntax is as follows...\n  To join a 1v1 arena match: /arena join\n  To join a specific type of arena match, replace eventType with the string code for the type of match you want to join, such as 1v1, 5v5, 5v5v5, 9v9. : /arena join eventType\n  To get your current character's stats: /arena stats\n  To get a named character's stats, replace characterName with the target character's name: /arena stats characterName");
+                return;
+            }
+
+            var actionType = parameters[0];
+
+            switch (actionType?.ToLower())
+            {
+                case "join":
+
+                    string eventType = "1v1";
+                    if (parameters.Length > 1)
+                    {
+                        eventType = parameters[1];
+
+                        for (int i = 2; i < parameters.Length; i++)
+                        {
+                            eventType += parameters[i];
+                        }
+
+                        if(!IsValidEventType(eventType))
+                        {
+                            CommandHandlerHelper.WriteOutputInfo(session, $"Invalid parameters.  The Join command does not support the event type {eventType}. Proper syntax is as follows...\n  To join a 1v1 arena match: /arena join\n  To join a specific type of arena match, replace eventType with the string code for the type of match you want to join, such as 1v1, 2v2, ffa. : /arena join eventType\n  To get your current character's stats: /arena stats\n  To get a named character's stats, replace characterName with the target character's name: /arena stats characterName");
+                            return;
+                        }
+                    }
+
+                    string resultMsg = JoinArenaQueue(session, eventType.ToLower());
+                    if (resultMsg != null)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, resultMsg);
+                        return;
+                    }
+                    break;
+
+                case "cancel":
+                    
+                    var cancelResultMsg = ArenaManager.PlayerCancel(session.Player.Character.Id);
+
+                    break;
+
+                case "forfeit":
+                    CommandHandlerHelper.WriteOutputInfo(session, "Forfeit feature not yet supported, check back later");
+                    break;
+
+                case "info":
+
+                    var queuedPlayers = ArenaManager.GetQueuedPlayers();
+                    var queuedOnes = queuedPlayers.Where(x => x.EventType.ToLower().Equals("1v1"));
+                    var queuedTwos = queuedPlayers.Where(x => x.EventType.ToLower().Equals("2v2"));
+                    var queuedFFA = queuedPlayers.Where(x => x.EventType.ToLower().Equals("ffa"));
+                    var longestOnesWait = queuedOnes.Count() > 0 ? (DateTime.Now - queuedOnes.Min(x => x.CreateDateTime)) : new TimeSpan(0);
+                    var longestTwosWait = queuedTwos.Count() > 0 ? (DateTime.Now - queuedTwos.Min(x => x.CreateDateTime)) : new TimeSpan(0);
+                    var longestFFAWait = queuedFFA.Count() > 0 ? (DateTime.Now - queuedFFA.Min(x => x.CreateDateTime)) : new TimeSpan(0);
+
+                    CommandHandlerHelper.WriteOutputInfo(session, $"*********\nCurrent Arena Queues\n  1v1: {queuedOnes.Count()} players queued with longest wait at {string.Format("{0:%h}h {0:%m}m {0:%s}s", longestOnesWait)}\n  2v2: {queuedTwos.Count()} players queued, with longest wait at {string.Format("{0:%h}h {0:%m}m {0:%s}s", longestTwosWait)}\n  FFA: {queuedFFA.Count()} players queued, with longest wait at {string.Format("{0:%h}h {0:%m}m {0:%s}s", longestFFAWait)}\n*********\n");
+                    break;
+
+                case "stats":
+
+                    string returnMsg;
+                    if (parameters.Count() >= 2)
+                    {
+                        string playerParam = "";
+                        for(int i = 1; i < parameters.Length; i++)
+                        {
+                            playerParam += i == 1 ? parameters[i] : $" {parameters[i]}";
+                        }
+
+                        var targetPlayer = PlayerManager.GetAllPlayers().FirstOrDefault(x => x.Name.ToLower().Equals(playerParam.ToLower()));
+                        if(targetPlayer != null)
+                        {
+                            var targetOnlinePlayer = PlayerManager.GetOnlinePlayer(targetPlayer.Guid);
+                            var targetOfflinePlayer = PlayerManager.GetOfflinePlayer(targetPlayer.Guid);
+
+                            returnMsg = GetArenaStats(targetOnlinePlayer != null ? targetOnlinePlayer.Character.Id : (targetOfflinePlayer != null ? targetOfflinePlayer.Biota.Id : 0), targetPlayer.Name);
+                        }
+                        else
+                        {
+                            returnMsg = $"Unable to find a player named {playerParam}";
+                        }
+                    }
+                    else
+                    {
+                        returnMsg = GetArenaStats(session.Player.Character.Id, session.Player.Character.Name);
+                    }
+                    
+                    CommandHandlerHelper.WriteOutputInfo(session, returnMsg);
+                    break;
+
+                default:
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Invalid parameters. {(String.IsNullOrEmpty(actionType) ? "Empty action type" : "Action type" + actionType)} is not supported. Proper syntax is as follows...\n  To join a 1v1 arena match: /arena join\n  To join a specific type of arena match, replace eventType with the string code for the type of match you want to join, such as 1v1, 5v5, 5v5v5, 9v9. : /arena join eventType\n  To get your current character's stats: /arena stats\n  To get a named character's stats, replace characterName with the target character's name: /arena stats characterName");
+                    return;
+            }
+        }
+
+        private static string JoinArenaQueue(Session session, string eventType)
+        {            
+            uint? monarchId = session.Player.MonarchId;
+            string monarchName = session.Player.Name;
+            var playerAllegiance = AllegianceManager.GetAllegiance(session.Player);
+            if (playerAllegiance != null && playerAllegiance.MonarchId.HasValue)
+            {
+                monarchId = playerAllegiance.MonarchId;
+                monarchName = playerAllegiance.Monarch.Player.Name;
+            }
+
+            string returnMsg;
+            if(!ArenaManager.AddPlayerToQueue(
+                session.Player.Character.Id,
+                session.Player.Character.Name,
+                session.Player.Level,
+                eventType,
+                monarchId.HasValue ? monarchId.Value : session.Player.Character.Id,
+                monarchName,
+                session.EndPoint?.Address?.ToString(),
+                out returnMsg))
+            {
+                return returnMsg;
+            }
+
+            return $"You have successfully joined the {eventType} arena queue";
+        }
+
+        private static string GetArenaStats(uint characterId, string characterName)
+        {
+            return DatabaseManager.Log.GetArenaStatsByCharacterId(characterId, characterName);
+        }
+
+        private static bool IsValidEventType(string eventType)
+        {
+            switch(eventType.ToLower())
+            {
+                case "1v1":
+                    return true;
+                case "2v2":
+                    return true;
+                case "ffa":
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         [CommandHandler("ForceLogoffStuckCharacter", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Force log off of character that's stuck in game.  Is only allowed when initiated from a character that is on the same account as the target character.")]

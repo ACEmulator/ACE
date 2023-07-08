@@ -615,11 +615,10 @@ namespace ACE.Server.Managers
                 ("aetheria_whitelist_enabled", new Property<bool>(false, "enable this to limit areas where aetheria drop to whitelisted landblocks")),
                 ("aetheria_highlevel_whitelist_enabled", new Property<bool>(false, "enable this to limit areas where level 4 and 5 aetheria drop to whitelisted landblocks")),
                 ("block_vpn_connections", new Property<bool>(false, "enable this to block user sessions from IPs identified as VPN proxies")),
+                ("disable_arenas", new Property<bool>(false, "set to true to disable arena events")),
+                ("arena_allow_same_ip_match", new Property<bool>(false, "enable this allow two characters connected from the same IP to be matched in an arena event")),
                 ("tinker_lotto_enabled", new Property<bool>(false, "enables the tinkering lotto feature")),
-                ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world")),
-                ("arenas_enabled_ones", new Property<bool>(false, "Enables/disables ones arenas")),
-                ("arenas_enabled_threes", new Property<bool>(false, "Enables/disables threes arenas")),
-                ("arenas_enabled_fives", new Property<bool>(false, "Enables/disables fives arenas"))
+                ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world"))
                 );
 
         public static readonly ReadOnlyDictionary<string, Property<long>> DefaultLongProperties =
@@ -748,21 +747,6 @@ namespace ACE.Server.Managers
                 ("pvp_cs_critrate_mod", new Property<double>(1.0, "Scales the crit rate for CS")),
                 ("cloak_max_proc_rate", new Property<double>(25.0, "Cap cloak proc chance to this percentage (100.0 will effectively use the standard ACE proc rate).")),
                 ("town_control_trophy_chance", new Property<double>(0.25, "the change that a town control trophy is given to a player that is within the landblock of an active town control event with each player tick")),
-                ("arenas_time_limit_ones", new Property<double>(600, "Time limit for an arena match in seconds for 1v1s")),
-                ("arenas_time_limit_alert_ones", new Property<double>(540, "Length of time before alerting for running out of time in seconds for 1v1s")),
-                ("arenas_countdown_ones", new Property<double>(10, "1v1's Countdown lead time in seconds")),
-
-                ("arenas_time_limit_threes", new Property<double>(600, "Time limit for an arena match in seconds for 3v3s")),
-                ("arenas_time_limit_alert_threes", new Property<double>(540, "Length of time before alerting for running out of time in seconds for 3v3s")),
-                ("arenas_countdown_threes", new Property<double>(30, "3v3's Countdown lead time in seconds")),
-
-                ("arenas_time_limit_fives", new Property<double>(600, "Time limit for an arena match in seconds for 5v5s")),
-                ("arenas_time_limit_alert_fives", new Property<double>(540, "Length of time before alerting for running out of time in seconds for 5v5s")),
-                ("arenas_countdown_fives", new Property<double>(45, "5v5's Countdown lead time in seconds")),
-
-                ("arenas_win_buffer", new Property<double>(10, "Buffer time for winner before they get teleported in seconds")),
-                //("arenas_queue_size", new Property<double>(4, "When the queue reaches this threshold, it should make teams")),
-                //("arenas_team_size", new Property<double>(2, "Amount of players on each team")),
                 ("arenas_level_requirement", new Property<double>(180, "Level requirement for arenas"))
                 );
 

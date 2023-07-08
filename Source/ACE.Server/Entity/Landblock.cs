@@ -1440,5 +1440,19 @@ namespace ACE.Server.Entity
             playerList.AddRange(players);
             return playerList;
         }
+
+        private bool? _isArenaLandblock = null;
+        public bool IsArenaLandblock
+        {
+            get
+            {
+                if (!_isArenaLandblock.HasValue)
+                {
+                    _isArenaLandblock = ArenaLocation.IsArenaLandblock(this.Id.Landblock);
+                }
+
+                return _isArenaLandblock.Value;
+            }
+        }
     }
 }
