@@ -572,6 +572,12 @@ namespace ACE.Server.WorldObjects
                             log.Error($"Exception logging PK Kill to DB. Ex: {ex}");
                         }
                     }
+
+                    //Arena player death
+                    if(ArenaManager.IsActiveArenaPlayer((uint)corpse.VictimId))
+                    {
+                        ArenaManager.HandlePlayerDeath((uint)corpse.VictimId, (uint)killer.Guid.Full);
+                    }
                 }
 
                 if (!isPKdeath && !isPKLdeath)

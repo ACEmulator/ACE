@@ -612,6 +612,8 @@ namespace ACE.Server.Managers
                 ("epic_whitelist_enabled", new Property<bool>(true, "enable this to limit areas where Epic cantrips drop to whitelisted landblocks")),
                 ("legendary_whitelist_enabled", new Property<bool>(true, "enable this to limit areas where Legendary cantrips drop to whitelisted landblocks")),
                 ("block_vpn_connections", new Property<bool>(false, "enable this to block user sessions from IPs identified as VPN proxies")),
+                ("disable_arenas", new Property<bool>(false, "set to true to disable arena events")),
+                ("arena_allow_same_ip_match", new Property<bool>(false, "enable this allow two characters connected from the same IP to be matched in an arena event")),
                 ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world"))
                 );
 

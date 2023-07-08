@@ -11,9 +11,13 @@ using Microsoft.EntityFrameworkCore.Storage;
 using log4net;
 
 using ACE.Database.Entity;
-using ACE.Database.Models.EventLog;
+using ACE.Database.Models.Log;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Database.Models.Shard;
+using ACE.Database.Models.Auth;
+using System.Net;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ACE.Database
 {
@@ -258,6 +262,184 @@ namespace ACE.Database
             return kill;
         }
 
-        #endregion PK Kills Log
+        #endregion PK Kills Log        
+
+        #region Arenas   
+
+        public uint SaveArenaEvent(ArenaEvent arenaEvent)
+        {
+            try
+            {
+                using (var context = new LogDbContext())
+                {
+                    if (arenaEvent.Id <= 0)
+                    {
+                        context.ArenaEvents.Add(arenaEvent);                        
+                    }
+                    else
+                    {
+                        context.Entry(arenaEvent).State = EntityState.Modified;
+                    }
+
+                    context.SaveChanges();
+
+                    foreach (var arenaPlayer in arenaEvent.Players)
+                    {
+                        arenaPlayer.EventId = arenaEvent.Id;
+
+                        if (arenaPlayer.Id <= 0)
+                        {
+                            context.ArenaPlayers.Add(arenaPlayer);
+                        }
+                        else
+                        {
+                            context.Entry(arenaPlayer).State = EntityState.Modified;                            
+                        }                        
+                    }
+
+                    context.SaveChanges();
+
+                    return arenaEvent.Id;
+                }
+            }
+            catch(Exception ex)
+            {
+                log.Error($"Exception in SaveArenaEvent. Ex: {ex}");
+            }
+
+            return 0;
+        }
+
+        public string GetArenaStatsByCharacterId(uint characterId, string characterName)
+        {
+            string returnMsg = "";
+
+            try
+            {
+                using (var context = new LogDbContext())
+                {
+
+                    var wonEvents = (from a in context.ArenaEvents
+                                     join c in context.ArenaPlayers on a.Id equals c.EventId
+                                     where c.CharacterId == characterId
+                                     && c.TeamGuid == a.WinningTeamGuid
+                                     select a);
+
+                    var lostEvents = (from a in context.ArenaEvents
+                                     join c in context.ArenaPlayers on a.Id equals c.EventId
+                                     where c.CharacterId == characterId
+                                     && a.WinningTeamGuid.HasValue
+                                     && c.TeamGuid != a.WinningTeamGuid
+                                     select a);
+
+                    var drawEvents = (from a in context.ArenaEvents
+                                      join c in context.ArenaPlayers on a.Id equals c.EventId
+                                      where c.CharacterId == characterId
+                                      && !a.WinningTeamGuid.HasValue                                      
+                                      select a);
+
+                    var onesWins = wonEvents.Where(x => x.EventType.ToLower().Equals("1v1"));
+                    var twosWins = wonEvents.Where(x => x.EventType.ToLower().Equals("2v2"));
+                    var ffaWins = wonEvents.Where(x => x.EventType.ToLower().Equals("ffa"));
+                    var onesDraws = drawEvents.Where(x => x.EventType.ToLower().Equals("1v1"));
+                    var twosDraws = drawEvents.Where(x => x.EventType.ToLower().Equals("2v2"));
+                    var ffaDraws = drawEvents.Where(x => x.EventType.ToLower().Equals("ffa"));
+                    var onesLosses = lostEvents.Where(x => x.EventType.ToLower().Equals("1v1"));
+                    var twosLosses = lostEvents.Where(x => x.EventType.ToLower().Equals("2v2"));
+                    var ffaLosses = lostEvents.Where(x => x.EventType.ToLower().Equals("ffa"));
+
+                    var arenaPlayers = (from a in context.ArenaPlayers
+                                      where a.CharacterId == characterId                                      
+                                      select a);
+
+                    var totalKills = arenaPlayers.Sum(x => x.TotalKills);
+                    var totalDeaths = arenaPlayers.Sum(x => x.TotalDeaths);
+                    var totalDmgDealt = arenaPlayers.Sum(x => x.TotalDmgDealt);
+                    var totalDmgReceived = arenaPlayers.Sum(x => x.TotalDmgReceived);
+
+                    returnMsg = $"*********\nArena Stats for {characterName}\n  Total Arena Events Played: {wonEvents.Count() + lostEvents.Count() + drawEvents.Count()}\n  Total Arena Wins: {wonEvents.Count()}\n  Total Arena Losses: {lostEvents.Count()}\n\n  1v1 Wins: {onesWins.Count()}\n  1v1 Draws: {onesDraws.Count()}\n  1v1 Losses: {onesLosses.Count()}\n  2v2 Wins: {twosWins.Count()}\n  2v2 Draws: {twosDraws.Count()}\n  2v2 Losses: {twosLosses.Count()}\n  FFA Wins: {ffaWins.Count()}\n  FFA Draws: {ffaDraws.Count()}\n  FFA Losses: {ffaLosses.Count()}\n\n  Total Kills: {totalKills}\n  Total Deaths: {totalDeaths}\n  Total Damage Dealt: {totalDmgDealt}\n  Total Damage Received: {totalDmgReceived}\n*********\n";
+                }
+            }
+            catch(Exception ex)
+            {
+                log.Error($"Exception in GetEventStatsByCharacterId for characterId = {characterId}. ex: {ex}");
+            }
+
+            return returnMsg;
+        }
+
+        public List<ArenaEvent> GetAllActiveEvents()
+        {
+            try
+            {
+                using (var context = new LogDbContext())
+                {
+                    var result = context.ArenaEvents
+                            .AsNoTracking()
+                            .OrderByDescending(r => r.StartDateTime)
+                            .Where(r => !r.EndDateTime.HasValue);
+
+                    if (result != null)
+                    {
+                        return result.ToList();
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                log.Error($"Exception in GetAllActiveEvents. ex: {ex}");
+            }
+
+            return new List<ArenaEvent>();
+        }
+
+        public uint CreateArenaPlayer(ArenaPlayer player)
+        {
+            try
+            {
+                using (var context = new LogDbContext())
+                {
+                    context.ArenaPlayers.Add(player);
+                    context.SaveChanges();
+
+                    return player.Id;
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Exception in CreateArenaEvent. Ex: {ex}");
+            }
+
+            return 0;
+        }
+
+        public void UpdateArenaPlayer(ArenaPlayer player)
+        {
+            using (var context = new LogDbContext())
+            {
+                context.Entry(player).State = EntityState.Modified;
+                context.SaveChanges();
+            }
+        }
+
+        #endregion Arenas
+
+        //public bool ExampleCustomSql()
+        //{            
+        //    var sql = @$"";
+        //    using (var context = new ShardDbContext())
+        //    {
+        //        context.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
+        //        var connection = context.Database.GetDbConnection();
+        //        connection.Open();
+        //        var command = connection.CreateCommand();
+        //        command.CommandText = sql;
+        //        var reader = command.ExecuteReader();
+        //        while (reader.Read())
+        //        {
+        //            
+        //        }
+        //    }
+        //}        
     }
 }
