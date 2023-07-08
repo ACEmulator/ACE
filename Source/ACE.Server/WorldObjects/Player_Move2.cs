@@ -150,8 +150,8 @@ namespace ACE.Server.WorldObjects
                 Console.WriteLine($"{Name}.OnMoveComplete_MoveTo({status})");
 
             IsPlayerMovingTo2 = false;
-
-            if (MoveToParams.Callback == null)
+            
+            if (MoveToParams == null || MoveToParams.Callback == null)
             {
                 // nothing to do -- we are done here
                 MoveToParams = null;

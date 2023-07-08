@@ -2,12 +2,14 @@ using System;
 using System.Numerics;
 
 using ACE.Common;
+using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Entity.TownControl;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -399,6 +401,50 @@ namespace ACE.Server.WorldObjects
                 return null;
             }
 
+            //If defender is town control boss and attacker is not a player in PK state, dmg is zero
+            if (targetPlayer == null)
+            {
+                if (target.IsTownControlBoss)
+                {
+                    if (sourcePlayer == null || !sourcePlayer.IsPK)
+                    {
+                        //Don't allow summons or NPKs to damage the town control bosses
+                        return 0.0f;
+                    }
+                    else
+                    {
+                        //Don't allow the owning clan to damage the town control bosses
+                        bool playerOwnsTown = false;
+                        var boss = TownControlBosses.TownControlBossMap[target.WeenieClassId];
+                        var town = DatabaseManager.TownControl.GetTownById(boss.TownID);
+                        var playerAlleg = AllegianceManager.GetAllegiance(sourcePlayer);
+                        if (playerAlleg != null)
+                        {
+                            var playerMonarchId = playerAlleg.MonarchId;
+
+                            if (town.CurrentOwnerID.HasValue && town.CurrentOwnerID.Value == playerMonarchId)
+                            {
+                                playerOwnsTown = true;
+                            }
+                        }
+
+                        if (playerOwnsTown)
+                        {
+                            return 0.0f;
+                        }
+
+                        //Only allow clans that are whitelisted to damage the Init bosses                        
+                        if (target.IsTownControlInitBoss)
+                        {
+                            if (playerAlleg == null || !playerAlleg.MonarchId.HasValue || !TownControlAllegiances.IsAllowedAllegiance((int)playerAlleg.MonarchId.Value))
+                            {
+                                return 0.0f;
+                            }
+                        }
+                    }
+                }
+            }
+
             var critDamageBonus = 0.0f;
             var weaponCritDamageMod = 1.0f;
             var weaponResistanceMod = 1.0f;
@@ -467,6 +513,14 @@ namespace ACE.Server.WorldObjects
 
             // Possible 2x + damage bonus for the slayer property
             var slayerMod = GetWeaponCreatureSlayerModifier(weapon, sourceCreature, target);
+
+            //Nerf human slayer dmg for ring and wall spells
+            if (isPVP && slayerMod > 1f && Spell.School != MagicSchool.LifeMagic)
+            {
+                var spellType = GetProjectileSpellType(Spell.Id);
+                if (spellType == ProjectileSpellType.Ring || spellType == ProjectileSpellType.Wall)
+                    slayerMod = 1f;
+            }
 
             // life magic projectiles: ie., martyr's hecatomb
             if (Spell.MetaSpellType == ACE.Entity.Enum.SpellType.LifeProjectile)
@@ -547,18 +601,7 @@ namespace ACE.Server.WorldObjects
                 // if attacker/weapon has IgnoreMagicResist directly, do not transfer to spell projectile
                 // only pass if SpellProjectile has it directly, such as 2637 - Invoking Aun Tanua
 
-                resistanceMod = (float)Math.Max(0.0f, target.GetResistanceMod(resistanceType, this, null, weaponResistanceMod));
-
-                if (sourcePlayer != null && targetPlayer != null && Spell.DamageType == DamageType.Nether)
-                {
-                    // for direct damage from void spells in pvp,
-                    // apply void_pvp_modifier *on top of* the player's natural resistance to nether
-
-                    // this supposedly brings the direct damage from void spells in pvp closer to retail
-                    resistanceMod *= (float)PropertyManager.GetDouble("void_pvp_modifier").Item;
-                    if (SpellType == ProjectileSpellType.Streak)
-                        resistanceMod *= (float)PropertyManager.GetDouble("pvp_dmg_mod_void_streak").Item; // scales void streak damages
-                }                
+                resistanceMod = (float)Math.Max(0.0f, target.GetResistanceMod(resistanceType, this, null, weaponResistanceMod));                                
 
                 finalDamage = baseDamage + critDamageBonus + skillBonus;
 
@@ -575,16 +618,38 @@ namespace ACE.Server.WorldObjects
                 ShowInfo(target, Spell, attackSkill, criticalChance, criticalHit, critDefended, overpower, weaponCritDamageMod, skillBonus, baseDamage, critDamageBonus, elementalDamageMod, slayerMod, weaponResistanceMod, resistanceMod, absorbMod, LifeProjectileDamage, lifeMagicDamage, finalDamage);
             }
 
-            //Apply pvp dmg mods for war
+            //Apply pvp dmg mods for war and void (not including DOTs which are in EnchantmentManager.ApplyDamageTick)
             float dmgMod = 1;
-            if (sourcePlayer != null && targetPlayer != null && Spell.School == MagicSchool.WarMagic)
+            if (sourcePlayer != null && targetPlayer != null)
             {
-                dmgMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_war").Item;
+                if (Spell.School == MagicSchool.WarMagic)
+                {
+                    dmgMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_war").Item;
 
-                if (SpellType == ProjectileSpellType.Streak)
-                    dmgMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_war_streak").Item; // scales war streak damages
+                    if (SpellType == ProjectileSpellType.Streak)
+                        dmgMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_war_streak").Item; // scales war streak damages
 
-                finalDamage = finalDamage * dmgMod;
+                    if(criticalHit && weapon.HasImbuedEffect(ImbuedEffectType.CripplingBlow))
+                    {
+                        dmgMod *= (float)PropertyManager.GetDouble("pvp_dmg_mod_war_cb_crit").Item;
+                    }
+
+                    finalDamage = finalDamage * dmgMod;
+                }
+                else if (Spell.DamageType == DamageType.Nether)
+                {
+                    dmgMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_void").Item;
+
+                    if (SpellType == ProjectileSpellType.Streak)
+                        dmgMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_void_streak").Item; // scales void streak damages
+
+                    if (criticalHit && weapon.HasImbuedEffect(ImbuedEffectType.CripplingBlow))
+                    {
+                        dmgMod *= (float)PropertyManager.GetDouble("pvp_dmg_mod_void_cb_crit").Item;
+                    }
+
+                    finalDamage = finalDamage * dmgMod;
+                }
             }
 
             return finalDamage;

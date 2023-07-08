@@ -4,11 +4,11 @@ INSERT INTO `weenie` (`class_Id`, `class_Name`, `type`, `last_Modified`)
 VALUES (1000002, 'pktrophy', 51, '2021-11-03 08:49:59') /* Stackable */;
 
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`)
-VALUES (1000002,   1,     262144) /* ItemType - PromissoryNote */
+VALUES (1000002,   1,     128) /* ItemType - PromissoryNote */
      , (1000002,   5,          1) /* EncumbranceVal */
      , (1000002,   8,          1) /* Mass */
      , (1000002,   9,          0) /* ValidLocations - None */
-     , (1000002,  11,        100) /* MaxStackSize */
+     , (1000002,  11,        1000) /* MaxStackSize */
      , (1000002,  12,          1) /* StackSize */
      , (1000002,  13,          1) /* StackUnitEncumbrance */
      , (1000002,  14,          1) /* StackUnitMass */

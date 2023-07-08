@@ -2840,7 +2840,13 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyString.TinkerLog);
             set { if (value == null) RemoveProperty(PropertyString.TinkerLog); else SetProperty(PropertyString.TinkerLog, value); }
         }
-        
+
+        public string TinkerLottoLog
+        {
+            get => GetProperty(PropertyString.TinkerLottoLog);
+            set { if (value == null) RemoveProperty(PropertyString.TinkerLottoLog); else SetProperty(PropertyString.TinkerLottoLog, value); }
+        }
+
         public int? CreatureKills
         {
             get => GetProperty(PropertyInt.CreatureKills);
@@ -2865,10 +2871,17 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.SummoningMastery); else SetProperty(PropertyInt.SummoningMastery, (int)value.Value); }
         }
 
+
         public double? JumpTimer
         {
             get => GetProperty(PropertyFloat.JumpTimer);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.JumpTimer); else SetProperty(PropertyFloat.JumpTimer, value.Value); }
+        }
+
+        public double? TownControlTrophyTimer
+        {
+            get => GetProperty(PropertyFloat.TownControlTrophyTimer);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.TownControlTrophyTimer); else SetProperty(PropertyFloat.TownControlTrophyTimer, value.Value); }
         }
 
         public double? MaximumVelocity

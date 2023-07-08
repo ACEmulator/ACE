@@ -218,6 +218,11 @@ namespace ACE.Server.Managers
 
                 if (player.AugmentationBonusImbueChance > 0)
                     successChance += player.AugmentationBonusImbueChance * 0.05f;
+
+                if (player.Enlightenment > 0)
+                {
+                    successChance += player.EnlightenmentCustomLevel * 0.1f;
+                }
             }
 
             // todo: remove this once foolproof salvage recipes are updated
@@ -313,6 +318,11 @@ namespace ACE.Server.Managers
 
             if (numAugs > 0)
                 floorMsg += $"\n{numAugs * 5} percent is due to your augmentation.";
+
+            if(player.Enlightenment > 0)
+            {
+                floorMsg += $"\n{player.EnlightenmentCustomLevel * 10} percent is due to your enlightenment.";
+            }
 
             if (!player.ConfirmationManager.EnqueueSend(new Confirmation_CraftInteration(player.Guid, source.Guid, target.Guid), floorMsg))
             {
@@ -1064,6 +1074,22 @@ namespace ACE.Server.Managers
             }
             else
                 BroadcastTinkering(player, source, target, successChance, success);
+
+
+            //Custom tinkering Lotto
+            if(recipe.IsTinkering() && success)
+            {
+                //new LogDatabase().LogTinkeringEvent(player.Character.Id, player.Name, target.Biota.Id, (float)successChance, (float)roll, success, (uint)target.NumTimesTinkered, (uint)(target.Workmanship ?? 0), sourceName, (uint)(source.Workmanship ?? 0));
+                var salvageType = Regex.Replace(source.NameWithMaterial, @" \(\d+\)$", "");
+                //Removing the word Salvage or Foolproof from the end, i.e. change "Steel Salvage" to just "Steel"
+                salvageType = salvageType.Contains(" Salvage") ? salvageType.Remove(salvageType.IndexOf(" Salvage")) :salvageType;
+                salvageType = salvageType.Contains(" Foolproof") ? salvageType.Remove(salvageType.IndexOf(" Foolproof")) : salvageType;
+
+                var lottoResult = target.TinkeringLotto_Mutate(salvageType, (int)(source.Workmanship ?? 0));
+
+                if(!string.IsNullOrEmpty(lottoResult))
+                    player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} won the tinkering lottery! The following improvements were made to your {target.NameWithMaterial}\n{lottoResult}", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
+            }
 
             return modified;
         }

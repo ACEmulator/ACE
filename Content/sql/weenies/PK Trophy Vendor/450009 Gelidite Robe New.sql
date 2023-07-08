@@ -9,7 +9,7 @@ VALUES (450009,   1,          4) /* ItemType - Clothing */
      , (450009,   4,      1024) 
      , (450009,   5,        10) /* EncumbranceVal */
      , (450009,   8,        150) /* Mass */
-     , (450009,   9,      32513) /* ValidLocations - HeadWear, Armor */
+     , (450009,   9,      512) /* ValidLocations - HeadWear, Armor */
      , (450009,  16,          1) /* ItemUseable - No */
      , (450009,  18,          1) /* UiEffects - Magical */
      , (450009,  19,       20) /* Value */

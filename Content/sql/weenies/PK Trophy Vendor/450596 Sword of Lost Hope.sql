@@ -17,7 +17,8 @@ VALUES (450596,   1,          1) /* ItemType - MeleeWeapon */
      , (450596,  45,         32) /* DamageType - Acid */
      , (450596,  46,          2) /* DefaultCombatStyle - OneHanded */
      , (450596,  47,          6) /* AttackType - Thrust, Slash */
-     , (450596,  48,         11) /* WeaponSkill - Sword */
+     , (450596,  48,         48) /* WeaponSkill - Sword */
+	 , (450596, 353,          2) /* WeaponType - Sword */
      , (450596,  49,         30) /* WeaponTime */
      , (450596,  51,          1) /* CombatUse - Melee */
      , (450596,  93,       3092) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity, LightingOn */

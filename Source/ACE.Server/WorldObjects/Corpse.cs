@@ -188,6 +188,10 @@ namespace ACE.Server.WorldObjects
             if (TimeToRot != null && TimeToRot < HalfLife && !new ObjectGuid(VictimId.Value).IsPlayer() && !CorpseGeneratedRare)
                 return true;
 
+            // all players gain access to corpse after 20 mins for player kills
+            if (TimeToRot != null && PlayerRotTime() == true && new ObjectGuid(VictimId.Value).IsPlayer() && PkLevel == PKLevel.PK)
+                return true;
+
             // players in the same fellowship as the killer w/ loot sharing enabled except if corpse generates a rare
             if (player.Fellowship != null && player.Fellowship.ShareLoot)
             {
@@ -205,6 +209,18 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public static int HalfLife = 180;
 
+        /// <summary>
+        /// Calculates 20 minutes from the corpse and then returns true if 20 mins has passed.
+        /// </summary>
+        public bool PlayerRotTime()
+        {
+            double originalTimeMod = Math.Max(3600, (Level ?? 1) * 300) - 1200.0f;
+
+            if (TimeToRot <= originalTimeMod)
+                return true;
+            else
+                return false;
+        }
 
         public override void Close(Player player)
         {

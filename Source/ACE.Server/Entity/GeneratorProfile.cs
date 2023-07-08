@@ -273,8 +273,13 @@ namespace ACE.Server.Entity
 
             var spawned = new List<WorldObject>();
 
+            if (objects == null)
+                return spawned;
+
             foreach (var obj in objects)
             {
+                if (obj == null)
+                    continue;
                 //log.Debug($"{_generator.Name}.Spawn({obj.Name})");
 
                 obj.Generator = Generator;
@@ -480,15 +485,45 @@ namespace ACE.Server.Entity
                     {
                         deathTreasure.DisableSets = landblockId.HasValue ? !Whitelist.IsEquipmentSetWhitelistedLandblock(landblockId.Value) : true;
                     }
+                    else
+                    {
+                        deathTreasure.DisableSets = false;
+                    }
 
                     if (PropertyManager.GetBool("epic_whitelist_enabled").Item)
                     {
                         deathTreasure.DisableEpicCantrips = landblockId.HasValue ? !Whitelist.IsEpicWhitelistedLandblock(landblockId.Value) : true;
                     }
+                    else
+                    {
+                        deathTreasure.DisableEpicCantrips = false;
+                    }
 
                     if (PropertyManager.GetBool("legendary_whitelist_enabled").Item)
                     {
                         deathTreasure.DisableLegendaryCantrips = landblockId.HasValue ? !Whitelist.IsLegendaryWhitelistedLandblock(landblockId.Value) : true;
+                    }
+                    else
+                    {
+                        deathTreasure.DisableLegendaryCantrips = false;
+                    }
+
+                    if (PropertyManager.GetBool("aetheria_whitelist_enabled").Item)
+                    {
+                        deathTreasure.DisableAetheria = landblockId.HasValue ? !Whitelist.IsAetheriaWhitelistedLandblock(landblockId.Value) : true;
+                    }
+                    else
+                    {
+                        deathTreasure.DisableAetheria = false;
+                    }
+
+                    if (PropertyManager.GetBool("aetheria_highlevel_whitelist_enabled").Item)
+                    {
+                        deathTreasure.DisableHighLevelAetheria = landblockId.HasValue ? !Whitelist.IsAetheriaWhitelistedLandblock(landblockId.Value) : true;
+                    }
+                    else
+                    {
+                        deathTreasure.DisableHighLevelAetheria = false;
                     }
                 }
 

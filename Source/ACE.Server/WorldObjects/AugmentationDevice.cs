@@ -166,7 +166,13 @@ namespace ACE.Server.WorldObjects
             if (AugTypeHelper.IsAttribute(type))
             {
                 // innate attributes shared cap
-                if (player.AugmentationInnateFamily >= MaxAugs[type])
+                var maxNumAugs = MaxAugs[type];
+                if(player.Enlightenment > 0)
+                {
+                    maxNumAugs += player.EnlightenmentCustomLevel * 2;
+                }
+
+                if (player.AugmentationInnateFamily >= maxNumAugs)
                 {
                     player.SendWeenieError(WeenieError.AugmentationTypeUsedTooManyTimes);
                     return false;
@@ -205,7 +211,7 @@ namespace ACE.Server.WorldObjects
             // common checks
             var augProp = player.GetProperty(AugProps[type]) ?? 0;
 
-            if (augProp >= MaxAugs[type])
+            if (augProp >= MaxAugs[type] && !AugTypeHelper.IsAttribute(type))
             {
                 player.SendWeenieError(WeenieError.AugmentationUsedTooManyTimes);
                 return false;

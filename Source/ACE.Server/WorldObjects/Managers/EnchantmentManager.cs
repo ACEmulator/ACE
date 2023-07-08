@@ -14,6 +14,7 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects.Entity;
+using Google.Protobuf.WellKnownTypes;
 
 namespace ACE.Server.WorldObjects.Managers
 {
@@ -190,6 +191,9 @@ namespace ACE.Server.WorldObjects.Managers
                 if (caster is Player player && player.AugmentationIncreasedSpellDuration > 0 && spell.DotDuration == 0)
                     duration *= 1.0f + player.AugmentationIncreasedSpellDuration * 0.2f;
 
+                if (caster is Player enlightenedPlayer && enlightenedPlayer.EnlightenmentCustomLevel >= 3 && spell.DotDuration == 0)
+                    duration *= 1.2f;
+
                 var timeRemaining = refreshSpell.Duration + refreshSpell.StartTime;
 
                 if (duration > timeRemaining)
@@ -226,6 +230,9 @@ namespace ACE.Server.WorldObjects.Managers
 
                 if (caster is Player player && player.AugmentationIncreasedSpellDuration > 0 && spell.DotDuration == 0)
                     entry.Duration *= 1.0f + player.AugmentationIncreasedSpellDuration * 0.2f;
+
+                if (caster is Player enlightenedPlayer && enlightenedPlayer.EnlightenmentCustomLevel >= 3 && spell.DotDuration == 0)
+                    entry.Duration *= 1.2f;
             }
             else
             {
@@ -1344,7 +1351,7 @@ namespace ACE.Server.WorldObjects.Managers
                     // instead of applying it on top like direct damage
 
                     if (damageType == DamageType.Nether)
-                        resistanceMod = (float)PropertyManager.GetDouble("void_pvp_modifier").Item;
+                        resistanceMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_void_dot").Item;
                 }
 
                 // with the halvening, this actually seems like the fairest balance currently..

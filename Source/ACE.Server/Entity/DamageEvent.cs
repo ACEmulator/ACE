@@ -11,6 +11,8 @@ using ACE.Entity.Models;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
+using ACE.Server.Entity.TownControl;
+using ACE.Database;
 
 namespace ACE.Server.Entity
 {
@@ -168,6 +170,51 @@ namespace ACE.Server.Entity
 
             var pkBattle = playerAttacker != null && playerDefender != null;
 
+            //If defender is town control boss and attacker is not a player in PK state, dmg is zero
+            if (playerDefender == null)
+            {
+                if (defender.IsTownControlBoss)
+                {
+                    if (playerAttacker == null || !playerAttacker.IsPK)
+                    {
+                        //Don't allow summons or NPKs to damage the town control bosses
+                        return 0.0f;
+                    }
+                    else
+                    {
+                        //Don't allow the owning clan to damage the town control bosses
+                        bool playerOwnsTown = false;
+                        var boss = TownControlBosses.TownControlBossMap[defender.WeenieClassId];
+                        var town = DatabaseManager.TownControl.GetTownById(boss.TownID);
+                        var playerAlleg = AllegianceManager.GetAllegiance(playerAttacker);
+                        if (playerAlleg != null)
+                        {
+                            var playerMonarchId = playerAlleg.MonarchId;
+                            var playerAllegName = playerAlleg.Monarch.Player.Name;
+
+                            if (town.CurrentOwnerID.HasValue && town.CurrentOwnerID.Value == playerMonarchId)
+                            {
+                                playerOwnsTown = true;
+                            }
+                        }
+
+                        if (playerOwnsTown)
+                        {
+                            return 0.0f;
+                        }
+
+                        //Only allow clans that are whitelisted to damage the Init bosses                        
+                        if (defender.IsTownControlInitBoss)
+                        {
+                            if (playerAlleg == null || !playerAlleg.MonarchId.HasValue || !TownControlAllegiances.IsAllowedAllegiance((int)playerAlleg.MonarchId.Value))
+                            {
+                                return 0.0f;
+                            }
+                        }
+                    }
+                }
+            }
+
             Attacker = attacker;
             Defender = defender;
 
@@ -286,6 +333,13 @@ namespace ACE.Server.Entity
 
                     DamageBeforeMitigation = BaseDamageMod.MaxDamage * AttributeMod * PowerMod * SlayerMod * DamageRatingMod * CriticalDamageMod;
                 }
+            }
+
+            if (playerAttacker != null && playerDefender != null && Weapon != null)
+            {
+                var multi = (float?)Weapon.GetProperty(ACE.Entity.Enum.Properties.PropertyFloat.ForedawnPvpDamageMulti);
+                if (multi.HasValue)
+                    DamageBeforeMitigation *= multi.Value;
             }
 
             // armor rending and cleaving
@@ -471,6 +525,40 @@ namespace ACE.Server.Entity
                                     }
                                     break;
 
+                            }
+
+                            if(IsCritical)
+                            {
+                                switch (Weapon.WeaponSkill)
+                                {
+                                    case Skill.FinesseWeapons:
+                                        config_mod *= (float)PropertyManager.GetDouble("pvp_dmg_mod_fw_cb_crit").Item;
+                                        break;
+                                    case Skill.LightWeapons:
+                                        config_mod *= (float)PropertyManager.GetDouble("pvp_dmg_mod_lw_cb_crit").Item;
+                                        break;
+                                    case Skill.HeavyWeapons:
+                                        config_mod *= (float)PropertyManager.GetDouble("pvp_dmg_mod_hw_cb_crit").Item;
+                                        break;
+                                    case Skill.TwoHandedCombat:
+                                        config_mod *= (float)PropertyManager.GetDouble("pvp_dmg_mod_2h_cb_crit").Item;
+                                        break;
+                                    case Skill.MissileWeapons:
+                                        if (Weapon.DefaultCombatStyle != null && Weapon.DefaultCombatStyle == CombatStyle.Bow)
+                                        {
+                                            config_mod *= (float)PropertyManager.GetDouble("pvp_dmg_mod_bow_cb_crit").Item;
+                                        }
+                                        else if (Weapon.DefaultCombatStyle != null && Weapon.DefaultCombatStyle == CombatStyle.Crossbow)
+                                        {
+                                            config_mod *= (float)PropertyManager.GetDouble("pvp_dmg_mod_xbow_cb_crit").Item;
+                                        }
+                                        else if (Weapon.IsThrownWeapon || Weapon.IsAtlatl)
+                                        {
+                                            config_mod *= (float)PropertyManager.GetDouble("pvp_dmg_mod_tw_cb_crit").Item;
+                                        }
+                                        break;
+
+                                }
                             }
                         }
                         else if (Weapon.HasImbuedEffect(ImbuedEffectType.CriticalStrike))

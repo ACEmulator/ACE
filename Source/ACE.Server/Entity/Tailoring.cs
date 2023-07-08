@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
-
+using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Entity.Models;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
+using ACE.Server.Factories.Tables;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
-
 using log4net;
 
 namespace ACE.Server.Entity
@@ -31,6 +32,19 @@ namespace ACE.Server.Entity
 
         public const uint ArmorLayeringToolTop = 42724;
         public const uint ArmorLayeringToolBottom = 42726;
+
+        //public const uint MorphGemArmorLevel = 4200022;
+        public const uint MorphGemValue = 4200023;
+        //public const uint MorphGemArmorWork = 4200024;
+        public const uint MorphGemArcane = 4200026;
+        //public const uint MorphGemRandomEpic = 4200027;
+        //public const uint MorphGemRandomSet = 4200028;
+        public const uint MorphGemRemoveMissileDReq = 480484;
+        public const uint MorphGemRemoveMeleeDReq = 480483;
+        public const uint MorphGemRandomizeWeaponImbue = 480486;
+        public const uint MorphGemRemovePlayerReq = 480485;
+
+        public const int MorphGemMinValue = 20000;
 
         // Some WCIDs have Overlay Icons that need to be removed (e.g. Olthoi Alduressa Gauntlets or Boots)
         // There are other examples not here, like some stamped shields that might need to be added, as well.
@@ -137,7 +151,7 @@ namespace ACE.Server.Entity
         }
 
         public static void DoTailoring(Player player, WorldObject source, WorldObject target)
-        { 
+        {
             switch (source.WeenieClassId)
             {
                 case ArmorTailoringKit:
@@ -182,6 +196,15 @@ namespace ACE.Server.Entity
                 case DarkHeart:
 
                     WeaponApply(player, source, target);
+                    return;
+
+                case MorphGemValue:
+                case MorphGemArcane:
+                case MorphGemRemoveMissileDReq:
+                case MorphGemRemoveMeleeDReq:
+                case MorphGemRandomizeWeaponImbue:
+                case MorphGemRemovePlayerReq:
+                    ApplyMorphGem(player, source, target);
                     return;
             }
 
@@ -455,13 +478,639 @@ namespace ACE.Server.Entity
             }
 
             player.Session.Network.EnqueueSend(new GameMessageSystemChat("You modify your armor.", ChatMessageType.Broadcast));
-            
+
             player.UpdateProperty(target, PropertyInt.ClothingPriority, (int)clothingPriority);
             player.TryConsumeFromInventoryWithNetworking(source, 1);
 
             target.SaveBiotaToDatabase();
 
             player.SendUseDoneEvent();
+        }
+
+
+        public static void ApplyMorphGem(Player player, WorldObject source, WorldObject target)
+        {                        
+            // Remove Melee D requirement - weenie ID = 480483
+            // Alter imbue gems - ? Random change to change current imbue to alternative(AR/ CS / CB) -would need to adjust icon underlay and imbue - 480486
+            // Remove Player wield requirement(similar to amethyst) - 480485
+
+
+            try
+            {
+                //Only allow loot gen items to be morphed
+                if (target.ItemWorkmanship == null || target.IsAttunedOrContainsAttuned || target.ResistMagic == 9999)
+                {
+                    player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                    return;
+                }
+
+                string playerMsg = string.Empty;
+
+                switch (source.WeenieClassId)
+                {
+                    #region MorphGemArmorLevel
+                    //case MorphGemArmorLevel:
+
+                    //    //Get the current AL of the item
+                    //    var currentItemAL = target.GetProperty(PropertyInt.ArmorLevel);
+
+                    //    //Disallow using AL morph gem on items w/ no AL
+                    //    //if (!currentItemAL.HasValue || target.NumTimesTinkered != 0)
+                    //    if (!currentItemAL.HasValue)
+                    //    {
+                    //        player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                    //        return;
+                    //    }
+
+                    //    //Get tinker log to get the num steel tinks
+                    //    var tinkerLog = target.GetProperty(PropertyString.TinkerLog);
+                    //    ushort numSteelTinks = 0;
+                    //    if (!string.IsNullOrEmpty(tinkerLog))
+                    //    {
+                    //        string[] tinkerLogItems = tinkerLog.Split(',');
+                    //        if (tinkerLogItems != null && tinkerLogItems.Length > 0)
+                    //        {
+                    //            foreach (var tink in tinkerLogItems)
+                    //            {
+                    //                if (tink.Equals("64"))
+                    //                {
+                    //                    numSteelTinks++;
+                    //                }
+                    //            }
+                    //        }
+                    //    }
+
+                    //    //Roll for a value to change the AL by
+                    //    var alRandom = new Random();
+                    //    var alGain = alRandom.Next(0, 14);
+                    //    var alLoss = alRandom.Next(0, 7);
+                    //    var alChange = alGain - alLoss;
+                    //    alChange = alChange > 10 ? 10 : alChange < -5 ? -5 : alChange;
+
+                    //    var newAl = currentItemAL.Value + alChange;
+
+                    //    //Don't let new Armor Level exceed maximums
+                    //    var validLocations = target.ValidLocations ?? EquipMask.None;
+
+                    //    uint maxAl = 0;
+
+                    //    if (validLocations.HasFlag(EquipMask.HeadWear) || validLocations.HasFlag(EquipMask.HandWear) || validLocations.HasFlag(EquipMask.FootWear))
+                    //    {
+                    //        maxAl = MaxExtremityArmorLevel;
+                    //    }
+                    //    else if (validLocations.HasFlag(EquipMask.AbdomenArmor) ||
+                    //             validLocations.HasFlag(EquipMask.ChestArmor) ||
+                    //             validLocations.HasFlag(EquipMask.LowerArmArmor) ||
+                    //             validLocations.HasFlag(EquipMask.UpperArmArmor) ||
+                    //             validLocations.HasFlag(EquipMask.LowerLegArmor) ||
+                    //             validLocations.HasFlag(EquipMask.UpperLegArmor)
+                    //    )
+                    //    {
+                    //        maxAl = MaxBodyArmorLevel;
+                    //    }
+                    //    else if (validLocations.HasFlag(EquipMask.Shield))
+                    //    {
+                    //        maxAl = MaxShieldArmorLevel;
+                    //    }
+
+                    //    if (maxAl == 0)
+                    //    {
+                    //        player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                    //        return;
+                    //    }
+
+                    //    maxAl = maxAl + (numSteelTinks * 20u);
+
+                    //    if (newAl > maxAl)
+                    //    {
+                    //        newAl = (int)maxAl;
+                    //        alChange = newAl - currentItemAL.Value;
+                    //    }
+
+                    //    //Set the new AL value
+                    //    player.UpdateProperty(target, PropertyInt.ArmorLevel, newAl);
+
+                    //    //Send player message confirming the applied morph gem
+                    //    string playerMsg = string.Empty;
+                    //    if (alChange > 0)
+                    //    {
+                    //        playerMsg = $"As your skilled hands run softly along the contours of your armor, you quiver with anticipation.  With a swift and decisive thrust you apply the Morph Gem in a movement that is somehow both forceful and gentle at the same time.  You let out a short girly gasp that turns into a smile as you realize that your armor has been enhanced and has gained {alChange} armor level.";
+                    //    }
+                    //    else if (alChange == 0)
+                    //    {
+                    //        playerMsg = $"As your hands run softly along the contours of your armor, you quiver with anticipation.  With a timid yet determined thrust you attempt to apply the Morph Gem.  But luck being the cunt she is, the Morph Gem shatters on impact and your armor remains unchanged.";
+                    //    }
+                    //    else
+                    //    {
+                    //        playerMsg = $"As your shaking hands run softly along the contours of your armor, you quiver with anticipation.  With a timid yet determined thrust you attempt to apply the Morph Gem, but alas your hand is led astray of its mark as you are distracted by your 'room mate' calling out that your salad is ready and she bought you some new underwear with a smaller crotch for added support.  You cry softly in despair as you realize you've damaged your precious armor, which has lost {-1 * alChange} armor level as a result.";
+                    //    }
+
+                    //    player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+
+                    //    break;
+                    #endregion MorphGemArmorLevel
+
+                    #region MorphGemValue
+                    case MorphGemValue:
+
+                        //Value gem - lowers value by 1 - 10 %, can't lower below 20k value, 10% chance to increase value by same?
+
+                        //Get the current Value of the item
+                        var currentItemValue = target.GetProperty(PropertyInt.Value);
+
+                        if (!currentItemValue.HasValue)
+                        {
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        if (currentItemValue.Value <= 20000)
+                        {
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("Morph gems do not allow an item's Value to be reduced below 20k", ChatMessageType.Broadcast));
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        //Roll for an amount to change the item Value by
+                        var valRandom = new Random();
+                        bool valueGain = valRandom.Next(0, 99) < 10;                        
+                        var percentChange = valRandom.Next(1, 10) / 100f;
+                        var valueChange = (int)Math.Round(currentItemValue.Value * percentChange * (valueGain ? 1 : -1));                        
+                        var newValue = currentItemValue.Value + valueChange;
+
+                        //Don't let new Armor Value exceed minimum of 1k
+                        if (newValue < 20000)
+                        {
+                            valueChange = 20000 - currentItemValue.Value;
+                            newValue = 20000;
+                        }
+
+                        //Set the new AL value
+                        player.UpdateProperty(target, PropertyInt.Value, newValue);
+
+                        if (valueChange > 0)
+                        {
+                            playerMsg = $"Bad luck cunt.  The Morph Gem fucked you.  Your item's value has increased by {valueChange}";
+                        }
+                        else if (valueChange == 0)
+                        {
+                            playerMsg = $"The Morph Gem shatters against your item and leaves it unchanged.  Could be worse.";
+                        }
+                        else
+                        {
+                            playerMsg = $"You apply the Morph Gem skillfully and have reduced the value of your item by {-1 * valueChange}";
+                        }
+
+                        //Send player message confirming the applied morph gem
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+
+                        break;
+
+                    #endregion MorphGemValue
+
+                    #region MorphGemArmorWork
+                    //case MorphGemArmorWork:
+
+                    //    //Get the current Work of the item
+                    //    var currentItemWork = target.GetProperty(PropertyInt.ItemWorkmanship);
+
+                    //    if (!currentItemWork.HasValue)
+                    //    {
+                    //        player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                    //        return;
+                    //    }
+
+                    //    //Roll for a value to change the Workmanship by
+                    //    var workRandom = new Random();
+                    //    var workGain = workRandom.Next(0, 9);
+                    //    var workLoss = workRandom.Next(0, 9);
+                    //    var workChange = workGain - workLoss;
+                    //    workChange = workChange > 1 ? 1 : workChange < -2 ? -2 : workChange;
+
+                    //    var newWork = currentItemWork.Value + workChange;
+
+                    //    //Don't let new Workmanship exceed maximums
+                    //    if (newWork > MaxItemWork)
+                    //    {
+                    //        workChange = (int)MaxItemWork - currentItemWork.Value;
+                    //        newWork = (int)MaxItemWork;
+                    //    }
+                    //    else if (newWork < MinItemWork)
+                    //    {
+                    //        newWork = (int)MinItemWork;
+                    //        workChange = newWork - currentItemWork.Value;
+                    //    }
+
+                    //    //Set the new Workmanship value
+                    //    player.UpdateProperty(target, PropertyInt.ItemWorkmanship, newWork);
+
+                    //    if (workChange > 0)
+                    //    {
+                    //        playerMsg = $"Bad luck cunt.  The Morph Gem fucked you.  Your armor workmanship has increased by {workChange}";
+                    //    }
+                    //    else if (workChange == 0)
+                    //    {
+                    //        playerMsg = $"The Morph Gem shatters against your armor and leaves it unchanged.  Could be worse.";
+                    //    }
+                    //    else
+                    //    {
+                    //        playerMsg = $"You apply the Morph Gem skillfully and have reduced the workmanship of your armor by {-1 * workChange}";
+                    //    }
+
+                    //    //Send player message confirming the applied morph gem
+                    //    player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+
+                    //    break;
+                    #endregion MorphGemArmorWork
+
+                    #region MorphGemArcane
+                    case MorphGemArcane:
+
+                        // Lower arcane lore requirement on items - 1 - 20 - 10 % chance to increase lore by same range
+
+                        //Get the current Arcane of the item
+                        var currentItemArcane = target.GetProperty(PropertyInt.ItemDifficulty);
+
+                        if (!currentItemArcane.HasValue)
+                        {
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        //Roll for an amount to change the item Arcane by
+                        var arcaneRandom = new Random();
+                        var arcaneGain = arcaneRandom.Next(0, 99) < 10;
+                        var arcaneChange = arcaneRandom.Next(1,20) * (arcaneGain ? 1 : -1);
+
+                        var newArcane = currentItemArcane.Value + arcaneChange;
+
+                        //Don't let new arcane exceed minimum of 1
+                        if (newArcane < 1)
+                        {
+                            newArcane = 1;
+                            arcaneChange = currentItemArcane.Value < 1 ? 0 : 1 - currentItemArcane.Value;
+                        }
+
+                        //Set the new arcane
+                        player.UpdateProperty(target, PropertyInt.ItemDifficulty, newArcane);
+
+                        if (arcaneChange > 0)
+                        {
+                            playerMsg = $"Bad luck cunt.  The Morph Gem fucked you.  Your item arcane requirement has increased by {arcaneChange}";
+                        }
+                        else if (arcaneChange == 0)
+                        {
+                            playerMsg = $"The Morph Gem shatters against your item and leaves it unchanged.  Could be worse.";
+                        }
+                        else
+                        {
+                            playerMsg = $"You apply the Morph Gem skillfully and have reduced the arcane requirement of your item by {-1 * arcaneChange}";
+                        }
+
+                        //Send player message confirming the applied morph gem
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+
+                        break;
+                    #endregion MorphGemArcane
+
+                    #region MorphGemRandomEpic
+                    //case MorphGemRandomEpic:
+
+                    //    //First check if the item has any epics, and see how many
+                    //    var itemEpicList = target.EpicCantrips;
+                    //    if (itemEpicList == null || itemEpicList.Count < 1)
+                    //    {
+                    //        player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                    //        player.Session.Network.EnqueueSend(new GameMessageSystemChat("The target item has no epic cantrips to randomize", ChatMessageType.Broadcast));
+                    //        return;
+                    //    }
+
+                    //    //Come up with a new random list of epics to apply
+                    //    List<int> newEpicList = new List<int>();
+                    //    foreach (var currEpic in itemEpicList)
+                    //    {
+                    //        while (true)
+                    //        {
+                    //            //For now this morph gem can only be applied to armor.
+                    //            //In the future if we expand to include non-armor (like jewelry),
+                    //            //will need to have logic to use different Roll methods (like JewelryCantrips.Roll())
+                    //            SpellId newCantrip = ArmorCantrips.Roll();
+                    //            List<SpellId> progression = SpellLevelProgression.GetSpellLevels(newCantrip);
+
+                    //            if (progression != null && progression.Count >= 3)
+                    //            {
+                    //                int newEpicSpellId = (int)progression[2];
+                    //                if (newEpicSpellId != currEpic.Key && !newEpicList.Contains(newEpicSpellId))
+                    //                {
+                    //                    newEpicList.Add(newEpicSpellId);
+                    //                    break;
+                    //                }
+                    //            }
+                    //        }
+                    //    }
+
+                    //    //Give a small chance to remove an epic
+                    //    if (newEpicList.Count > 1)
+                    //    {
+                    //        var epicRandom = new Random();
+                    //        var roll = epicRandom.Next(0, int.MaxValue);
+                    //        if (roll % 15 == 0 && newEpicList.Count > 0)
+                    //        {
+                    //            newEpicList.RemoveAt(0);
+                    //        }
+                    //    }
+
+                    //    //Give a small chance to add an epic
+                    //    if (newEpicList.Count < 4)
+                    //    {
+                    //        var epicRandom = new Random();
+                    //        var roll = epicRandom.Next(0, int.MaxValue);
+                    //        if (roll % 10 == 0 && newEpicList.Count > 0)
+                    //        {
+                    //            while (true)
+                    //            {
+                    //                SpellId newCantrip = ArmorCantrips.Roll();
+                    //                List<SpellId> progression = SpellLevelProgression.GetSpellLevels(newCantrip);
+                    //                if (progression != null && progression.Count >= 3)
+                    //                {
+                    //                    int newEpicSpellId = (int)progression[2];
+                    //                    if (!newEpicList.Contains(newEpicSpellId))
+                    //                    {
+                    //                        newEpicList.Add((int)progression[2]);
+                    //                        break;
+                    //                    }
+                    //                }
+                    //            }
+                    //        }
+                    //    }
+
+                    //    //Give a small chance to add Epic Impen
+                    //    var impenRandom = new Random();
+                    //    bool impenSuccess = false;
+                    //    var impenRoll = impenRandom.Next(0, int.MaxValue);
+                    //    if (impenRoll % 7 == 0 && !newEpicList.Contains(4667))
+                    //    {
+                    //        if (newEpicList.Count < 4)
+                    //        {
+                    //            newEpicList.Add(4667);
+                    //        }
+                    //        else
+                    //        {
+                    //            newEpicList[0] = 4667;
+                    //        }
+
+                    //        impenSuccess = true;
+                    //    }
+
+                    //    //Remove all existing epics
+                    //    string removedSpellList = "";
+                    //    int removedEpicNum = 0;
+                    //    foreach (var spell in itemEpicList)
+                    //    {
+                    //        target.Biota.TryRemoveKnownSpell(spell.Key, target.BiotaDatabaseLock);
+                    //        //player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Removed spellId { spell.Key }", ChatMessageType.Broadcast));
+                    //        removedEpicNum++;
+                    //        if (removedEpicNum == 1)
+                    //        {
+                    //            removedSpellList = $"{new Spell(spell.Key, true).Name}";
+                    //        }
+                    //        else if (removedEpicNum == itemEpicList.Count)
+                    //        {
+                    //            removedSpellList += $" and {new Spell(spell.Key, true).Name}";
+                    //        }
+                    //        else
+                    //        {
+                    //            removedSpellList += $", {new Spell(spell.Key, true).Name}";
+                    //        }
+                    //        //removedSpellList += removedEpicNum < itemEpicList.Count ? $"{ new Spell(spell.Key, true).Name }, " : $"and { new Spell(spell.Key, true).Name }";
+                    //    }
+
+                    //    //Add new epics
+                    //    string addedSpellList = "";
+                    //    int addedEpicNum = 0;
+                    //    foreach (var spellId in newEpicList)
+                    //    {
+                    //        target.Biota.GetOrAddKnownSpell(spellId, target.BiotaDatabaseLock, out _);
+                    //        //player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Added spellId { spellId }", ChatMessageType.Broadcast));
+                    //        addedEpicNum++;
+                    //        if (addedEpicNum == 1)
+                    //        {
+                    //            addedSpellList = $"{new Spell(spellId, true).Name}";
+                    //        }
+                    //        else if (addedEpicNum == newEpicList.Count)
+                    //        {
+                    //            addedSpellList += $" and {new Spell(spellId, true).Name}";
+                    //        }
+                    //        else
+                    //        {
+                    //            addedSpellList += $", {new Spell(spellId, true).Name}";
+                    //        }
+                    //        //addedSpellList += addedEpicNum < itemEpicList.Count ? $"{ new Spell(spellId, true).Name }" : $"and { new Spell(spellId, true).Name }";
+                    //    }
+
+                    //    string impenMessage = impenSuccess ? "\n\nYour armor also somehow looks tougher, like it might have once been worn by some kind of tough guy and his tough guy essence sort of rubbed off on it and now it's more tough than it was before." : "";
+
+                    //    string randomizeResultMsg = $"Staring into the morph gem intently, your head swims at the chaos within it.  As you slump to the ground you scream in silence at the realization that eternity is boundless and upon you; upon us all.  You smash the morph gem hard against your armor and it explodes into everything and nothing.  Washed away are the epic enchantments that once took hold.\n\nThe spells {removedSpellList} are no longer.\n\nIn their place, the spells {addedSpellList} have been cast upon your armor.{impenMessage}";
+                    //    player.Session.Network.EnqueueSend(new GameMessageSystemChat(randomizeResultMsg, ChatMessageType.Broadcast));
+
+                    //    break;
+                    #endregion MorphGemRandomEpic
+
+                    #region MorphGemRandomSet
+                    //case MorphGemRandomSet:
+
+                    //    if (target.ClothingPriority == null || (target.ClothingPriority & (CoverageMask)CoverageMaskHelper.Outerwear) == 0)
+                    //    {
+                    //        player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                    //        player.Session.Network.EnqueueSend(new GameMessageSystemChat("The target item does not meet the requirements for adding an Equipment Set", ChatMessageType.Broadcast));
+                    //        return;
+                    //    }
+
+                    //    var originalSetId = target.EquipmentSetId;
+                    //    bool setRollResult = false;
+
+                    //    if (target.EquipmentSetId.HasValue)
+                    //    {
+                    //        //If item has an existing set, roll a 10% chance to remove the Set
+                    //        int removeSetRoll = ThreadSafeRandom.Next(0, 9);
+                    //        if (removeSetRoll > 0)
+                    //        {
+                    //            setRollResult = true;
+                    //        }
+                    //    }
+                    //    else
+                    //    {
+                    //        //If item has no set, roll a 15% chance to add a Set
+                    //        int addSetRoll = ThreadSafeRandom.Next(0, 99);
+                    //        if (addSetRoll < 15)
+                    //        {
+                    //            setRollResult = true;
+                    //        }
+                    //    }
+
+                    //    if (setRollResult)
+                    //    {
+                    //        target.EquipmentSetId = (EquipmentSet)ThreadSafeRandom.Next((int)EquipmentSet.Soldiers, (int)EquipmentSet.Lightningproof);
+                    //        if (originalSetId.HasValue && target.EquipmentSetId.Value == originalSetId.Value)
+                    //        {
+                    //            int counter = 0;
+                    //            while (target.EquipmentSetId.Value == originalSetId.Value && counter < 10)
+                    //            {
+                    //                target.EquipmentSetId = (EquipmentSet)ThreadSafeRandom.Next((int)EquipmentSet.Soldiers, (int)EquipmentSet.Lightningproof);
+                    //                counter++;
+                    //            }
+                    //        }
+                    //    }
+                    //    else
+                    //    {
+                    //        target.EquipmentSetId = null;
+                    //    }
+
+                    //    string resultMsg = string.Empty;
+
+                    //    if (originalSetId.HasValue && setRollResult)
+                    //    {
+                    //        //Randomized existing set
+                    //        resultMsg = "You and I, we aren't so different.  We are nothing alike yet we are... nothing.  None of it matters.  You, especially, don't matter.  You will die.  I will die.  Will we then be the same?  Will we be at all?  Will you shut the fuck up?  Your armor has a different Set on it now, congrats.";
+                    //    }
+                    //    else if (!originalSetId.HasValue && setRollResult)
+                    //    {
+                    //        //Added new set
+                    //        resultMsg = "If you get caught with drugs and they ask you who you got them from, it was the naked Indian.  Also, your item that didn't have a Set, well, now it has a Set.  Take a look and see.  Hopefully it's what you wanted.";
+                    //    }
+                    //    else if (originalSetId.HasValue && !setRollResult)
+                    //    {
+                    //        //Remove existing set
+                    //        resultMsg = "Bad luck cunt, your armor that had a Set on it, well now it doesn't have a Set on it.  Also, you're ugly and smell bad, and those are your best qualities.";
+                    //    }
+                    //    else
+                    //    {
+                    //        //No existing set, failed to add a set
+                    //        resultMsg = "I once had a dream that I was peeing on a tree in the woods.  When I woke up, I had pissed all over myself.  I hope that makes you feel slightly better about the fact that your item which didn't previously have a Set on it still doesn't have a Set on it.  Better luck next time cunt.";
+                    //    }
+
+                    //    player.Session.Network.EnqueueSend(new GameMessageSystemChat(resultMsg, ChatMessageType.Broadcast));
+
+                    //    break;
+                    #endregion MorphGemRandomSet
+
+                    #region MorphGemRemoveMissileDReq
+                    case MorphGemRemoveMissileDReq:
+                        // Remove Missile D requirement - weenie ID = 480484
+
+                        //Validate that the item has a Missile D activation requirement
+                        if (target.ItemSkillLimit != Skill.MissileDefense || target.ItemSkillLevelLimit == null)
+                        {
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        //Remove the activation requirement
+                        target.ItemSkillLimit = null;
+                        target.ItemSkillLevelLimit = null;
+
+                        playerMsg = $"You apply the Morph Gem skillfully and have removed the Missile Defense activation requirement of your item.";
+
+                        //Send player message confirming the applied morph gem
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                        break;
+
+                    #endregion MorphGemRemoveMissileDReq
+     
+                    #region MorphGemRemoveMeleeDReq
+                    case MorphGemRemoveMeleeDReq:
+                        //Validate that the item has a Melee D activation requirement
+                        if (target.ItemSkillLimit != Skill.MeleeDefense || target.ItemSkillLevelLimit == null)
+                        {
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        //Remove the activation requirement
+                        target.ItemSkillLimit = null;
+                        target.ItemSkillLevelLimit = null;
+
+                        playerMsg = $"You apply the Morph Gem skillfully and have removed the Melee Defense activation requirement of your item.";
+
+                        //Send player message confirming the applied morph gem
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                        break;
+
+                    #endregion MorphGemRemoveMeleeDReq
+
+                    #region MorphGemRandomizeWeaponImbue
+                    case MorphGemRandomizeWeaponImbue:
+
+                        //Verify the item is imbued with AR, CS or CB
+                        var isValid = false;
+
+                        if(target.HasImbuedEffect(ImbuedEffectType.CripplingBlow) ||
+                            target.HasImbuedEffect(ImbuedEffectType.ArmorRending) ||
+                            target.HasImbuedEffect(ImbuedEffectType.CriticalStrike))
+                        {
+                            isValid = true;
+                        }
+
+                        if (!isValid)
+                        {
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        var wepImbueRandom = new Random();
+                        var roll = wepImbueRandom.Next(0, 1);
+                        if(target.HasImbuedEffect(ImbuedEffectType.CripplingBlow))
+                        {
+                            target.ImbuedEffect = roll == 0 ? ImbuedEffectType.ArmorRending : ImbuedEffectType.CriticalStrike;
+                        }
+                        else if (target.HasImbuedEffect(ImbuedEffectType.ArmorRending))
+                        {
+                            target.ImbuedEffect = roll == 0 ? ImbuedEffectType.CripplingBlow : ImbuedEffectType.CriticalStrike;
+                        }
+                        else if (target.HasImbuedEffect(ImbuedEffectType.CriticalStrike))
+                        {
+                            target.ImbuedEffect = roll == 0 ? ImbuedEffectType.ArmorRending : ImbuedEffectType.CripplingBlow;
+                        }
+
+                        switch(target.ImbuedEffect)
+                        {
+                            case ImbuedEffectType.ArmorRending:
+                                target.IconUnderlayId = 0x06003356;
+                                break;
+                            case ImbuedEffectType.CriticalStrike:
+                                target.IconUnderlayId = 0x06003358;
+                                break;
+                            case ImbuedEffectType.CripplingBlow:
+                                target.IconUnderlayId = 0x06003357;
+                                break;
+                            default:
+                                break;
+                        }
+
+                        break;
+                    #endregion MorphGemRandomizeWeaponImbue
+
+                    #region MorphGemRemovePlayerReq
+                    case MorphGemRemovePlayerReq:
+
+                        break;
+                    #endregion MorphGemRemovePlayerReq
+
+                    default:
+                        player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                        return;
+                }
+
+                player.TryConsumeFromInventoryWithNetworking(source, 1);
+
+                target.SaveBiotaToDatabase();
+
+                player.SendUseDoneEvent();
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("Exception in Tailoring.ApplyMorphGem. Ex: {0}", ex);
+            }
         }
 
         /// <summary>
@@ -703,6 +1352,12 @@ namespace ACE.Server.Entity
                 case WingedCoat:
                 case Tentacles:
                 case DarkHeart:
+                case MorphGemValue:                
+                case MorphGemArcane:
+                case MorphGemRemoveMissileDReq:
+                case MorphGemRemoveMeleeDReq:
+                case MorphGemRandomizeWeaponImbue:
+                case MorphGemRemovePlayerReq:
 
                     return true;
 

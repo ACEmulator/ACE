@@ -4,11 +4,14 @@ using System.Linq;
 using System.Numerics;
 
 using ACE.Common;
+using ACE.Database;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Entity.TownControl;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
@@ -32,6 +35,8 @@ namespace ACE.Server.WorldObjects
 
         private double houseRentWarnTimestamp;
         private const double houseRentWarnInterval = 3600;
+
+        private uint CurrentLandcell = 0;
 
         public void Player_Tick(double currentUnixTime)
         {
@@ -122,6 +127,10 @@ namespace ACE.Server.WorldObjects
             PK_DeathTick();
 
             GagsTick();
+
+            TownControlTick();
+
+            LogLandcells();
 
             PhysicsObj.ObjMaint.DestroyObjects();
 
@@ -610,6 +619,116 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        public void TownControlTick()
+        {
+            try
+            {
+                if (CurrentLandblock == null)
+                    return;
+
+                if (TownControlLandblocks.IsTownControlRewardLandblock(this.Location.Landblock))
+                {
+                    var townId = TownControlLandblocks.GetTownIdByLandblockId(this.Location.Landblock);
+
+                    if (townId.HasValue)
+                    {
+                        //Console.WriteLine($"{inLandblock}");
+                        var town = DatabaseManager.TownControl.GetTownById(townId.Value);                        
+                        if (!town.IsInConflict)
+                            return;
+
+                        //Check that an active event exists and isn't past its expiration
+                        var latestEvent = DatabaseManager.TownControl.GetLatestTownControlEventByTownId(townId.HasValue ? townId.Value : 0);
+                        if (latestEvent != null)
+                        {
+                            var tcEventDurationExpiredTime = latestEvent.EventStartDateTime.Value.AddSeconds(town.ConflictLength);
+                            if (DateTime.UtcNow > tcEventDurationExpiredTime)
+                                return;
+                        }
+
+                        bool shouldDropTrophy = true;
+                        bool isTrophyTimerPast = false;
+                        string trophyValidationMsg = "";
+                        var isDefender = false;
+
+                        //Don't award trophies to characters under the minimum level
+                        if (this.Level < PropertyManager.GetLong("town_control_reward_level_minimum").Item)
+                            shouldDropTrophy = false;
+
+                        //Don't award trohpies to characters who are not PK
+                        if (PlayerKillerStatus != PlayerKillerStatus.PK)
+                            shouldDropTrophy = false;
+
+                        //Don't award trophies to players who have received one too recently
+                        if (TownControlTrophyTimer == null ? false : Time.GetUnixTime() < TownControlTrophyTimer)
+                        {
+                            shouldDropTrophy = false;
+                        }
+                        else
+                        {
+                            isTrophyTimerPast = true;
+                        }
+
+                        //Check if too many players from same clan are in the same landblock
+                        if(shouldDropTrophy)
+                        {
+                            var zergLimit = PropertyManager.GetLong("town_control_reward_zerg_limit").Item;
+                            var playersOnLandblock = this.CurrentLandblock?.GetCurrentLandblockPlayers();
+                            int playersInSameClan = 0;
+                            if (playersOnLandblock != null && playersOnLandblock.Count > 0)
+                            {
+                                var thisPlayerAllegiance = AllegianceManager.GetAllegiance(this);
+                                if (thisPlayerAllegiance != null)
+                                {
+                                    if (thisPlayerAllegiance.MonarchId == town.CurrentOwnerID)
+                                        isDefender = true;
+
+                                    foreach (var player in playersOnLandblock)
+                                    {
+                                        var landblockPlayerAllegiance = AllegianceManager.GetAllegiance(player);
+
+                                        if (landblockPlayerAllegiance != null)
+                                        {
+                                            if(thisPlayerAllegiance.MonarchId == landblockPlayerAllegiance.MonarchId)
+                                            {
+                                                playersInSameClan++;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (playersInSameClan > zergLimit)
+                            {
+                                shouldDropTrophy = false;
+                                trophyValidationMsg = $"No participation trophy for you! Your clan has exceeded the zerg limit of {zergLimit} players.";
+                                SetProperty(PropertyFloat.TownControlTrophyTimer, Time.GetFutureUnixTime(isDefender ? PropertyManager.GetLong("town_control_periodic_reward_defender_seconds").Item : PropertyManager.GetLong("town_control_periodic_reward_seconds").Item));
+                            }
+                        }
+
+                        //If all validation passed, award a trophy and set the timestamp for next trophy award
+                        if (shouldDropTrophy)
+                        {
+                            var tcTrophy = WorldObjectFactory.CreateNewWorldObject(1000002); //PK Trophy
+                            this.TryCreateInInventoryWithNetworking(tcTrophy);
+                            Session.Network.EnqueueSend(new GameMessageCreateObject(tcTrophy));
+                            var msg = new GameMessageSystemChat($"You have received a participation trophy.", ChatMessageType.Broadcast);
+                            Session.Network.EnqueueSend(msg);
+                            SetProperty(PropertyFloat.TownControlTrophyTimer, Time.GetFutureUnixTime(isDefender ? PropertyManager.GetLong("town_control_periodic_reward_defender_seconds").Item : PropertyManager.GetLong("town_control_periodic_reward_seconds").Item));
+                        }
+                        else if(!String.IsNullOrEmpty(trophyValidationMsg) && isTrophyTimerPast)
+                        {
+                            Session.Network.EnqueueSend(new GameMessageSystemChat(trophyValidationMsg, ChatMessageType.Broadcast));
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("Exception in Player_Tick.TownControlTick. ex: {0}", ex);
+            }
+        }
+
         /// <summary>
         /// Prepare new action to run on this player
         /// </summary>
@@ -710,6 +829,15 @@ namespace ACE.Server.WorldObjects
 
             if (MagicState.IsCasting)
                 HandleMotionDone_Magic(motionID, success);
+        }
+        public void LogLandcells()
+        {
+            if (this.CurrentLandcell != this.Location.Cell)
+            {
+                log.Info($"Landcell: {this.Location.Cell}");
+                this.CurrentLandcell = this.Location.Cell;
+            }
+
         }
     }
 }

@@ -141,7 +141,7 @@ namespace ACE.Server.WorldObjects.Entity
         public uint GetCurrent(bool enchanted)
         {
             var multipliers = enchanted ? creature.EnchantmentManager.GetAttributeMod_Multiplier(Attribute) : 1.0f;
-            var additives = enchanted ? creature.EnchantmentManager.GetAttributeMod_Additive(Attribute) : 0;
+            var additives = enchanted ? creature.EnchantmentManager.GetAttributeMod_Additive(Attribute) : 0;            
 
             var total = (int)Base * multipliers + additives;
 

@@ -9,7 +9,7 @@ VALUES (450040,   1,          4) /* ItemType - Clothing */
      , (450040,   4,      1024) /* ClothingPriority - OuterwearUpperLegs, OuterwearLowerLegs, OuterwearChest, OuterwearAbdomen, OuterwearUpperArms, OuterwearLowerArms */
      , (450040,   5,        0) /* EncumbranceVal */
      , (450040,   8,        150) /* Mass */
-     , (450040,   9,      32512) /* ValidLocations - Armor */
+     , (450040,   9,      512) /* ValidLocations - Armor */
      , (450040,  16,          1) /* ItemUseable - No */
      , (450040,  19,       20) /* Value */
      , (450040,  27,          1) /* ArmorType - Cloth */

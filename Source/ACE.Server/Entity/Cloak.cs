@@ -60,6 +60,8 @@ namespace ACE.Server.Entity
             }
 
             var maxProcRate = maxProcBase + (itemLevel - 1) * 0.0125f;
+            maxProcRate = Math.Min(maxProcRate, (float)Managers.PropertyManager.GetDouble("cloak_max_proc_rate", 0.25f).Item);
+            maxProcRate = Math.Clamp(maxProcRate, 0f, 1f);
 
             var chance = Math.Min(damage_percent, maxProcRate);
 

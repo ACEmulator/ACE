@@ -16,7 +16,8 @@ VALUES (450595,   1,          1) /* ItemType - MeleeWeapon */
      , (450595,  45,          3) /* DamageType - Slash, Pierce */
      , (450595,  46,          2) /* DefaultCombatStyle - OneHanded */
      , (450595,  47,          6) /* AttackType - Thrust, Slash */
-     , (450595,  48,         11) /* WeaponSkill - Sword */
+     , (450595,  48,         48) /* WeaponSkill - Sword */
+	 , (450595, 353,          2) /* WeaponType - Sword */
      , (450595,  49,         30) /* WeaponTime */
      , (450595,  51,          1) /* CombatUse - Melee */
      , (450595,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */

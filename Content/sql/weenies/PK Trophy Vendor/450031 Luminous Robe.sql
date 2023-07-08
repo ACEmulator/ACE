@@ -8,7 +8,7 @@ VALUES (450031,   1,          4) /* ItemType - Clothing */
      , (450031,   3,         15) /* PaletteTemplate - RedPurple */
      , (450031,   4,      1024) /* ClothingPriority - OuterwearUpperLegs, OuterwearLowerLegs, OuterwearChest, OuterwearAbdomen, OuterwearUpperArms, OuterwearLowerArms, Feet */
      , (450031,   5,        0) /* EncumbranceVal */
-     , (450031,   9,      32512) /* ValidLocations - Armor */
+     , (450031,   9,      512) /* ValidLocations - Armor */
      , (450031,  16,          1) /* ItemUseable - No */
      , (450031,  19,      20) /* Value */
      , (450031,  26,          1) /* AccountRequirements - AsheronsCall_Subscription */

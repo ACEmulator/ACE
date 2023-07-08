@@ -35,5 +35,11 @@ namespace ACE.Database.Models.World
 
         [NotMapped]
         public bool DisableEpicCantrips { get; set; }
+
+        [NotMapped]
+        public bool DisableAetheria { get; set; }
+
+        [NotMapped]
+        public bool DisableHighLevelAetheria { get; set; }
     }
 }

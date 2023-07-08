@@ -121,9 +121,16 @@ namespace ACE.Server
                 config.MySql.World.Database = variable.Trim();
             Console.WriteLine();
 
+            Console.Write($"Enter the database name for your PK Kills database (default: \"{config.MySql.PKKills.Database}\"): ");
+            variable = Console.ReadLine();
+            if (IsRunningInContainer) variable = Environment.GetEnvironmentVariable("ACE_SQL_PKKILLS_DATABASE_NAME");
+            if (!string.IsNullOrWhiteSpace(variable))
+                config.MySql.PKKills.Database = variable.Trim();
+            Console.WriteLine();
+
             Console.WriteLine();
             Console.WriteLine();
-            Console.Write("Typically, all three databases will be on the same SQL server, is this how you want to proceed? (Y/n) ");
+            Console.Write("Typically, all four databases will be on the same SQL server, is this how you want to proceed? (Y/n) ");
             variable = Console.ReadLine();
             if (IsRunningInContainer) variable = "n";
             if (!variable.Equals("n", StringComparison.OrdinalIgnoreCase) && !variable.Equals("no", StringComparison.OrdinalIgnoreCase))
@@ -135,6 +142,7 @@ namespace ACE.Server
                     config.MySql.Authentication.Host = variable.Trim();
                     config.MySql.Shard.Host = variable.Trim();
                     config.MySql.World.Host = variable.Trim();
+                    config.MySql.PKKills.Host = variable.Trim();
                 }
                 Console.WriteLine();
 
@@ -145,6 +153,7 @@ namespace ACE.Server
                     config.MySql.Authentication.Port = Convert.ToUInt32(variable.Trim());
                     config.MySql.Shard.Port = Convert.ToUInt32(variable.Trim());
                     config.MySql.World.Port = Convert.ToUInt32(variable.Trim());
+                    config.MySql.PKKills.Port = Convert.ToUInt32(variable.Trim());
                 }
                 Console.WriteLine();
             }
@@ -191,11 +200,25 @@ namespace ACE.Server
                 if (!string.IsNullOrWhiteSpace(variable))
                     config.MySql.World.Port = Convert.ToUInt32(variable.Trim());
                 Console.WriteLine();
+
+                Console.Write($"Enter the Host address for your pk kills database (default: \"{config.MySql.PKKills.Host}\"): ");
+                variable = Console.ReadLine();
+                if (IsRunningInContainer) variable = Environment.GetEnvironmentVariable("ACE_SQL_PKKILLS_DATABASE_HOST");
+                if (!string.IsNullOrWhiteSpace(variable))
+                    config.MySql.PKKills.Host = variable.Trim();
+                Console.WriteLine();
+
+                Console.Write($"Enter the Port for your pk kills database (default: \"{config.MySql.PKKills.Port}\"): ");
+                variable = Console.ReadLine();
+                if (IsRunningInContainer) variable = Environment.GetEnvironmentVariable("ACE_SQL_PKKILLS_DATABASE_HOST");
+                if (!string.IsNullOrWhiteSpace(variable))
+                    config.MySql.PKKills.Port = Convert.ToUInt32(variable.Trim());
+                Console.WriteLine();
             }
 
             Console.WriteLine();
             Console.WriteLine();
-            Console.Write("Typically, all three databases will be on the using the same SQL server credentials, is this how you want to proceed? (Y/n) ");
+            Console.Write("Typically, all four databases will be on the using the same SQL server credentials, is this how you want to proceed? (Y/n) ");
             variable = Console.ReadLine();
             if (IsRunningInContainer) variable = "y";
             if (!variable.Equals("n", StringComparison.OrdinalIgnoreCase) && !variable.Equals("no", StringComparison.OrdinalIgnoreCase))
@@ -208,6 +231,7 @@ namespace ACE.Server
                     config.MySql.Authentication.Username = variable.Trim();
                     config.MySql.Shard.Username = variable.Trim();
                     config.MySql.World.Username = variable.Trim();
+                    config.MySql.PKKills.Username = variable.Trim();
                 }
                 Console.WriteLine();
 
@@ -219,6 +243,7 @@ namespace ACE.Server
                     config.MySql.Authentication.Password = variable.Trim();
                     config.MySql.Shard.Password = variable.Trim();
                     config.MySql.World.Password = variable.Trim();
+                    config.MySql.PKKills.Password = variable.Trim();
                 }
             }
             else
@@ -245,6 +270,18 @@ namespace ACE.Server
                 variable = Console.ReadLine();
                 if (!string.IsNullOrWhiteSpace(variable))
                     config.MySql.Shard.Password = variable.Trim();
+                Console.WriteLine();
+
+                Console.Write($"Enter the username for your pk kills database (default: \"{config.MySql.PKKills.Username}\"): ");
+                variable = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(variable))
+                    config.MySql.PKKills.Username = variable.Trim();
+                Console.WriteLine();
+
+                Console.Write($"Enter the password for your pk kills database (default: \"{config.MySql.PKKills.Password}\"): ");
+                variable = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(variable))
+                    config.MySql.PKKills.Password = variable.Trim();
                 Console.WriteLine();
 
                 Console.Write($"Enter the username for your world database (default: \"{config.MySql.World.Username}\"): ");
@@ -344,6 +381,9 @@ namespace ACE.Server
                             //sqlConnectInfo = $"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password};DefaultCommandTimeout=120";
                             sqlDBFile = sqlDBFile.Replace("ace_world", config.MySql.World.Database);
                             break;
+                        case "PKKillsBase":
+                            sqlConnectInfo = $"server={config.MySql.PKKills.Host};port={config.MySql.PKKills.Port};user={config.MySql.PKKills.Username};password={config.MySql.PKKills.Password};DefaultCommandTimeout=120";
+                            break;
                     }
                     var sqlConnect = new MySql.Data.MySqlClient.MySqlConnection(sqlConnectInfo);
                     var script = new MySql.Data.MySqlClient.MySqlScript(sqlConnect, sqlDBFile);
@@ -369,6 +409,8 @@ namespace ACE.Server
                 PatchDatabase("Shard", config.MySql.Shard.Host, config.MySql.Shard.Port, config.MySql.Shard.Username, config.MySql.Shard.Password, config.MySql.Authentication.Database, config.MySql.Shard.Database, config.MySql.World.Database);
 
                 PatchDatabase("World", config.MySql.World.Host, config.MySql.World.Port, config.MySql.World.Username, config.MySql.World.Password, config.MySql.Authentication.Database, config.MySql.Shard.Database, config.MySql.World.Database);
+
+                PatchDatabase("PKKills", config.MySql.PKKills.Host, config.MySql.PKKills.Port, config.MySql.PKKills.Username, config.MySql.PKKills.Password, config.MySql.PKKills.Database);
             }
 
             Console.WriteLine();

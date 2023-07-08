@@ -10,7 +10,7 @@ namespace ACE.Database
 
         public static AuthenticationDatabase Authentication { get; } = new AuthenticationDatabase();
 
-        public static WorldDatabaseWithEntityCache World { get; } = new WorldDatabaseWithEntityCache();
+        public static WorldDatabaseWithEntityCache World { get; } = new WorldDatabaseWithEntityCache();        
 
         private static SerializedShardDatabase serializedShardDb;
 
@@ -19,6 +19,8 @@ namespace ACE.Database
         public static ShardConfigDatabase ShardConfig { get; } = new ShardConfigDatabase();
 
         public static LogDatabase Log { get; } = new LogDatabase();
+
+        public static TownControlDatabase TownControl { get; } = new TownControlDatabase();
 
         public static bool InitializationFailure = false;
 
@@ -57,6 +59,8 @@ namespace ACE.Database
             Shard = serializedShardDb;
 
             shardDb.Exists(true);
+
+            TownControl.Exists(true);
         }
 
         public static bool AutoPromoteNextAccountToAdmin { get; set; }

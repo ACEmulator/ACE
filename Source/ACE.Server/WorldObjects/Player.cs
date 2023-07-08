@@ -16,6 +16,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
@@ -45,6 +46,8 @@ namespace ACE.Server.WorldObjects
         public ContractManager ContractManager;
 
         public bool LastContact = true;
+
+        public bool IsInArena { get; set; } = false;
 
         private List<double> recentJumps = new List<double>();
 
@@ -514,7 +517,7 @@ namespace ACE.Server.WorldObjects
         /// If you want to force a player to logout, use Session.LogOffPlayer().
         /// </summary>
         public bool LogOut(bool clientSessionTerminatedAbruptly = false, bool forceImmediate = false)
-        {
+        {            
             if (PKLogoutActive && !forceImmediate)
             {
                 //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
@@ -951,7 +954,7 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"JumpPack: Velocity: {jump.Velocity}, Extent: {jump.Extent}");
 
             var strength = Strength.Current;
-            var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, AugmentationIncreasedCarryingCapacity);
+            var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, AugmentationIncreasedCarryingCapacity + (EnlightenmentCustomLevel >= 2 ? 1 : 0));
             var burden = EncumbranceSystem.GetBurden(capacity, EncumbranceVal ?? 0);
 
             // clear jump penalty if you're outside the bounds of the length
@@ -1008,9 +1011,17 @@ namespace ACE.Server.WorldObjects
                 PhysicsObj.calc_acceleration();
                 PhysicsObj.set_on_walkable(false);
                 PhysicsObj.set_local_velocity(jump.Velocity, false);
+                PhysicsObj.RemoveLinkAnimations();      // matches MotionInterp.LeaveGround more closely
+                PhysicsObj.MovementManager.MotionInterpreter.PendingMotions.Clear();        //hack
+                PhysicsObj.IsAnimating = false;
 
                 if (CombatMode == CombatMode.Magic && MagicState.IsCasting)
+                {
+                    // clear possible CastMotion out of InterpretedMotionState.ForwardCommand
+                    PhysicsObj.MovementManager.MotionInterpreter.StopCompletely();
+
                     FailCast();
+                }
             }
             else
             {
@@ -1021,10 +1032,13 @@ namespace ACE.Server.WorldObjects
                 //PhysicsObj.set_velocity(glob_velocity, true);
 
                 // perform jump in physics engine
-                PhysicsObj.TransientState &= ~(Physics.TransientStateFlags.Contact | Physics.TransientStateFlags.WaterContact);
+                PhysicsObj.TransientState &= ~(TransientStateFlags.Contact | TransientStateFlags.WaterContact);
                 PhysicsObj.calc_acceleration();
                 PhysicsObj.set_on_walkable(false);
                 PhysicsObj.set_local_velocity(jump.Velocity, false);
+                PhysicsObj.RemoveLinkAnimations();      // matches MotionInterp.LeaveGround more closely
+                PhysicsObj.MovementManager.MotionInterpreter.PendingMotions.Clear();        //hack
+                PhysicsObj.IsAnimating = false;
             }
 
             // this shouldn't be needed, but without sending this update motion / simulated movement event beforehand,
@@ -1103,7 +1117,7 @@ namespace ACE.Server.WorldObjects
         {
             var strength = Strength.Current;
 
-            var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, AugmentationIncreasedCarryingCapacity);
+            var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, AugmentationIncreasedCarryingCapacity + (EnlightenmentCustomLevel >= 2 ? 1 : 0));
 
             var burden = EncumbranceSystem.GetBurden(capacity, EncumbranceVal ?? 0);
 
@@ -1244,6 +1258,15 @@ namespace ACE.Server.WorldObjects
                 innerChain.EnqueueChain();
             });
             actionChain.EnqueueChain();
+        }
+
+        public void GiveArenaTrophy()
+        {
+            var trophy = WorldObjectFactory.CreateNewWorldObject(1000003);
+            trophy.SetStackSize(1);
+            this.TryCreateInInventoryWithNetworking(trophy);
+            Session.Network.EnqueueSend(new GameMessageCreateObject(trophy));
+
         }
     }
 }

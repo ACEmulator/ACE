@@ -352,7 +352,7 @@ namespace ACE.Server.WorldObjects
             {
                 var strength = Strength.Current;
 
-                var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, player.AugmentationIncreasedCarryingCapacity);
+                var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, player.AugmentationIncreasedCarryingCapacity + (player.EnlightenmentCustomLevel >= 2 ? 1 : 0));
                 burden = EncumbranceSystem.GetBurden(capacity, EncumbranceVal ?? 0);
 
                 // TODO: find this exact formula in client

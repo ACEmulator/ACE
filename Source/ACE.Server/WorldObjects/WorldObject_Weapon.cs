@@ -372,7 +372,7 @@ namespace ACE.Server.WorldObjects
             bool isPvP = wielder is Player && target is Player;
 
             if (isPvP && weapon?.WeenieClassId == 37585)
-                critDamageMod = (float)1.5;
+                critDamageMod = (float)0.5;
 
             return critDamageMod;
         }

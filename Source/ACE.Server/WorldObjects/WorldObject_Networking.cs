@@ -1206,7 +1206,7 @@ namespace ACE.Server.WorldObjects
             return animLength;
         }
 
-        public float EnqueueMotionAction(ActionChain actionChain, List<MotionCommand> motionCommands, float speed = 1.0f, MotionStance? useStance = null, bool usePrevCommand = false)
+        public float EnqueueMotionAction(ActionChain actionChain, List<MotionCommand> motionCommands, float speed = 1.0f, MotionStance? useStance = null, bool usePrevCommand = false, bool checkCasting = false)
         {
             var stance = useStance ?? CurrentMotionState.Stance;
 
@@ -1233,6 +1233,9 @@ namespace ACE.Server.WorldObjects
 
             actionChain.AddAction(this, () =>
             {
+                if (checkCasting && this is Player player && player.MagicState != null && !player.MagicState.IsCasting)
+                    return;
+
                 CurrentMotionState = motion;
                 EnqueueBroadcastMotion(motion, null, false);
 

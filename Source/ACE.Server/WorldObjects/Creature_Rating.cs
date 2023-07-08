@@ -216,15 +216,18 @@ namespace ACE.Server.WorldObjects
 
             var augBonus = 0;
             var lumAugBonus = 0;
+            var enlightenmentBonus = 0;
 
             if (this is Player player)
             {
                 augBonus = player.AugmentationDamageBonus * 3;
                 lumAugBonus = player.LumAugDamageRating;
-            }
+
+                enlightenmentBonus = player.EnlightenmentCustomLevel >= 4 ? 1 : 0;
+            }            
 
             // heritage / weapon type bonus factored in elsewhere?
-            return damageRating + equipment + enchantments - weaknessRating + augBonus + lumAugBonus;
+            return damageRating + equipment + enchantments - weaknessRating + augBonus + lumAugBonus + enlightenmentBonus;
         }
 
         public int GetDamageResistRating(CombatType? combatType = null, bool directDamage = true)
@@ -245,15 +248,17 @@ namespace ACE.Server.WorldObjects
             var augBonus = 0;
             var lumAugBonus = 0;
             var specBonus = 0;
+            var enlightenmentBonus = 0;
 
             if (this is Player player)
             {
                 augBonus = player.AugmentationDamageReduction * 3;
                 lumAugBonus = player.LumAugDamageReductionRating;
                 specBonus = GetSpecDefenseBonus(combatType);
+                enlightenmentBonus = player.EnlightenmentCustomLevel >= 5 ? 1 : 0;
             }
 
-            return damageResistRating + equipment + enchantments - netherDotDamageRating + augBonus + lumAugBonus + specBonus;
+            return damageResistRating + equipment + enchantments - netherDotDamageRating + augBonus + lumAugBonus + specBonus + enlightenmentBonus;
         }
 
         public float GetDamageResistRatingMod(CombatType? combatType = null, bool directDamage = true)

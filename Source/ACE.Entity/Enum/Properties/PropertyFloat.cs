@@ -225,7 +225,13 @@ namespace ACE.Entity.Enum.Properties
 
         /* Custom */
         [ServerOnly]
+        TownControlTrophyTimer = 9003,
+        
+        [ServerOnly]
         JumpTimer = 9004,
+
+        /***** FOREDAWN CUSTOMS *****/
+        ForedawnPvpDamageMulti = 52000
     }
 
     public static class PropertyFloatExtensions

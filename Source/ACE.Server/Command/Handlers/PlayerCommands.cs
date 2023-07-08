@@ -16,6 +16,8 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 using ACE.Database.Models.Log;
+using System.Text;
+
 
 namespace ACE.Server.Command.Handlers
 {
@@ -159,6 +161,20 @@ namespace ACE.Server.Command.Handlers
 
             session.Network.EnqueueSend(new GameMessageSystemChat(session.Player.MagicState.ToString(), ChatMessageType.Broadcast));
             session.Network.EnqueueSend(new GameMessageSystemChat($"IsMovingOrAnimating: {physicsObj.IsMovingOrAnimating}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"  IsAnimating: {physicsObj.IsAnimating}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"  PartArray.Sequence.is_first_cyclic(): {physicsObj.PartArray.Sequence.is_first_cyclic()}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"  CachedVelocity: {physicsObj.CachedVelocity}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"  Velocity: {physicsObj.Velocity}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"  MovementManager.MotionInterpreter.InterpretedState.HasCommands(): {physicsObj.MovementManager.MotionInterpreter.InterpretedState.HasCommands()}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"  MovementManager.MoveToManager.Initialized: {physicsObj.MovementManager.MoveToManager.Initialized}", ChatMessageType.Broadcast));
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"TransientState: {physicsObj.TransientState}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"State: {physicsObj.State}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"JumpedThisFrame: {physicsObj.JumpedThisFrame}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Acceleration: {physicsObj.Acceleration}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Omega: {physicsObj.Omega}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"CollidingWithEnvironment: {physicsObj.CollidingWithEnvironment}", ChatMessageType.Broadcast));            
+
             session.Network.EnqueueSend(new GameMessageSystemChat($"PendingActions: {pendingActions.Count}", ChatMessageType.Broadcast));
             session.Network.EnqueueSend(new GameMessageSystemChat($"CurrAnim: {currAnim?.Value.Anim.ID:X8}", ChatMessageType.Broadcast));
         }
@@ -525,6 +541,7 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.AdminTell));
         }
 
+
         [CommandHandler("arena", AccessLevel.Player, CommandHandlerFlag.None, 1,
             "The arena command is used to join an arena event or get information about arena statistics")]
         public static void HandleArena(Session session, params string[] parameters)
@@ -674,5 +691,169 @@ namespace ACE.Server.Command.Handlers
                     return false;
             }
         }
+
+        [CommandHandler("ForceLogoffStuckCharacter", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Force log off of character that's stuck in game.  Is only allowed when initiated from a character that is on the same account as the target character.")]
+        public static void HandleForceLogoffStuckCharacter(Session session, params string[] parameters)
+        {
+            var playerName = "";
+            if (parameters.Length > 0)
+                playerName = string.Join(" ", parameters);
+
+            Player target = null;
+
+            if (!string.IsNullOrEmpty(playerName))
+            {
+                var plr = PlayerManager.FindByName(playerName);
+                if (plr != null)
+                {
+                    target = PlayerManager.GetOnlinePlayer(plr.Guid);
+
+                    if (target == null)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Unable to force log off for {plr.Name}: Player is not online.");
+                        return;
+                    }
+
+                    //Verify the target is not the current player
+                    if(session.Player.Guid == target.Guid)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Unable to force log off for {plr.Name}: You cannot target yourself, please try with a different character on same account.");
+                        return;
+                    }
+
+                    //Verify the target is on the same account as the current player
+                    if (session.AccountId != target.Account.AccountId)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Unable to force log off for {plr.Name}: Target must be within same account as the player who issues the logoff command. Please reach out for admin support.");
+                        return;
+                    }
+
+                    DeveloperCommands.HandleForceLogoff(session, parameters);
+                }
+                else
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Unable to force log off for {playerName}: Player not found.");
+                    return;
+                }
+            }
+            else
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Invalid parameters, please provide a player name for the player that needs to be logged off.");
+                return;
+            }            
+        }
+
+        #region Town Control
+
+        private static string _townOwnerMessageHeader = "Town Owners:\n";
+        private static string _townOwnerRecordTemplate = "{0} is owned by {1}\n";
+
+        [CommandHandler("town-owners", AccessLevel.Player, CommandHandlerFlag.None, 0,
+            "Show owners of each town",
+            "")]
+        public static void HandleTownOwnersQuery(Session session, params string[] parameters)
+        {
+            try
+            {
+                StringBuilder townOwnerMsg = new StringBuilder(_townOwnerMessageHeader);
+
+                var townList = DatabaseManager.TownControl.GetAllTowns();
+
+                foreach (var town in townList)
+                {
+                    string townOwner = string.Empty;
+
+                    if (town.CurrentOwnerID.HasValue)
+                    {
+                        var monarch = PlayerManager.FindByGuid(town.CurrentOwnerID.Value);
+                        townOwner = monarch.Name;
+                    }
+                    else
+                    {
+                        townOwner = "nobody";
+                    }
+
+                    townOwnerMsg.Append(String.Format(_townOwnerRecordTemplate, town.TownName, townOwner));
+                }
+
+                CommandHandlerHelper.WriteOutputInfo(session, townOwnerMsg.ToString(), ChatMessageType.Broadcast);
+            }
+            catch (Exception ex)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Server Error checking town owner list.  Pls report this to the admins with a timestamp of when it happened.", ChatMessageType.Broadcast);
+                log.ErrorFormat("Error in PlayerCommands.HandleTownOwnersQuery. Ex: {0}", ex);
+            }
+        }
+
+
+        [CommandHandler("town-control-respite", AccessLevel.Player, CommandHandlerFlag.None, 1,
+            "Show the remaining respite time for a given town for your clan",
+            "")]
+        public static void HandleTownRespiteQuery(Session session, params string[] parameters)
+        {
+            try
+            {
+                if (parameters != null && parameters.Length > 0)
+                {
+                    string townName = "";
+
+                    foreach (string param in parameters)
+                    {
+                        townName = String.Concat(townName, param, " ");
+                    }
+
+                    townName = townName.Trim();
+
+                    var townList = DatabaseManager.TownControl.GetAllTowns();
+
+                    var town = townList.Find(x => x.TownName.Equals(townName, StringComparison.OrdinalIgnoreCase));
+                    if (town == null)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"{townName} is not a valid town that is provisioned for Town Control", ChatMessageType.Broadcast);
+                        return;
+                    }
+
+                    if (!session.Player.MonarchId.HasValue)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"You are not part of a valid allegiance, unable to check respite for {townName}", ChatMessageType.Broadcast);
+                        return;
+                    }
+
+                    if (session.Player.MonarchId == town.CurrentOwnerID)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Your allegiance already owns {townName}", ChatMessageType.Broadcast);
+                        return;
+                    }
+
+                    var latestTcEvent = DatabaseManager.TownControl.GetLatestTownControlEventByAttackingMonarchId(session.Player.MonarchId.Value, town.TownId);
+
+                    if (latestTcEvent != null)
+                    {
+                        var respiteExpirationDate = latestTcEvent.EventStartDateTime?.AddSeconds(town.ConflictRespiteLength.HasValue ? town.ConflictRespiteLength.Value : 0);
+                        if (respiteExpirationDate.HasValue && respiteExpirationDate.Value > DateTime.UtcNow)
+                        {
+                            TimeSpan timeLeft = respiteExpirationDate.Value - DateTime.UtcNow;
+                            CommandHandlerHelper.WriteOutputInfo(session, $"Your clan can attack {townName} again in {timeLeft.TotalMinutes} minutes", ChatMessageType.Broadcast);
+                            return;
+                        }
+                    }
+
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Your clan is not currently limited by a respite and can attack {townName} any time", ChatMessageType.Broadcast);
+                    return;
+                }
+                else
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, "Invalid Parameters.  Expected Syntax: /town-control-respite TownName", ChatMessageType.Broadcast);
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Server Error checking town respite timer.  Pls report this to the admins with a timestamp of when it happened.", ChatMessageType.Broadcast);
+                log.ErrorFormat("Error in PlayerCommands.HandleTownRespiteQuery. Ex: {0}", ex);
+            }
+        }
+
+        #endregion
     }
 }

@@ -17,6 +17,7 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Handlers;
 using ACE.Database;
+using ACE.Server.Entity.TownControl;
 
 namespace ACE.Server.WorldObjects
 {
@@ -476,8 +477,13 @@ namespace ACE.Server.WorldObjects
 
             // if player dies on a No Drop landblock,
             // they don't drop any items
+            Player killer = null;
+            if (IsPKDeath(corpse.KillerId))
+            {
+                killer = (Player)PlayerManager.FindByGuid(new ObjectGuid((uint)corpse.KillerId));                
+            }
 
-            if (corpse.IsOnNoDropLandblock || IsPKLiteDeath(corpse.KillerId))
+            if (corpse.IsOnNoDropLandblock || IsPKLiteDeath(corpse.KillerId) || this.IsInArena)
                 return new List<WorldObject>();
 
             var numItemsDropped = GetNumItemsDropped(corpse);
@@ -578,10 +584,10 @@ namespace ACE.Server.WorldObjects
                 }
 
                 //Don't drop trophy if killer is in same clan
-                var killer = PlayerManager.FindByGuid(new ObjectGuid((uint)corpse.KillerId));
+                var _killer = PlayerManager.FindByGuid(new ObjectGuid((uint)corpse.KillerId));
                 var victimMonarch = this.MonarchId != null ? this.MonarchId : this.Guid.Full;
-                var killerMonarch = killer.MonarchId != null ? killer.MonarchId : killer.Guid.Full;                
-                if(victimMonarch == killerMonarch)
+                var killerMonarch = _killer.MonarchId != null ? _killer.MonarchId : _killer.Guid.Full;
+                if (victimMonarch == killerMonarch)
                 {
                     shouldDropTrophy = false;
                 }
@@ -630,6 +636,24 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         SetProperty(PropertyFloat.PkTrophyDropsToday, PkTrophyDropsToday.Value + 1);
+                    }
+                }
+
+                //Drop bonus trophy during active town control events
+                if (TownControlLandblocks.IsTownControlLandblock(this.Location.Landblock))
+                {
+                    //For Town Control landblocks that always drop a set number of pk trophies within a certain subset of cells
+                    var townId = TownControlLandblocks.GetTownIdByLandblockId(this.Location.Landblock);
+
+                    if (townId.HasValue)
+                    {
+                        var town = DatabaseManager.TownControl.GetTownById(townId.Value);
+                        if (town.IsInConflict)
+                        {
+                            var pkTrophy = WorldObjectFactory.CreateNewWorldObject(1000002);
+                            pkTrophy.SetStackSize(1);
+                            dropItems.Add(pkTrophy);
+                        }
                     }
                 }
             }

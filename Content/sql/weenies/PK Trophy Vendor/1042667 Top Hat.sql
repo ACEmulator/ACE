@@ -1,10 +1,10 @@
 DELETE FROM `weenie` WHERE `class_Id` = 1042667;
 
 INSERT INTO `weenie` (`class_Id`, `class_Name`, `type`, `last_Modified`)
-VALUES (1042667, 'ace1042667-tophat', 2, '2021-11-20 00:19:18') /* Clothing */;
+VALUES (1042667, 'ace1042667-tophat', 4, '2021-11-20 00:19:18') /* Clothing */;
 
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`)
-VALUES (1042667,   1,          2) /* ItemType - Armor */
+VALUES (1042667,   1,          4) /* ItemType - Armor */
      , (1042667,   3,         39) /* PaletteTemplate - Black */
      , (1042667,   4,      16384) /* ClothingPriority - Head */
      , (1042667,   5,          1) /* EncumbranceVal */

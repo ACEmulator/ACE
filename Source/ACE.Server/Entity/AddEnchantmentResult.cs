@@ -98,6 +98,9 @@ namespace ACE.Server.Entity
                         if (!equip && caster is Player player && player.AugmentationIncreasedSpellDuration > 0)
                             spellDuration *= 1.0f + player.AugmentationIncreasedSpellDuration * 0.2f;
 
+                        if (!equip && caster is Player enlightenedPlayer && enlightenedPlayer.EnlightenmentCustomLevel >= 3)
+                            spellDuration *= 1.2f;
+
                         var entryDuration = entry.Duration == -1 ? double.PositiveInfinity : entry.Duration;
 
                         if (spellDuration > entryDuration || spellDuration == entryDuration && !SpellSet.SetSpells.Contains(entry.SpellId))
