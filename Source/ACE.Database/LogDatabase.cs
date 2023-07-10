@@ -236,7 +236,7 @@ namespace ACE.Database
 
         #region PK Kills Log
 
-        public PKKill LogPkKill(uint victimId, uint killerId, uint? victimMonarchId, uint? killerMonarchId)
+        public PKKill LogPkKill(uint victimId, uint killerId, uint? victimMonarchId, uint? killerMonarchId, uint? victimArenaPlayerId = null, uint? killerArenaPlayerId = null)
         {
             var kill = new PKKill();
 
@@ -247,6 +247,8 @@ namespace ACE.Database
                 kill.VictimMonarchId = victimMonarchId;
                 kill.KillerMonarchId = killerMonarchId;
                 kill.KillDateTime = DateTime.Now;
+                kill.VictimArenaPlayerID = victimArenaPlayerId;
+                kill.KillerArenaPlayerID = killerArenaPlayerId;
 
                 using (var context = new LogDbContext())
                 {

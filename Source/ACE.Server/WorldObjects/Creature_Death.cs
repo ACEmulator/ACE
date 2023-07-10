@@ -570,9 +570,25 @@ namespace ACE.Server.WorldObjects
                             victimMonarchId = victimAllegiance.MonarchId;
                         }
 
+                        //Handle arena kills
+                        uint? victimArenaPlayerId = null;
+                        uint? killerArenaPlayerId = null;
+                        if (ArenaLocation.IsArenaLandblock(player.Location.Landblock))
+                        {
+                            var victimArenaPlayer = ArenaManager.GetArenaPlayerByCharacterId(player.Character.Id);
+                            var killerPlayer = PlayerManager.FindByGuid(killer.Guid);
+                            var killerArenaPlayer = ArenaManager.GetArenaPlayerByCharacterId(killerPlayer.Guid.Full);
+
+                            if (victimArenaPlayer != null && killerArenaPlayer != null)
+                            {
+                                victimArenaPlayerId = victimArenaPlayer.Id;
+                                killerArenaPlayerId = killerArenaPlayer.Id;
+                            }
+                        }
+
                         try
                         {
-                            DatabaseManager.Log.LogPkKill((uint)corpse.VictimId, (uint)killer.Guid.Full, victimMonarchId, killerMonarchId);
+                            DatabaseManager.Log.LogPkKill((uint)corpse.VictimId, (uint)killer.Guid.Full, victimMonarchId, killerMonarchId, victimArenaPlayerId, killerArenaPlayerId);
                         }
                         catch (Exception ex)
                         {

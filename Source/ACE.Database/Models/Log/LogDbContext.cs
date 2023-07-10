@@ -170,6 +170,12 @@ namespace ACE.Database.Models.Log
 
                 entity.Property(e => e.KillDateTime)
                     .HasColumnName("kill_datetime");
+
+                entity.Property(e => e.VictimArenaPlayerID)
+                    .HasColumnName("victim_arena_player_id");
+
+                entity.Property(e => e.KillerArenaPlayerID)
+                    .HasColumnName("killer_arena_player_id");
             });
 
             modelBuilder.Entity<ArenaEvent>(entity =>

@@ -101,7 +101,8 @@ CREATE TABLE `pk_kills_log` (
   `killer_monarch_id` INT UNSIGNED,
   `victim_monarch_id` INT UNSIGNED,
   `kill_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `arena_player_id` INT,
+  `killer_arena_player_id` INT,
+  `victim_arena_player_id` INT,
   PRIMARY KEY (`id`)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;

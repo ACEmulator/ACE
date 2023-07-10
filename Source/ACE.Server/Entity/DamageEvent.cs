@@ -215,6 +215,17 @@ namespace ACE.Server.Entity
                 }
             }
 
+            //Arenas - If this is an arena landblock
+            //don't allow any dmg except while the event is in a started status and between non-eliminated players            
+            if (playerDefender != null && ArenaLocation.IsArenaLandblock(playerDefender.Location.Landblock))
+            {
+                var arenaEvent = ArenaManager.GetArenaEventByLandblock(playerDefender.Location.Landblock);
+                if (arenaEvent == null || arenaEvent.Status != 4)
+                {
+                    return 0.0f;
+                }                
+            }
+
             Attacker = attacker;
             Defender = defender;
 
@@ -673,6 +684,24 @@ namespace ACE.Server.Entity
             }
 
             DamageMitigated = DamageBeforeMitigation - Damage;
+
+            //Arenas - If this is an arena landblock
+            //track total dmg dealt and received            
+            if (playerDefender != null && ArenaLocation.IsArenaLandblock(playerDefender.Location.Landblock))
+            {
+                var arenaEvent = ArenaManager.GetArenaEventByLandblock(playerDefender.Location.Landblock);
+                if (arenaEvent != null && arenaEvent.Status == 4 && playerAttacker != null)
+                {                    
+                    var attackerArenaPlayer = arenaEvent.Players.FirstOrDefault(x => x.CharacterId == playerAttacker.Character.Id);
+                    var defenderArenaPlayer = arenaEvent.Players.FirstOrDefault(x => x.CharacterId == playerDefender.Character.Id);
+
+                    if (attackerArenaPlayer != null && defenderArenaPlayer != null)
+                    {
+                        attackerArenaPlayer.TotalDmgDealt += (uint)Math.Round(Damage);
+                        defenderArenaPlayer.TotalDmgReceived += (uint)Math.Round(Damage);
+                    }
+                }
+            }
 
             return Damage;
         }

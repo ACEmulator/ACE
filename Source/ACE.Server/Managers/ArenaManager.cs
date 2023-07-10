@@ -42,16 +42,16 @@ namespace ACE.Server.Managers
 
         private static DateTime LastTickDateTime = DateTime.MinValue;
         public static void Tick()
-        {                        
+        {
             if (DateTime.Now.AddSeconds(-5) < LastTickDateTime)
                 return;
 
             bool isArenasDisabled = PropertyManager.GetBool("disable_arenas").Item;
             if (isArenasDisabled)
             {
-                foreach(var arena in arenaLocations)
+                foreach (var arena in arenaLocations)
                 {
-                    if(arena.Value.HasActiveEvent)
+                    if (arena.Value.HasActiveEvent)
                     {
                         arena.Value.EndEventTimelimitExceeded();
                         arena.Value.ClearPlayersFromArena();
@@ -75,15 +75,15 @@ namespace ACE.Server.Managers
             }
 
             LastTickDateTime = DateTime.Now;
-        }        
+        }
 
         public static List<ArenaEvent> GetActiveEvents()
         {
             var eventList = new List<ArenaEvent>();
 
-            foreach(var arena in arenaLocations.Values)
+            foreach (var arena in arenaLocations.Values)
             {
-                if(arena.HasActiveEvent)
+                if (arena.HasActiveEvent)
                 {
                     eventList.Add(arena.ActiveEvent);
                 }
@@ -96,7 +96,7 @@ namespace ACE.Server.Managers
         {
             bool isPlayerActive = false;
 
-            foreach(var arena in arenaLocations.Values)
+            foreach (var arena in arenaLocations.Values)
             {
                 if (arena.HasActiveEvent && arena.ActiveEvent.Status >= 4)
                 {
@@ -113,17 +113,17 @@ namespace ACE.Server.Managers
         {
             returnMsg = string.Empty;
 
-            if(queuedPlayers.ContainsKey(characterId))
+            if (queuedPlayers.ContainsKey(characterId))
             {
                 returnMsg = $"You are actively queued for an arena event, you cannot queue twice";
                 return false;
             }
 
-            var activeEvents = GetActiveEvents();
-
-            if(activeEvents.FirstOrDefault(x => x.Players?.FirstOrDefault(y => y.Id == characterId) != null) != null)
+            var existingArenaPlayer = ArenaManager.GetArenaPlayerByCharacterId(characterId);
+            if (existingArenaPlayer != null)
             {
-                returnMsg = $"You are currently in an active arena event.  You must wait until your current event is over before queuing for another one.";
+                returnMsg = $"You are currently in an active {existingArenaPlayer.EventTypeDisplay} arena event.  You must wait until your current event is over before queuing for another one.";
+                 
                 return false;
             }
 
@@ -165,7 +165,7 @@ namespace ACE.Server.Managers
         /// <param name="excludedPlayers"></param>
         /// <returns></returns>
         public static ArenaEvent MatchMake(List<string> supportedEventTypes, List<uint> excludedPlayers)
-        {            
+        {
             if (excludedPlayers == null)
             {
                 excludedPlayers = new List<uint>();
@@ -177,7 +177,7 @@ namespace ACE.Server.Managers
             List<ArenaPlayer> queue = new List<ArenaPlayer>();
             queue.AddRange(queuedPlayers.Values);
 
-            foreach(var arenaPlayer in queue)
+            foreach (var arenaPlayer in queue)
             {
                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
                 bool isPlayerValidState = true;
@@ -205,7 +205,7 @@ namespace ACE.Server.Managers
 
                     queuedPlayers.Remove(arenaPlayer.CharacterId);
                 }
-            }            
+            }
 
             //Find the first queued player waiting for an event type that this arena location supports
             var firstArenaPlayer = queuedPlayers.Values?
@@ -213,9 +213,9 @@ namespace ACE.Server.Managers
                 .OrderBy(x => x.CreateDateTime)?
                 .FirstOrDefault();
 
-            if(firstArenaPlayer != null)
+            if (firstArenaPlayer != null)
             {
-                log.Info($"ArenaManager.MatchMake() - First Player = {firstArenaPlayer.CharacterName}, EventType = {firstArenaPlayer.EventType}");                
+                log.Info($"ArenaManager.MatchMake() - First Player = {firstArenaPlayer.CharacterName}, EventType = {firstArenaPlayer.EventType}");
 
                 //See if there's enough other players waiting for the same event type to create a match
                 var otherPlayers = queuedPlayers.Values?
@@ -225,7 +225,7 @@ namespace ACE.Server.Managers
                 bool weHaveEnoughPlayers = false;
                 List<ArenaPlayer> finalPlayerList = new List<ArenaPlayer>();
 
-                if(otherPlayers != null && otherPlayers.Count() > 0)
+                if (otherPlayers != null && otherPlayers.Count() > 0)
                 {
                     log.Info($"ArenaManager.MatchMake() - otherPlayers.Count = {otherPlayers.Count()}");
 
@@ -235,13 +235,13 @@ namespace ACE.Server.Managers
                             weHaveEnoughPlayers = true;
                             finalPlayerList.Add(firstArenaPlayer);
                             finalPlayerList.Add(otherPlayers.First());
-                            foreach(var player in finalPlayerList)
+                            foreach (var player in finalPlayerList)
                             {
                                 player.TeamGuid = Guid.NewGuid();
                             }
                             break;
                         case "2v2":
-                            if(otherPlayers.Count() >= 3)
+                            if (otherPlayers.Count() >= 3)
                             {
                                 weHaveEnoughPlayers = true;
                                 finalPlayerList.Add(firstArenaPlayer);
@@ -253,14 +253,14 @@ namespace ACE.Server.Managers
 
                                 var secondTeam = finalPlayerList.Where(x => !x.TeamGuid.HasValue);
                                 var secondTeamGuid = Guid.NewGuid();
-                                foreach(var secondTeamPlayer in secondTeam)
+                                foreach (var secondTeamPlayer in secondTeam)
                                 {
                                     secondTeamPlayer.TeamGuid = secondTeamGuid;
                                 }
                             }
                             break;
                         case "ffa":
-                            
+
                             if (otherPlayers.Count() >= 9 || (otherPlayers.Count() >= 6 && firstArenaPlayer.CreateDateTime > DateTime.Now.AddMinutes(-3)))
                             {
                                 finalPlayerList.Add(firstArenaPlayer);
@@ -269,7 +269,7 @@ namespace ACE.Server.Managers
                                 //Don't allow more than 3 players from the same clan                                
                                 foreach (var player in otherPlayers)
                                 {
-                                    if(finalPlayerList.Count(x => x.MonarchId == player.MonarchId) <= 1)
+                                    if (finalPlayerList.Count(x => x.MonarchId == player.MonarchId) <= 1)
                                     {
                                         finalPlayerList.Add(player);
                                     }
@@ -287,11 +287,11 @@ namespace ACE.Server.Managers
                                     }
                                 }
                             }
-                            
+
                             break;
                     }
 
-                    if(weHaveEnoughPlayers)
+                    if (weHaveEnoughPlayers)
                     {
                         log.Info($"ArenaManager.MatchMake() - we have enough players to start the match");
 
@@ -302,7 +302,7 @@ namespace ACE.Server.Managers
                         arenaEvent.Status = 1;
                         arenaEvent.CreatedDateTime = DateTime.Now;
 
-                        foreach(var player in finalPlayerList)
+                        foreach (var player in finalPlayerList)
                         {
                             queuedPlayers.Remove(player.CharacterId);
                         }
@@ -360,7 +360,7 @@ namespace ACE.Server.Managers
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 log.Error($"Exception in ArenaManager.CancelEvent. Ex: {ex}");
             }
@@ -388,7 +388,19 @@ namespace ACE.Server.Managers
                 }
             }
 
-            if(victim != null && !victim.IsEliminated)
+            //In 1v1, 2v2 and FFA, dieing eliminates you from the event
+            if (victim != null &&
+                arenaLocation != null &&
+                (arenaLocation.ActiveEvent.EventType.Equals("1v1")) ||
+                (arenaLocation.ActiveEvent.EventType.Equals("1v1")) ||
+                (arenaLocation.ActiveEvent.EventType.Equals("ffa")))
+            {
+                victim.IsEliminated = true;
+            }
+            //TODO for future events dieing won't eliminate you
+            //may have rules like 3rd death you're eliminated
+
+            if (victim != null && !victim.IsEliminated)
             {
                 victim.TotalDeaths++;
             }
@@ -399,7 +411,7 @@ namespace ACE.Server.Managers
             }
 
             arenaLocation.CheckForArenaWinner(out Guid? winningTeamGuid);
-            if(winningTeamGuid.HasValue)
+            if (winningTeamGuid.HasValue)
             {
                 arenaLocation.EndEventWithWinner(winningTeamGuid.Value);
             }
@@ -421,36 +433,77 @@ namespace ACE.Server.Managers
             //  if event isn't started yet cancel and add all other players back to queue
             //  if event is started, message that they can finish the event or recall to forfeit
 
-            if(queuedPlayers.ContainsKey(characterId))
+            if (queuedPlayers.ContainsKey(characterId))
             {
                 queuedPlayers.Remove(characterId);
             }
 
             ArenaEvent activePlayerEvent = null;
-            foreach(var arenaEvent in GetActiveEvents())
+            foreach (var arenaEvent in GetActiveEvents())
             {
                 var arenaPlayer = arenaEvent.Players.FirstOrDefault(x => x.CharacterId == characterId);
-                if(arenaPlayer != null)
+                if (arenaPlayer != null)
                 {
                     activePlayerEvent = arenaEvent;
                 }
             }
 
-            if(activePlayerEvent != null)
+            if (activePlayerEvent != null)
             {
-                if(activePlayerEvent.Status < 3)
+                if (activePlayerEvent.Status < 3)
                 {
                     var location = arenaLocations.FirstOrDefault(x => x.Key == activePlayerEvent.Location).Value;
-                    if(location != null)
+                    if (location != null)
                     {
                         location.EndEventCancel();
                     }
                 }
             }
 
-            
-
             return resultMsg;
+        }
+
+
+        public static ArenaPlayer GetArenaPlayerByCharacterId(uint characterId)
+        {
+            foreach (ArenaLocation loc in arenaLocations.Values)
+            {
+                if (loc.HasActiveEvent)
+                {
+                    foreach (var player in loc.ActiveEvent.Players)
+                    {
+                        if (player.CharacterId == characterId)
+                        {
+                            return player;
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public static ArenaEvent GetArenaEventByLandblock(uint landblockId)
+        {
+            if (arenaLocations.ContainsKey(landblockId))
+            {
+                if (arenaLocations[landblockId].HasActiveEvent)
+                {
+                    return arenaLocations[landblockId].ActiveEvent;
+                }
+            }
+
+            return null;
+        }
+
+        public static string GetArenaNameByLandblock(uint landblockId)
+        {
+            if (arenaLocations.ContainsKey(landblockId))
+            {
+                return arenaLocations[landblockId].ArenaName;
+            }
+
+            return "";
         }
     }
 }

@@ -603,7 +603,43 @@ namespace ACE.Server.Command.Handlers
                     var longestTwosWait = queuedTwos.Count() > 0 ? (DateTime.Now - queuedTwos.Min(x => x.CreateDateTime)) : new TimeSpan(0);
                     var longestFFAWait = queuedFFA.Count() > 0 ? (DateTime.Now - queuedFFA.Min(x => x.CreateDateTime)) : new TimeSpan(0);
 
-                    CommandHandlerHelper.WriteOutputInfo(session, $"*********\nCurrent Arena Queues\n  1v1: {queuedOnes.Count()} players queued with longest wait at {string.Format("{0:%h}h {0:%m}m {0:%s}s", longestOnesWait)}\n  2v2: {queuedTwos.Count()} players queued, with longest wait at {string.Format("{0:%h}h {0:%m}m {0:%s}s", longestTwosWait)}\n  FFA: {queuedFFA.Count()} players queued, with longest wait at {string.Format("{0:%h}h {0:%m}m {0:%s}s", longestFFAWait)}\n*********\n");
+                    string queueInfo = $"Current Arena Queues\n  1v1: {queuedOnes.Count()} players queued with longest wait at {string.Format("{0:%h}h {0:%m}m {0:%s}s", longestOnesWait)}\n  2v2: {queuedTwos.Count()} players queued, with longest wait at {string.Format("{0:%h}h {0:%m}m {0:%s}s", longestTwosWait)}\n  FFA: {queuedFFA.Count()} players queued, with longest wait at {string.Format("{0:%h}h {0:%m}m {0:%s}s", longestFFAWait)}";
+
+                    var activeEvents = ArenaManager.GetActiveEvents();
+                    var eventsOnes = activeEvents.Where(x => x.EventType.ToLower().Equals("1v1"));
+                    var eventsTwos = activeEvents.Where(x => x.EventType.ToLower().Equals("2v2"));
+                    var eventsFFA = activeEvents.Where(x => x.EventType.ToLower().Equals("ffa"));
+
+                    string onesEventInfo = eventsOnes.Count() == 0 ? "No active events" : "";
+                    foreach (var ev in eventsOnes)
+                    {
+                        onesEventInfo += $"\n    EventID: {ev.Id}\n" +
+                                         $"    Arena: {ArenaManager.GetArenaNameByLandblock(ev.Location)}\n" +
+                                         $"    Players:\n    {ev.PlayersDisplay}\n" +
+                                         $"    Time Remaining: {ev.TimeRemainingDisplay}\n";
+                    }
+
+                    string twosEventInfo = eventsTwos.Count() == 0 ? "No active events" : "";
+                    foreach (var ev in eventsTwos)
+                    {
+                        onesEventInfo += $"\n    EventID: {ev.Id}\n" +
+                                         $"    Arena: {ArenaManager.GetArenaNameByLandblock(ev.Location)}\n" +
+                                         $"    Players:\n    {ev.PlayersDisplay}\n" +
+                                         $"    Time Remaining: {ev.TimeRemainingDisplay}\n";
+                    }
+
+                    string ffaEventInfo = eventsFFA.Count() == 0 ? "No active events" : "";
+                    foreach (var ev in eventsFFA)
+                    {
+                        onesEventInfo += $"\n    EventID: {ev.Id}\n" +
+                                         $"    Arena: {ArenaManager.GetArenaNameByLandblock(ev.Location)}\n" +
+                                         $"    Players:\n    {ev.PlayersDisplay}\n" +
+                                         $"    Time Remaining: {ev.TimeRemainingDisplay}\n";
+                    }
+
+                    string eventInfo = $"Active Arena Matches:\n  1v1: {onesEventInfo}\n  2v2: {twosEventInfo}\n  FFA: {ffaEventInfo}\n";
+
+                    CommandHandlerHelper.WriteOutputInfo(session, $"*********\n{queueInfo}\n\n{eventInfo}\n*********\n");
                     break;
 
                 case "stats":
@@ -653,6 +689,25 @@ namespace ACE.Server.Command.Handlers
             {
                 monarchId = playerAllegiance.MonarchId;
                 monarchName = playerAllegiance.Monarch.Player.Name;
+            }
+
+            var blacklistString = PropertyManager.GetString("arenas_blacklist").Item;
+            if(!string.IsNullOrEmpty(blacklistString))
+            {
+                var blacklist = blacklistString.Split(',');
+                foreach(var charIdString in blacklist)
+                {
+                    if(uint.TryParse(charIdString, out uint charId) && session.Player.Character.Id == charId)
+                    {
+                        return "You are blacklisted from joining Arena events, probably because you're a cunt who tried to abuse it or some shit.  Fuck yourself.  Or ask forgiveness from Doc Z.  Whatever, I don't care.";
+                    }
+                }
+            }
+
+            var minLevel = PropertyManager.GetLong("arenas_min_level").Item;
+            if (session.Player.Level < minLevel)
+            {
+                return $"You must be at least level {minLevel} to join an arena match";
             }
 
             string returnMsg;

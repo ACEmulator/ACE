@@ -1,7 +1,10 @@
 USE `ace_log`;
 
 ALTER TABLE pk_kills_log
-ADD arena_player_id INT;
+ADD killer_arena_player_id INT;
+
+ALTER TABLE pk_kills_log
+ADD victim_arena_player_id INT;
 
 --
 -- Table structure for table `arena_event

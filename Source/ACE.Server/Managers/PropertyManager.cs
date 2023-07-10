@@ -647,7 +647,8 @@ namespace ACE.Server.Managers
                 ("town_control_reward_level_minimum", new Property<long>(100, "the minimum level a player has to be to receive town control rewards")),
                 ("town_control_reward_zerg_limit", new Property<long>(9, "the maximum numbers of players from the same clan allowed in the town control conflict landblock")), 
                 ("town_control_periodic_reward_seconds", new Property<long>(50, "the number seconds between periodic trophy awards during an active town control event")),
-                ("town_control_periodic_reward_defender_seconds", new Property<long>(25, "the number seconds between periodic trophy awards during an active town control event for the defending clan"))
+                ("town_control_periodic_reward_defender_seconds", new Property<long>(25, "the number seconds between periodic trophy awards during an active town control event for the defending clan")),
+                ("arenas_min_level", new Property<long>(25, "the minimum level required to join an arena queue"))
                 );
 
         public static readonly ReadOnlyDictionary<string, Property<double>> DefaultDoubleProperties =
@@ -764,7 +765,7 @@ namespace ACE.Server.Managers
                 ("proxycheck_api_key", new Property<string>("", "API key for proxycheck.io service for VPN detection")),
                 ("town_control_alleglist", new Property<string>("", "A comma separated list of MonarchID values to whitelist allegiances for participation in town control events")),
                 ("town_control_globals_webhook", new Property<string>("", "Webhook to be send Town Control global messages.")),
-                ("arenas_blocked_list", new Property<string>("", "A comma separated list of CharacterID values that cannot participate in Arenas"))
+                ("arenas_blacklist", new Property<string>("", "A comma separated list of CharacterID values that cannot participate in Arenas"))
                 );
     }
 }

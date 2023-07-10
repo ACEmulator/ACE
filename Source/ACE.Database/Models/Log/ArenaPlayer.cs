@@ -19,6 +19,21 @@ namespace ACE.Database.Models.Log
 
         public string EventType { get; set; }
 
+        public string EventTypeDisplay
+        {
+            get
+            {
+                switch(EventType)
+                {
+                    case "ffa":
+                        return "Free for All";
+
+                    default:
+                        return EventType;
+                }
+            }
+        }
+
         public uint MonarchId { get; set; }
 
         public string MonarchName { get; set; }

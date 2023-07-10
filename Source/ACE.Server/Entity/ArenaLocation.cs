@@ -6,11 +6,15 @@ using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 using log4net;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 using static Google.Protobuf.Reflection.SourceCodeInfo.Types;
 
 namespace ACE.Server.Entity
@@ -49,7 +53,7 @@ namespace ACE.Server.Entity
             {
                 if(this.HasActiveEvent)
                 {
-                    EndEventTimelimitExceeded();
+                    EndEventCancel();
                     ClearPlayersFromArena();
                     this.ActiveEvent = null;
                 }
@@ -95,7 +99,7 @@ namespace ACE.Server.Entity
                             var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
                             if (player != null)
                             {
-                                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} - You have been matched for a {(this.ActiveEvent.EventType.Equals("ffa") ? "Free for All" : this.ActiveEvent.EventType)} arena event.  Prepare yourself, you will be teleported to the arena shortly.", ChatMessageType.System));
+                                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} - You have been matched for a {this.ActiveEvent.EventTypeDisplay} arena event.  Prepare yourself, you will be teleported to the arena shortly.", ChatMessageType.System));
                             }
                         }
 
@@ -130,7 +134,7 @@ namespace ACE.Server.Entity
                                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
                                 if (player != null)
                                 {
-                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Players are now being teleported to the {(this.ActiveEvent.EventType.Equals("ffa") ? "Free for All" : this.ActiveEvent.EventType)} arena event.\nAfter a brief pause to allow everyone to arrive, the event will begin.", ChatMessageType.System));
+                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Players are now being teleported to the {this.ActiveEvent.EventTypeDisplay} arena event.\nAfter a brief pause to allow everyone to arrive, the event will begin.", ChatMessageType.System));
                                     playerList.Add(player);
                                 }
                                 else
@@ -172,7 +176,7 @@ namespace ACE.Server.Entity
                         log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 3");
 
                         //Countdown is complete, start the event
-                        if (DateTime.Now.AddSeconds(-10) > this.ActiveEvent.CountdownStartDateTime)
+                        if (DateTime.Now.AddSeconds(-15) > this.ActiveEvent.CountdownStartDateTime)
                         {
                             log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 3, countdown is complete, start the fight");
                             foreach (var arenaPlayer in this.ActiveEvent.Players)
@@ -185,8 +189,7 @@ namespace ACE.Server.Entity
                                 }
                             }
 
-                            this.ActiveEvent.StartDateTime = DateTime.Now;
-                            this.ActiveEvent.Status = 4;
+                            StartEvent();
                         }
                         else
                         {
@@ -198,6 +201,31 @@ namespace ACE.Server.Entity
                     case 4://Event started
 
                         log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 4");
+
+                        //Check if any players are no longer in the arena
+                        foreach(var arenaPlayer in this.ActiveEvent.Players)
+                        {
+                            var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
+                            if (player == null)
+                            {
+                                //if the player is not online they're eliminated
+                                arenaPlayer.IsEliminated = true;
+                            }
+                            else
+                            {
+                                //if the player is not PK they're eliminated
+                                if (!player.IsPK)
+                                {
+                                    arenaPlayer.IsEliminated = true;
+                                }
+
+                                //if the player is not on the arena landblock they're eliminated
+                                if(player.Location.Landblock != this.ActiveEvent.Location)
+                                {
+                                    arenaPlayer.IsEliminated = true;
+                                }
+                            }
+                        }
 
                         //Check if there's a winner
                         if (this.ActiveEvent.WinningTeamGuid.HasValue)
@@ -218,8 +246,7 @@ namespace ACE.Server.Entity
                         }
 
                         //Check if the time limit has been exceeded
-                        //TODO maybe set time limit per event type
-                        if (!this.ActiveEvent.StartDateTime.HasValue || DateTime.Now > this.ActiveEvent.StartDateTime.Value.AddMinutes(15))
+                        if (this.ActiveEvent.TimeRemaining <= TimeSpan.Zero)
                         {
                             log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 4, event time limit exceeded, ending in draw");
                             EndEventTimelimitExceeded();
@@ -229,16 +256,12 @@ namespace ACE.Server.Entity
                         //Message arena players with time updates every 30 seconds
                         if (DateTime.Now.AddSeconds(-30) > lastEventTimerMessage)
                         {
-                            TimeSpan timeLeft = new TimeSpan();
-                            if (this.ActiveEvent.StartDateTime.HasValue)
-                                timeLeft = this.ActiveEvent.StartDateTime.Value.AddMinutes(15) - DateTime.Now;
-
                             foreach (var arenaPlayer in this.ActiveEvent.Players)
                             {
                                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
                                 if (player != null)
                                 {
-                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Remaining Event Time: {timeLeft.Minutes}m {timeLeft.Seconds}s", ChatMessageType.System));
+                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Remaining Event Time: {this.ActiveEvent.TimeRemainingDisplay}", ChatMessageType.System));
                                 }
                             }
 
@@ -253,7 +276,7 @@ namespace ACE.Server.Entity
 
                         //Check if the post-event countdown is completed
                         //If so, teleport any remaining players out of the arena and release the arena for the next event
-                        if (DateTime.Now.AddSeconds(-20) > this.ActiveEvent.EndDateTime)
+                        if (DateTime.Now.AddSeconds(-45) > this.ActiveEvent.EndDateTime)
                         {
                             foreach (var arenaPlayer in this.ActiveEvent.Players)
                             {
@@ -424,6 +447,14 @@ namespace ACE.Server.Entity
 
             return false;
         }
+        
+        public void StartEvent()
+        {
+            this.ActiveEvent.StartDateTime = DateTime.Now;
+            this.ActiveEvent.Status = 4;
+
+            DatabaseManager.Log.SaveArenaEvent(this.ActiveEvent);
+        }
 
         public void EndEventWithWinner(Guid winningTeamGuid)
         {
@@ -455,7 +486,7 @@ namespace ACE.Server.Entity
                 var player = PlayerManager.GetOnlinePlayer(winner.CharacterId);
                 if (player != null)
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Congratulations, you've won the {(this.ActiveEvent.EventType.Equals("ffa") ? "Free for All" : this.ActiveEvent.EventType)} arena event against {loserList}!\nSome blurb about your rewards.\nFeel free to recall or be teleported to your Lifestone in 30 seconds.", ChatMessageType.System));
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Congratulations, you've won the {this.ActiveEvent.EventTypeDisplay} arena event against {loserList}!\nSome blurb about your rewards.\nIf you're still in the {this.ArenaName} arena you can recall now or you have a short period before you're teleported to your Lifestone so hurry up and loot.", ChatMessageType.System));
                     //TODO reward the winners here
                 }
             }
@@ -466,13 +497,13 @@ namespace ACE.Server.Entity
                 var player = PlayerManager.GetOnlinePlayer(loser.CharacterId);
                 if (player != null)
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Tough luck, you've lost the {(this.ActiveEvent.EventType.Equals("ffa") ? "Free for All" : this.ActiveEvent.EventType)} arena event against {winnerList}\nSome blurb about your rewards.\nIf you're still in the arena, please recall or be teleported to your Lifestone in 30 seconds.", ChatMessageType.System));
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Tough luck, you've lost the {this.ActiveEvent.EventTypeDisplay} arena event against {winnerList}\nSome blurb about your rewards.\nIf you're still in the {this.ArenaName} arena you can recall now or you have a short period before you're teleported to your lifestone.", ChatMessageType.System));
                     //TODO reward the losers here
                 }
             }
 
             //Global Broadcast
-            PlayerManager.BroadcastToAll(new GameMessageSystemChat($"{winnerList} just won a {(this.ActiveEvent.EventType.Equals("ffa") ? "Free for All" : this.ActiveEvent.EventType)} arena event against {loserList}", ChatMessageType.Broadcast));
+            PlayerManager.BroadcastToAll(new GameMessageSystemChat($"{winnerList} just won a {this.ActiveEvent.EventTypeDisplay} arena event against {loserList} in the {this.ArenaName} arena", ChatMessageType.Broadcast));
         }
 
         public void EndEventTimelimitExceeded()
@@ -488,7 +519,7 @@ namespace ACE.Server.Entity
                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
                 if (player != null)
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {(this.ActiveEvent.EventType.Equals("ffa") ? "Free for All" : this.ActiveEvent.EventType)} arena event has ended in a draw.  Please recall or be teleported to your Lifestone in 30 seconds.", ChatMessageType.System));
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {this.ActiveEvent.EventTypeDisplay} arena event has ended in a draw.  If you are still in the arena you can recall now or have a short period before you are teleported to your lifestone.", ChatMessageType.System));
                     //TODO any rewards for a timeout would go here
                 }
             }
@@ -507,7 +538,7 @@ namespace ACE.Server.Entity
                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
                 if (player != null)
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {(this.ActiveEvent.EventType.Equals("ffa") ? "Free for All" : this.ActiveEvent.EventType)} arena event was cancelled before it started.  You will be placed back at the start of the queue.", ChatMessageType.System));                    
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {this.ActiveEvent.EventTypeDisplay} arena event was cancelled before it started.  You will be placed back at the start of the queue.", ChatMessageType.System));                    
                 }
             }
         }
@@ -560,6 +591,46 @@ namespace ACE.Server.Entity
             bindRealm.ArenaName = "Binding Realm";
             locList.Add(bindRealm.LandblockId, bindRealm);
 
+            //0x0145, //Bone Lair            
+            var boneLair = new ArenaLocation();
+            boneLair.LandblockId = 0x0145;
+            boneLair.SupportedEventTypes = new List<string>();
+            boneLair.SupportedEventTypes.Add("1v1");
+            boneLair.SupportedEventTypes.Add("2v2");
+            boneLair.SupportedEventTypes.Add("ffa");
+            boneLair.ArenaName = "Bone Lair";
+            locList.Add(boneLair.LandblockId, boneLair);
+
+            //0x01AD, //Dungeon Galley Tower            
+            var galleyTower = new ArenaLocation();
+            galleyTower.LandblockId = 0x01AD;
+            galleyTower.SupportedEventTypes = new List<string>();
+            galleyTower.SupportedEventTypes.Add("1v1");
+            galleyTower.SupportedEventTypes.Add("2v2");
+            galleyTower.SupportedEventTypes.Add("ffa");
+            galleyTower.ArenaName = "Galley Tower";
+            locList.Add(galleyTower.LandblockId, galleyTower);
+
+            //0x02E3, //Yaraq PK Arena
+            var ypk = new ArenaLocation();
+            ypk.LandblockId = 0x02E3;
+            ypk.SupportedEventTypes = new List<string>();
+            ypk.SupportedEventTypes.Add("1v1");
+            ypk.SupportedEventTypes.Add("2v2");
+            ypk.SupportedEventTypes.Add("ffa");
+            ypk.ArenaName = "Yaraq PK Arena";
+            locList.Add(ypk.LandblockId, ypk);
+
+            //0xECEC //Pyramid -Admin Island
+            var pyramid = new ArenaLocation();
+            pyramid.LandblockId = 0xECEC;
+            pyramid.SupportedEventTypes = new List<string>();
+            pyramid.SupportedEventTypes.Add("1v1");
+            pyramid.SupportedEventTypes.Add("2v2");
+            pyramid.SupportedEventTypes.Add("ffa");
+            pyramid.ArenaName = "Pyramid";
+            locList.Add(pyramid.LandblockId, pyramid);
+
             return locList;
         }
 
@@ -573,7 +644,11 @@ namespace ACE.Server.Entity
                     _arenaLandblocks = new List<uint>()
                     {
                         0x0067, //PKL Arena
-                        0x007F  //Binding Realm
+                        0x007F,  //Binding Realm
+                        0x0145, //Bone Lair
+                        0x01AD, //Dungeon Galley Tower
+                        0x02E3, //Yaraq PK Arena
+                        0xECEC //Pyramid -Admin Island
                     };
                 }
 
@@ -629,12 +704,163 @@ namespace ACE.Server.Entity
                             new Position(0x007F0105, 252.860062f, -33.350712f, -59.994999f, 0.000000f, 0.000000f, -0.043396f, -0.999058f),//South
                             //0x007F0105 [252.860062 -33.350712 -59.994999] -0.999058 0.000000 0.000000 -0.043396
                         }); //Binding Realm
+
+                    _arenaLocationStartingPositions.Add(
+                        0x02E3,
+                        new List<Position>()
+                        {
+                            new Position(0x02E30100, 54.954102f, -53.559502f, 0.005000f, 0.000000f, 0.000000f, -0.706410f, 0.707802f),
+                            //0x02E30100[54.954102 -53.559502 0.005000] 0.707802 0.000000 0.000000 -0.706410
+                            new Position(0x02E30185, 87.640144f, -54.995811f, 12.004999f, 0.000000f, 0.000000f, -0.701326f, -0.712840f),
+                            //0x02E30185[87.640144 -54.995811 12.004999] -0.712840 0.000000 0.000000 -0.701326
+                            new Position(0x02E3014A, 54.859180f, -20.170738f, 12.004999f, 0.000000f, 0.000000f, -0.999738f, -0.022893f),
+                            //0x02E3014A[54.859180 -20.170738 12.004999] -0.022893 0.000000 0.000000 -0.999738
+                            new Position(0x02E30131, 21.610455f, -54.913197f, 12.004999f, 0.000000f, 0.000000f, -0.714008f, 0.700137f),
+                            //0x02E30131[21.610455 -54.913197 12.004999] 0.700137 0.000000 0.000000 -0.714008
+                            new Position(0x02E3015D, 55.055714f, -88.516785f, 12.004999f, 0.000000f, 0.000000f, 0.008961f, 0.999960f),
+                            //0x02E3015D[55.055714 -88.516785 12.004999] 0.999960 0.000000 0.000000 0.008961
+                            new Position(0x02E30107, 37.609787f, -55.014618f, 6.005000f, 0.000000f, 0.000000f, -0.714715f, 0.699416f),
+                            //0x02E30107[37.609787 -55.014618 6.005000] 0.699416 0.000000 0.000000 -0.714715
+                            new Position(0x02E30112, 55.120712f, -72.074440f, 6.005000f, 0.000000f, 0.000000f, 0.013379f, 0.999910f),
+                            //0x02E30112[55.120712 -72.074440 6.005000] 0.999910 0.000000 0.000000 0.013379
+                            new Position(0x02E30119, 71.587006f, -55.205040f, 6.005000f, 0.000000f, 0.000000f, 0.688900f, 0.724856f),
+                            //0x02E30119[71.587006 -55.205040 6.005000] 0.724856 0.000000 0.000000 0.688900
+                            new Position(0x02E3010F, 55.080246f, -37.959023f, 6.005000f, 0.000000f, 0.000000f, 0.999951f, 0.009948f),
+                            //0x02E3010F[55.080246 -37.959023 6.005000] 0.009948 0.000000 0.000000 0.999951
+                            new Position(0x02E3015A, 59.596912f, -55.734844f, 12.054999f, 0.000000f, 0.000000f, -0.717913f, -0.696133f),
+                            //0x02E3015A[59.596912 -55.734844 12.054999] -0.696133 0.000000 0.000000 -0.717913
+                        }); //Yaraq PK Arena
+
+                    _arenaLocationStartingPositions.Add(
+                        0xECEC,
+                        new List<Position>()
+                        {
+                            new Position(0xECEC012D, 84.326401f, 37.399399f, 0.205000f, 0.000000f, 0.000000f, -0.010572f, -0.999944f),
+                            //0xECEC012D[84.326401 37.399399 0.205000] -0.999944 0.000000 0.000000 -0.010572
+                            new Position(0xECEC011F, 131.125320f, 36.631672f, 0.205000f, 0.000000f, 0.000000f, -0.333597f, -0.942716f),
+                            //0xECEC011F[131.125320 36.631672 0.205000] -0.942716 0.000000 0.000000 -0.333597
+                            new Position(0xECEC012C, 132.890320f, 84.706825f, 0.205000f, 0.000000f, 0.000000f, -0.717156f, -0.696913f),
+                            //0xECEC012C[132.890320 84.706825 0.205000] -0.696913 0.000000 0.000000 -0.717156
+                            new Position(0xECEC0122, 131.195908f, 130.575638f, 0.205000f, 0.000000f, 0.000000f, -0.916779f, -0.399395f),
+                            //0xECEC0122[131.195908 130.575638 0.205000] -0.399395 0.000000 0.000000 -0.916779
+                            new Position(0xECEC012B, 83.108978f, 131.664230f, 0.205000f, 0.000000f, 0.000000f, -0.999970f, 0.007704f),
+                            //0xECEC012B[83.108978 131.664230 0.205000] 0.007704 0.000000 0.000000 -0.999970
+                            new Position(0xECEC0121, 37.388470f, 130.349777f, 0.205000f, 0.000000f, 0.000000f, -0.926284f, 0.376825f),
+                            //0xECEC0121[37.388470 130.349777 0.205000] 0.376825 0.000000 0.000000 -0.926284
+                            new Position(0xECEC012E, 36.323086f, 83.237755f, 0.205000f, 0.000000f, 0.000000f, -0.679018f, 0.734121f),
+                            //0xECEC012E[36.323086 83.237755 0.205000] 0.734121 0.000000 0.000000 -0.679018
+                            new Position(0xECEC0120, 37.112888f, 37.668873f, 0.205000f, 0.000000f, 0.000000f, -0.401558f, 0.915833f),
+                            //0xECEC0120[37.112888 37.668873 0.205000] 0.915833 0.000000 0.000000 -0.401558
+                            new Position(0xECEC0105, 72.137177f, 84.142395f, 0.205000f, 0.000000f, 0.000000f, -0.702030f, 0.712147f),
+                            //0xECEC0105[72.137177 84.142395 0.205000] 0.712147 0.000000 0.000000 -0.702030
+                            new Position(0xECEC0110, 97.596474f, 83.986618f, 0.205000f, 0.000000f, 0.000000f, 0.715533f, 0.698579f),
+                            //0xECEC0110[97.596474 83.986618 0.205000] 0.698579 0.000000 0.000000 0.715533
+                        }); //Pyramid -Admin Island
+
+                    _arenaLocationStartingPositions.Add(
+                        0x01AD,
+                        new List<Position>()
+                        {
+                            new Position(0x01AD0116, 29.940001f, -32.599998f, 0.005000f, 0.000000f, 0.000000f, -0.008727f, 0.999962f),
+                            //0x01AD0116[29.940001 -32.599998 0.005000] 0.999962 0.000000 0.000000 -0.008727
+                            new Position(0x01AD011A, 40.046265f, -1.053921f, 0.005000f, 0.000000f, 0.000000f, -0.902557f, -0.430570f),
+                            //0x01AD011A[40.046265 -1.053921 0.005000] -0.430570 0.000000 0.000000 -0.902557
+                            new Position(0x01AD0100, 0.060270f, 2.052596f, 0.005000f, 0.000000f, 0.000000f, -0.929969f, 0.367637f),
+                            //0x01AD0100[0.060270 2.052596 0.005000] 0.367637 0.000000 0.000000 -0.929969
+                            new Position(0x01AD0142, 39.877190f, -9.612027f, 6.005000f, 0.000000f, 0.000000f, -0.999993f, 0.003741f),
+                            //0x01AD0142[39.877190 -9.612027 6.005000] 0.003741 0.000000 0.000000 -0.999993
+                            new Position(0x01AD014B, 61.338745f, 1.616516f, 6.005000f, 0.000000f, 0.000000f, -0.923844f, -0.382769f),
+                            //0x01AD014B[61.338745 1.616516 6.005000] -0.382769 0.000000 0.000000 -0.923844
+                            new Position(0x01AD014E, 59.279133f, -31.289797f, 6.005000f, 0.000000f, 0.000000f, -0.310898f, -0.950443f),
+                            //0x01AD014E[59.279133 -31.289797 6.005000] -0.950443 0.000000 0.000000 -0.310898
+                            new Position(0x01AD0144, 40.064552f, -25.380503f, 6.005000f, 0.000000f, 0.000000f, -0.017525f, -0.999846f),
+                            //0x01AD0144[40.064552 -25.380503 6.005000] -0.999846 0.000000 0.000000 -0.017525
+                            new Position(0x01AD0135, 18.353422f, -20.375107f, 6.005000f, 0.000000f, 0.000000f, 0.872478f, -0.488653f),
+                            //0x01AD0135[18.353422 -20.375107 6.005000] -0.488653 0.000000 0.000000 0.872478
+                            new Position(0x01AD016E, 40.068432f, 0.782179f, 18.004999f, 0.000000f, 0.000000f, -0.919731f, -0.392550f),
+                            //0x01AD016E[40.068432 0.782179 18.004999] -0.392550 0.000000 0.000000 -0.919731
+                            new Position(0x01AD0155, 30.068464f, -20.947460f, 12.004999f, 0.000000f, 0.000000f, -0.999852f, 0.017178f),
+                            //0x01AD0155[30.068464 -20.947460 12.004999] 0.017178 0.000000 0.000000 -0.999852
+                        }); //Dungeon Galley Tower
+
+                    _arenaLocationStartingPositions.Add(
+                        0x0145,
+                        new List<Position>()
+                        {
+                            new Position(0x014501A3, 96.569344f, -50.926197f, 6.005000f, 0.000000f, 0.000000f, -0.189269f, -0.981925f),
+                            //0x014501A3[96.569344 -50.926197 6.005000] -0.981925 0.000000 0.000000 -0.189269
+                            new Position(0x014501A1, 97.130882f, -27.609722f, 6.005000f, 0.000000f, 0.000000f, -0.953241f, -0.302211f),
+                            //0x014501A1[97.130882 -27.609722 6.005000] -0.302211 0.000000 0.000000 -0.953241
+                            new Position(0x0145010E, 100.117851f, -50.360348f, -5.995000f, 0.000000f, 0.000000f, 0.003506f, 0.999994f),
+                            //0x0145010E[100.117851 -50.360348 -5.995000] 0.999994 0.000000 0.000000 0.003506
+                            new Position(0x0145010B, 99.959366f, -29.854738f, -5.995000f, 0.000000f, 0.000000f, 0.999639f, 0.026883f),
+                            //0x0145010B[99.959366 -29.854738 -5.995000] 0.026883 0.000000 0.000000 0.999639
+                            new Position(0x01450149, 71.072929f, -26.698454f, 0.005000f, 0.000000f, 0.000000f, -0.996001f, 0.089337f),
+                            //0x01450149[71.072929 -26.698454 0.005000] 0.089337 0.000000 0.000000 -0.996001
+                            new Position(0x0145014B, 72.077400f, -52.935970f, 0.005000f, 0.000000f, 0.000000f, -0.170279f, 0.985396f),
+                            //0x0145014B[72.077400 -52.935970 0.005000] 0.985396 0.000000 0.000000 -0.170279
+                            new Position(0x01450117, 29.986937f, -13.254610f, 0.005000f, 0.000000f, 0.000000f, 0.999936f, 0.011354f),
+                            //0x01450117[29.986937 -13.254610 0.005000] 0.011354 0.000000 0.000000 0.999936
+                            new Position(0x01450185, 29.381468f, -40.134899f, 6.005000f, 0.000000f, 0.000000f, 0.686305f, -0.727314f),
+                            //0x01450185[29.381468 -40.134899 6.005000] -0.727314 0.000000 0.000000 0.686305
+                            new Position(0x01450121, 29.054979f, -57.933998f, 0.005000f, 0.000000f, 0.000000f, 0.015373f, 0.999882f),
+                            //0x01450121[29.054979 -57.933998 0.005000] 0.999882 0.000000 0.000000 0.015373
+                            new Position(0x01450114, 5.084766f, -76.363258f, 0.005000f, 0.000000f, 0.000000f, -0.394789f, 0.918772f),
+                            //0x01450114[5.084766 -76.363258 0.005000] 0.918772 0.000000 0.000000 -0.394789
+                        }); //Bone Lair
+
+                    //Bone Lair
+                    //23:42:01 Your location is: 0x014501A3[96.569344 -50.926197 6.005000] -0.981925 0.000000 0.000000 -0.189269
+                    //23:42:09 Your location is: 0x014501A1[97.130882 -27.609722 6.005000] -0.302211 0.000000 0.000000 -0.953241
+                    //23:42:28 Your location is: 0x0145010E[100.117851 -50.360348 -5.995000] 0.999994 0.000000 0.000000 0.003506
+                    //23:42:41 Your location is: 0x0145010B[99.959366 -29.854738 -5.995000] 0.026883 0.000000 0.000000 0.999639
+                    //23:42:50 Your location is: 0x01450149[71.072929 -26.698454 0.005000] 0.089337 0.000000 0.000000 -0.996001
+                    //23:42:57 Your location is: 0x0145014B[72.077400 -52.935970 0.005000] 0.985396 0.000000 0.000000 -0.170279
+                    //23:43:31 Your location is: 0x01450117[29.986937 -13.254610 0.005000] 0.011354 0.000000 0.000000 0.999936
+                    //23:43:40 Your location is: 0x01450185[29.381468 -40.134899 6.005000] -0.727314 0.000000 0.000000 0.686305
+                    //23:43:49 Your location is: 0x01450121[29.054979 -57.933998 0.005000] 0.999882 0.000000 0.000000 0.015373
+                    //23:43:56 Your location is: 0x01450114[5.084766 -76.363258 0.005000] 0.918772 0.000000 0.000000 -0.394789
+
+                    //Dungeon Galley Tower
+                    //23:34:25 Your location is: 0x01AD0116[29.940001 -32.599998 0.005000] 0.999962 0.000000 0.000000 -0.008727
+                    //23:34:41 Your location is: 0x01AD011A[40.046265 -1.053921 0.005000] -0.430570 0.000000 0.000000 -0.902557
+                    //23:34:51 Your location is: 0x01AD0100[0.060270 2.052596 0.005000] 0.367637 0.000000 0.000000 -0.929969
+                    //23:37:02 Your location is: 0x01AD0142[39.877190 -9.612027 6.005000] 0.003741 0.000000 0.000000 -0.999993
+                    //23:37:22 Your location is: 0x01AD014B[61.338745 1.616516 6.005000] -0.382769 0.000000 0.000000 -0.923844
+                    //23:37:30 Your location is: 0x01AD014E[59.279133 -31.289797 6.005000] -0.950443 0.000000 0.000000 -0.310898
+                    //23:37:36 Your location is: 0x01AD0144[40.064552 -25.380503 6.005000] -0.999846 0.000000 0.000000 -0.017525
+                    //23:37:49 Your location is: 0x01AD0135[18.353422 -20.375107 6.005000] -0.488653 0.000000 0.000000 0.872478
+                    //23:38:03 Your location is: 0x01AD016E[40.068432 0.782179 18.004999] -0.392550 0.000000 0.000000 -0.919731
+                    //23:38:10 Your location is: 0x01AD0155[30.068464 -20.947460 12.004999] 0.017178 0.000000 0.000000 -0.999852
+
+                    //Yaraq PK Arena
+                    //23:05:10 Your location is: 0x02E30100[54.954102 -53.559502 0.005000] 0.707802 0.000000 0.000000 -0.706410
+                    //23:05:24 Your location is: 0x02E30185[87.640144 -54.995811 12.004999] -0.712840 0.000000 0.000000 -0.701326
+                    //23:05:38 Your location is: 0x02E3014A[54.859180 -20.170738 12.004999] -0.022893 0.000000 0.000000 -0.999738
+                    //23:05:53 Your location is: 0x02E30131[21.610455 -54.913197 12.004999] 0.700137 0.000000 0.000000 -0.714008
+                    //23:06:04 Your location is: 0x02E3015D[55.055714 -88.516785 12.004999] 0.999960 0.000000 0.000000 0.008961
+                    //23:06:15 Your location is: 0x02E30107[37.609787 -55.014618 6.005000] 0.699416 0.000000 0.000000 -0.714715
+                    //23:06:24 Your location is: 0x02E30112[55.120712 -72.074440 6.005000] 0.999910 0.000000 0.000000 0.013379
+                    //23:06:32 Your location is: 0x02E30119[71.587006 -55.205040 6.005000] 0.724856 0.000000 0.000000 0.688900
+                    //23:06:40 Your location is: 0x02E3010F[55.080246 -37.959023 6.005000] 0.009948 0.000000 0.000000 0.999951
+                    //23:07:24 Your location is: 0x02E3015A[59.596912 -55.734844 12.054999] -0.696133 0.000000 0.000000 -0.717913
+
+                    //Pyramid -Admin Island
+                    //23:11:18 Your location is: 0xECEC012D[84.326401 37.399399 0.205000] -0.999944 0.000000 0.000000 -0.010572
+                    //23:11:40 Your location is: 0xECEC011F[131.125320 36.631672 0.205000] -0.942716 0.000000 0.000000 -0.333597
+                    //23:11:48 Your location is: 0xECEC012C[132.890320 84.706825 0.205000] -0.696913 0.000000 0.000000 -0.717156
+                    //23:11:56 Your location is: 0xECEC0122[131.195908 130.575638 0.205000] -0.399395 0.000000 0.000000 -0.916779
+                    //23:12:08 Your location is: 0xECEC012B[83.108978 131.664230 0.205000] 0.007704 0.000000 0.000000 -0.999970
+                    //23:12:15 Your location is: 0xECEC0121[37.388470 130.349777 0.205000] 0.376825 0.000000 0.000000 -0.926284
+                    //23:12:34 Your location is: 0xECEC012E[36.323086 83.237755 0.205000] 0.734121 0.000000 0.000000 -0.679018
+                    //23:12:45 Your location is: 0xECEC0120[37.112888 37.668873 0.205000] 0.915833 0.000000 0.000000 -0.401558
+                    //23:13:02 Your location is: 0xECEC0105[72.137177 84.142395 0.205000] 0.712147 0.000000 0.000000 -0.702030
+                    //23:13:08 Your location is: 0xECEC0110[97.596474 83.986618 0.205000] 0.698579 0.000000 0.000000 0.715533                    
                 }
 
                 return _arenaLocationStartingPositions;
             }
         }
-
 
         public static List<Position> GetArenaLocationStartingPositions(uint landblockId)
         {
@@ -644,6 +870,6 @@ namespace ACE.Server.Entity
         public static bool IsArenaLandblock(uint landblockId)
         {
             return ArenaLandblocks.Contains(landblockId);
-        }
+        }        
     }
 }

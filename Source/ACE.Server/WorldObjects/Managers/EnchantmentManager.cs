@@ -1313,6 +1313,16 @@ namespace ACE.Server.WorldObjects.Managers
 
             var targetPlayer = WorldObject as Player;
 
+            //Arenas - If this is an arena landblock, don't allow any dmg except while the event is in a started status and between non-eliminated players
+            if (targetPlayer != null && ArenaLocation.IsArenaLandblock(targetPlayer.Location.Landblock))
+            {
+                var arenaEvent = ArenaManager.GetArenaEventByLandblock(targetPlayer.Location.Landblock);
+                if (arenaEvent == null || arenaEvent.Status != 4)
+                {
+                    return;
+                }
+            }
+
             // get the total tick amount
             var tickAmountTotal = 0.0f;
             foreach (var enchantment in enchantments)
@@ -1391,10 +1401,27 @@ namespace ACE.Server.WorldObjects.Managers
 
                 tickAmountTotal += tickAmount;
 
+                //Arenas - track total dmg dealt and received
+                if (sourcePlayer != null && targetPlayer != null && ArenaLocation.IsArenaLandblock(targetPlayer.Location.Landblock))
+                {
+                    var arenaEvent = ArenaManager.GetArenaEventByLandblock(targetPlayer.Location.Landblock);
+                    if (arenaEvent != null || arenaEvent.Status == 4)
+                    {
+                        var attackerArenaPlayer = arenaEvent.Players.FirstOrDefault(x => x.CharacterId == sourcePlayer.Character.Id);
+                        var defenderArenaPlayer = arenaEvent.Players.FirstOrDefault(x => x.CharacterId == targetPlayer.Character.Id);
+
+                        if (attackerArenaPlayer != null && defenderArenaPlayer != null)
+                        {
+                            attackerArenaPlayer.TotalDmgDealt += (uint)Math.Round(tickAmount);
+                            defenderArenaPlayer.TotalDmgReceived += (uint)Math.Round(tickAmount);
+                        }
+                    }
+                }
+
                 if (isDead) break;
             }
 
-            creature.TakeDamageOverTime(tickAmountTotal, damageType);
+            creature.TakeDamageOverTime(tickAmountTotal, damageType);            
 
             if (!creature.IsAlive) return;
 

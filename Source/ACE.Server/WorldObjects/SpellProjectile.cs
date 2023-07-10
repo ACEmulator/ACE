@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Numerics;
 
 using ACE.Common;
@@ -445,6 +446,17 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            //Arenas - If this is an arena landblock
+            //don't allow any dmg except while the event is in a started status and between non-eliminated players            
+            if (targetPlayer != null && ArenaLocation.IsArenaLandblock(targetPlayer.Location.Landblock))
+            {
+                var arenaEvent = ArenaManager.GetArenaEventByLandblock(targetPlayer.Location.Landblock);
+                if (arenaEvent == null || arenaEvent.Status != 4)
+                {
+                    return 0.0f;
+                }
+            }
+
             var critDamageBonus = 0.0f;
             var weaponCritDamageMod = 1.0f;
             var weaponResistanceMod = 1.0f;
@@ -649,6 +661,24 @@ namespace ACE.Server.WorldObjects
                     }
 
                     finalDamage = finalDamage * dmgMod;
+                }
+            }
+
+            //Arenas - If this is an arena landblock
+            //track dmg dealt and received
+            if (targetPlayer != null && ArenaLocation.IsArenaLandblock(targetPlayer.Location.Landblock))
+            {
+                var arenaEvent = ArenaManager.GetArenaEventByLandblock(targetPlayer.Location.Landblock);
+                if (arenaEvent != null && arenaEvent.Status == 4 && sourcePlayer != null)
+                {
+                    var attackerArenaPlayer = arenaEvent.Players.FirstOrDefault(x => x.CharacterId == sourcePlayer.Character.Id);
+                    var defenderArenaPlayer = arenaEvent.Players.FirstOrDefault(x => x.CharacterId == targetPlayer.Character.Id);
+
+                    if (attackerArenaPlayer != null && defenderArenaPlayer != null)
+                    {
+                        attackerArenaPlayer.TotalDmgDealt += (uint)Math.Round(finalDamage);
+                        defenderArenaPlayer.TotalDmgReceived += (uint)Math.Round(finalDamage);
+                    }
                 }
             }
 
