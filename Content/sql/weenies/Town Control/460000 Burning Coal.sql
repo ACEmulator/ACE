@@ -11,10 +11,10 @@ VALUES (460000,   1,         32) /* ItemType - Food */
      , (460000,  12,          1) /* StackSize */
      , (460000,  13,         75) /* StackUnitEncumbrance */
      , (460000,  14,         75) /* StackUnitMass */
-     , (460000,  15,        100) /* StackUnitValue */
+     , (460000,  15,        1) /* StackUnitValue */
      , (460000,  16,          8) /* ItemUseable - Contained */
      , (460000,  18,          1) /* UiEffects - Magical */
-     , (460000,  19,        100) /* Value */
+     , (460000,  19,        1) /* Value */
 	 , (460000, 114,          1) /* Attuned - Attuned */
 	 , (460000,  33,          1) /* Bonded - Bonded */
      , (460000,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */

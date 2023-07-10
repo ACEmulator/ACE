@@ -21,10 +21,13 @@ VALUES (480482,   1,       2048) /* ItemType - Gem */
      , (480482, 108,      10000) /* ItemMaxMana */
      , (480482, 109,          0) /* ItemDifficulty */
      , (480482, 114,          1) /* Attuned - Attuned */
-     , (480482, 151,         11) /* HookType - Floor, Wall, Yard */;
+     , (480482, 151,         11) /* HookType - Floor, Wall, Yard */
+	 , (480482, 267,     172800) /* Lifespan */
+	 , (480482, 280,          3) /* SharedCooldown */;
 
 INSERT INTO `weenie_properties_bool` (`object_Id`, `type`, `value`)
-VALUES (480482,  69, False) /* IsSellable */;
+VALUES (480482,  69, False) /* IsSellable */
+     , (480482,  63, True ) /* UnlimitedUse */;
 
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)
 VALUES (480482,   1, 'Luminous Crystal of Rare Damage Reduction V') /* Name */

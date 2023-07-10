@@ -53,14 +53,6 @@ VALUES (0x701C900D, 4200076, 0x01C90127, 115.25, -190, -72, -0.707107, 0, 0, -0.
 /* @teleloc 0x01C90127 [115.250000 -190.000000 -72.000000] -0.707107 0.000000 0.000000 -0.707107 */
 
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
-VALUES (0x701C900E,   911, 0x01C9013C, 90, -140, -42, 1, 0, 0, 0, False, '2005-02-09 10:00:00'); /* Lich Generator */
-/* @teleloc 0x01C9013C [90.000000 -140.000000 -42.000000] 1.000000 0.000000 0.000000 0.000000 */
-
-INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
-VALUES (0x701C900F,   911, 0x01C9013D, 89.9774, -148.317, -42, 1, 0, 0, 0, False, '2005-02-09 10:00:00'); /* Lich Generator */
-/* @teleloc 0x01C9013D [89.977402 -148.317001 -42.000000] 1.000000 0.000000 0.000000 0.000000 */
-
-INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
 VALUES (0x701C9010,   912, 0x01C90152, 3.18877, -156.604, -29.9823, 0.940474, 0, 0, -0.339867, False, '2005-02-09 10:00:00'); /* Revenant Generator */
 /* @teleloc 0x01C90152 [3.188770 -156.604004 -29.982300] 0.940474 0.000000 0.000000 -0.339867 */
 
@@ -116,46 +108,8 @@ VALUES (0x701C901A,   419, 0x01C901B7, 79.9582, -98.5506, -24, 0, 0, 0, -1, Fals
 /* @teleloc 0x01C901B7 [79.958199 -98.550598 -24.000000] 0.000000 0.000000 0.000000 -1.000000 */
 
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
-VALUES (0x701C901B,   911, 0x01C901C8, 100, -140, -18, -0.602686, 0, 0, -0.797979, False, '2005-02-09 10:00:00'); /* Lich Generator */
-/* @teleloc 0x01C901C8 [100.000000 -140.000000 -18.000000] -0.602686 0.000000 0.000000 -0.797979 */
-
-INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
-VALUES (0x701C901E,  1524, 0x01C901D1, 62.7258, -79.8553, -5.9925, 0.707107, 0, 0, -0.707107,  True, '2005-02-09 10:00:00'); /* Undead Miner */
-/* @teleloc 0x01C901D1 [62.725800 -79.855301 -5.992500] 0.707107 0.000000 0.000000 -0.707107 */
-
-INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
-VALUES (0x701C901F,  1154, 0x01C901D1, 60, -80, -6, -0.707107, 0, 0, -0.707107, False, '2005-02-09 10:00:00'); /* Linkable Monster Generator */
-/* @teleloc 0x01C901D1 [60.000000 -80.000000 -6.000000] -0.707107 0.000000 0.000000 -0.707107 */
-
-INSERT INTO `landblock_instance_link` (`parent_GUID`, `child_GUID`, `last_Modified`)
-VALUES (0x701C901F, 0x701C901E, '2005-02-09 10:00:00') /* Undead Miner (1524) */;
-
-INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
-VALUES (0x701C9020,  1296, 0x01C901D3, 60, -119.022, -6, 1, 0, 0, 0, False, '2005-02-09 10:00:00'); /* Door */
-/* @teleloc 0x01C901D3 [60.000000 -119.022003 -6.000000] 1.000000 0.000000 0.000000 0.000000 */
-
-INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
-VALUES (0x701C9021,   911, 0x01C901D4, 61.7723, -130.078, -6, 1, 0, 0, 0, False, '2005-02-09 10:00:00'); /* Lich Generator */
-/* @teleloc 0x01C901D4 [61.772301 -130.078003 -6.000000] 1.000000 0.000000 0.000000 0.000000 */
-
-INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
 VALUES (0x701C9022,   568, 0x01C901D6, 60, -125.25, -6, 1, 0, 0, 0, False, '2005-02-09 10:00:00'); /* Door */
 /* @teleloc 0x01C901D6 [60.000000 -125.250000 -6.000000] 1.000000 0.000000 0.000000 0.000000 */
-
-INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
-VALUES (0x701C9023,   965, 0x01C901DA, 70, -110, -6, -0.999547, 0, 0, -0.030102, False, '2005-02-09 10:00:00'); /* Zombie Generator */
-/* @teleloc 0x01C901DA [70.000000 -110.000000 -6.000000] -0.999547 0.000000 0.000000 -0.030102 */
-
-INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
-VALUES (0x701C9024,  1524, 0x01C901E1, 80.4033, -97.6671, -5.9925, 1, 0, 0, 0,  True, '2005-02-09 10:00:00'); /* Undead Miner */
-/* @teleloc 0x01C901E1 [80.403297 -97.667099 -5.992500] 1.000000 0.000000 0.000000 0.000000 */
-
-INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
-VALUES (0x701C9025,  1154, 0x01C901E1, 80.7059, -99.1063, -6, 1, 0, 0, 0, False, '2005-02-09 10:00:00'); /* Linkable Monster Generator */
-/* @teleloc 0x01C901E1 [80.705902 -99.106300 -6.000000] 1.000000 0.000000 0.000000 0.000000 */
-
-INSERT INTO `landblock_instance_link` (`parent_GUID`, `child_GUID`, `last_Modified`)
-VALUES (0x701C9025, 0x701C9024, '2005-02-09 10:00:00') /* Undead Miner (1524) */;
 
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
 VALUES (0x701C9026,   953, 0x01C901E3, 90.7528, -81.5298, -6, 1, 0, 0, 0, False, '2005-02-09 10:00:00'); /* Young Banderling Generator */
@@ -312,3 +266,11 @@ VALUES (0x701C904B,   568, 0x01C90233, 80, -24.75, 0, 0, 0, 0, -1, False, '2005-
 INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
 VALUES (0x701C904C, 151002, 0x01C901D1, 61.6175, -80.3056, -6.063, -0.708791, 0, 0, -0.705419, False, '2022-03-21 20:47:58');
 /* @teleloc 0x01C901D1 [61.617500 -80.305603 -6.063000] -0.708791 0.000000 0.000000 -0.705419 */
+
+INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
+VALUES (0x701C904D, 480607, 0x01C901D1, 56.0273, -79.8823, -6, -0.687989, 0, 0, -0.725722, False, '2023-07-09 16:48:05'); /* Darkbeat's Storage Locker */
+/* @teleloc 0x01C901D1 [56.027302 -79.882301 -6.000000] -0.687989 0.000000 0.000000 -0.725722 */
+
+INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)
+VALUES (0x701C904E, 480480, 0x01C901D1, 57.2893, -82.9873, -5.99, 0.92388, 0, 0, -0.382684, False, '2023-07-09 17:14:07'); /* Darkbeat */
+/* @teleloc 0x01C901D1 [57.289299 -82.987297 -5.990000] 0.923880 0.000000 0.000000 -0.382684 */
