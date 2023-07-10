@@ -675,7 +675,7 @@ namespace ACE.Server.Command.Handlers
                     break;
 
                 default:
-                    CommandHandlerHelper.WriteOutputInfo(session, $"Invalid parameters. {(String.IsNullOrEmpty(actionType) ? "Empty action type" : "Action type" + actionType)} is not supported. Proper syntax is as follows...\n  To join a 1v1 arena match: /arena join\n  To join a specific type of arena match, replace eventType with the string code for the type of match you want to join, such as 1v1, 5v5, 5v5v5, 9v9. : /arena join eventType\n  To get your current character's stats: /arena stats\n  To get a named character's stats, replace characterName with the target character's name: /arena stats characterName");
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Arena Commands...\n  To join a 1v1 arena match: /arena join\n  To join a specific type of arena match: /arena join eventType\n  (replace eventType with the string code for the type of match you want to join; 1v1, 2v2 or FFA)\n  To leave an arena queue or cancel a match that isn't started: /arena cancel\n  To get your current character's stats: /arena stats\n  To get a named character's stats: /arena stats characterName\n  (replace characterName with the target character's name\n  To get info about players in an arena queue and active arena matches: /arena info");
                     return;
             }
         }
