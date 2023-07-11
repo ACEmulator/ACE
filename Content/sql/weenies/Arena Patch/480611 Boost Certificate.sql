@@ -8,9 +8,11 @@ VALUES (480611,   1,        128) /* ItemType - Misc */
      , (480611,   5,          5) /* EncumbranceVal */
      , (480611,  16,          1) /* ItemUseable - No */
      , (480611,  19,          2) /* Value */
-     , (480611,  33,          1) /* Bonded - Bonded */
      , (480611,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
-     , (480611, 114,          1) /* Attuned - Attuned */;
+	 , (480611,  11,         10) /* MaxStackSize */
+     , (480611,  12,          1) /* StackSize */
+     , (480611,  13,         75) /* StackUnitEncumbrance */
+     , (480611,  14,         75) /* StackUnitMass */;
 
 INSERT INTO `weenie_properties_bool` (`object_Id`, `type`, `value`)
 VALUES (480611,  69, False) /* IsSellable */;
