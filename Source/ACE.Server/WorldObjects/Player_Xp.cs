@@ -19,7 +19,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="amount">The amount of XP being added</param>
         /// <param name="xpType">The source of XP being added</param>
         /// <param name="shareable">True if this XP can be shared with Fellowship</param>
-        public void EarnXP(long amount, XpType xpType, ShareType shareType = ShareType.All)
+        public void EarnXP(long amount, XpType xpType, ShareType shareType = ShareType.All, bool isArena = false)
         {
             //Console.WriteLine($"{Name}.EarnXP({amount}, {sharable}, {fixedAmount})");
 
@@ -38,7 +38,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            GrantXP(m_amount, xpType, shareType);
+            GrantXP(m_amount, xpType, shareType, isArena);
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="amount">The amount of XP to grant to the player</param>
         /// <param name="xpType">The source of the XP being granted</param>
         /// <param name="shareable">If TRUE, this XP can be shared with fellowship members</param>
-        public void GrantXP(long amount, XpType xpType, ShareType shareType = ShareType.All)
+        public void GrantXP(long amount, XpType xpType, ShareType shareType = ShareType.All, bool isArena = false)
         {
             if (IsOlthoiPlayer)
             {
@@ -57,7 +57,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (Enlightenment > 0)
+            if (Enlightenment > 0 && !isArena)
             {
                 switch (xpType)
                 {
@@ -104,7 +104,7 @@ namespace ACE.Server.WorldObjects
 
             // for passing XP up the allegiance chain,
             // this function is only called at the very beginning, to start the process.
-            if (shareType.HasFlag(ShareType.Allegiance))
+            if (shareType.HasFlag(ShareType.Allegiance) && !isArena)
                 UpdateXpAllegiance(amount);
 
             // only certain types of XP are granted to items
@@ -473,7 +473,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Raise the available XP by a percentage of the current level XP or a maximum
         /// </summary>
-        public void GrantLevelProportionalXp(double percent, long min, long max)
+        public void GrantLevelProportionalXp(double percent, long min, long max, bool isArena = false)
         {
             var nextLevelXP = GetXPBetweenLevels(Level.Value, Level.Value + 1);
 
@@ -486,7 +486,7 @@ namespace ACE.Server.WorldObjects
                 scaledXP = Math.Max(scaledXP, min);
 
             // apply xp modifiers?
-            EarnXP(scaledXP, XpType.Quest, ShareType.Allegiance);
+            EarnXP(scaledXP, XpType.Quest, ShareType.Allegiance, isArena);
         }
 
         /// <summary>

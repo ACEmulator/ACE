@@ -146,7 +146,10 @@ namespace ACE.Server.Managers
         {
             player.EventId = null;
             player.TeamGuid = null;
-            queuedPlayers.Add(player.Id, player);
+            if (!queuedPlayers.ContainsKey(player.CharacterId))
+            {
+                queuedPlayers.Add(player.CharacterId, player);
+            }
         }
 
         public static ArenaEvent MatchMake(List<string> supportedEventTypes)
@@ -422,45 +425,29 @@ namespace ACE.Server.Managers
             return queuedPlayers.Values.ToList();
         }
 
-        public static string PlayerCancel(uint characterId)
+        public static void PlayerCancel(uint characterId)
         {
-            var resultMsg = "";
-
-            //TODO
             //Check if player is in an active event                    
             //if not, remove player from queue
             //if in active event
             //  if event isn't started yet cancel and add all other players back to queue
             //  if event is started, message that they can finish the event or recall to forfeit
 
+            var player = PlayerManager.GetOnlinePlayer(characterId);
+
+            var arenaPlayer = ArenaManager.GetArenaPlayerByCharacterId(characterId);
+
+            if(arenaPlayer != null)
+            {
+                player.EnqueueBroadcast(new GameMessageSystemChat("Your arena match is already started and cannot be cancelled.  To forfeit, you can leave the arena or log off.", ChatMessageType.Broadcast));
+                return;
+            }
+
             if (queuedPlayers.ContainsKey(characterId))
             {
                 queuedPlayers.Remove(characterId);
+                player?.EnqueueBroadcast(new GameMessageSystemChat("You have cancelled and been removed from the arena queue.", ChatMessageType.Broadcast));
             }
-
-            ArenaEvent activePlayerEvent = null;
-            foreach (var arenaEvent in GetActiveEvents())
-            {
-                var arenaPlayer = arenaEvent.Players.FirstOrDefault(x => x.CharacterId == characterId);
-                if (arenaPlayer != null)
-                {
-                    activePlayerEvent = arenaEvent;
-                }
-            }
-
-            if (activePlayerEvent != null)
-            {
-                if (activePlayerEvent.Status < 3)
-                {
-                    var location = arenaLocations.FirstOrDefault(x => x.Key == activePlayerEvent.Location).Value;
-                    if (location != null)
-                    {
-                        location.EndEventCancel();
-                    }
-                }
-            }
-
-            return resultMsg;
         }
 
 

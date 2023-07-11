@@ -585,7 +585,7 @@ namespace ACE.Server.Command.Handlers
 
                 case "cancel":
                     
-                    var cancelResultMsg = ArenaManager.PlayerCancel(session.Player.Character.Id);
+                    ArenaManager.PlayerCancel(session.Player.Character.Id);
 
                     break;
 
