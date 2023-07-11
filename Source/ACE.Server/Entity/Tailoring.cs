@@ -43,8 +43,11 @@ namespace ACE.Server.Entity
         public const uint MorphGemRemoveMeleeDReq = 480483;
         public const uint MorphGemRandomizeWeaponImbue = 480486;
         public const uint MorphGemRemovePlayerReq = 480485;
+        public const uint MorphGemSlayerRandom = 480610;
 
         public const int MorphGemMinValue = 20000;
+
+        
 
         // Some WCIDs have Overlay Icons that need to be removed (e.g. Olthoi Alduressa Gauntlets or Boots)
         // There are other examples not here, like some stamped shields that might need to be added, as well.
@@ -204,6 +207,7 @@ namespace ACE.Server.Entity
                 case MorphGemRemoveMeleeDReq:
                 case MorphGemRandomizeWeaponImbue:
                 case MorphGemRemovePlayerReq:
+                case MorphGemSlayerRandom:
                     ApplyMorphGem(player, source, target);
                     return;
             }
@@ -1096,6 +1100,132 @@ namespace ACE.Server.Entity
                         break;
                     #endregion MorphGemRemovePlayerReq
 
+                    #region MorphGemSlayerRandom
+                    case MorphGemSlayerRandom:
+
+                        var tinkerLottoLog = target.GetProperty(PropertyString.TinkerLottoLog);
+                        if (!String.IsNullOrEmpty(tinkerLottoLog) && tinkerLottoLog.Contains("Slayer") && target.SlayerCreatureType != null)
+                        {
+                            var selectSlayerType = ThreadSafeRandom.Next(1, 25);
+                            switch (selectSlayerType)
+                            {
+                                case 1:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Banderling;
+                                    break;
+
+                                case 2:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Drudge;
+                                    break;
+
+                                case 3:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Gromnie;
+                                    break;
+
+                                case 4:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Lugian;
+                                    break;
+
+                                case 5:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Grievver;
+                                    break;
+
+                                case 6:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Mattekar;
+                                    break;
+
+                                case 7:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Mite;
+                                    break;
+
+                                case 8:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Mosswart;
+                                    break;
+
+                                case 9:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Mumiyah;
+                                    break;
+
+                                case 10:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Olthoi;
+                                    break;
+
+                                case 11:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.PhyntosWasp;
+                                    break;
+
+                                case 12:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Shadow;
+                                    break;
+
+                                case 13:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Shreth;
+                                    break;
+
+                                case 14:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Skeleton;
+                                    break;
+
+                                case 15:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Tumerok;
+                                    break;
+
+                                case 16:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Tusker;
+                                    break;
+
+                                case 17:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Virindi;
+                                    break;
+
+                                case 18:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Wisp;
+                                    break;
+
+                                case 19:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Zefir;
+                                    break;
+
+                                case 20:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Golem;
+                                    break;
+
+                                case 21:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Gurog;
+                                    break;
+
+                                case 22:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Burun;
+                                    break;
+
+                                case 23:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Remoran;
+                                    break;
+
+                                case 24:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Reedshark;
+                                    break;
+
+                                case 25:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Eater;
+                                    break;
+                            }
+
+                            playerMsg = $"The Morph Gem alters your weapon's slayer type to {target.SlayerCreatureType}";
+                            
+
+                            //Send player message confirming the applied morph gem
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                        }
+                        else
+                        {
+                            //Must be a slayer that was applied by tinker lotto
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+                        break;
+
+                    #endregion MorphGemSlayerRandom
+
                     default:
                         player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                         return;
@@ -1358,6 +1488,7 @@ namespace ACE.Server.Entity
                 case MorphGemRemoveMeleeDReq:
                 case MorphGemRandomizeWeaponImbue:
                 case MorphGemRemovePlayerReq:
+                case MorphGemSlayerRandom:
 
                     return true;
 
