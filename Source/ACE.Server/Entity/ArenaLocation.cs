@@ -494,7 +494,7 @@ namespace ACE.Server.Entity
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Congratulations, you've won the {this.ActiveEvent.EventTypeDisplay} arena event against {loserList}!\nSome blurb about your rewards.\nIf you're still in the {this.ArenaName} arena you can recall now or you have a short period before you're teleported to your Lifestone so hurry up and loot.", ChatMessageType.System));
 
                     //Reward the winners
-                    if (player.Age > 2592000) //30 days in seconds
+                    if (player.Age > PropertyManager.GetLong("arenas_reward_min_age").Item) //days in seconds
                     {
                         switch (this.ActiveEvent.EventType)
                         {

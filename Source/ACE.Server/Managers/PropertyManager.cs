@@ -648,7 +648,8 @@ namespace ACE.Server.Managers
                 ("town_control_reward_zerg_limit", new Property<long>(9, "the maximum numbers of players from the same clan allowed in the town control conflict landblock")), 
                 ("town_control_periodic_reward_seconds", new Property<long>(50, "the number seconds between periodic trophy awards during an active town control event")),
                 ("town_control_periodic_reward_defender_seconds", new Property<long>(25, "the number seconds between periodic trophy awards during an active town control event for the defending clan")),
-                ("arenas_min_level", new Property<long>(25, "the minimum level required to join an arena queue"))
+                ("arenas_min_level", new Property<long>(25, "the minimum level required to join an arena queue")),
+                ("arenas_reward_min_age", new Property<long>(864000, "the minimum in-game age in seconds required to get arena rewards"))
                 );
 
         public static readonly ReadOnlyDictionary<string, Property<double>> DefaultDoubleProperties =
