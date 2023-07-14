@@ -524,9 +524,9 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.AdminTell));
         }
 
-        private static DateTime LastFixCombat;
+        private static DateTime LastFixCombatTime;
 
-        private static TimeSpan FixCombatInterval = TimeSpan.FromMinutes(5);
+        private static readonly TimeSpan FixCombatInterval = TimeSpan.FromMinutes(5);
 
         // temporary workaround until the archer bug is fully analyzed and fixed
         [CommandHandler("fixcombat", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Forces Peace mode if you are stuck in combat.")]
@@ -534,14 +534,14 @@ namespace ACE.Server.Command.Handlers
         {
             var currTime = DateTime.Now;
 
-            if (currTime - LastFixCombat < FixCombatInterval)
+            if (currTime - LastFixCombatTime < FixCombatInterval)
             {
                 CommandHandlerHelper.WriteOutputError(session, $"This command can only be used once every 5 minutes!");
                 return;
             }
 
             log.Info($"{session.Player.Name} used /fixcombat");
-            LastFixCombat = currTime;
+            LastFixCombatTime = currTime;
 
             if (session.Player.IsPlayerMovingTo)
                 session.Player.StopExistingMoveToChains();
