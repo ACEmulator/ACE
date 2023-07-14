@@ -47,6 +47,8 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyFloat.PkTimestamp); else SetProperty(PropertyFloat.PkTimestamp, value); }
         }
 
+        public DateTime LastFixCombatTime { get; set; }
+
         /// <summary>
         /// Returns the current attack skill for the player
         /// </summary>

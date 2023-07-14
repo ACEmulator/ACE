@@ -524,8 +524,6 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.AdminTell));
         }
 
-        private static DateTime LastFixCombatTime;
-
         private static readonly TimeSpan FixCombatInterval = TimeSpan.FromMinutes(5);
 
         // temporary workaround until the archer bug is fully analyzed and fixed
@@ -534,14 +532,14 @@ namespace ACE.Server.Command.Handlers
         {
             var currTime = DateTime.Now;
 
-            if (currTime - LastFixCombatTime < FixCombatInterval)
+            if (currTime - session.Player.LastFixCombatTime < FixCombatInterval)
             {
                 CommandHandlerHelper.WriteOutputError(session, $"This command can only be used once every 5 minutes!");
                 return;
             }
 
             log.Info($"{session.Player.Name} used /fixcombat");
-            LastFixCombatTime = currTime;
+            session.Player.LastFixCombatTime = currTime;
 
             if (session.Player.IsPlayerMovingTo)
                 session.Player.StopExistingMoveToChains();
