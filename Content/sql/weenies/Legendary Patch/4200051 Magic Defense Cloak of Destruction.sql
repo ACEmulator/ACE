@@ -11,6 +11,8 @@ VALUES (4200051,   1,          4) /* ItemType - Clothing */
      , (4200051,   9,  134217728) /* ValidLocations - Cloak */
      , (4200051,  16,          1) /* ItemUseable - No */
      , (4200051,  18,          1) /* UiEffects - Magical */
+	 , (4200051,  33,          1) /* Bonded - Normal */
+     , (4200051, 114,          1) /* Attuned - Attuned */
      , (4200051,  19,     2) /* Value */
      , (4200051,  28,          0) /* ArmorLevel */
      , (4200051,  36,       9999) /* ResistMagic */
@@ -46,8 +48,8 @@ VALUES (4200051,  13,     0.8) /* ArmorModVsSlash */
      , (4200051, 165,       1) /* ArmorModVsNether */;
 
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)
-VALUES (4200051,   1, 'Cloak of Destruction') /* Name */
-     , (4200051,  16, 'Cloak of Destruction') /* LongDesc */;
+VALUES (4200051,   1, 'Magic Defense Cloak of Destruction') /* Name */
+     , (4200051,  16, 'Magic Defense Cloak of Destruction') /* LongDesc */;
 
 INSERT INTO `weenie_properties_d_i_d` (`object_Id`, `type`, `value`)
 VALUES (4200051,   1, 0x02001B2A) /* Setup */

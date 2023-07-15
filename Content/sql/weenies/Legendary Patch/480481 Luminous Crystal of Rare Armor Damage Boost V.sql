@@ -6,13 +6,9 @@ VALUES (480481, 'ace480481-luminouscrystalofrarearmordamageboostvpk', 38, '2021-
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`)
 VALUES (480481,   1,       2048) /* ItemType - Gem */
      , (480481,   5,          5) /* EncumbranceVal */
-     , (480481,  11,         10) /* MaxStackSize */
-     , (480481,  12,          1) /* StackSize */
-     , (480481,  13,          5) /* StackUnitEncumbrance */
-     , (480481,  15,      25000) /* StackUnitValue */
      , (480481,  16,          8) /* ItemUseable - Contained */
      , (480481,  18,          1) /* UiEffects - Magical */
-     , (480481,  19,      25000) /* Value */
+     , (480481,  19,      100) /* Value */
      , (480481,  33,          1) /* Bonded - Normal */
      , (480481,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (480481,  94,         16) /* TargetType - Creature */

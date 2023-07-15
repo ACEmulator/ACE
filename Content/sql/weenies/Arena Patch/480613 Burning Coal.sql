@@ -11,12 +11,9 @@ VALUES (480613,   1,         32) /* ItemType - Food */
      , (480613,  12,          1) /* StackSize */
      , (480613,  13,         75) /* StackUnitEncumbrance */
      , (480613,  14,         75) /* StackUnitMass */
-     , (480613,  15,        5) /* StackUnitValue */
+     , (480613,  19,         5) /* Value */
      , (480613,  16,          8) /* ItemUseable - Contained */
      , (480613,  18,          1) /* UiEffects - Magical */
-     , (480613,  19,        5) /* Value */
-	 , (480613, 114,          1) /* Attuned - Attuned */
-	 , (480613,  33,          1) /* Bonded - Bonded */
      , (480613,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (480613,  94,         16) /* TargetType - Creature */
      , (480613, 106,        150) /* ItemSpellcraft */

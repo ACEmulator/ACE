@@ -6,13 +6,9 @@ VALUES (480482, 'ace480482-luminouscrystalofraredamagereductionvpk', 38, '2021-1
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`)
 VALUES (480482,   1,       2048) /* ItemType - Gem */
      , (480482,   5,          5) /* EncumbranceVal */
-     , (480482,  11,         10) /* MaxStackSize */
-     , (480482,  12,          1) /* StackSize */
-     , (480482,  13,          5) /* StackUnitEncumbrance */
-     , (480482,  15,      25000) /* StackUnitValue */
      , (480482,  16,          8) /* ItemUseable - Contained */
      , (480482,  18,          1) /* UiEffects - Magical */
-     , (480482,  19,      25000) /* Value */
+     , (480482,  19,      100) /* Value */
      , (480482,  33,          1) /* Bonded - Normal */
      , (480482,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (480482,  94,         16) /* TargetType - Creature */
