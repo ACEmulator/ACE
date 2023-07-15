@@ -643,6 +643,7 @@ namespace ACE.Server.Command.Handlers
                     break;
 
                 case "stats":
+                case "rank":
 
                     string returnMsg;
                     if (parameters.Count() >= 2)

@@ -48,7 +48,43 @@ namespace ACE.Database.Models.Log
 
         public bool IsEliminated { get; set; }
 
+        [NotMapped]
+        public bool IsDisqualified
+        {
+            get
+            {
+                return FinishPlace == -1;
+            }
+        }
+
         public int FinishPlace { get; set; }
+
+        [NotMapped]
+        public string FinishPlaceDisplay
+        {
+            get
+            {
+                string suffix = "";
+                switch(Int32.Parse(FinishPlace.ToString().Last().ToString()))
+                {
+                    case 1:
+                        suffix = "st";
+                        break;
+                    case 2:
+                        suffix = "nd";
+                        break;
+                    case 3:
+                        suffix = "rd";                    
+                        break;
+                    default:
+                        if(FinishPlace > 3)
+                            suffix = "th";
+                        break;
+                }
+
+                return FinishPlace == -1? "Disqualified" : $"{FinishPlace}{suffix}";
+            }
+        }
 
         public uint TotalDmgReceived { get; set; }
 

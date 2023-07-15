@@ -234,6 +234,7 @@ namespace ACE.Server.Entity
                                     {
                                         arenaPlayer.IsEliminated = true;
                                         arenaPlayer.FinishPlace = -1;
+                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been disqualified from the {arenaPlayer.EventType} arena match because you left the arena.", ChatMessageType.System));
                                     }
                                 }
 
@@ -244,6 +245,7 @@ namespace ACE.Server.Entity
                                     if (notEliminatedPlayers != null)
                                     {
                                         arenaPlayer.FinishPlace = notEliminatedPlayers.Count() + 1; //If there's 5 players still in the game after you just got eliminated, you're 6th place
+                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been eliminated from the Free for All arena match in {this.ArenaName}.  You finished in {arenaPlayer.FinishPlaceDisplay} place.", ChatMessageType.System));
                                     }
                                 }
                             }
@@ -685,14 +687,16 @@ namespace ACE.Server.Entity
             //Process losers
             foreach (var loser in losers)
             {
+                bool isDraw = loser.EventType.Equals("ffa") && loser.FinishPlace <=5 && loser.FinishPlace > 0;
+
                 //Add to stats
                 DatabaseManager.Log.AddToArenaStats(
                     loser.CharacterId,
                     loser.CharacterName,
                     1,
                     0,
-                    0,
-                    1,
+                    isDraw ? (uint)1 : (uint)0,
+                    isDraw? (uint)0 : (uint)1,
                     loser.FinishPlace == -1 ? (uint)1 : (uint)0,
                     loser.TotalDeaths,
                     loser.TotalKills,
@@ -703,6 +707,11 @@ namespace ACE.Server.Entity
                 if (player != null)
                 {
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Tough luck, you've lost the {this.ActiveEvent.EventTypeDisplay} arena event to {winnerList}\nIf you're still in the {this.ArenaName} arena you have a short period before you're teleported to your lifestone.", ChatMessageType.System));
+
+                    if (loser.EventType.Equals("ffa"))
+                    {
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The Free for All arena match in {this.ArenaName} has finished and you placed {loser.FinishPlaceDisplay}\nIf you're still in the {this.ArenaName} arena you have a short period before you're teleported to your lifestone.", ChatMessageType.System));
+                    }
 
                     var shouldReward = IsPlayerRewardEligible(player, loser, this.ActiveEvent.Players) && !underageViolation;
 
