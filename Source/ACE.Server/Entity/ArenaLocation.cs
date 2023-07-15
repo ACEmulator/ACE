@@ -882,29 +882,30 @@ namespace ACE.Server.Entity
 
         public bool IsPlayerRewardEligible(Player player, ArenaPlayer arenaPlayer, List<ArenaPlayer> allArenaPlayers)
         {
-            var shouldReward = true;
+            if (arenaPlayer.FinishPlace == -1)
+                return false;
 
             if (player.Age <= PropertyManager.GetLong("arenas_reward_min_age").Item) //days in seconds
             {
-                shouldReward = false;
+                return false;
             }
 
             //You can't get more than 20 rewards per day
             if (player.ArenaDailyRewardCount >= 20 && (player.ArenaDailyRewardTimestamp ?? 0) >= Time.GetUnixTime(DateTime.Today))
             {
-                shouldReward = false;
+                return false;
             }
 
             //You can't get more than 6 rewards per hour
             if (player.ArenaHourlyCount >= 6 && (player.ArenaHourlyTimestamp ?? 0) >= Time.GetUnixTime(new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, 0, 0)))
             {
-                shouldReward = false;
+                return false;
             }
 
             //You can't get more than 5 rewards playing against a clanmate per day
             if(player.ArenaSameClanDailyRewardCount >= 5 && (player.ArenaDailyRewardTimestamp ?? 0) >= Time.GetUnixTime(DateTime.Today))
             {
-                shouldReward = false;
+                return false;
             }
 
             //You can't get more than 3 rewards from same person per day
@@ -918,12 +919,12 @@ namespace ACE.Server.Entity
                         todaysArenaRewardsByOpponent.ContainsKey(opponent.CharacterId) &&
                         todaysArenaRewardsByOpponent[opponent.CharacterId] >= 3)
                     {
-                        shouldReward = false;
+                        return false;
                     }
                 }
             }
 
-            return shouldReward;
+            return true;
         }
 
         public void EndEventTimelimitExceeded()
