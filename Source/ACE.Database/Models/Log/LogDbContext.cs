@@ -27,6 +27,8 @@ namespace ACE.Database.Models.Log
 
         public virtual DbSet<ArenaPlayer> ArenaPlayers { get; set; }
 
+        public virtual DbSet<ArenaCharacterStats> ArenaCharacterStats { get; set; }
+
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -268,6 +270,53 @@ namespace ACE.Database.Models.Log
 
                 entity.Property(e => e.CreateDateTime)
                     .HasColumnName("create_datetime");
+
+            });
+
+            modelBuilder.Entity<ArenaCharacterStats>(entity =>
+            {
+                entity.HasKey(e => e.Id)
+                    .HasName("PRIMARY");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.ToTable("arena_character_stats");
+
+                entity.Property(e => e.CharacterId)
+                    .HasColumnName("character_id");
+
+                entity.Property(e => e.CharacterName)
+                    .HasColumnName("character_name");
+
+                entity.Property(e => e.RankPoints)
+                    .HasColumnName("rank_points");
+
+                entity.Property(e => e.TotalMatches)
+                    .HasColumnName("total_matches");
+
+                entity.Property(e => e.TotalWins)
+                    .HasColumnName("total_wins");
+
+                entity.Property(e => e.TotalLosses)
+                    .HasColumnName("total_losses");
+
+                entity.Property(e => e.TotalDraws)
+                    .HasColumnName("total_draws");
+
+                entity.Property(e => e.TotalDisqualified)
+                    .HasColumnName("total_disqualified");
+
+                entity.Property(e => e.TotalDeaths)
+                    .HasColumnName("total_deaths");
+
+                entity.Property(e => e.TotalKills)
+                    .HasColumnName("total_kills");
+
+                entity.Property(e => e.TotalDmgDealt)
+                    .HasColumnName("total_dmg_dealt");
+
+                entity.Property(e => e.TotalDmgReceived)
+                    .HasColumnName("total_dmg_received");
 
             });
 

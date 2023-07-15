@@ -312,6 +312,45 @@ namespace ACE.Database
             return 0;
         }
 
+        public void AddToArenaStats(uint characterId, string characterName, uint totalMatches, uint totalWins, uint totalDraws, uint totalLosses, uint totalDisqualified, uint totalDeaths, uint totalKills, uint totalDmgDealt, uint totalDmgReceived)
+        {
+            try
+            {
+                using (var context = new LogDbContext())
+                {
+                    var stats = context.ArenaCharacterStats.FirstOrDefault(x => x.CharacterId == characterId);
+                    if(stats == null)
+                    {
+                        stats = new ArenaCharacterStats();
+                        stats.CharacterId = characterId;
+                        stats.CharacterName = characterName;
+                        context.ArenaCharacterStats.Add(stats);
+                    }
+                    else
+                    {
+                        context.Entry(stats).State = EntityState.Modified;
+                    }
+
+                    stats.TotalMatches += totalMatches;
+                    stats.TotalWins += totalWins;
+                    stats.TotalDraws += totalDraws;
+                    stats.TotalLosses += totalLosses;
+                    stats.TotalDisqualified += totalDisqualified;
+                    stats.TotalDeaths += totalDeaths;
+                    stats.TotalKills += totalKills;
+                    stats.TotalDmgDealt += totalDmgDealt;
+                    stats.TotalDmgReceived += totalDmgReceived;
+                    stats.RankPoints = stats.GetRankPoints();
+
+                    context.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Exception saving ArenaCharacterStats. ex: {ex}");
+            }
+        }
+
         public string GetArenaStatsByCharacterId(uint characterId, string characterName)
         {
             string returnMsg = "";
@@ -350,16 +389,17 @@ namespace ACE.Database
                     var twosLosses = lostEvents.Where(x => x.EventType.ToLower().Equals("2v2"));
                     var ffaLosses = lostEvents.Where(x => x.EventType.ToLower().Equals("ffa"));
 
-                    var arenaPlayers = (from a in context.ArenaPlayers
-                                      where a.CharacterId == characterId                                      
-                                      select a);
+                    var stats = context.ArenaCharacterStats.FirstOrDefault(x => x.CharacterId == characterId);
+                    if(stats != null)
+                    {
 
-                    var totalKills = arenaPlayers.Sum(x => x.TotalKills);
-                    var totalDeaths = arenaPlayers.Sum(x => x.TotalDeaths);
-                    var totalDmgDealt = arenaPlayers.Sum(x => x.TotalDmgDealt);
-                    var totalDmgReceived = arenaPlayers.Sum(x => x.TotalDmgReceived);
+                    }
+                    else
+                    {
+                        stats = new ArenaCharacterStats();
+                    }
 
-                    returnMsg = $"*********\nArena Stats for {characterName}\n  Total Arena Events Played: {(wonEvents.Count() + lostEvents.Count() + drawEvents.Count()).ToString("n0")}\n  Total Arena Wins: {wonEvents.Count().ToString("n0")}\n  Total Arena Losses: {lostEvents.Count().ToString("n0")}\n\n  1v1 Wins: {onesWins.Count().ToString("n0")}\n  1v1 Draws: {onesDraws.Count().ToString("n0")}\n  1v1 Losses: {onesLosses.Count().ToString("n0")}\n  2v2 Wins: {twosWins.Count().ToString("n0")}\n  2v2 Draws: {twosDraws.Count().ToString("n0")}\n  2v2 Losses: {twosLosses.Count().ToString("n0")}\n  FFA Wins: {ffaWins.Count().ToString("n0")}\n  FFA Draws: {ffaDraws.Count().ToString("n0")}\n  FFA Losses: {ffaLosses.Count().ToString("n0")}\n\n  Total Kills: {totalKills.ToString("n0")}\n  Total Deaths: {totalDeaths.ToString("n0")}\n  Total Damage Dealt: {totalDmgDealt.ToString("n0")}\n  Total Damage Received: {totalDmgReceived.ToString("n0")}\n*********\n";
+                    returnMsg = $"*********\nArena Stats for {characterName}\n  Arena Rank: {DatabaseManager.Log.GetArenaRank(stats.RankPoints)}\n  Rank Points: {stats.RankPoints}\n  Total Arena Matches Played: {stats.TotalMatches.ToString("n0")}\n  Total Arena Wins: {stats.TotalWins.ToString("n0")}\n  Total Arena Losses: {stats.TotalLosses.ToString("n0")}\n\n  1v1 Wins: {onesWins.Count().ToString("n0")}\n  1v1 Draws: {onesDraws.Count().ToString("n0")}\n  1v1 Losses: {onesLosses.Count().ToString("n0")}\n  2v2 Wins: {twosWins.Count().ToString("n0")}\n  2v2 Draws: {twosDraws.Count().ToString("n0")}\n  2v2 Losses: {twosLosses.Count().ToString("n0")}\n  FFA Wins: {ffaWins.Count().ToString("n0")}\n  FFA Draws: {ffaDraws.Count().ToString("n0")}\n  FFA Losses: {ffaLosses.Count().ToString("n0")}\n\n  Total Kills: {stats.TotalKills.ToString("n0")}\n  Total Deaths: {stats.TotalDeaths.ToString("n0")}\n  Total Damage Dealt: {stats.TotalDmgDealt.ToString("n0")}\n  Total Damage Received: {stats.TotalDmgReceived.ToString("n0")}\n*********\n";
                 }
             }
             catch(Exception ex)
@@ -368,6 +408,31 @@ namespace ACE.Database
             }
 
             return returnMsg;
+        }
+
+        public int GetArenaRank(uint rankPoints)
+        {
+            try
+            {
+                using (var context = new LogDbContext())
+                {
+                    var higherPlayers = context.ArenaCharacterStats.Where(x => x.RankPoints > rankPoints);
+                    if(higherPlayers != null)
+                    {
+                        return higherPlayers.Count() + 1;
+                    }
+                    else
+                    {
+                        return 1;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Error in GetArenaRank. ex:{ex}");
+            }
+
+            return -1;
         }
 
         public List<ArenaEvent> GetAllActiveEvents()

@@ -533,6 +533,20 @@ namespace ACE.Server.Entity
 
             foreach (var winner in winners)
             {
+                //Add to stats
+                DatabaseManager.Log.AddToArenaStats(
+                    winner.CharacterId,
+                    winner.CharacterName,
+                    1,
+                    1,
+                    0,
+                    0,
+                    0,
+                    winner.TotalDeaths,
+                    winner.TotalKills,
+                    winner.TotalDmgDealt,
+                    winner.TotalDmgReceived);
+
                 var player = PlayerManager.GetOnlinePlayer(winner.CharacterId);
                 if (player != null)
                 {
@@ -671,6 +685,20 @@ namespace ACE.Server.Entity
             //Process losers
             foreach (var loser in losers)
             {
+                //Add to stats
+                DatabaseManager.Log.AddToArenaStats(
+                    loser.CharacterId,
+                    loser.CharacterName,
+                    1,
+                    0,
+                    0,
+                    1,
+                    loser.FinishPlace == -1 ? (uint)1 : (uint)0,
+                    loser.TotalDeaths,
+                    loser.TotalKills,
+                    loser.TotalDmgDealt,
+                    loser.TotalDmgReceived);
+
                 var player = PlayerManager.GetOnlinePlayer(loser.CharacterId);
                 if (player != null)
                 {
@@ -937,6 +965,18 @@ namespace ACE.Server.Entity
 
             foreach (var arenaPlayer in this.ActiveEvent.Players)
             {
+                DatabaseManager.Log.AddToArenaStats(
+                    arenaPlayer.CharacterId,
+                    arenaPlayer.CharacterName,
+                    1,
+                    0,
+                    arenaPlayer.FinishPlace == -1 ? (uint)0 : (uint)1,
+                    0,
+                    arenaPlayer.FinishPlace == -1 ? (uint)1 : (uint)0,
+                    arenaPlayer.TotalDeaths,
+                    arenaPlayer.TotalKills,
+                    arenaPlayer.TotalDmgDealt,
+                    arenaPlayer.TotalDmgReceived);
                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
                 if (player != null)
                 {
@@ -1230,55 +1270,7 @@ namespace ACE.Server.Entity
                             //0x01450121[29.054979 -57.933998 0.005000] 0.999882 0.000000 0.000000 0.015373
                             new Position(0x01450114, 5.084766f, -76.363258f, 0.005000f, 0.000000f, 0.000000f, -0.394789f, 0.918772f),
                             //0x01450114[5.084766 -76.363258 0.005000] 0.918772 0.000000 0.000000 -0.394789
-                        }); //Bone Lair
-
-                    //Bone Lair
-                    //23:42:01 Your location is: 0x014501A3[96.569344 -50.926197 6.005000] -0.981925 0.000000 0.000000 -0.189269
-                    //23:42:09 Your location is: 0x014501A1[97.130882 -27.609722 6.005000] -0.302211 0.000000 0.000000 -0.953241
-                    //23:42:28 Your location is: 0x0145010E[100.117851 -50.360348 -5.995000] 0.999994 0.000000 0.000000 0.003506
-                    //23:42:41 Your location is: 0x0145010B[99.959366 -29.854738 -5.995000] 0.026883 0.000000 0.000000 0.999639
-                    //23:42:50 Your location is: 0x01450149[71.072929 -26.698454 0.005000] 0.089337 0.000000 0.000000 -0.996001
-                    //23:42:57 Your location is: 0x0145014B[72.077400 -52.935970 0.005000] 0.985396 0.000000 0.000000 -0.170279
-                    //23:43:31 Your location is: 0x01450117[29.986937 -13.254610 0.005000] 0.011354 0.000000 0.000000 0.999936
-                    //23:43:40 Your location is: 0x01450185[29.381468 -40.134899 6.005000] -0.727314 0.000000 0.000000 0.686305
-                    //23:43:49 Your location is: 0x01450121[29.054979 -57.933998 0.005000] 0.999882 0.000000 0.000000 0.015373
-                    //23:43:56 Your location is: 0x01450114[5.084766 -76.363258 0.005000] 0.918772 0.000000 0.000000 -0.394789
-
-                    //Dungeon Galley Tower
-                    //23:34:25 Your location is: 0x01AD0116[29.940001 -32.599998 0.005000] 0.999962 0.000000 0.000000 -0.008727
-                    //23:34:41 Your location is: 0x01AD011A[40.046265 -1.053921 0.005000] -0.430570 0.000000 0.000000 -0.902557
-                    //23:34:51 Your location is: 0x01AD0100[0.060270 2.052596 0.005000] 0.367637 0.000000 0.000000 -0.929969
-                    //23:37:02 Your location is: 0x01AD0142[39.877190 -9.612027 6.005000] 0.003741 0.000000 0.000000 -0.999993
-                    //23:37:22 Your location is: 0x01AD014B[61.338745 1.616516 6.005000] -0.382769 0.000000 0.000000 -0.923844
-                    //23:37:30 Your location is: 0x01AD014E[59.279133 -31.289797 6.005000] -0.950443 0.000000 0.000000 -0.310898
-                    //23:37:36 Your location is: 0x01AD0144[40.064552 -25.380503 6.005000] -0.999846 0.000000 0.000000 -0.017525
-                    //23:37:49 Your location is: 0x01AD0135[18.353422 -20.375107 6.005000] -0.488653 0.000000 0.000000 0.872478
-                    //23:38:03 Your location is: 0x01AD016E[40.068432 0.782179 18.004999] -0.392550 0.000000 0.000000 -0.919731
-                    //23:38:10 Your location is: 0x01AD0155[30.068464 -20.947460 12.004999] 0.017178 0.000000 0.000000 -0.999852
-
-                    //Yaraq PK Arena
-                    //23:05:10 Your location is: 0x02E30100[54.954102 -53.559502 0.005000] 0.707802 0.000000 0.000000 -0.706410
-                    //23:05:24 Your location is: 0x02E30185[87.640144 -54.995811 12.004999] -0.712840 0.000000 0.000000 -0.701326
-                    //23:05:38 Your location is: 0x02E3014A[54.859180 -20.170738 12.004999] -0.022893 0.000000 0.000000 -0.999738
-                    //23:05:53 Your location is: 0x02E30131[21.610455 -54.913197 12.004999] 0.700137 0.000000 0.000000 -0.714008
-                    //23:06:04 Your location is: 0x02E3015D[55.055714 -88.516785 12.004999] 0.999960 0.000000 0.000000 0.008961
-                    //23:06:15 Your location is: 0x02E30107[37.609787 -55.014618 6.005000] 0.699416 0.000000 0.000000 -0.714715
-                    //23:06:24 Your location is: 0x02E30112[55.120712 -72.074440 6.005000] 0.999910 0.000000 0.000000 0.013379
-                    //23:06:32 Your location is: 0x02E30119[71.587006 -55.205040 6.005000] 0.724856 0.000000 0.000000 0.688900
-                    //23:06:40 Your location is: 0x02E3010F[55.080246 -37.959023 6.005000] 0.009948 0.000000 0.000000 0.999951
-                    //23:07:24 Your location is: 0x02E3015A[59.596912 -55.734844 12.054999] -0.696133 0.000000 0.000000 -0.717913
-
-                    //Pyramid -Admin Island
-                    //23:11:18 Your location is: 0xECEC012D[84.326401 37.399399 0.205000] -0.999944 0.000000 0.000000 -0.010572
-                    //23:11:40 Your location is: 0xECEC011F[131.125320 36.631672 0.205000] -0.942716 0.000000 0.000000 -0.333597
-                    //23:11:48 Your location is: 0xECEC012C[132.890320 84.706825 0.205000] -0.696913 0.000000 0.000000 -0.717156
-                    //23:11:56 Your location is: 0xECEC0122[131.195908 130.575638 0.205000] -0.399395 0.000000 0.000000 -0.916779
-                    //23:12:08 Your location is: 0xECEC012B[83.108978 131.664230 0.205000] 0.007704 0.000000 0.000000 -0.999970
-                    //23:12:15 Your location is: 0xECEC0121[37.388470 130.349777 0.205000] 0.376825 0.000000 0.000000 -0.926284
-                    //23:12:34 Your location is: 0xECEC012E[36.323086 83.237755 0.205000] 0.734121 0.000000 0.000000 -0.679018
-                    //23:12:45 Your location is: 0xECEC0120[37.112888 37.668873 0.205000] 0.915833 0.000000 0.000000 -0.401558
-                    //23:13:02 Your location is: 0xECEC0105[72.137177 84.142395 0.205000] 0.712147 0.000000 0.000000 -0.702030
-                    //23:13:08 Your location is: 0xECEC0110[97.596474 83.986618 0.205000] 0.698579 0.000000 0.000000 0.715533                    
+                        }); //Bone Lair                  
                 }
 
                 return _arenaLocationStartingPositions;
