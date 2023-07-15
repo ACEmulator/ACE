@@ -1,3 +1,4 @@
+using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Log;
 using ACE.Database.Models.TownControl;
@@ -12,6 +13,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Security.Policy;
 using System.Text;
@@ -72,13 +74,13 @@ namespace ACE.Server.Entity
 
             if (HasActiveEvent)
             {
-                log.Info($"ArenaLocation.Tick() - {this.ArenaName} is Active");
+                //log.Info($"ArenaLocation.Tick() - {this.ArenaName} is Active");
 
                 //Drive the active arena event through its lifecycle
                 switch (this.ActiveEvent.Status)
                 {
                     case -1: //Event cancelled
-                        log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = -1");
+                        //log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = -1");
                         ClearPlayersFromArena();
                         EndEventCancel();
                         this.ActiveEvent = null;
@@ -86,7 +88,7 @@ namespace ACE.Server.Entity
 
                     case 1: //Not started                            
 
-                        log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 1");
+                        //log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 1");
 
                         //Verify all players are still online, pk status and not pvp tagged
                         if (!ValidateArenaEventPlayers(out string resultMsg))
@@ -97,7 +99,7 @@ namespace ACE.Server.Entity
                         }
 
                         //Broadcast to all players that a match was found and begin the countdown
-                        log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 1 - Broadcasting that a match has been found");
+                        //log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 1 - Broadcasting that a match has been found");
                         foreach (var arenaPlayer in this.ActiveEvent.Players)
                         {
                             var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
@@ -114,7 +116,7 @@ namespace ACE.Server.Entity
 
                     case 2://Pre-event countdown in progress
 
-                        log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 2");
+                        //log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 2");
 
                         //Verify all players are still online, pk status and not pvp tagged
                         if (!ValidateArenaEventPlayers(out string resultMsg2))
@@ -129,7 +131,7 @@ namespace ACE.Server.Entity
                         //if so, teleport all players to the arena and move to the next status
                         if (DateTime.Now.AddSeconds(-10) > this.ActiveEvent.PreEventCountdownStartDateTime)
                         {
-                            log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 2 - PreEventCountdown is complete");
+                            //log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 2 - PreEventCountdown is complete");
 
                             //Pre-Event countdown is complete
                             List<Position> positions = ArenaLocation.GetArenaLocationStartingPositions(this.ActiveEvent.Location);
@@ -171,14 +173,14 @@ namespace ACE.Server.Entity
                         }
                         else
                         {
-                            log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 2 - PreEventCountdown has not yet completed");
+                            //log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 2 - PreEventCountdown has not yet completed");
                         }
 
                         break;
 
                     case 3://Event countdown in progress
 
-                        log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 3");
+                        //log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 3");
 
                         //Countdown is complete, start the event
                         if (DateTime.Now.AddSeconds(-15) > this.ActiveEvent.CountdownStartDateTime)
@@ -198,36 +200,51 @@ namespace ACE.Server.Entity
                         }
                         else
                         {
-                            log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 3, countdown is not yet complete");
+                            //log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 3, countdown is not yet complete");
                         }
 
                         break;
 
                     case 4://Event started
 
-                        log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 4");
+                        //log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 4");
 
                         //Check if any players are no longer in the arena
                         foreach(var arenaPlayer in this.ActiveEvent.Players)
                         {
-                            var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
-                            if (player == null)
+                            if (!arenaPlayer.IsEliminated)
                             {
-                                //if the player is not online they're eliminated
-                                arenaPlayer.IsEliminated = true;
-                            }
-                            else
-                            {
-                                //if the player is not PK they're eliminated
-                                if (!player.IsPK)
+                                var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
+                                if (player == null)
                                 {
+                                    //if the player is not online they're eliminated
                                     arenaPlayer.IsEliminated = true;
+                                    arenaPlayer.FinishPlace = -1;
+                                }
+                                else
+                                {
+                                    //if the player is not PK they're eliminated
+                                    if (!player.IsPK)
+                                    {
+                                        arenaPlayer.IsEliminated = true;
+                                    }
+
+                                    //if the player is not on the arena landblock they're eliminated
+                                    if (player.Location.Landblock != this.ActiveEvent.Location)
+                                    {
+                                        arenaPlayer.IsEliminated = true;
+                                        arenaPlayer.FinishPlace = -1;
+                                    }
                                 }
 
-                                //if the player is not on the arena landblock they're eliminated
-                                if(player.Location.Landblock != this.ActiveEvent.Location)
+                                //For FFA, set the FinishPlace when a player is eliminated
+                                if(arenaPlayer.IsEliminated && this.ActiveEvent.EventType.Equals("ffa"))
                                 {
-                                    arenaPlayer.IsEliminated = true;
+                                    var notEliminatedPlayers = this.ActiveEvent.Players.Where(x => !x.IsEliminated);
+                                    if (notEliminatedPlayers != null)
+                                    {
+                                        arenaPlayer.FinishPlace = notEliminatedPlayers.Count() + 1; //If there's 5 players still in the game after you just got eliminated, you're 6th place
+                                    }
                                 }
                             }
                         }
@@ -241,7 +258,7 @@ namespace ACE.Server.Entity
                         }
                         else
                         {
-                            log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 4, WinningTeamGuid is not set, checking for winner");
+                            //log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 4, WinningTeamGuid is not set, checking for winner");
                             if (CheckForArenaWinner(out Guid? winningTeamGuid) && winningTeamGuid.HasValue)
                             {
                                 log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 4, winner found, ending event with winner");
@@ -277,7 +294,7 @@ namespace ACE.Server.Entity
 
                     case 5://Event completed, in post-event countdown
                     case 6:
-                        log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = {this.ActiveEvent.Status}");
+                        //log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = {this.ActiveEvent.Status}");
 
                         //Check if the post-event countdown is completed
                         //If so, teleport any remaining players out of the arena and release the arena for the next event
@@ -296,8 +313,6 @@ namespace ACE.Server.Entity
                                 }
                             }
 
-                            ClearPlayersFromArena();
-
                             this.ActiveEvent = null;
                         }                        
                         break;
@@ -308,7 +323,7 @@ namespace ACE.Server.Entity
             }
             else
             {
-                log.Info($"ArenaLocation.Tick() - {this.ArenaName} has no active event, finding match");
+                //log.Info($"ArenaLocation.Tick() - {this.ArenaName} has no active event, finding match");
                 ClearPlayersFromArena();
                 MatchMake();
             }
@@ -318,7 +333,7 @@ namespace ACE.Server.Entity
 
         private void MatchMake()
         {
-            log.Info($"ArenaLocation.MatchMake() - {this.ArenaName}");
+            //log.Info($"ArenaLocation.MatchMake() - {this.ArenaName}");
 
             var arenaEvent = ArenaManager.MatchMake(this.SupportedEventTypes);
             if (arenaEvent != null)
@@ -440,6 +455,15 @@ namespace ACE.Server.Entity
 
             if (teamsStillAlive.Count == 1)
             {
+                if(this.ActiveEvent.EventType.Equals("ffa"))
+                {
+                    var winner = this.ActiveEvent.Players.FirstOrDefault(x => x.TeamGuid == teamsStillAlive[0]);
+                    if(winner != null)
+                    {
+                        winner.FinishPlace = 1;
+                    }
+                }
+
                 winningTeamGuid = teamsStillAlive[0];
                 return true;
             }
@@ -477,7 +501,7 @@ namespace ACE.Server.Entity
 
             DatabaseManager.Log.SaveArenaEvent(this.ActiveEvent);
 
-            //Broadcast the win
+            
             string winnerList = "";
             var winners = this.ActiveEvent.Players.Where(x => x.TeamGuid == winningTeamGuid)?.ToList();
             string loserList = "";
@@ -486,20 +510,67 @@ namespace ACE.Server.Entity
             winners.ForEach(x => winnerList += string.IsNullOrEmpty(winnerList) ? x.CharacterName : $", {x.CharacterName}");
             losers.ForEach(x => loserList += string.IsNullOrEmpty(loserList) ? x.CharacterName : $", {x.CharacterName}");
 
+            bool underageViolation = false;
+            var underageCount = 0;
+            foreach (var arenaPlayer in this.ActiveEvent.Players)
+            {
+                var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
+
+                if (player.Age <= PropertyManager.GetLong("arenas_reward_min_age").Item) //days in seconds
+                {
+                    underageCount++;
+                }
+            }
+
+            if (underageCount > 0 && (this.ActiveEvent.EventType.Equals("1v1") || this.ActiveEvent.EventType.Equals("2v2")))
+            {
+                underageViolation = true;
+            }
+            else if (underageCount > 2 && (this.ActiveEvent.EventType.Equals("ffa")))
+            {
+                underageViolation = true;
+            }
+
             foreach (var winner in winners)
             {
                 var player = PlayerManager.GetOnlinePlayer(winner.CharacterId);
                 if (player != null)
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Congratulations, you've won the {this.ActiveEvent.EventTypeDisplay} arena event against {loserList}!\nSome blurb about your rewards.\nIf you're still in the {this.ArenaName} arena you can recall now or you have a short period before you're teleported to your Lifestone so hurry up and loot.", ChatMessageType.System));
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Congratulations, you've won the {this.ActiveEvent.EventTypeDisplay} arena event against {loserList}!\nIf you're still in the {this.ArenaName} arena you have a short period before you're teleported to your Lifestone so hurry up and loot.", ChatMessageType.System));
 
                     //Reward the winners
-                    if (player.Age > PropertyManager.GetLong("arenas_reward_min_age").Item) //days in seconds
+                    var shouldReward = IsPlayerRewardEligible(player, winner, this.ActiveEvent.Players) && !underageViolation;
+
+                    if (shouldReward)
                     {
                         switch (this.ActiveEvent.EventType)
                         {
                             case "1v1":
                             case "2v2":
+
+                                //Give % xp to next level
+                                if (player.Level > 0 && player.Level < 50)
+                                {
+                                    //25% xp to next level, min of 100k, max of 50 mil
+                                    player.GrantLevelProportionalXp(0.25, 100000, 50000000, true);
+                                }
+                                else if (player.Level >= 50 && player.Level < 150)
+                                {
+                                    //15% xp to next level, min of 1 mil, max of 50 mil
+                                    player.GrantLevelProportionalXp(0.15, 1000000, 50000000, true);
+                                }
+                                else if (player.Level >= 150)
+                                {
+                                    //10% xp to next level, min of 1 mil, max of 50 mil
+                                    player.GrantLevelProportionalXp(0.1, 1000000, 50000000, true);
+                                }
+
+                                //Give 3k lum
+                                if (player.MaximumLuminance != null)
+                                {
+                                    player.GrantLuminance(3000, XpType.Quest, ShareType.None);
+                                }
+
                                 //Give 5 PK trophies
                                 var pkTrophy = WorldObjectFactory.CreateNewWorldObject(1000002); //PK Trophy
                                 pkTrophy.SetStackSize(5);
@@ -511,167 +582,294 @@ namespace ACE.Server.Entity
                                     player.Session.Network.EnqueueSend(msg);
                                 }
 
-                                //Give 1 arena trophy
-                                var arenaTrophy = WorldObjectFactory.CreateNewWorldObject(100003); //Arena Trophy
+                                //Give 1 Phial of Bloody Tears
+                                var arenaTrophy = WorldObjectFactory.CreateNewWorldObject(1000003); //Phial of Bloody Tears
                                 arenaTrophy.SetStackSize(1);
                                 var arenaTrophyCreateResult = player.TryCreateInInventoryWithNetworking(arenaTrophy);
                                 if (arenaTrophyCreateResult)
                                 {
-                                    player.Session.Network.EnqueueSend(new GameMessageCreateObject(pkTrophy));
-                                    var msg = new GameMessageSystemChat($"You have received 1 Arena Trophy", ChatMessageType.Broadcast);
+                                    player.Session.Network.EnqueueSend(new GameMessageCreateObject(arenaTrophy));
+                                    var msg = new GameMessageSystemChat($"You have received a Phial of Bloody Tears", ChatMessageType.Broadcast);
                                     player.Session.Network.EnqueueSend(msg);
                                 }
 
-                                //Give 1 arena key
-                                var arenaKey = WorldObjectFactory.CreateNewWorldObject(480608); //Arena Key
+                                //Give 1 Darkbeat's Lost Storage Keys
+                                var arenaKey = WorldObjectFactory.CreateNewWorldObject(480608); //Darkbeat's Lost Storage Keys
                                 arenaKey.SetStackSize(1);
                                 var arenaKeyCreateResult = player.TryCreateInInventoryWithNetworking(arenaKey);
                                 if (arenaKeyCreateResult)
                                 {
-                                    player.Session.Network.EnqueueSend(new GameMessageCreateObject(pkTrophy));
-                                    var msg = new GameMessageSystemChat($"You have received 1 Arena Key", ChatMessageType.Broadcast);
+                                    player.Session.Network.EnqueueSend(new GameMessageCreateObject(arenaKey));
+                                    var msg = new GameMessageSystemChat($"You have received one of Darkbeat's Lost Storage Keys", ChatMessageType.Broadcast);
                                     player.Session.Network.EnqueueSend(msg);
                                 }
-
-                                //Give 10% xp to next level
-                                player.GrantLevelProportionalXp(0.1, 1000000, 50000000, true);
-
-                                //Give 3k lum
-                                player.GrantLuminance(3000, XpType.Quest, ShareType.None);
                                 break;
 
                             case "ffa":
-                                ////Give 5 PK trophies
-                                //var ffaPkTrophy = WorldObjectFactory.CreateNewWorldObject(1000002); //PK Trophy
-                                //ffaPkTrophy.SetStackSize(10);
-                                //var ffaPkTrophyCreateResult = player.TryCreateInInventoryWithNetworking(ffaPkTrophy);
-                                //if (ffaPkTrophyCreateResult)
-                                //{
-                                //    player.Session.Network.EnqueueSend(new GameMessageCreateObject(ffaPkTrophy));
-                                //    var msg = new GameMessageSystemChat($"You have received 5 PK Trophies", ChatMessageType.Broadcast);
-                                //    player.Session.Network.EnqueueSend(msg);
-                                //}
 
-                                ////Give 1 arena trophy
-                                //var arenaTrophy = WorldObjectFactory.CreateNewWorldObject(100003); //Arena Trophy
-                                //arenaTrophy.SetStackSize(1);
-                                //var arenaTrophyCreateResult = player.TryCreateInInventoryWithNetworking(arenaTrophy);
-                                //if (arenaTrophyCreateResult)
-                                //{
-                                //    player.Session.Network.EnqueueSend(new GameMessageCreateObject(pkTrophy));
-                                //    var msg = new GameMessageSystemChat($"You have received 1 Arena Trophy", ChatMessageType.Broadcast);
-                                //    player.Session.Network.EnqueueSend(msg);
-                                //}
+                                //This is the first place player only
 
-                                ////Give 1 arena key
-                                //var arenaKey = WorldObjectFactory.CreateNewWorldObject(480608); //Arena Trophy
-                                //arenaKey.SetStackSize(1);
-                                //var arenaKeyCreateResult = player.TryCreateInInventoryWithNetworking(arenaKey);
-                                //if (arenaKeyCreateResult)
-                                //{
-                                //    player.Session.Network.EnqueueSend(new GameMessageCreateObject(pkTrophy));
-                                //    var msg = new GameMessageSystemChat($"You have received 1 Arena Key", ChatMessageType.Broadcast);
-                                //    player.Session.Network.EnqueueSend(msg);
-                                //}
+                                //Give % xp to next level
+                                if (player.Level > 0 && player.Level < 50)
+                                {
+                                    player.GrantLevelProportionalXp(1, 1000000, 500000000, true);
+                                }
+                                else if (player.Level >= 50 && player.Level < 150)
+                                {
+                                    player.GrantLevelProportionalXp(0.5, 1000000, 50000000, true);
+                                }
+                                else if (player.Level >= 150)
+                                {
+                                    player.GrantLevelProportionalXp(0.25, 1000000, 50000000, true);
+                                }
 
-                                ////Give 10% xp to next level
-                                //player.GrantLevelProportionalXp(0.1, 1000000, 50000000, true);
+                                //Give 5k lum
+                                if (player.MaximumLuminance != null)
+                                {
+                                    player.GrantLuminance(3000, XpType.Quest, ShareType.None);
+                                }
 
-                                ////Give 3k lum
-                                //player.GrantLuminance(3000, XpType.Quest, ShareType.None);
+                                //Give 5 PK trophies
+                                var ffaWinnerPkTrophy = WorldObjectFactory.CreateNewWorldObject(1000002); //PK Trophy
+                                ffaWinnerPkTrophy.SetStackSize(5);
+                                var ffaWinnerPkTrophyCreateResult = player.TryCreateInInventoryWithNetworking(ffaWinnerPkTrophy);
+                                if (ffaWinnerPkTrophyCreateResult)
+                                {
+                                    player.Session.Network.EnqueueSend(new GameMessageCreateObject(ffaWinnerPkTrophy));
+                                    var msg = new GameMessageSystemChat($"You have received 5 PK Trophies", ChatMessageType.Broadcast);
+                                    player.Session.Network.EnqueueSend(msg);
+                                }
+
+
+                                //Give 3 Phial of Bloody Tears
+                                var ffaWinner_arenaTrophy = WorldObjectFactory.CreateNewWorldObject(1000003); //Phial of Bloody Tears
+                                ffaWinner_arenaTrophy.SetStackSize(3);
+                                var ffaWinner_arenaTrophyCreateResult = player.TryCreateInInventoryWithNetworking(ffaWinner_arenaTrophy);
+                                if (ffaWinner_arenaTrophyCreateResult)
+                                {
+                                    player.Session.Network.EnqueueSend(new GameMessageCreateObject(ffaWinner_arenaTrophy));
+                                    var msg = new GameMessageSystemChat($"You have received 3 Phials of Bloody Tears", ChatMessageType.Broadcast);
+                                    player.Session.Network.EnqueueSend(msg);
+                                }
+
+                                //Give 1 Darkbeat's Lost Storage Keys
+                                var ffaWinner_arenaKey = WorldObjectFactory.CreateNewWorldObject(480608); //Darkbeat's Lost Storage Keys
+                                ffaWinner_arenaKey.SetStackSize(1);
+                                var ffaWinner_arenaKeyCreateResult = player.TryCreateInInventoryWithNetworking(ffaWinner_arenaKey);
+                                if (ffaWinner_arenaKeyCreateResult)
+                                {
+                                    player.Session.Network.EnqueueSend(new GameMessageCreateObject(ffaWinner_arenaKey));
+                                    var msg = new GameMessageSystemChat($"You have received one of Darkbeat's Lost Storage Keys", ChatMessageType.Broadcast);
+                                    player.Session.Network.EnqueueSend(msg);
+                                }
                                 break;
                         }
                     }
-                    
                 }
             }
-
-            //Broadcast the loss
+            
+            //Process losers
             foreach (var loser in losers)
             {
                 var player = PlayerManager.GetOnlinePlayer(loser.CharacterId);
                 if (player != null)
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Tough luck, you've lost the {this.ActiveEvent.EventTypeDisplay} arena event against {winnerList}\nSome blurb about your rewards.\nIf you're still in the {this.ArenaName} arena you can recall now or you have a short period before you're teleported to your lifestone.", ChatMessageType.System));
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Tough luck, you've lost the {this.ActiveEvent.EventTypeDisplay} arena event to {winnerList}\nIf you're still in the {this.ArenaName} arena you have a short period before you're teleported to your lifestone.", ChatMessageType.System));
 
-                    //Reward the losers here
-                    if (player.Age > 2592000) //30 days in seconds
+                    var shouldReward = IsPlayerRewardEligible(player, loser, this.ActiveEvent.Players) && !underageViolation;
+
+                    if (shouldReward)
                     {
+                        //Reward the losers here
                         switch (this.ActiveEvent.EventType)
                         {
                             case "1v1":
                             case "2v2":
-                                //Give 5 PK trophies
+
+                                //Give 2.5% xp to next level
+                                player.GrantLevelProportionalXp(0.025, 250000, 25000000, true);
+
+                                //Give 1k lum
+                                if (player.MaximumLuminance != null)
+                                {
+                                    player.GrantLuminance(1000, XpType.Quest, ShareType.None);
+                                }
+
+                                //Give 1 PK trophy
                                 var pkTrophy = WorldObjectFactory.CreateNewWorldObject(1000002); //PK Trophy
                                 pkTrophy.SetStackSize(1);
                                 var pkTrophyCreateResult = player.TryCreateInInventoryWithNetworking(pkTrophy);
                                 if (pkTrophyCreateResult)
                                 {
                                     player.Session.Network.EnqueueSend(new GameMessageCreateObject(pkTrophy));
-                                    var msg = new GameMessageSystemChat($"You have received 1 PK Trophy", ChatMessageType.Broadcast);
+                                    var msg = new GameMessageSystemChat($"You have received a PK Trophy", ChatMessageType.Broadcast);
                                     player.Session.Network.EnqueueSend(msg);
                                 }
 
-                                //Give 25% chance for 1 arena key
+                                //Give 25% chance for 1 Darkbeat's Lost Storage Keys
                                 if (new Random().NextDouble() > 0.75)
                                 {
-                                    var arenaKey = WorldObjectFactory.CreateNewWorldObject(480608); //Arena Key
+                                    var arenaKey = WorldObjectFactory.CreateNewWorldObject(480608); //Darkbeat's Lost Storage Keys
                                     arenaKey.SetStackSize(1);
                                     var arenaKeyCreateResult = player.TryCreateInInventoryWithNetworking(arenaKey);
                                     if (arenaKeyCreateResult)
                                     {
-                                        player.Session.Network.EnqueueSend(new GameMessageCreateObject(pkTrophy));
-                                        var msg = new GameMessageSystemChat($"You have received 1 Arena Key", ChatMessageType.Broadcast);
+                                        player.Session.Network.EnqueueSend(new GameMessageCreateObject(arenaKey));
+                                        var msg = new GameMessageSystemChat($"You have received one of Darkbeat's Lost Storage Keys", ChatMessageType.Broadcast);
                                         player.Session.Network.EnqueueSend(msg);
                                     }
                                 }
 
-                                //Give 2.5% xp to next level
-                                player.GrantLevelProportionalXp(0.025, 250000, 25000000, true);
-
-                                //Give 500 lum
-                                player.GrantLuminance(500, XpType.Quest, ShareType.None);
                                 break;
 
                             case "ffa":
-                                ////Give 5 PK trophies
-                                //var ffaPkTrophy = WorldObjectFactory.CreateNewWorldObject(1000002); //PK Trophy
-                                //ffaPkTrophy.SetStackSize(10);
-                                //var ffaPkTrophyCreateResult = player.TryCreateInInventoryWithNetworking(ffaPkTrophy);
-                                //if (ffaPkTrophyCreateResult)
-                                //{
-                                //    player.Session.Network.EnqueueSend(new GameMessageCreateObject(ffaPkTrophy));
-                                //    var msg = new GameMessageSystemChat($"You have received 5 PK Trophies", ChatMessageType.Broadcast);
-                                //    player.Session.Network.EnqueueSend(msg);
-                                //}
 
-                                ////Give 1 arena trophy
-                                //var arenaTrophy = WorldObjectFactory.CreateNewWorldObject(100003); //Arena Trophy
-                                //arenaTrophy.SetStackSize(1);
-                                //var arenaTrophyCreateResult = player.TryCreateInInventoryWithNetworking(arenaTrophy);
-                                //if (arenaTrophyCreateResult)
-                                //{
-                                //    player.Session.Network.EnqueueSend(new GameMessageCreateObject(pkTrophy));
-                                //    var msg = new GameMessageSystemChat($"You have received 1 Arena Trophy", ChatMessageType.Broadcast);
-                                //    player.Session.Network.EnqueueSend(msg);
-                                //}
+                                if (loser.FinishPlace == 2)
+                                {
+                                    //Give % xp to next level
+                                    if (player.Level > 0 && player.Level < 50)
+                                    {
+                                        player.GrantLevelProportionalXp(0.75, 1000000, 500000000, true);
+                                    }
+                                    else if (player.Level >= 50 && player.Level < 150)
+                                    {
+                                        player.GrantLevelProportionalXp(0.25, 1000000, 50000000, true);
+                                    }
+                                    else if (player.Level >= 150)
+                                    {
+                                        player.GrantLevelProportionalXp(0.15, 1000000, 50000000, true);
+                                    }
 
-                                ////Give 1 arena key
-                                //var arenaKey = WorldObjectFactory.CreateNewWorldObject(480608); //Arena Trophy
-                                //arenaKey.SetStackSize(1);
-                                //var arenaKeyCreateResult = player.TryCreateInInventoryWithNetworking(arenaKey);
-                                //if (arenaKeyCreateResult)
-                                //{
-                                //    player.Session.Network.EnqueueSend(new GameMessageCreateObject(pkTrophy));
-                                //    var msg = new GameMessageSystemChat($"You have received 1 Arena Key", ChatMessageType.Broadcast);
-                                //    player.Session.Network.EnqueueSend(msg);
-                                //}
+                                    //Give 3k lum
+                                    if (player.MaximumLuminance != null)
+                                    {
+                                        player.GrantLuminance(3000, XpType.Quest, ShareType.None);
+                                    }
 
-                                ////Give 10% xp to next level
-                                //player.GrantLevelProportionalXp(0.1, 1000000, 50000000, true);
+                                    //Give 3 PK trophies
+                                    var ffaLoserPkTrophy = WorldObjectFactory.CreateNewWorldObject(1000002); //PK Trophy
+                                    ffaLoserPkTrophy.SetStackSize(3);
+                                    var ffaLoserPkTrophyCreateResult = player.TryCreateInInventoryWithNetworking(ffaLoserPkTrophy);
+                                    if (ffaLoserPkTrophyCreateResult)
+                                    {
+                                        player.Session.Network.EnqueueSend(new GameMessageCreateObject(ffaLoserPkTrophy));
+                                        var msg = new GameMessageSystemChat($"You have received 3 PK Trophies", ChatMessageType.Broadcast);
+                                        player.Session.Network.EnqueueSend(msg);
+                                    }
 
-                                ////Give 3k lum
-                                //player.GrantLuminance(3000, XpType.Quest, ShareType.None);
+                                    //Give 2 Phial of Bloody Tears
+                                    var ffaLoser_arenaTrophy = WorldObjectFactory.CreateNewWorldObject(1000003); //Phial of Bloody Tears
+                                    ffaLoser_arenaTrophy.SetStackSize(2);
+                                    var ffaLoser_arenaTrophyCreateResult = player.TryCreateInInventoryWithNetworking(ffaLoser_arenaTrophy);
+                                    if (ffaLoser_arenaTrophyCreateResult)
+                                    {
+                                        player.Session.Network.EnqueueSend(new GameMessageCreateObject(ffaLoser_arenaTrophy));
+                                        var msg = new GameMessageSystemChat($"You have received 2 Phials of Bloody Tears", ChatMessageType.Broadcast);
+                                        player.Session.Network.EnqueueSend(msg);
+                                    }
+
+                                    //Give 1 Darkbeat's Lost Storage Keys
+                                    var ffaLoser_arenaKey = WorldObjectFactory.CreateNewWorldObject(480608); //Darkbeat's Lost Storage Keys
+                                    ffaLoser_arenaKey.SetStackSize(1);
+                                    var ffaLoser_arenaKeyCreateResult = player.TryCreateInInventoryWithNetworking(ffaLoser_arenaKey);
+                                    if (ffaLoser_arenaKeyCreateResult)
+                                    {
+                                        player.Session.Network.EnqueueSend(new GameMessageCreateObject(ffaLoser_arenaKey));
+                                        var msg = new GameMessageSystemChat($"You have received one of Darkbeat's Lost Storage Keys", ChatMessageType.Broadcast);
+                                        player.Session.Network.EnqueueSend(msg);
+                                    }
+                                }
+                                else if (loser.FinishPlace == 3)
+                                {
+                                    //Give % xp to next level
+                                    if (player.Level > 0 && player.Level < 50)
+                                    {
+                                        player.GrantLevelProportionalXp(0.25, 1000000, 50000000, true);
+                                    }
+                                    else if (player.Level >= 50 && player.Level < 150)
+                                    {
+                                        player.GrantLevelProportionalXp(0.15, 1000000, 50000000, true);
+                                    }
+                                    else if (player.Level >= 150)
+                                    {
+                                        player.GrantLevelProportionalXp(0.05, 1000000, 50000000, true);
+                                    }
+
+                                    //Give 3k lum
+                                    if (player.MaximumLuminance != null)
+                                    {
+                                        player.GrantLuminance(3000, XpType.Quest, ShareType.None);
+                                    }
+
+                                    //Give 1 PK trophies
+                                    var ffaLoserPkTrophy = WorldObjectFactory.CreateNewWorldObject(1000002); //PK Trophy
+                                    ffaLoserPkTrophy.SetStackSize(1);
+                                    var ffaLoserPkTrophyCreateResult = player.TryCreateInInventoryWithNetworking(ffaLoserPkTrophy);
+                                    if (ffaLoserPkTrophyCreateResult)
+                                    {
+                                        player.Session.Network.EnqueueSend(new GameMessageCreateObject(ffaLoserPkTrophy));
+                                        var msg = new GameMessageSystemChat($"You have received a PK Trophy", ChatMessageType.Broadcast);
+                                        player.Session.Network.EnqueueSend(msg);
+                                    }
+
+                                    //Give 1 Phial of Bloody Tears
+                                    var ffaLoser_arenaTrophy = WorldObjectFactory.CreateNewWorldObject(1000003); //Phial of Bloody Tears
+                                    ffaLoser_arenaTrophy.SetStackSize(1);
+                                    var ffaLoser_arenaTrophyCreateResult = player.TryCreateInInventoryWithNetworking(ffaLoser_arenaTrophy);
+                                    if (ffaLoser_arenaTrophyCreateResult)
+                                    {
+                                        player.Session.Network.EnqueueSend(new GameMessageCreateObject(ffaLoser_arenaTrophy));
+                                        var msg = new GameMessageSystemChat($"You have received a Phial of Bloody Tears", ChatMessageType.Broadcast);
+                                        player.Session.Network.EnqueueSend(msg);
+                                    }
+
+                                    //Give 1 Darkbeat's Lost Storage Keys
+                                    var ffaLoser_arenaKey = WorldObjectFactory.CreateNewWorldObject(480608); //Darkbeat's Lost Storage Keys
+                                    ffaLoser_arenaKey.SetStackSize(1);
+                                    var ffaLoser_arenaKeyCreateResult = player.TryCreateInInventoryWithNetworking(ffaLoser_arenaKey);
+                                    if (ffaLoser_arenaKeyCreateResult)
+                                    {
+                                        player.Session.Network.EnqueueSend(new GameMessageCreateObject(ffaLoser_arenaKey));
+                                        var msg = new GameMessageSystemChat($"You have received one of Darkbeat's Lost Storage Keys", ChatMessageType.Broadcast);
+                                        player.Session.Network.EnqueueSend(msg);
+                                    }
+                                }
+                                else
+                                {
+                                    //Give % xp to next level
+                                    if (player.Level > 0 && player.Level < 50)
+                                    {
+                                        player.GrantLevelProportionalXp(0.1, 1000000, 50000000, true);
+                                    }
+                                    else if (player.Level >= 50 && player.Level < 150)
+                                    {
+                                        player.GrantLevelProportionalXp(0.05, 1000000, 50000000, true);
+                                    }
+                                    else if (player.Level >= 150)
+                                    {
+                                        player.GrantLevelProportionalXp(0.025, 1000000, 50000000, true);
+                                    }
+
+                                    //Give 1.5k lum
+                                    if (player.MaximumLuminance != null)
+                                    {
+                                        player.GrantLuminance(1500, XpType.Quest, ShareType.None);
+                                    }
+
+                                    //25% chance to give 1 Darkbeat's Lost Storage Keys
+                                    if (new Random().NextDouble() > 0.75)
+                                    {
+                                        var ffaLoser_arenaKey = WorldObjectFactory.CreateNewWorldObject(480608); //Darkbeat's Lost Storage Keys
+                                        ffaLoser_arenaKey.SetStackSize(1);
+                                        var ffaLoser_arenaKeyCreateResult = player.TryCreateInInventoryWithNetworking(ffaLoser_arenaKey);
+                                        if (ffaLoser_arenaKeyCreateResult)
+                                        {
+                                            player.Session.Network.EnqueueSend(new GameMessageCreateObject(ffaLoser_arenaKey));
+                                            var msg = new GameMessageSystemChat($"You have received one of Darkbeat's Lost Storage Keys", ChatMessageType.Broadcast);
+                                            player.Session.Network.EnqueueSend(msg);
+                                        }
+                                    }
+                                }
                                 break;
                         }
                     }
@@ -680,6 +878,52 @@ namespace ACE.Server.Entity
 
             //Global Broadcast
             PlayerManager.BroadcastToAll(new GameMessageSystemChat($"{winnerList} just won a {this.ActiveEvent.EventTypeDisplay} arena event against {loserList} in the {this.ArenaName} arena", ChatMessageType.Broadcast));
+        }
+
+        public bool IsPlayerRewardEligible(Player player, ArenaPlayer arenaPlayer, List<ArenaPlayer> allArenaPlayers)
+        {
+            var shouldReward = true;
+
+            if (player.Age <= PropertyManager.GetLong("arenas_reward_min_age").Item) //days in seconds
+            {
+                shouldReward = false;
+            }
+
+            //You can't get more than 20 rewards per day
+            if (player.ArenaDailyRewardCount >= 20 && (player.ArenaDailyRewardTimestamp ?? 0) >= Time.GetUnixTime(DateTime.Today))
+            {
+                shouldReward = false;
+            }
+
+            //You can't get more than 6 rewards per hour
+            if (player.ArenaHourlyCount >= 6 && (player.ArenaHourlyTimestamp ?? 0) >= Time.GetUnixTime(new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, 0, 0)))
+            {
+                shouldReward = false;
+            }
+
+            //You can't get more than 5 rewards playing against a clanmate per day
+            if(player.ArenaSameClanDailyRewardCount >= 5 && (player.ArenaDailyRewardTimestamp ?? 0) >= Time.GetUnixTime(DateTime.Today))
+            {
+                shouldReward = false;
+            }
+
+            //You can't get more than 3 rewards from same person per day
+            if ((player.ArenaDailyRewardTimestamp ?? 0) >= Time.GetUnixTime(DateTime.Today))
+            {
+                var todaysArenaRewardsByOpponent = player.ArenaRewardsByOpponent;
+                foreach(var opponent in allArenaPlayers)
+                {
+                    if(arenaPlayer.CharacterId != opponent.CharacterId &&
+                        arenaPlayer.TeamGuid != opponent.TeamGuid &&
+                        todaysArenaRewardsByOpponent.ContainsKey(opponent.CharacterId) &&
+                        todaysArenaRewardsByOpponent[opponent.CharacterId] >= 3)
+                    {
+                        shouldReward = false;
+                    }
+                }
+            }
+
+            return shouldReward;
         }
 
         public void EndEventTimelimitExceeded()
@@ -723,7 +967,7 @@ namespace ACE.Server.Entity
 
         public void ClearPlayersFromArena()
         {
-            log.Info($"ArenaLocation.ClearPlayersFromArena() - {this.ArenaName}");
+            //log.Info($"ArenaLocation.ClearPlayersFromArena() - {this.ArenaName}");
 
             try
             {

@@ -100,6 +100,9 @@ namespace ACE.Entity.Enum.Properties
         TinkerLottoLog = 9008,
 
         [ServerOnly]
+        ArenaRewardsByOpponent = 9009,
+
+        [ServerOnly]
         CurrentRareEnchantmentIds = 52029,
     }
 

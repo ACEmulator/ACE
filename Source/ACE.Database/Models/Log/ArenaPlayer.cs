@@ -48,6 +48,8 @@ namespace ACE.Database.Models.Log
 
         public bool IsEliminated { get; set; }
 
+        public int FinishPlace { get; set; }
+
         public uint TotalDmgReceived { get; set; }
 
         public uint TotalDmgDealt { get; set; }

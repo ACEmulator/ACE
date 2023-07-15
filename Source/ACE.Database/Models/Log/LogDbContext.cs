@@ -251,6 +251,9 @@ namespace ACE.Database.Models.Log
                 entity.Property(e => e.IsEliminated)
                     .HasColumnName("is_eliminated");
 
+                entity.Property(e => e.FinishPlace)
+                    .HasColumnName("finish_place");
+
                 entity.Property(e => e.TotalDeaths)
                     .HasColumnName("total_deaths");
 

@@ -579,10 +579,13 @@ namespace ACE.Server.WorldObjects
                             var killerPlayer = PlayerManager.FindByGuid(killer.Guid);
                             var killerArenaPlayer = ArenaManager.GetArenaPlayerByCharacterId(killerPlayer.Guid.Full);
 
-                            if (victimArenaPlayer != null && killerArenaPlayer != null)
+                            if (victimArenaPlayer != null)
                             {
+                                ArenaManager.HandlePlayerDeath((uint)corpse.VictimId, (uint)killer.Guid.Full);
                                 victimArenaPlayerId = victimArenaPlayer.Id;
-                                killerArenaPlayerId = killerArenaPlayer.Id;
+
+                                if (killerArenaPlayer != null)
+                                    killerArenaPlayerId = killerArenaPlayer.Id;
                             }
                         }
 
@@ -594,13 +597,7 @@ namespace ACE.Server.WorldObjects
                         {
                             log.Error($"Exception logging PK Kill to DB. Ex: {ex}");
                         }
-                    }
-
-                    //Arena player death
-                    if(ArenaManager.IsActiveArenaPlayer((uint)corpse.VictimId))
-                    {
-                        ArenaManager.HandlePlayerDeath((uint)corpse.VictimId, (uint)killer.Guid.Full);
-                    }
+                    }                    
                 }
 
                 if (!isPKdeath && !isPKLdeath)

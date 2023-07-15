@@ -17,7 +17,7 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 using ACE.Database.Models.Log;
 using System.Text;
-
+using ACE.Server.Entity.TownControl;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -622,7 +622,7 @@ namespace ACE.Server.Command.Handlers
                     string twosEventInfo = eventsTwos.Count() == 0 ? "No active events" : "";
                     foreach (var ev in eventsTwos)
                     {
-                        onesEventInfo += $"\n    EventID: {ev.Id}\n" +
+                        twosEventInfo += $"\n    EventID: {ev.Id}\n" +
                                          $"    Arena: {ArenaManager.GetArenaNameByLandblock(ev.Location)}\n" +
                                          $"    Players:\n    {ev.PlayersDisplay}\n" +
                                          $"    Time Remaining: {ev.TimeRemainingDisplay}\n";
@@ -631,7 +631,7 @@ namespace ACE.Server.Command.Handlers
                     string ffaEventInfo = eventsFFA.Count() == 0 ? "No active events" : "";
                     foreach (var ev in eventsFFA)
                     {
-                        onesEventInfo += $"\n    EventID: {ev.Id}\n" +
+                        ffaEventInfo += $"\n    EventID: {ev.Id}\n" +
                                          $"    Arena: {ArenaManager.GetArenaNameByLandblock(ev.Location)}\n" +
                                          $"    Players:\n    {ev.PlayersDisplay}\n" +
                                          $"    Time Remaining: {ev.TimeRemainingDisplay}\n";
@@ -681,7 +681,8 @@ namespace ACE.Server.Command.Handlers
         }
 
         private static string JoinArenaQueue(Session session, string eventType)
-        {            
+        {
+            //Whitelist specific clans to participate
             uint? monarchId = session.Player.MonarchId;
             string monarchName = session.Player.Name;
             var playerAllegiance = AllegianceManager.GetAllegiance(session.Player);
@@ -691,18 +692,27 @@ namespace ACE.Server.Command.Handlers
                 monarchName = playerAllegiance.Monarch.Player.Name;
             }
 
+            var whiteListId = monarchId.HasValue ? (int)monarchId.Value : (int)session.Player.Character.Id;
+            var isWhitelisted = TownControlAllegiances.IsAllowedAllegiance(whiteListId);
+
+            if (!isWhitelisted)
+            {
+                return "To participate in an Arena match your monarch must be whitelisted.  Please reach out to an admin to get whitelisted.  This helps prevent abuse, apologies for the inconvenience.";
+            }
+
+            //Blacklist specific players
             var blacklistString = PropertyManager.GetString("arenas_blacklist").Item;
-            if(!string.IsNullOrEmpty(blacklistString))
+            if (!string.IsNullOrEmpty(blacklistString))
             {
                 var blacklist = blacklistString.Split(',');
-                foreach(var charIdString in blacklist)
+                foreach (var charIdString in blacklist)
                 {
-                    if(uint.TryParse(charIdString, out uint charId) && session.Player.Character.Id == charId)
+                    if (uint.TryParse(charIdString, out uint charId) && session.Player.Character.Id == charId)
                     {
                         return "You are blacklisted from joining Arena events, probably because you're a cunt who tried to abuse it or some shit.  Fuck yourself.  Or ask forgiveness from Doc Z.  Whatever, I don't care.";
                     }
                 }
-            }
+            }            
 
             var minLevel = PropertyManager.GetLong("arenas_min_level").Item;
             if (session.Player.Level < minLevel)

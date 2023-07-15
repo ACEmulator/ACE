@@ -43,7 +43,7 @@ namespace ACE.Server.Managers
         private static DateTime LastTickDateTime = DateTime.MinValue;
         public static void Tick()
         {
-            if (DateTime.Now.AddSeconds(-5) < LastTickDateTime)
+            if (DateTime.Now.AddSeconds(-1) < LastTickDateTime)
                 return;
 
             bool isArenasDisabled = PropertyManager.GetBool("disable_arenas").Item;
@@ -154,7 +154,7 @@ namespace ACE.Server.Managers
 
         public static ArenaEvent MatchMake(List<string> supportedEventTypes)
         {
-            log.Info($"ArenaManager.MatchMake()");
+            //log.Info($"ArenaManager.MatchMake()");
 
             return MatchMake(supportedEventTypes, new List<uint>());
         }
@@ -174,7 +174,7 @@ namespace ACE.Server.Managers
                 excludedPlayers = new List<uint>();
             }
 
-            log.Info($"ArenaManager.MatchMake() - excludedPlayers.Count = {excludedPlayers.Count}");
+            //log.Info($"ArenaManager.MatchMake() - excludedPlayers.Count = {excludedPlayers.Count}");
 
             //Trim out any players from the queue that aren't online, aren't pk status, or are pk tagged
             List<ArenaPlayer> queue = new List<ArenaPlayer>();
@@ -218,11 +218,17 @@ namespace ACE.Server.Managers
 
             if (firstArenaPlayer != null)
             {
-                log.Info($"ArenaManager.MatchMake() - First Player = {firstArenaPlayer.CharacterName}, EventType = {firstArenaPlayer.EventType}");
+                //log.Info($"ArenaManager.MatchMake() - First Player = {firstArenaPlayer.CharacterName}, EventType = {firstArenaPlayer.EventType}");
 
                 //See if there's enough other players waiting for the same event type to create a match
+                //must be within 50 levels
                 var otherPlayers = queuedPlayers.Values?
-                .Where(x => firstArenaPlayer.EventType.Equals(x.EventType) && x.CharacterId != firstArenaPlayer.CharacterId && (PropertyManager.GetBool("arena_allow_same_ip_match").Item || !firstArenaPlayer.PlayerIP.Equals(x.PlayerIP)))?
+                .Where(x =>
+                        firstArenaPlayer.EventType.Equals(x.EventType) &&
+                        x.CharacterId != firstArenaPlayer.CharacterId &&
+                        x.CharacterLevel <= firstArenaPlayer.CharacterLevel + 50 &&
+                        x.CharacterLevel >= firstArenaPlayer.CharacterLevel - 50 &&
+                        (PropertyManager.GetBool("arena_allow_same_ip_match").Item || !firstArenaPlayer.PlayerIP.Equals(x.PlayerIP)))?
                 .OrderBy(x => x.CreateDateTime);
 
                 bool weHaveEnoughPlayers = false;
@@ -230,7 +236,7 @@ namespace ACE.Server.Managers
 
                 if (otherPlayers != null && otherPlayers.Count() > 0)
                 {
-                    log.Info($"ArenaManager.MatchMake() - otherPlayers.Count = {otherPlayers.Count()}");
+                    //log.Info($"ArenaManager.MatchMake() - otherPlayers.Count = {otherPlayers.Count()}");
 
                     switch (firstArenaPlayer.EventType.ToLower())
                     {
@@ -314,7 +320,7 @@ namespace ACE.Server.Managers
                     }
                     else
                     {
-                        log.Info($"ArenaManager.MatchMake() - not enough players, adding {firstArenaPlayer.CharacterName} to exclude list and calling MatchMake again");
+                        //log.Info($"ArenaManager.MatchMake() - not enough players, adding {firstArenaPlayer.CharacterName} to exclude list and calling MatchMake again");
                         //There's not enough players to make a match for the first queued player's event type,
                         //so mark that player excluded and try to matchmake with the next player in the queue
                         excludedPlayers.Add(firstArenaPlayer.CharacterId);
@@ -325,7 +331,7 @@ namespace ACE.Server.Managers
             else
             {
                 //There's no players in the queue that match a supported event type for this arena location
-                log.Info($"ArenaManager.MatchMake() - no queued players for supported event types");
+                //log.Info($"ArenaManager.MatchMake() - no queued players for supported event types");
                 return null;
             }
 
@@ -371,6 +377,7 @@ namespace ACE.Server.Managers
 
         public static void HandlePlayerDeath(uint victimId, uint killerId)
         {
+            log.Info($"ArenaManager.HandlePlayerDeath victimId = {victimId}, killerId = {killerId}");
             ArenaPlayer victim = null;
             ArenaPlayer killer = null;
             ArenaLocation arenaLocation = null;
@@ -399,7 +406,21 @@ namespace ACE.Server.Managers
                 (arenaLocation.ActiveEvent.EventType.Equals("ffa")))
             {
                 victim.IsEliminated = true;
+
+                //Set the finish place                 
+                var notEliminatedPlayers = arenaLocation.ActiveEvent.Players.Where(x => !x.IsEliminated);
+                if(notEliminatedPlayers != null)
+                {
+                    victim.FinishPlace = notEliminatedPlayers.Count() + 1; //If there's 5 players still in the game after you just got eliminated, you're 6th place
+                }
+
+                var victimPlayer = PlayerManager.GetOnlinePlayer(victim.CharacterId);
+                if(victimPlayer != null)
+                {
+                    victimPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You've been eliminated from an arena event by way of death.  Your finish place is {victim.FinishPlace}.  Stay online until the end of the match to receive rewards.", ChatMessageType.System));
+                }
             }
+
             //TODO for future events dieing won't eliminate you
             //may have rules like 3rd death you're eliminated
 

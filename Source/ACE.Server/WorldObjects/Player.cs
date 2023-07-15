@@ -47,8 +47,6 @@ namespace ACE.Server.WorldObjects
 
         public bool LastContact = true;
 
-        public bool IsInArena { get; set; } = false;
-
         private List<double> recentJumps = new List<double>();
 
         public bool IsJumping
@@ -1258,15 +1256,6 @@ namespace ACE.Server.WorldObjects
                 innerChain.EnqueueChain();
             });
             actionChain.EnqueueChain();
-        }
-
-        public void GiveArenaTrophy()
-        {
-            var trophy = WorldObjectFactory.CreateNewWorldObject(1000003);
-            trophy.SetStackSize(1);
-            this.TryCreateInInventoryWithNetworking(trophy);
-            Session.Network.EnqueueSend(new GameMessageCreateObject(trophy));
-
         }
     }
 }

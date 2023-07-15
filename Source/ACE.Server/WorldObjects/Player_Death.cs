@@ -483,7 +483,7 @@ namespace ACE.Server.WorldObjects
                 killer = (Player)PlayerManager.FindByGuid(new ObjectGuid((uint)corpse.KillerId));                
             }
 
-            if (corpse.IsOnNoDropLandblock || IsPKLiteDeath(corpse.KillerId) || this.IsInArena)
+            if (corpse.IsOnNoDropLandblock || IsPKLiteDeath(corpse.KillerId))
                 return new List<WorldObject>();
 
             var numItemsDropped = GetNumItemsDropped(corpse);
