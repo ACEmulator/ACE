@@ -539,6 +539,7 @@ namespace ACE.Server.Entity
                 DatabaseManager.Log.AddToArenaStats(
                     winner.CharacterId,
                     winner.CharacterName,
+                    winner.EventType,
                     1,
                     1,
                     0,
@@ -693,6 +694,7 @@ namespace ACE.Server.Entity
                 DatabaseManager.Log.AddToArenaStats(
                     loser.CharacterId,
                     loser.CharacterName,
+                    loser.EventType,
                     1,
                     0,
                     isDraw ? (uint)1 : (uint)0,
@@ -977,6 +979,7 @@ namespace ACE.Server.Entity
                 DatabaseManager.Log.AddToArenaStats(
                     arenaPlayer.CharacterId,
                     arenaPlayer.CharacterName,
+                    arenaPlayer.EventType,
                     1,
                     0,
                     arenaPlayer.FinishPlace == -1 ? (uint)0 : (uint)1,

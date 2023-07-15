@@ -288,6 +288,9 @@ namespace ACE.Database.Models.Log
                 entity.Property(e => e.CharacterName)
                     .HasColumnName("character_name");
 
+                entity.Property(e => e.EventType)
+                    .HasColumnName("event_type");
+
                 entity.Property(e => e.RankPoints)
                     .HasColumnName("rank_points");
 

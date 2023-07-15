@@ -18,6 +18,8 @@ namespace ACE.Database.Models.Log
         [NotMapped]
         public uint CharacterLevel { get; set; }
 
+        public string EventType { get; set; }
+
         public uint GetRankPoints()
         {
             var winPts = (((float)TotalWins / (TotalMatches == 0 ? 1.0f : (float)TotalMatches)) * 100.0f);

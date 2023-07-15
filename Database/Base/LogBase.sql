@@ -179,6 +179,7 @@ CREATE TABLE `arena_character_stats` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of the arena stats instance',  
   `character_id` INT UNSIGNED,
   `character_name` VARCHAR(255),
+  `event_type` VARCHAR(12),
   `total_matches` INT UNSIGNED,
   `total_wins` INT UNSIGNED,
   `total_losses` INT UNSIGNED,

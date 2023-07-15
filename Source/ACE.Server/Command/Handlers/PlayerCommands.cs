@@ -642,8 +642,7 @@ namespace ACE.Server.Command.Handlers
                     CommandHandlerHelper.WriteOutputInfo(session, $"*********\n{queueInfo}\n\n{eventInfo}\n*********\n");
                     break;
 
-                case "stats":
-                case "rank":
+                case "stats":                
 
                     string returnMsg;
                     if (parameters.Count() >= 2)
@@ -673,6 +672,43 @@ namespace ACE.Server.Command.Handlers
                     }
                     
                     CommandHandlerHelper.WriteOutputInfo(session, returnMsg);
+                    break;
+
+                case "rank":
+
+                    StringBuilder rankReturnMsg = new StringBuilder();
+                    string eventTypeParam = "";
+                    if (parameters.Count() >= 2)
+                    {
+                        eventTypeParam = parameters[1];
+                    }
+
+                    bool validParam = false;
+                    if(eventTypeParam.ToLower().Equals("1v1") ||
+                        eventTypeParam.ToLower().Equals("2v2") ||
+                        eventTypeParam.ToLower().Equals("ffa"))
+                    {
+                        validParam = true;
+                    }
+
+                    if (!validParam)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, "Invalid Event Type Parameter\nUsage: /arena rank {eventType}\nExample: /arena rank 1v1");
+                        break;
+                    }
+
+                    List<ArenaCharacterStats> topTen = DatabaseManager.Log.GetArenaTopRankedByEventType(eventTypeParam.ToLower());
+                   
+                    rankReturnMsg.Append($"***** Top Ten {eventTypeParam.ToLower()} Players *****\n\n");
+                    for (int i = 0; i < topTen.Count(); i++)
+                    {
+                        var currStats = topTen[i];
+                        rankReturnMsg.Append($"  Rank #{i + 1} - {currStats.CharacterName}\n  Rank Points: {currStats.RankPoints}\n  Total Matches: {currStats.TotalMatches}\n  Total Wins: {currStats.TotalWins}\n  Total Draws: {currStats.TotalDraws}\n  Total Losses: {currStats.TotalLosses}\n\n");
+                    }
+
+                    rankReturnMsg.Append($"**********\n");
+                    CommandHandlerHelper.WriteOutputInfo(session, rankReturnMsg.ToString());
+
                     break;
 
                 default:
