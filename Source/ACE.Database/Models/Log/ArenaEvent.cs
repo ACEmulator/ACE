@@ -196,7 +196,7 @@ namespace ACE.Database.Models.Log
         {
             get
             {
-                if (!this.IsOvertime)
+                if (!this.IsOvertime || this.OvertimeRemaining <= TimeSpan.Zero)
                     return 1.0f;
 
                 if (this.OvertimeRemaining.TotalSeconds >= 240)

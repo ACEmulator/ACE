@@ -528,9 +528,11 @@ namespace ACE.Server.WorldObjects
 
                     if (boost >= 0)
                     {
-                        if (ArenaLocation.IsArenaLandblock(player.Location.Landblock))
+                        var targetP = targetCreature as Player;
+
+                        if (targetP != null && ArenaLocation.IsArenaLandblock(targetP.Location.Landblock))
                         {
-                            var arenaEvent = ArenaManager.GetArenaEventByLandblock(player.Location.Landblock);
+                            var arenaEvent = ArenaManager.GetArenaEventByLandblock(targetP.Location.Landblock);
                             if (arenaEvent != null && arenaEvent.IsOvertime)
                             {
                                 boost = (int)Math.Round((boost * arenaEvent.OvertimeHealingModifier));

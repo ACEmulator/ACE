@@ -158,12 +158,13 @@ CREATE TABLE `arena_player` (
   `event_id` INT UNSIGNED,
   `team_guid` CHAR(36),
   `is_eliminated` BIT,
+  `finish_place` INT,
   `total_deaths` INT UNSIGNED,
   `total_kills` INT UNSIGNED,
   `total_dmg_dealt` INT UNSIGNED,
   `total_dmg_received` INT UNSIGNED,
   `create_datetime` DATETIME,
-  `player_ip` VARCHAR(25),
+  `player_ip` VARCHAR(25),  
   PRIMARY KEY (`id`)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;

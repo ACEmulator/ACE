@@ -46,7 +46,7 @@ CREATE TABLE `arena_player` (
   `event_id` INT UNSIGNED,
   `team_guid` CHAR(36),
   `is_eliminated` BIT,
-  `finish_place` INT UNSIGNED,
+  `finish_place` INT,
   `total_deaths` INT UNSIGNED,
   `total_kills` INT UNSIGNED,
   `total_dmg_dealt` INT UNSIGNED,

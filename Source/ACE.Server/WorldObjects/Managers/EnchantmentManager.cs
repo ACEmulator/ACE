@@ -1385,6 +1385,14 @@ namespace ACE.Server.WorldObjects.Managers
 
                 tickAmount *= resistanceMod * damageResistRatingMod * dotResistRatingMod;
 
+                //Arena overtime reduces DOT dmg
+                if(targetPlayer != null && ArenaLocation.IsArenaLandblock(targetPlayer.Location.Landblock))
+                {
+                    var arenaEvent = ArenaManager.GetArenaEventByLandblock(targetPlayer.Location.Landblock);
+                    if (arenaEvent != null && arenaEvent.IsOvertime)
+                        tickAmount = tickAmount * arenaEvent.OvertimeHealingModifier * 0.25f;
+                }
+
                 // make sure the target's current health is not exceeded
                 if (tickAmountTotal + tickAmount >= creature.Health.Current)
                 {
