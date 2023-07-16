@@ -1046,7 +1046,7 @@ namespace ACE.Server.Entity
                     case MorphGemRandomizeWeaponImbue:
 
                         //Verify the item is imbued with AR, CS or CB
-                        var isValid = false;
+                        var isValid = false;                        
 
                         if(target.HasImbuedEffect(ImbuedEffectType.CripplingBlow) ||
                             target.HasImbuedEffect(ImbuedEffectType.ArmorRending) ||
@@ -1060,6 +1060,8 @@ namespace ACE.Server.Entity
                             player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                             return;
                         }
+
+                        var origImbueEffect = target.ImbuedEffect;
 
                         var wepImbueRandom = new Random();
                         var roll = wepImbueRandom.Next(0, 1);
@@ -1078,11 +1080,32 @@ namespace ACE.Server.Entity
 
                         target.IconUnderlayId = RecipeManager.IconUnderlay[target.ImbuedEffect];
 
+                        playerMsg = $"You apply the Morph Gem skillfully and have changed your weapon's imbue from {origImbueEffect} to {target.ImbuedEffect}";
+
+                        //Send player message confirming the applied morph gem
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+
                         break;
                     #endregion MorphGemRandomizeWeaponImbue
 
                     #region MorphGemRemovePlayerReq
                     case MorphGemRemovePlayerReq:
+
+                        if (!target.GetProperty(PropertyInstanceId.AllowedWielder).HasValue)
+                        {
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        var origWielder = target.GetProperty(PropertyString.CraftsmanName);
+
+                        target.RemoveProperty(PropertyInstanceId.AllowedWielder);
+                        target.RemoveProperty(PropertyString.CraftsmanName);
+
+                        playerMsg = $"You apply the Morph Gem skillfully and have altered your item so it is no longer wield restricted to {origWielder}";
+
+                        //Send player message confirming the applied morph gem
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
 
                         break;
                     #endregion MorphGemRemovePlayerReq
