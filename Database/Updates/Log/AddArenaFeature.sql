@@ -22,6 +22,7 @@ CREATE TABLE `arena_event` (
   `end_datetime` DATETIME,
   `winning_team_guid` VARCHAR(36),
   `cancel_reason` VARCHAR(500),
+  `is_overtime` BIT NOT NULL DEFAULT(0),
   `create_datetime` DATETIME,
   PRIMARY KEY (`id`)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8mb4;

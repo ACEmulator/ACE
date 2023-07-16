@@ -210,6 +210,9 @@ namespace ACE.Database.Models.Log
                 entity.Property(e => e.CancelReason)
                     .HasColumnName("cancel_reason");
 
+                entity.Property(e => e.IsOvertime)
+                    .HasColumnName("is_overtime");
+
                 entity.Property(e => e.CreatedDateTime)
                     .HasColumnName("create_datetime");
             });

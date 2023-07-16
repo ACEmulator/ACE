@@ -109,6 +109,8 @@ namespace ACE.Database.Models.Log
 
         public string CancelReason { get; set; }
 
+        public bool IsOvertime { get; set; }
+
         [NotMapped]
         public TimeSpan TimeRemaining
         {
@@ -150,11 +152,72 @@ namespace ACE.Database.Models.Log
             }
         }
 
+        [NotMapped]
         public string TimeRemainingDisplay
         {
             get
             {
                 return string.Format("{0:%h}h {0:%m}m {0:%s}s", TimeRemaining);
+            }
+        }
+
+        [NotMapped]
+        public TimeSpan OvertimeRemaining
+        {
+            get
+            {
+                if (!StartDateTime.HasValue || EndDateTime.HasValue || this.Status != 4 || !this.IsOvertime)
+                    return TimeSpan.Zero;
+
+                switch (this.EventType)
+                {
+                    case "1v1":
+                    case "2v2":
+                        return this.StartDateTime.Value.AddMinutes(20) - DateTime.Now;
+                    case "ffa":
+                        return this.StartDateTime.Value.AddMinutes(30) - DateTime.Now;
+                    default:
+                        return TimeSpan.Zero;
+                }
+            }
+        }
+
+        [NotMapped]
+        public string OvertimeRemainingDisplay
+        {
+            get
+            {
+                return string.Format("{0:%h}h {0:%m}m {0:%s}s", OvertimeRemaining);
+            }
+        }
+
+        [NotMapped]
+        public float OvertimeHealingModifier
+        {
+            get
+            {
+                if (!this.IsOvertime)
+                    return 1.0f;
+
+                if (this.OvertimeRemaining.TotalSeconds >= 240)
+                    return 0.5f;
+
+                if (this.OvertimeRemaining.TotalSeconds >= 180)
+                    return 0.4f;
+
+                if (this.OvertimeRemaining.TotalSeconds >= 120)
+                    return 0.3f;
+
+                return 0.2f;
+            }
+        }
+
+        [NotMapped]
+        public string OvertimeHealingModifierDisplay
+        {
+            get
+            {
+                return (1 - OvertimeHealingModifier).ToString("P0");
             }
         }
     }

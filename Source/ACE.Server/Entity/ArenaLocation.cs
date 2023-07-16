@@ -270,7 +270,23 @@ namespace ACE.Server.Entity
                         }
 
                         //Check if the time limit has been exceeded
-                        if (this.ActiveEvent.TimeRemaining <= TimeSpan.Zero)
+                        if (!this.ActiveEvent.IsOvertime && this.ActiveEvent.TimeRemaining <= TimeSpan.Zero)
+                        {
+                            log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 4, event time limit exceeded, going to overtime");
+                            this.ActiveEvent.IsOvertime = true;
+                            foreach (var arenaPlayer in this.ActiveEvent.Players)
+                            {
+                                var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
+                                if (player != null)
+                                {
+                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"OVERTIME! Chugs are disabled and all healing will be incrementally less effective as time goes on.  Overtime Remaining: {this.ActiveEvent.OvertimeRemainingDisplay}", ChatMessageType.System));
+                                }
+                            }
+                            break;
+                        }
+
+                        //Check if overtime has been exceeded
+                        if (this.ActiveEvent.IsOvertime && this.ActiveEvent.OvertimeRemaining <= TimeSpan.Zero)
                         {
                             log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 4, event time limit exceeded, ending in draw");
                             EndEventTimelimitExceeded();
@@ -285,7 +301,14 @@ namespace ACE.Server.Entity
                                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
                                 if (player != null)
                                 {
-                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Remaining Event Time: {this.ActiveEvent.TimeRemainingDisplay}", ChatMessageType.System));
+                                    if(this.ActiveEvent.IsOvertime)
+                                    {
+                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Overtime Remaining: {this.ActiveEvent.OvertimeRemainingDisplay}\nHealing Reduction: {this.ActiveEvent.OvertimeHealingModifierDisplay}", ChatMessageType.System));
+                                    }
+                                    else
+                                    {
+                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Remaining Event Time: {this.ActiveEvent.TimeRemainingDisplay}", ChatMessageType.System));
+                                    }                                    
                                 }
                             }
 
@@ -689,6 +712,7 @@ namespace ACE.Server.Entity
             foreach (var loser in losers)
             {
                 bool isDraw = loser.EventType.Equals("ffa") && loser.FinishPlace <=5 && loser.FinishPlace > 0;
+                bool isOvertime = this.ActiveEvent.IsOvertime;
 
                 //Add to stats
                 DatabaseManager.Log.AddToArenaStats(
@@ -697,8 +721,8 @@ namespace ACE.Server.Entity
                     loser.EventType,
                     1,
                     0,
-                    isDraw ? (uint)1 : (uint)0,
-                    isDraw? (uint)0 : (uint)1,
+                    isDraw || isOvertime ? (uint)1 : (uint)0,
+                    isDraw || isOvertime ? (uint)0 : (uint)1,
                     loser.FinishPlace == -1 ? (uint)1 : (uint)0,
                     loser.TotalDeaths,
                     loser.TotalKills,
@@ -993,7 +1017,34 @@ namespace ACE.Server.Entity
                 if (player != null)
                 {
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {this.ActiveEvent.EventTypeDisplay} arena event has ended in a draw.  If you are still in the arena you can recall now or have a short period before you are teleported to your lifestone.", ChatMessageType.System));
-                    //TODO any rewards for a timeout would go here
+                    
+                    //Give % xp to next level
+                    if (player.Level > 0 && player.Level < 50)
+                    {
+                        player.GrantLevelProportionalXp(0.035, 1, 20000000, true);
+                    }
+                    else if (player.Level >= 50 && player.Level < 150)
+                    {
+                        player.GrantLevelProportionalXp(0.025, 1, 20000000, true);
+                    }
+                    else if (player.Level >= 150)
+                    {
+                        player.GrantLevelProportionalXp(0.01, 1, 20000000, true);
+                    }
+
+                    //25% chance to give 1 Darkbeat's Lost Storage Keys
+                    if (new Random().NextDouble() > 0.75)
+                    {
+                        var ffaLoser_arenaKey = WorldObjectFactory.CreateNewWorldObject(480608); //Darkbeat's Lost Storage Keys
+                        ffaLoser_arenaKey.SetStackSize(1);
+                        var ffaLoser_arenaKeyCreateResult = player.TryCreateInInventoryWithNetworking(ffaLoser_arenaKey);
+                        if (ffaLoser_arenaKeyCreateResult)
+                        {
+                            player.Session.Network.EnqueueSend(new GameMessageCreateObject(ffaLoser_arenaKey));
+                            var msg = new GameMessageSystemChat($"You have received one of Darkbeat's Lost Storage Keys", ChatMessageType.Broadcast);
+                            player.Session.Network.EnqueueSend(msg);
+                        }
+                    }
                 }
             }
         }

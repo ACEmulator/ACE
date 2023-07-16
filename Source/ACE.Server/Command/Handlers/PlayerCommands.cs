@@ -712,7 +712,7 @@ namespace ACE.Server.Command.Handlers
                     break;
 
                 default:
-                    CommandHandlerHelper.WriteOutputInfo(session, $"Arena Commands...\n  To join a 1v1 arena match: /arena join\n  To join a specific type of arena match: /arena join eventType\n  (replace eventType with the string code for the type of match you want to join; 1v1, 2v2 or FFA)\n  To leave an arena queue or cancel a match that isn't started: /arena cancel\n  To get your current character's stats: /arena stats\n  To get a named character's stats: /arena stats characterName\n  (replace characterName with the target character's name\n  To get info about players in an arena queue and active arena matches: /arena info");
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Arena Commands...\n  To join a 1v1 arena match: /arena join\n  To join a specific type of arena match: /arena join eventType\n  (replace eventType with the string code for the type of match you want to join; 1v1, 2v2 or FFA)\n  To leave an arena queue or cancel a match that isn't started: /arena cancel\n  To get info about players in an arena queue and active arena matches: /arena info\n  To get your current character's stats: /arena stats\n  To get a named character's stats: /arena stats characterName\n  (replace characterName with the target character's name\n  To get rank leaderboard by event type: /arena rank eventType\n  (replace eventType with the string code for the type of match you want ranking for; 1v1, 2v2 or FFA)\n");
                     return;
             }
         }

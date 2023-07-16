@@ -7,6 +7,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics;
@@ -233,8 +234,19 @@ namespace ACE.Server.WorldObjects
                 healAmount = healerObject.HealAmount;
             }
 
+            if(ArenaLocation.IsArenaLandblock(target.Location.Landblock))
+            {
+                var arenaEvent = ArenaManager.GetArenaEventByLandblock(target.Location.Landblock);
+                if (arenaEvent != null && arenaEvent.IsOvertime)
+                {
+                    healAmount = Convert.ToUInt32(Math.Round(healAmount * arenaEvent.OvertimeHealingModifier));
+                    staminaCost = Convert.ToUInt32(Math.Round(staminaCost * arenaEvent.OvertimeHealingModifier));
+                }
+            }
+
             healer.UpdateVitalDelta(healer.Stamina, (int)-staminaCost);
             target.UpdateVitalDelta(vital, healAmount);
+
             if (vital.Vital == PropertyAttribute2nd.MaxHealth)
                 target.DamageHistory.OnHeal(healAmount);
 

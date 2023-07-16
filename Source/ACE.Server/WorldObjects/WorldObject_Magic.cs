@@ -24,6 +24,7 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Extensions;
 using ACE.Server.WorldObjects.Managers;
+using Google.Protobuf.WellKnownTypes;
 
 namespace ACE.Server.WorldObjects
 {
@@ -526,7 +527,17 @@ namespace ACE.Server.WorldObjects
                     srcVital = "health";
 
                     if (boost >= 0)
+                    {
+                        if (ArenaLocation.IsArenaLandblock(player.Location.Landblock))
+                        {
+                            var arenaEvent = ArenaManager.GetArenaEventByLandblock(player.Location.Landblock);
+                            if (arenaEvent != null && arenaEvent.IsOvertime)
+                            {
+                                boost = (int)Math.Round((boost * arenaEvent.OvertimeHealingModifier));
+                            }
+                        }
                         targetCreature.DamageHistory.OnHeal((uint)boost);
+                    }
                     else
                         targetCreature.DamageHistory.Add(this, DamageType.Health, (uint)-boost);
 
@@ -775,18 +786,23 @@ namespace ACE.Server.WorldObjects
                     break;
                 case PropertyAttribute2nd.Stamina:
                     srcVital = "stamina";
+                    if (targetPlayer != null &&
+                        spell.Destination == PropertyAttribute2nd.Health &&
+                        srcVitalChange < 0 &&
+                        ArenaLocation.IsArenaLandblock(targetPlayer.Location.Landblock))
+                    {
+                        var arenaEvent = ArenaManager.GetArenaEventByLandblock(targetPlayer.Location.Landblock);
+                        if (arenaEvent != null && arenaEvent.IsOvertime)
+                        {
+                            srcVitalChange = Convert.ToUInt32(Math.Round(srcVitalChange * arenaEvent.OvertimeHealingModifier));
+                        }
+                    }
                     srcVitalChange = (uint)-transferSource.UpdateVitalDelta(transferSource.Stamina, -(int)srcVitalChange);
                     break;
                 default:   // Health
                     srcVital = "health";
                     srcVitalChange = (uint)-transferSource.UpdateVitalDelta(transferSource.Health, -(int)srcVitalChange);
-
                     transferSource.DamageHistory.Add(this, DamageType.Health, srcVitalChange);
-
-                    //var sourcePlayer = source as Player;
-                    //if (sourcePlayer != null && sourcePlayer.Fellowship != null)
-                        //sourcePlayer.Fellowship.OnVitalUpdate(sourcePlayer);
-
                     break;
             }
 
@@ -803,14 +819,19 @@ namespace ACE.Server.WorldObjects
                     break;
                 default:   // Health
                     destVital = "health";
+
+                    if (targetPlayer != null && ArenaLocation.IsArenaLandblock(targetPlayer.Location.Landblock))
+                    {
+                        var arenaEvent = ArenaManager.GetArenaEventByLandblock(targetPlayer.Location.Landblock);
+                        if (arenaEvent != null && arenaEvent.IsOvertime)
+                        {
+                            destVitalChange = Convert.ToUInt32(Math.Round(destVitalChange * arenaEvent.OvertimeHealingModifier));
+                        }
+                    }
+
                     destVitalChange = (uint)destination.UpdateVitalDelta(destination.Health, destVitalChange);
 
                     destination.DamageHistory.OnHeal(destVitalChange);
-
-                    //var destPlayer = destination as Player;
-                    //if (destPlayer != null && destPlayer.Fellowship != null)
-                        //destPlayer.Fellowship.OnVitalUpdate(destPlayer);
-
                     break;
             }
 

@@ -7,6 +7,7 @@ using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics;
+using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
 {
@@ -117,6 +118,15 @@ namespace ACE.Server.WorldObjects
             var ratingMod = BoostValue > 0 ? player.GetHealingRatingMod() : 1.0f;
 
             var boostValue = (int)Math.Round(BoostValue * ratingMod);
+
+            if (ArenaLocation.IsArenaLandblock(player.Location.Landblock))
+            {
+                var arenaEvent = ArenaManager.GetArenaEventByLandblock(player.Location.Landblock);
+                if (arenaEvent != null && arenaEvent.IsOvertime)
+                {
+                    boostValue = 0;
+                }
+            }
 
             var vitalChange = (uint)Math.Abs(player.UpdateVitalDelta(vital, boostValue));
 
