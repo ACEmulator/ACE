@@ -10,6 +10,7 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 using log4net;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -233,7 +234,10 @@ namespace ACE.Server.Entity
                                     if (player.Location.Landblock != this.ActiveEvent.Location)
                                     {
                                         arenaPlayer.IsEliminated = true;
-                                        arenaPlayer.FinishPlace = -1;
+                                        if (!player.IsInDeathProcess)
+                                        {
+                                            arenaPlayer.FinishPlace = -1;
+                                        }
                                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been disqualified from the {arenaPlayer.EventType} arena match because you left the arena.", ChatMessageType.System));
                                     }
                                 }
@@ -642,7 +646,7 @@ namespace ACE.Server.Entity
                                     player.Session.Network.EnqueueSend(new GameMessageCreateObject(arenaKey));
                                     var msg = new GameMessageSystemChat($"You have received one of Darkbeat's Lost Storage Keys", ChatMessageType.Broadcast);
                                     player.Session.Network.EnqueueSend(msg);
-                                }
+                                }                                
                                 break;
 
                             case "ffa":
@@ -704,6 +708,8 @@ namespace ACE.Server.Entity
                                 }
                                 break;
                         }
+
+                        SetPlayerRewardLimitProperties(player, winner);
                     }
                 }
             }
@@ -935,12 +941,63 @@ namespace ACE.Server.Entity
                                 }
                                 break;
                         }
+
+                        SetPlayerRewardLimitProperties(player, loser);
                     }
                 }
             }
 
             //Global Broadcast
             PlayerManager.BroadcastToAll(new GameMessageSystemChat($"{winnerList} just won a {this.ActiveEvent.EventTypeDisplay} arena event against {loserList} in the {this.ArenaName} arena", ChatMessageType.Broadcast));
+        }
+
+        public void SetPlayerRewardLimitProperties(Player player, ArenaPlayer arenaPlayer)
+        {
+            //Set player reward limit properties
+            //Daily reward time stamp and count
+            if (!player.ArenaDailyRewardTimestamp.HasValue || Time.GetDateTimeFromTimestamp(player.ArenaDailyRewardTimestamp.Value) < DateTime.Today)
+            {
+                player.ArenaDailyRewardTimestamp = Time.GetUnixTime(DateTime.Today);
+                player.ArenaDailyRewardCount = 0;
+                player.ArenaSameClanDailyRewardCount = 0;
+                player.ArenaRewardsByOpponent = null;
+            }
+
+            player.ArenaDailyRewardCount++;
+
+            //Same clan opponents count
+            var sameClanOpponents = this.ActiveEvent.Players.Where(x => x.MonarchId == arenaPlayer.MonarchId && x.TeamGuid != arenaPlayer.TeamGuid);
+            if (sameClanOpponents != null && sameClanOpponents.Count() > 0)
+                player.ArenaSameClanDailyRewardCount++;
+
+            //Hourly reward time stamp and count
+            DateTime thisHour = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, 0, 0);
+            if (!player.ArenaHourlyTimestamp.HasValue || Time.GetDateTimeFromTimestamp(player.ArenaHourlyTimestamp.Value) < thisHour)
+            {
+                player.ArenaHourlyTimestamp = Time.GetUnixTime(thisHour);
+                player.ArenaHourlyCount = 0;
+            }
+
+            player.ArenaHourlyCount++;
+
+            //Opponents Log
+            var opponents = this.ActiveEvent.Players.Where(x => x.TeamGuid != arenaPlayer.TeamGuid);
+            if (opponents != null)
+            {
+                var opponentRewards = player.ArenaRewardsByOpponent;
+                foreach (var opponent in opponents)
+                {
+                    if (opponentRewards != null && opponentRewards.ContainsKey(opponent.CharacterId))
+                    {
+                        opponentRewards[opponent.CharacterId]++;
+                    }
+                    else
+                    {
+                        opponentRewards.Add(opponent.CharacterId, 1);
+                    }
+                }
+                player.ArenaRewardsByOpponent = opponentRewards;
+            }            
         }
 
         public bool IsPlayerRewardEligible(Player player, ArenaPlayer arenaPlayer, List<ArenaPlayer> allArenaPlayers)
@@ -998,6 +1055,27 @@ namespace ACE.Server.Entity
 
             DatabaseManager.Log.SaveArenaEvent(this.ActiveEvent);
 
+            bool underageViolation = false;
+            var underageCount = 0;
+            foreach (var arenaPlayer in this.ActiveEvent.Players)
+            {
+                var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
+
+                if (player.Age <= PropertyManager.GetLong("arenas_reward_min_age").Item) //days in seconds
+                {
+                    underageCount++;
+                }
+            }
+
+            if (underageCount > 0 && (this.ActiveEvent.EventType.Equals("1v1") || this.ActiveEvent.EventType.Equals("2v2")))
+            {
+                underageViolation = true;
+            }
+            else if (underageCount > 2 && (this.ActiveEvent.EventType.Equals("ffa")))
+            {
+                underageViolation = true;
+            }
+
             foreach (var arenaPlayer in this.ActiveEvent.Players)
             {
                 DatabaseManager.Log.AddToArenaStats(
@@ -1013,37 +1091,47 @@ namespace ACE.Server.Entity
                     arenaPlayer.TotalKills,
                     arenaPlayer.TotalDmgDealt,
                     arenaPlayer.TotalDmgReceived);
+
+
                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
                 if (player != null)
                 {
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {this.ActiveEvent.EventTypeDisplay} arena event has ended in a draw.  If you are still in the arena you can recall now or have a short period before you are teleported to your lifestone.", ChatMessageType.System));
-                    
-                    //Give % xp to next level
-                    if (player.Level > 0 && player.Level < 50)
-                    {
-                        player.GrantLevelProportionalXp(0.035, 1, 20000000, true);
-                    }
-                    else if (player.Level >= 50 && player.Level < 150)
-                    {
-                        player.GrantLevelProportionalXp(0.025, 1, 20000000, true);
-                    }
-                    else if (player.Level >= 150)
-                    {
-                        player.GrantLevelProportionalXp(0.01, 1, 20000000, true);
-                    }
 
-                    //25% chance to give 1 Darkbeat's Lost Storage Keys
-                    if (new Random().NextDouble() > 0.75)
+
+                    var shouldReward = IsPlayerRewardEligible(player, arenaPlayer, this.ActiveEvent.Players) && !underageViolation;
+
+                    if (shouldReward)
                     {
-                        var ffaLoser_arenaKey = WorldObjectFactory.CreateNewWorldObject(480608); //Darkbeat's Lost Storage Keys
-                        ffaLoser_arenaKey.SetStackSize(1);
-                        var ffaLoser_arenaKeyCreateResult = player.TryCreateInInventoryWithNetworking(ffaLoser_arenaKey);
-                        if (ffaLoser_arenaKeyCreateResult)
+                        //Give % xp to next level
+                        if (player.Level > 0 && player.Level < 50)
                         {
-                            player.Session.Network.EnqueueSend(new GameMessageCreateObject(ffaLoser_arenaKey));
-                            var msg = new GameMessageSystemChat($"You have received one of Darkbeat's Lost Storage Keys", ChatMessageType.Broadcast);
-                            player.Session.Network.EnqueueSend(msg);
+                            player.GrantLevelProportionalXp(0.035, 1, 20000000, true);
                         }
+                        else if (player.Level >= 50 && player.Level < 150)
+                        {
+                            player.GrantLevelProportionalXp(0.025, 1, 20000000, true);
+                        }
+                        else if (player.Level >= 150)
+                        {
+                            player.GrantLevelProportionalXp(0.01, 1, 20000000, true);
+                        }
+
+                        //25% chance to give 1 Darkbeat's Lost Storage Keys
+                        if (new Random().NextDouble() > 0.75)
+                        {
+                            var ffaLoser_arenaKey = WorldObjectFactory.CreateNewWorldObject(480608); //Darkbeat's Lost Storage Keys
+                            ffaLoser_arenaKey.SetStackSize(1);
+                            var ffaLoser_arenaKeyCreateResult = player.TryCreateInInventoryWithNetworking(ffaLoser_arenaKey);
+                            if (ffaLoser_arenaKeyCreateResult)
+                            {
+                                player.Session.Network.EnqueueSend(new GameMessageCreateObject(ffaLoser_arenaKey));
+                                var msg = new GameMessageSystemChat($"You have received one of Darkbeat's Lost Storage Keys", ChatMessageType.Broadcast);
+                                player.Session.Network.EnqueueSend(msg);
+                            }
+                        }
+
+                        SetPlayerRewardLimitProperties(player, arenaPlayer);
                     }
                 }
             }
