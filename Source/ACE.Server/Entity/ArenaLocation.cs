@@ -544,8 +544,7 @@ namespace ACE.Server.Entity
             foreach (var arenaPlayer in this.ActiveEvent.Players)
             {
                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
-
-                if (player.Age <= PropertyManager.GetLong("arenas_reward_min_age").Item) //days in seconds
+                if (player != null && player.Age <= PropertyManager.GetLong("arenas_reward_min_age").Item) //days in seconds
                 {
                     underageCount++;
                 }
@@ -1005,7 +1004,7 @@ namespace ACE.Server.Entity
             if (arenaPlayer.FinishPlace == -1)
                 return false;
 
-            if (player.Age <= PropertyManager.GetLong("arenas_reward_min_age").Item) //days in seconds
+            if (player == null || player.Age <= PropertyManager.GetLong("arenas_reward_min_age").Item) //days in seconds
             {
                 return false;
             }
