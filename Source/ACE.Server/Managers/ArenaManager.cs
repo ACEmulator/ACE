@@ -270,7 +270,7 @@ namespace ACE.Server.Managers
                             break;
                         case "ffa":
 
-                            if (otherPlayers.Count() >= 9 || (otherPlayers.Count() >= 6 && firstArenaPlayer.CreateDateTime > DateTime.Now.AddMinutes(-3)))
+                            if (otherPlayers.Count() >= 9 || (otherPlayers.Count() >= 6 && firstArenaPlayer.CreateDateTime < DateTime.Now.AddMinutes(-3)))
                             {
                                 finalPlayerList.Add(firstArenaPlayer);
 
