@@ -568,7 +568,7 @@ namespace ACE.Server.Command.Handlers
                             eventType += parameters[i];
                         }
 
-                        if(!IsValidEventType(eventType))
+                        if(!ArenaManager.IsValidEventType(eventType))
                         {
                             CommandHandlerHelper.WriteOutputInfo(session, $"Invalid parameters.  The Join command does not support the event type {eventType}. Proper syntax is as follows...\n  To join a 1v1 arena match: /arena join\n  To join a specific type of arena match, replace eventType with the string code for the type of match you want to join, such as 1v1, 2v2, ffa. : /arena join eventType\n  To get your current character's stats: /arena stats\n  To get a named character's stats, replace characterName with the target character's name: /arena stats characterName");
                             return;
@@ -779,20 +779,7 @@ namespace ACE.Server.Command.Handlers
             return DatabaseManager.Log.GetArenaStatsByCharacterId(characterId, characterName);
         }
 
-        private static bool IsValidEventType(string eventType)
-        {
-            switch(eventType.ToLower())
-            {
-                case "1v1":
-                    return true;
-                case "2v2":
-                    return true;
-                case "ffa":
-                    return true;
-                default:
-                    return false;
-            }
-        }
+        
 
         [CommandHandler("ForceLogoffStuckCharacter", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Force log off of character that's stuck in game.  Is only allowed when initiated from a character that is on the same account as the target character.")]
         public static void HandleForceLogoffStuckCharacter(Session session, params string[] parameters)

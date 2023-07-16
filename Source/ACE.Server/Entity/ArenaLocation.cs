@@ -211,7 +211,8 @@ namespace ACE.Server.Entity
                         //log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 4");
 
                         //Check if any players are no longer in the arena
-                        foreach(var arenaPlayer in this.ActiveEvent.Players)
+                        var notEliminatedPlayers = this.ActiveEvent.Players.Where(x => !x.IsEliminated)?.ToList() ?? new List<ArenaPlayer>();
+                        foreach (var arenaPlayer in this.ActiveEvent.Players)
                         {
                             if (!arenaPlayer.IsEliminated)
                             {
@@ -220,7 +221,8 @@ namespace ACE.Server.Entity
                                 {
                                     //if the player is not online they're eliminated
                                     arenaPlayer.IsEliminated = true;
-                                    arenaPlayer.FinishPlace = -1;
+                                    arenaPlayer.IsDisqualified = true;
+                                    notEliminatedPlayers.Remove(arenaPlayer);
                                 }
                                 else
                                 {
@@ -228,29 +230,29 @@ namespace ACE.Server.Entity
                                     if (!player.IsPK)
                                     {
                                         arenaPlayer.IsEliminated = true;
+                                        notEliminatedPlayers.Remove(arenaPlayer);
                                     }
 
                                     //if the player is not on the arena landblock they're eliminated
                                     if (player.Location.Landblock != this.ActiveEvent.Location)
                                     {
                                         arenaPlayer.IsEliminated = true;
+                                        notEliminatedPlayers.Remove(arenaPlayer);
                                         if (!player.IsInDeathProcess)
                                         {
-                                            arenaPlayer.FinishPlace = -1;
+                                            arenaPlayer.IsDisqualified = true;
+                                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been disqualified from the {arenaPlayer.EventType} arena match because you left the arena.", ChatMessageType.System));
                                         }
-                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been disqualified from the {arenaPlayer.EventType} arena match because you left the arena.", ChatMessageType.System));
                                     }
                                 }
 
-                                //For FFA, set the FinishPlace when a player is eliminated
-                                if(arenaPlayer.IsEliminated && this.ActiveEvent.EventType.Equals("ffa"))
+                                //
+                                if(arenaPlayer.IsEliminated && !arenaPlayer.IsDisqualified)
                                 {
-                                    var notEliminatedPlayers = this.ActiveEvent.Players.Where(x => !x.IsEliminated);
-                                    if (notEliminatedPlayers != null)
-                                    {
-                                        arenaPlayer.FinishPlace = notEliminatedPlayers.Count() + 1; //If there's 5 players still in the game after you just got eliminated, you're 6th place
-                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been eliminated from the Free for All arena match in {this.ArenaName}.  You finished in {arenaPlayer.FinishPlaceDisplay} place.", ChatMessageType.System));
-                                    }
+                                    arenaPlayer.FinishPlace = notEliminatedPlayers.Count() + 1;
+
+                                    if(player != null)
+                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been eliminated from the {this.ActiveEvent.EventTypeDisplay} arena match in {this.ArenaName}.  You finished in {arenaPlayer.FinishPlaceDisplay} place.", ChatMessageType.System));
                                 }
                             }
                         }
@@ -528,8 +530,16 @@ namespace ACE.Server.Entity
             this.ActiveEvent.EndDateTime = DateTime.Now;
             this.ActiveEvent.WinningTeamGuid = winningTeamGuid;
 
-            DatabaseManager.Log.SaveArenaEvent(this.ActiveEvent);
+            var livingWinners = this.ActiveEvent.Players.Where(x => x.TeamGuid == winningTeamGuid && !x.IsEliminated && !x.IsDisqualified);
+            if (livingWinners != null)
+            {
+                foreach (var winner in livingWinners)
+                {
+                    winner.FinishPlace = 1;
+                }
+            }
 
+            DatabaseManager.Log.SaveArenaEvent(this.ActiveEvent);
             
             string winnerList = "";
             var winners = this.ActiveEvent.Players.Where(x => x.TeamGuid == winningTeamGuid)?.ToList();

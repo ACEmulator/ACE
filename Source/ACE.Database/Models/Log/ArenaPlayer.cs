@@ -55,6 +55,10 @@ namespace ACE.Database.Models.Log
             {
                 return FinishPlace == -1;
             }
+            set
+            {
+                FinishPlace = value ? -1 : FinishPlace;
+            }
         }
 
         public int FinishPlace { get; set; }

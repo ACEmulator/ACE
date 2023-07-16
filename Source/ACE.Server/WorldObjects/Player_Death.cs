@@ -18,6 +18,7 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Handlers;
 using ACE.Database;
 using ACE.Server.Entity.TownControl;
+using ACE.Database.Models.PKKills;
 
 namespace ACE.Server.WorldObjects
 {
@@ -222,6 +223,54 @@ namespace ACE.Server.WorldObjects
             }
             else
                 Session.Network.EnqueueSend(new GameMessageSystemChat("Your augmentation prevents the tides of death from ripping away your current enchantments!", ChatMessageType.Broadcast));
+
+
+            //Handle arena deaths and logging PK kills
+            var killerPlayer = PlayerManager.FindByGuid(topDamager.Guid);
+            if (killerPlayer != null && KillerId.HasValue)
+            {                
+                uint? victimMonarchId = null;
+                uint? killerMonarchId = null;
+                var killerAllegiance = AllegianceManager.GetAllegiance(killerPlayer);
+                var victimAllegiance = AllegianceManager.GetAllegiance(this);
+
+                if (killerAllegiance != null)
+                {
+                    killerMonarchId = killerAllegiance.MonarchId;
+                }
+
+                if (victimAllegiance != null)
+                {
+                    victimMonarchId = victimAllegiance.MonarchId;
+                }
+
+                //Handle arena kills
+                uint? victimArenaPlayerId = null;
+                uint? killerArenaPlayerId = null;
+                if (ArenaLocation.IsArenaLandblock(Location.Landblock))
+                {
+                    var victimArenaPlayer = ArenaManager.GetArenaPlayerByCharacterId(Character.Id);                    
+                    var killerArenaPlayer = ArenaManager.GetArenaPlayerByCharacterId(killerPlayer.Guid.Full);
+
+                    if (victimArenaPlayer != null)
+                    {
+                        ArenaManager.HandlePlayerDeath((uint)Character.Id, (uint)killerPlayer.Guid.Full);
+                        victimArenaPlayerId = victimArenaPlayer.Id;
+
+                        if (killerArenaPlayer != null)
+                            killerArenaPlayerId = killerArenaPlayer.Id;
+                    }
+                }
+
+                try
+                {
+                    DatabaseManager.Log.LogPkKill((uint)Character.Id, (uint)killerPlayer.Guid.Full, victimMonarchId, killerMonarchId, victimArenaPlayerId, killerArenaPlayerId);
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"Exception logging PK Kill to DB. Ex: {ex}");
+                }
+            }
 
             // wait for the death animation to finish
             var dieChain = new ActionChain();

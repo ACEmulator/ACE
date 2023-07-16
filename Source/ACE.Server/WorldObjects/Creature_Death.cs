@@ -551,53 +551,7 @@ namespace ACE.Server.WorldObjects
 
                 if (isPKdeath)
                 {
-                    corpse.PkLevel = PKLevel.PK;
-
-                    if (corpse != null && corpse.VictimId != null)
-                    {
-                        uint? victimMonarchId = null;
-                        uint? killerMonarchId = null;
-                        var killerAllegiance = AllegianceManager.GetAllegiance(PlayerManager.FindByGuid(killer.Guid));
-                        var victimAllegiance = AllegianceManager.GetAllegiance(PlayerManager.FindByGuid(new ObjectGuid(corpse.VictimId.Value)));
-
-                        if (killerAllegiance != null)
-                        {
-                            killerMonarchId = killerAllegiance.MonarchId;
-                        }
-
-                        if (victimAllegiance != null)
-                        {
-                            victimMonarchId = victimAllegiance.MonarchId;
-                        }
-
-                        //Handle arena kills
-                        uint? victimArenaPlayerId = null;
-                        uint? killerArenaPlayerId = null;
-                        if (ArenaLocation.IsArenaLandblock(player.Location.Landblock))
-                        {
-                            var victimArenaPlayer = ArenaManager.GetArenaPlayerByCharacterId(player.Character.Id);
-                            var killerPlayer = PlayerManager.FindByGuid(killer.Guid);
-                            var killerArenaPlayer = ArenaManager.GetArenaPlayerByCharacterId(killerPlayer.Guid.Full);
-
-                            if (victimArenaPlayer != null)
-                            {
-                                ArenaManager.HandlePlayerDeath((uint)corpse.VictimId, (uint)killer.Guid.Full);
-                                victimArenaPlayerId = victimArenaPlayer.Id;
-
-                                if (killerArenaPlayer != null)
-                                    killerArenaPlayerId = killerArenaPlayer.Id;
-                            }
-                        }
-
-                        try
-                        {
-                            DatabaseManager.Log.LogPkKill((uint)corpse.VictimId, (uint)killer.Guid.Full, victimMonarchId, killerMonarchId, victimArenaPlayerId, killerArenaPlayerId);
-                        }
-                        catch (Exception ex)
-                        {
-                            log.Error($"Exception logging PK Kill to DB. Ex: {ex}");
-                        }
-                    }                    
+                    corpse.PkLevel = PKLevel.PK;                                      
                 }
 
                 if (!isPKdeath && !isPKLdeath)

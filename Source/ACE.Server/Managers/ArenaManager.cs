@@ -204,7 +204,7 @@ namespace ACE.Server.Managers
                 {
                     //If player is not in a valid state, message them and remove them from the queue
                     if (player != null)
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} - You have been removed from the arena queue because during match making you were found to be either not PK status or you are PK tagged.  Please join the queue again when you're in a valid state.", ChatMessageType.System));
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been removed from the arena queue because during match making you were found to be either not PK status or you are PK tagged.  Please join the queue again when you're in a valid state.", ChatMessageType.System));
 
                     queuedPlayers.Remove(arenaPlayer.CharacterId);
                 }
@@ -388,13 +388,12 @@ namespace ACE.Server.Managers
                     if (victim == null)
                     {
                         victim = arena.ActiveEvent.Players.FirstOrDefault(x => x.CharacterId == victimId);
+                        killer = arena.ActiveEvent.Players.FirstOrDefault(x => x.CharacterId == killerId);
                         arenaLocation = arena;
                     }
 
-                    if (killer == null)
-                    {
-                        killer = arena.ActiveEvent.Players.FirstOrDefault(x => x.CharacterId == killerId);
-                    }
+                    if (victim != null && killer != null)
+                        break;
                 }
             }
 
@@ -417,7 +416,7 @@ namespace ACE.Server.Managers
                 var victimPlayer = PlayerManager.GetOnlinePlayer(victim.CharacterId);
                 if(victimPlayer != null)
                 {
-                    victimPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You've been eliminated from an arena event by way of death.  Your finish place is {victim.FinishPlace}.  Stay online until the end of the match to receive rewards.", ChatMessageType.System));
+                    victimPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You've been eliminated from an arena event by way of death.  You finished in {victim.FinishPlaceDisplay} place.  Stay online until the end of the match to receive rewards.", ChatMessageType.System));
                 }
             }
 
@@ -512,6 +511,44 @@ namespace ACE.Server.Managers
             }
 
             return "";
+        }
+
+        public static bool IsValidEventType(string eventType)
+        {
+            switch (eventType.ToLower())
+            {
+                case "1v1":
+                    return true;
+                case "2v2":
+                    return true;
+                case "ffa":
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        public static void ClearQueue(string eventType)
+        {
+            List<ArenaPlayer> playersToRemove = new List<ArenaPlayer>();
+
+            foreach (var arenaPlayer in queuedPlayers.Values)
+            {
+                if(string.IsNullOrEmpty(eventType) || arenaPlayer.EventType.ToLower().Equals(eventType))
+                {
+                    playersToRemove.Add(arenaPlayer);
+                }
+            }
+
+            foreach(var removedPlayer in playersToRemove)
+            {
+                queuedPlayers.Remove(removedPlayer.CharacterId);
+                var player = PlayerManager.GetOnlinePlayer(removedPlayer.CharacterId);
+                if(player != null)
+                {
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been removed from the arena queue because an admin had to reset the queue for your event type.  Sorry for the inconvenience.", ChatMessageType.System));
+                }
+            }
         }
     }
 }
