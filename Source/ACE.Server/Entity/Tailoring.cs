@@ -44,6 +44,7 @@ namespace ACE.Server.Entity
         public const uint MorphGemRandomizeWeaponImbue = 480486;
         public const uint MorphGemRemovePlayerReq = 480485;
         public const uint MorphGemSlayerRandom = 480610;
+        public const uint MorphGemRemoveLevelReq = 480609;
 
         public const int MorphGemMinValue = 20000;
 
@@ -208,6 +209,7 @@ namespace ACE.Server.Entity
                 case MorphGemRandomizeWeaponImbue:
                 case MorphGemRemovePlayerReq:
                 case MorphGemSlayerRandom:
+                case MorphGemRemoveLevelReq:
                     ApplyMorphGem(player, source, target);
                     return;
             }
@@ -501,8 +503,8 @@ namespace ACE.Server.Entity
 
             try
             {
-                //Only allow loot gen items to be morphed
-                if (target.ItemWorkmanship == null || target.IsAttunedOrContainsAttuned || target.ResistMagic == 9999)
+                //Only allow loot gen items to be morphed, except for level req one
+                if ((target.ItemWorkmanship == null || target.IsAttunedOrContainsAttuned || target.ResistMagic == 9999) && source.WeenieClassId != MorphGemRemoveLevelReq)
                 {
                     player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                     return;
@@ -1236,6 +1238,29 @@ namespace ACE.Server.Entity
 
                     #endregion MorphGemSlayerRandom
 
+
+                    #region MorphGemRemoveLevelReq
+
+                    case MorphGemRemoveLevelReq:
+
+                        if (!target.GetProperty(PropertyInt.WieldDifficulty).HasValue)
+                        {
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        var origLevelReq = target.GetProperty(PropertyInt.WieldDifficulty);
+
+                        target.RemoveProperty(PropertyInt.WieldDifficulty);
+
+                        playerMsg = $"You apply the Morph Gem skillfully and have altered your item so it no longer requires level {origLevelReq} to wield";
+
+                        //Send player message confirming the applied morph gem
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+
+                        break;
+
+                    #endregion MorphGemRemoveLevelReq
                     default:
                         player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                         return;
@@ -1499,6 +1524,7 @@ namespace ACE.Server.Entity
                 case MorphGemRandomizeWeaponImbue:
                 case MorphGemRemovePlayerReq:
                 case MorphGemSlayerRandom:
+                case MorphGemRemoveLevelReq:
 
                     return true;
 
