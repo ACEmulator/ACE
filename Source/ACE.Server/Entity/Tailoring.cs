@@ -503,8 +503,8 @@ namespace ACE.Server.Entity
 
             try
             {
-                //Only allow loot gen items to be morphed, except for level req one
-                if ((target.ItemWorkmanship == null || target.IsAttunedOrContainsAttuned || target.ResistMagic == 9999) && source.WeenieClassId != MorphGemRemoveLevelReq)
+                //Only allow loot gen items to be morphed, except for player req and level req ones
+                if ((target.ItemWorkmanship == null || target.IsAttunedOrContainsAttuned || target.ResistMagic == 9999) && source.WeenieClassId != MorphGemRemoveLevelReq && source.WeenieClassId != MorphGemRemovePlayerReq)
                 {
                     player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                     return;
