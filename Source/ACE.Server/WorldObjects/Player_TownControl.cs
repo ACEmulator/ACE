@@ -29,6 +29,7 @@ using ACE.Server.WorldObjects.Managers;
 
 using Character = ACE.Database.Models.Shard.Character;
 using MotionTable = ACE.DatLoader.FileTypes.MotionTable;
+using ACE.Server.Entity.TownControl;
 
 namespace ACE.Server.WorldObjects
 {
@@ -75,6 +76,29 @@ namespace ACE.Server.WorldObjects
             {
                 log.Error($"Exception in HandleTownControlQuestStamps. Ex: {ex}");
             }
+        }
+
+        public int GetTownOwnershipCount()
+        {
+            int townsOwned = 0;
+            var alleg = AllegianceManager.GetAllegiance(this);
+            
+            if (alleg != null && alleg.MonarchId.HasValue && TownControlAllegiances.IsAllowedAllegiance((int)alleg.MonarchId.Value))
+            {
+                var towns = DatabaseManager.TownControl.GetAllTowns();
+                if(towns != null)
+                {
+                    foreach(var town in towns)
+                    {
+                        if(town.CurrentOwnerID == alleg.MonarchId.Value)
+                        {
+                            townsOwned++;
+                        }
+                    }
+                }
+            }
+
+            return townsOwned;
         }
     }
 }

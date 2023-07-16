@@ -6,6 +6,7 @@ using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Entity.TownControl;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -97,6 +98,13 @@ namespace ACE.Server.WorldObjects
                     break;
                 default:
                     break;
+            }
+
+            //Town Control - give bonus % to xp for each town your clan owns
+            var townsOwned = GetTownOwnershipCount();
+            if (townsOwned > 0)
+            {
+                amount = (long)Math.Round((amount * (1 + (Math.Min(townsOwned, 3)) * 0.1)));
             }
 
             // Make sure UpdateXpAndLevel is done on this players thread
