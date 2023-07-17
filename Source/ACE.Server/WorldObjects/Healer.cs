@@ -312,6 +312,16 @@ namespace ACE.Server.WorldObjects
             criticalHeal = ThreadSafeRandom.Next(0.0f, 1.0f) < 0.1f;
             if (criticalHeal) healAmount *= 2;
 
+            //Reduce healing in arena overtime
+            if(target != null && ArenaLocation.IsArenaLandblock(target.Location.Landblock))
+            {
+                var arenaEvent = ArenaManager.GetArenaEventByLandblock(target.Location.Landblock);
+                if(arenaEvent != null && arenaEvent.IsOvertime)
+                {
+                    healAmount = Math.Round(healAmount * arenaEvent.OvertimeHealingModifier);
+                }
+            }
+
             // cap to missing vital
             var missingVital = vital.MaxValue - vital.Current;
             if (healAmount > missingVital)

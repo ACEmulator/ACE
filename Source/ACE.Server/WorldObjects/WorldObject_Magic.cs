@@ -523,21 +523,21 @@ namespace ACE.Server.WorldObjects
                     srcVital = "stamina";
                     break;
                 default:   // Health
+                    var targetP = targetCreature as Player;
+
+                    if (targetP != null && ArenaLocation.IsArenaLandblock(targetP.Location.Landblock))
+                    {
+                        var arenaEvent = ArenaManager.GetArenaEventByLandblock(targetP.Location.Landblock);
+                        if (arenaEvent != null && arenaEvent.IsOvertime)
+                        {
+                            tryBoost = boost = (int)Math.Round((boost * arenaEvent.OvertimeHealingModifier));
+                        }
+                    }
                     boost = targetCreature.UpdateVitalDelta(targetCreature.Health, tryBoost);
                     srcVital = "health";
 
                     if (boost >= 0)
-                    {
-                        var targetP = targetCreature as Player;
-
-                        if (targetP != null && ArenaLocation.IsArenaLandblock(targetP.Location.Landblock))
-                        {
-                            var arenaEvent = ArenaManager.GetArenaEventByLandblock(targetP.Location.Landblock);
-                            if (arenaEvent != null && arenaEvent.IsOvertime)
-                            {
-                                boost = (int)Math.Round((boost * arenaEvent.OvertimeHealingModifier));
-                            }
-                        }
+                    {                        
                         targetCreature.DamageHistory.OnHeal((uint)boost);
                     }
                     else
