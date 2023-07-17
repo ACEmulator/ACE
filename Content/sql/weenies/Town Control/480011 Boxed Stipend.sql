@@ -16,7 +16,7 @@ VALUES (480011,   1,        128) /* ItemType - Misc */
      , (480011,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (480011, 114,          1) /* Attuned - Attuned */
 	 , (480011,  94,         16) /* TargetType - Creature */
-     , (480011, 269,         2) /* UseCreateQuantity */;;
+     , (480011, 269,         2) /* UseCreateQuantity */;
 
 INSERT INTO `weenie_properties_bool` (`object_Id`, `type`, `value`)
 VALUES (480011,   1, False) /* Stuck */
