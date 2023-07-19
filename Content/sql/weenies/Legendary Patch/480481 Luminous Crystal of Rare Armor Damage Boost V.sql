@@ -18,7 +18,7 @@ VALUES (480481,   1,       2048) /* ItemType - Gem */
      , (480481, 109,          0) /* ItemDifficulty */
      , (480481, 114,          1) /* Attuned - Attuned */
      , (480481, 151,         11) /* HookType - Floor, Wall, Yard */
-	 , (480481, 267,     172800) /* Lifespan */
+	 , (480481, 267,     86400) /* Lifespan */
 	 , (480481, 280,          3) /* SharedCooldown */;
 
 INSERT INTO `weenie_properties_bool` (`object_Id`, `type`, `value`)
