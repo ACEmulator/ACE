@@ -275,6 +275,22 @@ namespace ACE.Server.Entity
                             }
                         }
 
+
+                        //For overtime testing, push the start date back so overtime starts 30 seconds into the match
+                        //if (this.ActiveEvent.StartDateTime < DateTime.Now.AddSeconds(-30) && this.ActiveEvent.StartDateTime > DateTime.Now.AddMinutes(-15))
+                        //{
+                        //    switch (this.ActiveEvent.EventType)
+                        //    {
+                        //        case "1v1":
+                        //        case "2v2":
+                        //            this.ActiveEvent.StartDateTime = this.ActiveEvent.StartDateTime.Value.AddMinutes(-15);
+                        //            break;
+                        //        case "ffa":
+                        //            this.ActiveEvent.StartDateTime = this.ActiveEvent.StartDateTime.Value.AddMinutes(-25);
+                        //            break;
+                        //    }
+                        //}
+
                         //Check if the time limit has been exceeded
                         if (!this.ActiveEvent.IsOvertime && this.ActiveEvent.TimeRemaining <= TimeSpan.Zero)
                         {
@@ -319,7 +335,7 @@ namespace ACE.Server.Entity
                             }
 
                             lastEventTimerMessage = DateTime.Now;
-                        }
+                        }                        
 
                         break;
 
@@ -1218,8 +1234,6 @@ namespace ACE.Server.Entity
             var boneLair = new ArenaLocation();
             boneLair.LandblockId = 0x0145;
             boneLair.SupportedEventTypes = new List<string>();
-            boneLair.SupportedEventTypes.Add("1v1");
-            boneLair.SupportedEventTypes.Add("2v2");
             boneLair.SupportedEventTypes.Add("ffa");
             boneLair.ArenaName = "Bone Lair";
             locList.Add(boneLair.LandblockId, boneLair);
@@ -1228,8 +1242,6 @@ namespace ACE.Server.Entity
             var galleyTower = new ArenaLocation();
             galleyTower.LandblockId = 0x01AD;
             galleyTower.SupportedEventTypes = new List<string>();
-            galleyTower.SupportedEventTypes.Add("1v1");
-            galleyTower.SupportedEventTypes.Add("2v2");
             galleyTower.SupportedEventTypes.Add("ffa");
             galleyTower.ArenaName = "Galley Tower";
             locList.Add(galleyTower.LandblockId, galleyTower);
@@ -1238,8 +1250,6 @@ namespace ACE.Server.Entity
             var ypk = new ArenaLocation();
             ypk.LandblockId = 0x02E3;
             ypk.SupportedEventTypes = new List<string>();
-            ypk.SupportedEventTypes.Add("1v1");
-            ypk.SupportedEventTypes.Add("2v2");
             ypk.SupportedEventTypes.Add("ffa");
             ypk.ArenaName = "Yaraq PK Arena";
             locList.Add(ypk.LandblockId, ypk);
@@ -1248,11 +1258,27 @@ namespace ACE.Server.Entity
             var pyramid = new ArenaLocation();
             pyramid.LandblockId = 0xECEC;
             pyramid.SupportedEventTypes = new List<string>();
-            pyramid.SupportedEventTypes.Add("1v1");
-            pyramid.SupportedEventTypes.Add("2v2");
             pyramid.SupportedEventTypes.Add("ffa");
             pyramid.ArenaName = "Pyramid";
             locList.Add(pyramid.LandblockId, pyramid);
+
+            //Mad Cow Arena
+            var cow = new ArenaLocation();
+            cow.LandblockId = 0x00AF;
+            cow.SupportedEventTypes = new List<string>();
+            cow.SupportedEventTypes.Add("1v1");
+            cow.SupportedEventTypes.Add("2v2");
+            cow.ArenaName = "Mad Cow";
+            locList.Add(cow.LandblockId, cow);
+
+            //Fowl Basement
+            var fowl = new ArenaLocation();
+            fowl.LandblockId = 0x596A;
+            fowl.SupportedEventTypes = new List<string>();
+            fowl.SupportedEventTypes.Add("1v1");
+            fowl.SupportedEventTypes.Add("2v2");
+            fowl.ArenaName = "Fowl Basement";
+            locList.Add(fowl.LandblockId, fowl);
 
             return locList;
         }
@@ -1271,7 +1297,9 @@ namespace ACE.Server.Entity
                         0x0145, //Bone Lair
                         0x01AD, //Dungeon Galley Tower
                         0x02E3, //Yaraq PK Arena
-                        0xECEC //Pyramid -Admin Island
+                        0xECEC, //Pyramid -Admin Island
+                        0x00AF, //Mad Cow Arena
+                        0x596A //Fowl Basement
                     };
                 }
 
@@ -1430,7 +1458,35 @@ namespace ACE.Server.Entity
                             //0x01450121[29.054979 -57.933998 0.005000] 0.999882 0.000000 0.000000 0.015373
                             new Position(0x01450114, 5.084766f, -76.363258f, 0.005000f, 0.000000f, 0.000000f, -0.394789f, 0.918772f),
                             //0x01450114[5.084766 -76.363258 0.005000] 0.918772 0.000000 0.000000 -0.394789
-                        }); //Bone Lair                  
+                        }); //Bone Lair
+
+                    _arenaLocationStartingPositions.Add(
+                    0x00AF,
+                    new List<Position>()
+                    {
+                            new Position(0x00AF015D, 201.930344f, -47.542015f, 0.110000f, 0.000000f, 0.000000f, 0.000000f, 1.000000f),
+                            //0x00AF015D [201.930344 -47.542015 0.110000] 1.000000 0.000000 0.000000 0.000000
+                            new Position(0x00AF015B, 201.882141f, -32.338894f, 0.110000f, 0.000000f, 0.000000f, 0.999997f, -0.002561f),
+                            //0x00AF015B [201.882141 -32.338894 0.110000] -0.002561 0.000000 0.000000 0.999997
+                            new Position(0x00AF015D, 198.203186f, -47.391590f, 0.110000f, 0.000000f, 0.000000f, 0.010101f, 0.999949f),
+                            //0x00AF015D [198.203186 -47.391590 0.110000] 0.999949 0.000000 0.000000 0.010101
+                            new Position(0x00AF015B, 198.134445f, -32.373367f, 0.110000f, 0.000000f, 0.000000f, -0.999939f, -0.011021f),
+                            //0x00AF015B [198.134445 -32.373367 0.110000] -0.011021 0.000000 0.000000 -0.999939   
+                    }); //Mad Cow Arena
+
+                    _arenaLocationStartingPositions.Add(
+                    0x596A,
+                    new List<Position>()
+                    {
+                            new Position(0x596A010C, 35.238209f, -18.218103f, 0.005000f, 0.000000f, 0.000000f, -0.707107f, -0.707107f),
+                            //0x596A010C [35.238209 -18.218103 0.005000] -0.707107 0.000000 0.000000 -0.707107
+                            new Position(0x596A0102, 5.035136f, -18.326546f, 0.005000f, 0.000000f, 0.000000f, -0.695197f, 0.718819f),
+                            //0x596A0102 [5.035136 -18.326546 0.005000] 0.718819 0.000000 0.000000 -0.695197
+                            new Position(0x596A010A, 34.787258f, -21.811909f, 0.005000f, 0.000000f, 0.000000f, 0.713734f, 0.700416f),
+                            //0x596A010A [34.787258 -21.811909 0.005000] 0.700416 0.000000 0.000000 0.713734
+                            new Position(0x596A0102, 5.146578f, -21.661127f, 0.005000f, 0.000000f, 0.000000f, -0.695197f, 0.718819f),
+                            //0x596A0102 [5.146578 -21.661127 0.005000] 0.718819 0.000000 0.000000 -0.695197
+                    }); //
                 }
 
                 return _arenaLocationStartingPositions;
