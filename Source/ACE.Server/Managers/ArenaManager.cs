@@ -626,9 +626,7 @@ namespace ACE.Server.Managers
             arenaEvent.Observers.Add(player.Character.Id);
 
             //Change player properties to be frozen for 10 seconds, then invisible and gagged, then ported into the arena.
-            EnterArenaObserverMode(player, arenaEvent);
-
-            player.IsArenaObserver = true;
+            EnterArenaObserverMode(player, arenaEvent);            
         }
 
         public static void EnterArenaObserverMode(Player player, ArenaEvent arenaEvent)
@@ -665,12 +663,12 @@ namespace ACE.Server.Managers
                 if (startingPositions != null)
                 {
                     //Teleport to a random starting position
-                    player.Teleport(startingPositions[new Random().Next(startingPositions.Count)]);
+                    player.Teleport(startingPositions[new Random().Next(startingPositions.Count)]);                    
                 }
             });
-            actionChain.AddDelaySeconds(2);
             actionChain.AddAction(player, () =>
             {
+                player.IsArenaObserver = true;
                 player.RecallsDisabled = true;
                 player.HandleActionChangeCombatMode(CombatMode.NonCombat);
                 player.EnqueueBroadcastPhysicsState();
