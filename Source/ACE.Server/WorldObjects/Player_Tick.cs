@@ -130,6 +130,14 @@ namespace ACE.Server.WorldObjects
 
             TownControlTick();
 
+            if(IsArenaObserver)
+            {
+                if(!ArenaLocation.IsArenaLandblock(Location?.Landblock ?? 0))
+                {
+                    ArenaManager.ExitArenaObserverMode(this);
+                }
+            }
+
             LogLandcells();
 
             PhysicsObj.ObjMaint.DestroyObjects();
