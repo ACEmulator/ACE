@@ -361,7 +361,24 @@ namespace ACE.Server.Entity
                             }
 
                             this.ActiveEvent = null;
-                        }                        
+                        }
+                        else //if there's no players in the arena go ahead and end the event early
+                        {
+                            bool hasPlayers = false;
+                            foreach (var arenaPlayer in this.ActiveEvent.Players)
+                            {
+                                var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
+                                if (player != null && player.Location.Landblock == this.LandblockId)
+                                {
+                                    hasPlayers = true;
+                                }
+                            }
+
+                            if(!hasPlayers)
+                            {
+                                this.ActiveEvent = null;
+                            }
+                        }
                         break;
 
                     default:
