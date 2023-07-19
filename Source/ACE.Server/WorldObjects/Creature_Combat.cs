@@ -188,13 +188,18 @@ namespace ACE.Server.WorldObjects
             var wand = GetEquippedWand();
             if (wand == null) return 0.0f;
 
+            var player = this as Player;
+            if(player != null && player.IsArenaObserver)
+            {
+                return 0.0f;
+            }
+
             var animLength = SwitchCombatStyles();
             animLength += MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.Magic);
 
             var motion = new Motion(MotionStance.Magic);
             ExecuteMotionPersist(motion);
 
-            var player = this as Player;
             if (player != null)
             {
                 player.HandleActionTradeSwitchToCombatMode(player.Session);

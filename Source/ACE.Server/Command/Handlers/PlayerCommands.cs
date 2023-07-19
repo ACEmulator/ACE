@@ -593,6 +593,42 @@ namespace ACE.Server.Command.Handlers
                     CommandHandlerHelper.WriteOutputInfo(session, "Forfeit feature not yet supported, check back later");
                     break;
 
+                case "observe":
+                case "watch":
+                    string eventIdParam = "";
+
+                    if(parameters.Length != 2)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Invalid parameters. The {actionType} command requires an EventID parameter to specify which event to join as an observer. Use the \"/arena info\" command to list all active arena events, including their EventID values.\nUsage: To watch an arena event as an observer /arena watch EventID");
+                        return;
+                    }
+
+                    //Parse EventID param to int and verify it corresponds to an active event
+                    int eventID = 0;
+                    eventIdParam = parameters[1];
+                    try
+                    {
+                        eventID = int.Parse(eventIdParam);
+                    }
+                    catch(Exception)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Invalid parameters. Invalid EventID value {eventIdParam}\nThe {actionType} command requires an EventID parameter to specify which event to join as an observer. Use the \"/arena info\" command to list all active arena events, including their EventID values.\nUsage: To watch an arena event as an observer /arena watch EventID");
+                        return;
+                    }
+
+                    var arenaEvent = ArenaManager.GetActiveEvents().FirstOrDefault(x => x.Id == eventID);
+                    if(arenaEvent != null)
+                    {
+                        ArenaManager.ObserveEvent(session.Player, eventID);
+                    }
+                    else
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Invalid parameters. EventID {eventIdParam} does not correspond to an active arena event\nThe {actionType} command requires an EventID parameter to specify which event to join as an observer. Use the \"/arena info\" command to list all active arena events, including their EventID values.\nUsage: To watch an arena event as an observer /arena watch EventID");
+                        return;
+                    }
+
+                    break;                        
+
                 case "info":
 
                     var queuedPlayers = ArenaManager.GetQueuedPlayers();
@@ -613,7 +649,7 @@ namespace ACE.Server.Command.Handlers
                     string onesEventInfo = eventsOnes.Count() == 0 ? "No active events" : "";
                     foreach (var ev in eventsOnes)
                     {
-                        onesEventInfo += $"\n    EventID: {ev.Id}\n" +
+                        onesEventInfo += $"\n    EventID: {(ev.Id < 1 ? "Pending" : ev.Id.ToString())}\n" +
                                          $"    Arena: {ArenaManager.GetArenaNameByLandblock(ev.Location)}\n" +
                                          $"    Players:\n    {ev.PlayersDisplay}\n" +
                                          $"    Time Remaining: {ev.TimeRemainingDisplay}\n";
@@ -622,7 +658,7 @@ namespace ACE.Server.Command.Handlers
                     string twosEventInfo = eventsTwos.Count() == 0 ? "No active events" : "";
                     foreach (var ev in eventsTwos)
                     {
-                        twosEventInfo += $"\n    EventID: {ev.Id}\n" +
+                        twosEventInfo += $"\n    EventID: {(ev.Id < 1 ? "Pending" : ev.Id.ToString())}\n" +
                                          $"    Arena: {ArenaManager.GetArenaNameByLandblock(ev.Location)}\n" +
                                          $"    Players:\n    {ev.PlayersDisplay}\n" +
                                          $"    Time Remaining: {ev.TimeRemainingDisplay}\n";
@@ -631,7 +667,7 @@ namespace ACE.Server.Command.Handlers
                     string ffaEventInfo = eventsFFA.Count() == 0 ? "No active events" : "";
                     foreach (var ev in eventsFFA)
                     {
-                        ffaEventInfo += $"\n    EventID: {ev.Id}\n" +
+                        ffaEventInfo += $"\n    EventID: {(ev.Id < 1 ? "Pending" : ev.Id.ToString())}\n" +
                                          $"    Arena: {ArenaManager.GetArenaNameByLandblock(ev.Location)}\n" +
                                          $"    Players:\n    {ev.PlayersDisplay}\n" +
                                          $"    Time Remaining: {ev.TimeRemainingDisplay}\n";
@@ -712,7 +748,7 @@ namespace ACE.Server.Command.Handlers
                     break;
 
                 default:
-                    CommandHandlerHelper.WriteOutputInfo(session, $"Arena Commands...\n  To join a 1v1 arena match: /arena join\n  To join a specific type of arena match: /arena join eventType\n  (replace eventType with the string code for the type of match you want to join; 1v1, 2v2 or FFA)\n  To leave an arena queue or cancel a match that isn't started: /arena cancel\n  To get info about players in an arena queue and active arena matches: /arena info\n  To get your current character's stats: /arena stats\n  To get a named character's stats: /arena stats characterName\n  (replace characterName with the target character's name\n  To get rank leaderboard by event type: /arena rank eventType\n  (replace eventType with the string code for the type of match you want ranking for; 1v1, 2v2 or FFA)\n");
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Arena Commands...\n\n  To join a 1v1 arena match: /arena join\n\n  To join a specific type of arena match: /arena join eventType\n  (replace eventType with the string code for the type of match you want to join; 1v1, 2v2 or FFA)\n\n  To leave an arena queue or stop observing a match: /arena cancel\n\n  To get info about players in an arena queue and active arena matches: /arena info\n\n  To get your current character's stats: /arena stats\n\n  To get a named character's stats: /arena stats characterName\n  (replace characterName with the target character's name)\n\n  To get rank leaderboard by event type: /arena rank eventType\n  (replace eventType with the string code for the type of match you want ranking for; 1v1, 2v2 or FFA)\n\n  To watch a match as a silent observer: /arena watch EventID\n  (use /arena info to get the EventID of an active arena match and use that value in the command)\n\n    To get this help file: /arena help\n");
                     return;
             }
         }

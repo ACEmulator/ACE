@@ -349,7 +349,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionDie()
         {
-            if (IsDead || Teleporting)
+            if (IsDead || Teleporting || IsArenaObserver)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
                 return;

@@ -13,6 +13,7 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 using ACE.Server.Entity.TownControl;
 using ACE.Database;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.Entity
 {
@@ -219,6 +220,9 @@ namespace ACE.Server.Entity
             //don't allow any dmg except while the event is in a started status and between non-eliminated players            
             if (playerDefender != null && ArenaLocation.IsArenaLandblock(playerDefender.Location.Landblock))
             {
+                if (playerAttacker != null && playerAttacker.IsArenaObserver)
+                    return 0.0f;
+
                 var arenaEvent = ArenaManager.GetArenaEventByLandblock(playerDefender.Location.Landblock);
                 if (arenaEvent == null || arenaEvent.Status != 4)
                 {
@@ -700,7 +704,7 @@ namespace ACE.Server.Entity
                         attackerArenaPlayer.TotalDmgDealt += (uint)Math.Round(Damage);
                         defenderArenaPlayer.TotalDmgReceived += (uint)Math.Round(Damage);
                     }
-                }
+                }                
             }
 
             return Damage;

@@ -681,6 +681,11 @@ namespace ACE.Server.WorldObjects
             HandlePreTeleportVisibility(newPosition);
 
             UpdatePlayerPosition(new Position(newPosition), true);
+
+            if(IsArenaObserver && !ArenaLocation.IsArenaLandblock(newPosition.Landblock))
+            {
+                ArenaManager.ExitArenaObserverMode(this);
+            }
         }
 
         public void DoPreTeleportHide()

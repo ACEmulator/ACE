@@ -238,6 +238,16 @@ namespace ACE.Server.Managers
                     session.Player.Location = new Position(0xA9B40019, 84, 7.1f, 94, 0, 0, -0.0784591f, 0.996917f);  // ultimate fallback
             }
 
+            //Handle logging into arena
+            if(ArenaLocation.IsArenaLandblock(session.Player.Location?.Landblock ?? 0))
+            {
+                session.Player.Location = new Position(session.Player.Sanctuary);
+            }
+
+            if (session.Player.IsArenaObserver)
+                ArenaManager.ExitArenaObserverMode(session.Player);
+            
+
             var olthoiPlayerReturnedToLifestone = session.Player.IsOlthoiPlayer && character.TotalLogins >= 1 && session.Player.LoginAtLifestone;
             if (olthoiPlayerReturnedToLifestone)
                 session.Player.Location = new Position(session.Player.Sanctuary);

@@ -35,6 +35,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (IsArenaObserver)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot open a trade while you are observing an arena match!", ChatMessageType.Magic));
+                return;
+            }
+
             var tradePartner = PlayerManager.GetOnlinePlayer(tradePartnerGuid);
             if (tradePartner == null) return;
 

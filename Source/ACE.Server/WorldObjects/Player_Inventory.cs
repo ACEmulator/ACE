@@ -1339,7 +1339,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionDropItem(uint itemGuid)
         {
-            if (IsBusy || Teleporting || suicideInProgress)
+            if (IsBusy || Teleporting || suicideInProgress || IsArenaObserver)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
@@ -2948,6 +2948,13 @@ namespace ACE.Server.WorldObjects
 
         private void GiveObjectToPlayer(Player target, WorldObject item, Container itemFoundInContainer, Container itemRootOwner, bool itemWasEquipped, int amount)
         {
+            if (IsArenaObserver)
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You cannot give items to players while you are an observer of an arena match!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                return;
+            }
+
             if (item.IsAttunedOrContainsAttuned)
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.AttunedItem));

@@ -455,6 +455,9 @@ namespace ACE.Server.WorldObjects
                 {
                     return 0.0f;
                 }
+
+                if (sourcePlayer != null && sourcePlayer.IsArenaObserver)
+                    return 0.0f;
             }
 
             var critDamageBonus = 0.0f;

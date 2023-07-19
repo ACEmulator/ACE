@@ -192,6 +192,9 @@ namespace ACE.Entity.Enum.Properties
         SkillTemplesTimerReset           = 9009,
         [ServerOnly]
         FreeMasteryResetRenewed          = 9010,
+
+        [ServerOnly]
+        IsArenaObserver                  = 9011,
     }
 
     public static class PropertyBoolExtensions

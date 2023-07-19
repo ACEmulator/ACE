@@ -1117,7 +1117,7 @@ namespace ACE.Server.WorldObjects
                 {
                     return 5;
                 }
-            } 
+            }
         }
 
         public int LumAugVitality
@@ -1403,7 +1403,7 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInt.ImbueSuccesses) ?? 0;
             set { if (value == 0) RemoveProperty(PropertyInt.ImbueSuccesses); else SetProperty(PropertyInt.ImbueSuccesses, value); }
-        }        
+        }
 
         public string CurrentRareEnchantmentIds
         {
@@ -1459,18 +1459,18 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.ArenaSameClanDailyRewardCount); else SetProperty(PropertyFloat.ArenaSameClanDailyRewardCount, value.Value); }
         }
 
-        public Dictionary<uint,uint> ArenaRewardsByOpponent
+        public Dictionary<uint, uint> ArenaRewardsByOpponent
         {
             get
             {
                 var retVal = new Dictionary<uint, uint>();
                 var records = GetProperty(PropertyString.ArenaRewardsByOpponent)?.Split(" ");
-                if(records != null)
+                if (records != null)
                 {
-                    foreach(var rec in records)
+                    foreach (var rec in records)
                     {
                         var vals = rec.Split(",");
-                        if(vals != null && vals.Length == 2)
+                        if (vals != null && vals.Length == 2)
                         {
                             uint? charId = null;
                             uint? rewardCount = null;
@@ -1501,7 +1501,7 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     string serializedList = "";
-                    foreach(var item in value)
+                    foreach (var item in value)
                     {
                         serializedList += $"{item.Key},{item.Value} ";
                     }
@@ -1511,5 +1511,10 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        public bool IsArenaObserver
+        {
+            get => GetProperty(PropertyBool.IsArenaObserver) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IsArenaObserver); else SetProperty(PropertyBool.IsArenaObserver, value); }
+        }
     }
 }

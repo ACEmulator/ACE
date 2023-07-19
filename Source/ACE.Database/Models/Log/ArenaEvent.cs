@@ -220,5 +220,16 @@ namespace ACE.Database.Models.Log
                 return (1 - OvertimeHealingModifier).ToString("P0");
             }
         }
+
+        [NotMapped]
+        public List<uint> Observers
+        {
+            get; set;
+        }
+
+        public bool IsObserver(uint characterId)
+        {
+            return Observers?.Contains(characterId) ?? false;
+        }
     }
 }

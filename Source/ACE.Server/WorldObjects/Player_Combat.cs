@@ -13,6 +13,7 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using System.Numerics;
 
 namespace ACE.Server.WorldObjects
 {
@@ -748,6 +749,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionChangeCombatMode(CombatMode newCombatMode, bool forceHandCombat = false, Action callback = null)
         {
             //log.Info($"{Name}.HandleActionChangeCombatMode({newCombatMode})");
+
+            if(IsArenaObserver)
+            {
+                newCombatMode = CombatMode.NonCombat;
+            }
 
             // Make sure the player doesn't have an invalid weapon setup (e.g. sword + wand)
             if (!CheckWeaponCollision(null, null, newCombatMode))

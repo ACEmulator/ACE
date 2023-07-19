@@ -25,6 +25,9 @@ using ACE.Database.Models.Log;
 using ACE.Server.Network.GameAction.Actions;
 using ACE.Server.Entity.Chess;
 using System.Runtime.CompilerServices;
+using System.Net.NetworkInformation;
+using ACE.Server.Entity.Actions;
+using Microsoft.Extensions.Logging;
 
 namespace ACE.Server.Managers
 {
@@ -73,6 +76,18 @@ namespace ACE.Server.Managers
             {
                 arena.Tick();
             }
+
+            //Arena Observers who are somehow still flagged as an observer without being an active event's observers list
+            //var players = PlayerManager.GetAllOnline();
+            //foreach (var player in players)
+            //{
+            //    if (player?.IsArenaObserver ?? false)
+            //    {
+            //        var arenaLoc = arenaLocations.Values.FirstOrDefault(x => x.ActiveEvent.Observers.Contains(player.Character.Id));
+            //        if(arenaLoc == null)
+            //            ExitArenaObserverMode(player);
+            //    }
+            //}
 
             LastTickDateTime = DateTime.Now;
         }
@@ -459,7 +474,7 @@ namespace ACE.Server.Managers
 
             if(arenaPlayer != null)
             {
-                player.EnqueueBroadcast(new GameMessageSystemChat("Your arena match is already started and cannot be cancelled.  To forfeit, you can leave the arena or log off.", ChatMessageType.Broadcast));
+                player?.EnqueueBroadcast(new GameMessageSystemChat("Your arena match is already started and cannot be cancelled.  To forfeit, you can leave the arena or log off.", ChatMessageType.Broadcast));
                 return;
             }
 
@@ -467,6 +482,17 @@ namespace ACE.Server.Managers
             {
                 queuedPlayers.Remove(characterId);
                 player?.EnqueueBroadcast(new GameMessageSystemChat("You have cancelled and been removed from the arena queue.", ChatMessageType.Broadcast));
+            }
+
+            //Arena Observers need to be able to cancel out of observer mode
+            if(player?.IsArenaObserver ?? false)
+            {
+                ExitArenaObserverMode(player);
+                var arenaLoc = arenaLocations.Values.FirstOrDefault(x => x.HasActiveEvent && (x.ActiveEvent.Observers?.Contains(player.Character.Id) ?? false));
+                if(arenaLoc != null)
+                {
+                    arenaLoc.ActiveEvent.Observers.Remove(player.Character.Id);
+                }
             }
         }
 
@@ -549,6 +575,144 @@ namespace ACE.Server.Managers
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been removed from the arena queue because an admin had to reset the queue for your event type.  Sorry for the inconvenience.", ChatMessageType.System));
                 }
             }
+        }
+
+        public static void ObserveEvent(Player player, int eventID)
+        {
+            //Verify the player is online and not PK tagged
+            var onlinePlayer = PlayerManager.GetOnlinePlayer(player.Character.Id);
+            if (onlinePlayer != null)
+            {
+                if (player.PKTimerActive)
+                {
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been prevented from observing an arena event because you are currently PK tagged.  Please wait until you are not PK tagged to join an event.", ChatMessageType.System));
+                    return;
+                }
+            }
+            else
+            {
+                return;
+            }
+
+            //Verify the player is not in an active event
+            if (ArenaManager.GetArenaPlayerByCharacterId(player.Character.Id) != null)
+            {
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot watch an arena match when you are already a player in an active arena match.", ChatMessageType.System));
+                return;
+            }
+
+            //Verify the player is not already observing another arena event
+            if (player.IsArenaObserver)
+            {
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You are already observing an arena event.  Type /arena cancel to leave the event.", ChatMessageType.System));
+                return;
+            }
+
+            //Verify the event is not at its max capacity of observers
+
+
+            //Verify the event for the given EventID is valid and active
+            var arenaEvent = ArenaManager.GetActiveEvents()?.FirstOrDefault(x => x.Id == eventID);
+            if(arenaEvent == null)
+            {
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"There is no active arena match with EventID = {eventID}.", ChatMessageType.System));
+                return;
+            }
+
+            //Add the player to the event's Observers list
+            if (arenaEvent.Observers == null)
+                arenaEvent.Observers = new List<uint>();
+
+            arenaEvent.Observers.Add(player.Character.Id);
+
+            //Change player properties to be frozen for 10 seconds, then invisible and gagged, then ported into the arena.
+            EnterArenaObserverMode(player, arenaEvent);
+
+            player.IsArenaObserver = true;
+        }
+
+        public static void EnterArenaObserverMode(Player player, ArenaEvent arenaEvent)
+        {
+            if (player == null || arenaEvent == null)
+                return;
+
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You are about to enter Arena Observer mode. You will be frozen in place for a bit before you are teleported to the arena.", ChatMessageType.System));
+           
+            var actionChain = new ActionChain();
+
+            actionChain.AddAction(player, () =>
+            {
+                player.IsFrozen = true;
+                player.EnqueueBroadcastPhysicsState();
+            });
+            actionChain.AddDelaySeconds(10);
+            actionChain.AddAction(player, () =>
+            {
+                player.HandleCloak();
+            });
+            actionChain.AddDelaySeconds(.5);
+            actionChain.AddAction(player, () =>
+            {
+                player.IsGagged = true;
+                player.IsFrozen = false;
+                player.Attackable = false;
+                player.EnqueueBroadcastPhysicsState();
+            });
+            actionChain.AddDelaySeconds(.5);
+            actionChain.AddAction(player, () =>
+            {
+                var startingPositions = ArenaLocation.GetArenaLocationStartingPositions(arenaEvent.Location);
+                if (startingPositions != null)
+                {
+                    //Teleport to a random starting position
+                    player.Teleport(startingPositions[new Random().Next(startingPositions.Count)]);
+                }
+            });
+            actionChain.AddDelaySeconds(2);
+            actionChain.AddAction(player, () =>
+            {
+                player.RecallsDisabled = true;
+                player.HandleActionChangeCombatMode(CombatMode.NonCombat);
+                player.EnqueueBroadcastPhysicsState();
+            });
+            actionChain.EnqueueChain();
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have entered Arena Observer mode. You can watch an arena match, but are not visible, cannot talk, and cannot interact with the world.\nTo exit use the command /arena cancel", ChatMessageType.System));                        
+        }
+
+        public static void ExitArenaObserverMode(Player player)
+        {
+            if (player == null)
+                return;
+
+            var actionChain = new ActionChain();
+
+            actionChain.AddAction(player, () =>
+            {
+                player.IsFrozen = true;
+                player.EnqueueBroadcastPhysicsState();
+            });
+            actionChain.AddDelaySeconds(3);
+            actionChain.AddAction(player, () =>
+            {
+                player.Teleport(player.Sanctuary);
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You've exited observer mode for an arena match and are being teleported to your lifestone.", ChatMessageType.System));                
+            });
+            actionChain.AddDelaySeconds(0.5);
+            actionChain.AddAction(player, () =>
+            {
+                player.RecallsDisabled = false;
+                player.IsFrozen = false;
+                player.Attackable = true;                
+                if (player.GagDuration <= 0)
+                {
+                    player.IsGagged = false;
+                }
+                player.DeCloak();
+            });
+            
+            actionChain.EnqueueChain();            
+
+            player.IsArenaObserver = false;
         }
     }
 }
