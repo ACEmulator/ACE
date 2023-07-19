@@ -682,7 +682,8 @@ namespace ACE.Server.WorldObjects
 
             UpdatePlayerPosition(new Position(newPosition), true);
 
-            if(IsArenaObserver && !ArenaLocation.IsArenaLandblock(newPosition.Landblock))
+            //If you're an arena observer, or pending becoming an observer, and you're teleporting to somewhere that's not an arena landblock, exit observer mode
+            if((IsArenaObserver || IsPendingArenaObserver) && !ArenaLocation.IsArenaLandblock(newPosition.Landblock))
             {
                 ArenaManager.ExitArenaObserverMode(this);
             }

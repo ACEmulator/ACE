@@ -1516,5 +1516,11 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyBool.IsArenaObserver) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.IsArenaObserver); else SetProperty(PropertyBool.IsArenaObserver, value); }
         }
+
+        public bool IsPendingArenaObserver
+        {
+            get => GetProperty(PropertyBool.IsPendingArenaObserver) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IsPendingArenaObserver); else SetProperty(PropertyBool.IsPendingArenaObserver, value); }
+        }
     }
 }

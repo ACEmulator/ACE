@@ -1212,6 +1212,12 @@ namespace ACE.Server.Entity
                     if (player.IsAdmin)
                         continue;
 
+                    if (player.IsPendingArenaObserver || player.IsArenaObserver)
+                    {
+                        ArenaManager.ExitArenaObserverMode(player);
+                        continue;
+                    }
+
                     player.Teleport(player.Sanctuary);
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've been teleported to your lifestone because you were inside an arena location without being an active participant in an arena event", ChatMessageType.System));
                 }

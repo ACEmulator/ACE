@@ -181,6 +181,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (IsArenaObserver)
+            {
+                SendUseDoneEvent(WeenieError.AbuseReportedSelf);
+                return;
+            }
+
             StopExistingMoveToChains();
 
             var item = FindObject(itemGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems | SearchLocations.Landblock);

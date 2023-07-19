@@ -244,8 +244,10 @@ namespace ACE.Server.Managers
                 session.Player.Location = new Position(session.Player.Sanctuary);
             }
 
-            if (session.Player.IsArenaObserver)
-                ArenaManager.ExitArenaObserverMode(session.Player);
+            if (session.Player.IsArenaObserver ||
+                session.Player.IsPendingArenaObserver ||
+                (!session.Player.IsPlussed && session.Player.Cloaked.HasValue && session.Player.Cloaked.Value))
+                ArenaManager.ExitArenaObserverMode(session.Player);            
             
 
             var olthoiPlayerReturnedToLifestone = session.Player.IsOlthoiPlayer && character.TotalLogins >= 1 && session.Player.LoginAtLifestone;

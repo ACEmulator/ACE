@@ -640,6 +640,7 @@ namespace ACE.Server.Managers
 
             actionChain.AddAction(player, () =>
             {
+                player.IsPendingArenaObserver = true;
                 player.IsFrozen = true;
                 player.EnqueueBroadcastPhysicsState();
             });
@@ -668,6 +669,7 @@ namespace ACE.Server.Managers
             });
             actionChain.AddAction(player, () =>
             {
+                player.IsPendingArenaObserver = false;
                 player.IsArenaObserver = true;
                 player.RecallsDisabled = true;
                 player.HandleActionChangeCombatMode(CombatMode.NonCombat);
@@ -708,8 +710,9 @@ namespace ACE.Server.Managers
                 player.DeCloak();
             });
             
-            actionChain.EnqueueChain();            
+            actionChain.EnqueueChain();
 
+            player.IsPendingArenaObserver = false;
             player.IsArenaObserver = false;
         }
     }
