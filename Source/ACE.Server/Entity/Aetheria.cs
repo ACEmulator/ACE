@@ -64,6 +64,10 @@ namespace ACE.Server.Entity
         public const uint AetheriaRed = 42636;
         public const uint AetheriaYellow = 42637;
 
+        public const uint AetheriaBlueMax = 1910505;
+        public const uint AetheriaRedMax = 1910506;
+        public const uint AetheriaYellowMax = 1910507;
+
         public const uint AetheriaManaStone = 42645;
 
         public static Dictionary<AetheriaColor, Dictionary<Sigil, uint>> Icons;
@@ -98,7 +102,8 @@ namespace ACE.Server.Entity
 
         public static bool IsAetheria(uint wcid)
         {
-            return wcid == AetheriaBlue || wcid == AetheriaYellow || wcid == AetheriaRed;
+            return wcid == AetheriaBlue || wcid == AetheriaYellow || wcid == AetheriaRed ||
+            wcid == AetheriaBlueMax || wcid == AetheriaYellowMax || wcid == AetheriaRedMax;
         }
 
         public static AetheriaColor? GetColor(uint wcid)
@@ -106,11 +111,14 @@ namespace ACE.Server.Entity
             switch (wcid)
             {
                 case AetheriaBlue:
+                case AetheriaBlueMax:
                     return AetheriaColor.Blue;
                 case AetheriaYellow:
+                case AetheriaYellowMax:
                     return AetheriaColor.Yellow;
                 case AetheriaRed:
-                    return AetheriaColor.Red;
+                case AetheriaRedMax:
+                    return AetheriaColor.Red;    
                 default:
                     return null;
             }
@@ -192,9 +200,7 @@ namespace ACE.Server.Entity
             if (player.FindObject(target.Guid.Full, Player.SearchLocations.MyInventory) == null)
                 return WeenieError.YouDoNotPassCraftingRequirements;
 
-            if (source.WeenieClassId != AetheriaManaStone ||
-                target.WeenieClassId != AetheriaBlue && target.WeenieClassId != AetheriaYellow && target.WeenieClassId != AetheriaRed)
-
+            if (source.WeenieClassId != AetheriaManaStone || !IsAetheria(target.WeenieClassId))
                 return WeenieError.YouDoNotPassCraftingRequirements;
 
             if (target.Name != "Coalesced Aetheria")
