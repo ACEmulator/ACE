@@ -185,7 +185,7 @@ namespace ACE.Server.WorldObjects
             {
                 SendUseDoneEvent(WeenieError.AbuseReportedSelf);
                 return;
-            }
+            }            
 
             StopExistingMoveToChains();
 
@@ -200,13 +200,24 @@ namespace ACE.Server.WorldObjects
 
             if (item != null)
             {
+                //Arena gems
+                if (item.WeenieClassId == 480701 || item.WeenieClassId == 480702)
+                {
+                    if (ArenaManager.GetArenaPlayerByCharacterId(this.Character.Id) == null)
+                    {
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You must be a player in an active arena match to use the {item.Name}."));
+                        SendUseDoneEvent(WeenieError.CorruptQuality);
+                        return;
+                    }
+                }
+
                 if (item.CurrentLandblock != null && !item.Visibility && item.Guid != LastOpenedContainerId)
                 {
                     if (IsBusy)
                     {
                         SendUseDoneEvent(WeenieError.YoureTooBusy);
                         return;
-                    }
+                    }                    
 
                     CreateMoveToChain(item, (success) => TryUseItem(item, success));
                 }
