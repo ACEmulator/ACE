@@ -274,7 +274,7 @@ namespace ACE.Server
             Console.WriteLine();
             Console.Write("Do you want to ACEmulator to attempt to initialize your SQL databases? This will erase any existing ACEmulator specific databases that may already exist on the server (Y/n): ");
             variable = Console.ReadLine();
-            var sqlConnectInfo = $"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password};DefaultCommandTimeout=120";
+            var sqlConnectInfo = $"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password};{config.MySql.World.ConnectionOptions}";
             var sqlConnect = new MySqlConnector.MySqlConnection(sqlConnectInfo);
             if (IsRunningInContainer) variable = Convert.ToBoolean(Environment.GetEnvironmentVariable("ACE_SQL_INITIALIZE_DATABASES")) ? "y" : "n";
             if (!variable.Equals("n", StringComparison.OrdinalIgnoreCase) && !variable.Equals("no", StringComparison.OrdinalIgnoreCase))
@@ -286,7 +286,7 @@ namespace ACE.Server
                 {
                     try
                     {
-                        using (var sqlTestConnection = new MySqlConnector.MySqlConnection($"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password};DefaultCommandTimeout=120"))
+                        using (var sqlTestConnection = new MySqlConnector.MySqlConnection($"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password};{config.MySql.World.ConnectionOptions}"))
                         {
                             Console.Write(".");
                             sqlTestConnection.Open();
@@ -328,16 +328,16 @@ namespace ACE.Server
                     switch (file.Name)
                     {
                         case "AuthenticationBase.sql":
-                            sqlConnectInfo = $"server={config.MySql.Authentication.Host};port={config.MySql.Authentication.Port};user={config.MySql.Authentication.Username};password={config.MySql.Authentication.Password};DefaultCommandTimeout=120";
+                            sqlConnectInfo = $"server={config.MySql.Authentication.Host};port={config.MySql.Authentication.Port};user={config.MySql.Authentication.Username};password={config.MySql.Authentication.Password};{config.MySql.Shard.ConnectionOptions}";
                             sqlDBFile = sqlDBFile.Replace("ace_auth", config.MySql.Authentication.Database);
                             break;
                         case "ShardBase.sql":
-                            sqlConnectInfo = $"server={config.MySql.Shard.Host};port={config.MySql.Shard.Port};user={config.MySql.Shard.Username};password={config.MySql.Shard.Password};DefaultCommandTimeout=120";
+                            sqlConnectInfo = $"server={config.MySql.Shard.Host};port={config.MySql.Shard.Port};user={config.MySql.Shard.Username};password={config.MySql.Shard.Password};{config.MySql.Shard.ConnectionOptions}";
                             sqlDBFile = sqlDBFile.Replace("ace_shard", config.MySql.Shard.Database);
                             break;
                         case "WorldBase.sql":
                         default:
-                            //sqlConnectInfo = $"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password};DefaultCommandTimeout=120";
+                            //sqlConnectInfo = $"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password};{config.MySql.Shard.ConnectionOptions}";
                             sqlDBFile = sqlDBFile.Replace("ace_world", config.MySql.World.Database);
                             break;
                     }
