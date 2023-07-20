@@ -597,7 +597,13 @@ namespace ACE.Server.Command.Handlers
                 case "watch":
                     string eventIdParam = "";
 
-                    if(parameters.Length != 2)
+                    if(!PropertyManager.GetBool("arena_allow_observers").Item)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"The arena observer feature is currently disabled");
+                        return;
+                    }
+
+                    if (parameters.Length != 2)
                     {
                         CommandHandlerHelper.WriteOutputInfo(session, $"Invalid parameters. The {actionType} command requires an EventID parameter to specify which event to join as an observer. Use the \"/arena info\" command to list all active arena events, including their EventID values.\nUsage: To watch an arena event as an observer /arena watch EventID");
                         return;

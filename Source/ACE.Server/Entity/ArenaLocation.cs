@@ -52,30 +52,54 @@ namespace ACE.Server.Entity
         /// </summary>
         public void Tick()
         {
-            //log.Info($"ArenaLocation.Tick() called for {this.ArenaName}");
-            bool isArenasDisabled = PropertyManager.GetBool("disable_arenas").Item;
-            if (isArenasDisabled)
-            {
-                if(this.HasActiveEvent)
-                {
-                    this.ActiveEvent.Status = -1;
-                    EndEventCancel();
-                    ClearPlayersFromArena();
-                    this.ActiveEvent = null;
-                }
-
-                return;
-            }
+            //log.Info($"ArenaLocation.Tick() called for {this.ArenaName}");            
 
             //If there's no active event, only run Tick every 5 seconds
             if (!HasActiveEvent && lastTickDateTime > DateTime.Now.AddSeconds(-5))
             {
                 return;
-            }
+            }            
 
             if (HasActiveEvent)
             {
                 //log.Info($"ArenaLocation.Tick() - {this.ArenaName} is Active");
+
+                //If arenas are disabled
+                if (PropertyManager.GetBool("disable_arenas").Item)
+                {
+                    this.ActiveEvent.Status = -1;
+                    EndEventCancel();
+                    ClearPlayersFromArena();
+                    this.ActiveEvent = null;                    
+                    return;
+                }
+
+                //If arenas observers are disabled
+                if (!PropertyManager.GetBool("arena_allow_observers").Item)
+                {
+                    if ((this.ActiveEvent.Observers?.Count ?? 0) > 0)
+                    {
+                        List<uint> activeObservers = new List<uint>();
+                        foreach (var observer in this.ActiveEvent.Observers)
+                        {
+                            var observerPlayer = PlayerManager.GetOnlinePlayer(observer);
+                            if (observerPlayer != null)
+                            {
+                                activeObservers.Add(observerPlayer.Character.Id);
+                            }
+                        }
+
+                        foreach(var observer in activeObservers)
+                        {
+                            this.ActiveEvent.Observers.Remove(observer);
+                            var observerPlayer = PlayerManager.GetOnlinePlayer(observer);
+                            if (observerPlayer != null)
+                            {
+                                ArenaManager.ExitArenaObserverMode(observerPlayer);
+                            }                            
+                        }                        
+                    }
+                }
 
                 //Drive the active arena event through its lifecycle
                 switch (this.ActiveEvent.Status)

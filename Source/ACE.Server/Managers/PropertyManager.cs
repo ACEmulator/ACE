@@ -617,6 +617,7 @@ namespace ACE.Server.Managers
                 ("block_vpn_connections", new Property<bool>(false, "enable this to block user sessions from IPs identified as VPN proxies")),
                 ("disable_arenas", new Property<bool>(false, "set to true to disable arena events")),
                 ("arena_allow_same_ip_match", new Property<bool>(false, "enable this allow two characters connected from the same IP to be matched in an arena event")),
+                ("arena_allow_observers", new Property<bool>(true, "enable this to allow players to watch arena matches as invisible observers")),
                 ("tinker_lotto_enabled", new Property<bool>(false, "enables the tinkering lotto feature")),
                 ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world"))
                 );
