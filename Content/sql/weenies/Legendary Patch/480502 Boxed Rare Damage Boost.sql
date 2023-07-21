@@ -1,14 +1,14 @@
 DELETE FROM `weenie` WHERE `class_Id` = 480502;
 
 INSERT INTO `weenie` (`class_Id`, `class_Name`, `type`, `last_Modified`)
-VALUES (480502, 'ace480502-boxedburningcoal', 38, '2021-11-01 00:00:00') /* Gem */;
+VALUES (480502, 'ace480502-boxedraredamageboost', 38, '2021-11-01 00:00:00') /* Gem */;
 
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`)
 VALUES (480502,   1,        128) /* ItemType - Misc */
      , (480502,   5,         50) /* EncumbranceVal */
      , (480502,  16,          8) /* ItemUseable - Contained */
-     , (480502,  19,          10) /* Value */
-     , (480502,  33,          1) /* Bonded - Bonded */
+     , (480502,  19,          20) /* Value */
+	 , (480502,  33,         -1) /* Bonded - Slippery */
      , (480502,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (480502,  94,         16) /* TargetType - Creature */
      , (480502, 114,          1) /* Attuned - Attuned */
