@@ -9,14 +9,16 @@ VALUES (480702,   1,       2048) /* ItemType - Gem */
      , (480702,  16,          8) /* ItemUseable - Contained */
      , (480702,  18,          1) /* UiEffects - Magical */
      , (480702,  19,      	  1) /* Value */
-     , (480702,  33,          1) /* Bonded - Normal */
+	 , (480702,  11,        100) /* MaxStackSize */
+     , (480702,  12,          1) /* StackSize */
+     , (480702,  13,         10) /* StackUnitEncumbrance */
+     , (480702,  15,      1) /* StackUnitValue */
      , (480702,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (480702,  94,         16) /* TargetType - Creature */
      , (480702, 106,        325) /* ItemSpellcraft */
      , (480702, 107,      10000) /* ItemCurMana */
      , (480702, 108,      10000) /* ItemMaxMana */
      , (480702, 109,          0) /* ItemDifficulty */
-     , (480702, 114,          1) /* Attuned - Attuned */
      , (480702, 151,         11) /* HookType - Floor, Wall, Yard */
 	 , (480702, 280,          3) /* SharedCooldown */;
 
