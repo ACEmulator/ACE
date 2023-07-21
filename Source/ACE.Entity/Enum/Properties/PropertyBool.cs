@@ -198,6 +198,12 @@ namespace ACE.Entity.Enum.Properties
 
         [ServerOnly]
         IsPendingArenaObserver           = 9012,
+
+        [ServerOnly]
+        HasArenaRareDmgBuff              = 9013,
+
+        [ServerOnly]
+        HasArenaRareDmgReductionBuff     = 9014,
     }
 
     public static class PropertyBoolExtensions

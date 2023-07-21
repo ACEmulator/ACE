@@ -247,8 +247,10 @@ namespace ACE.Server.Managers
             if (session.Player.IsArenaObserver ||
                 session.Player.IsPendingArenaObserver ||
                 (!session.Player.IsPlussed && session.Player.Cloaked.HasValue && session.Player.Cloaked.Value))
-                ArenaManager.ExitArenaObserverMode(session.Player);            
-            
+                ArenaManager.ExitArenaObserverMode(session.Player);
+
+            if(session.Player.HasArenaRareDmgBuff || session.Player.HasArenaRareDmgReductionBuff)
+                ArenaManager.DispelArenaRares(session.Player);
 
             var olthoiPlayerReturnedToLifestone = session.Player.IsOlthoiPlayer && character.TotalLogins >= 1 && session.Player.LoginAtLifestone;
             if (olthoiPlayerReturnedToLifestone)

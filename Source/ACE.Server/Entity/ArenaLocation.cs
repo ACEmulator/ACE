@@ -8,6 +8,7 @@ using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
+using ACE.Server.WorldObjects.Managers;
 using log4net;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Newtonsoft.Json.Converters;
@@ -255,6 +256,7 @@ namespace ACE.Server.Entity
                                     if (!player.IsPK)
                                     {
                                         arenaPlayer.IsEliminated = true;
+                                        ArenaManager.DispelArenaRares(player);
                                         notEliminatedPlayers.Remove(arenaPlayer);
                                     }
 
@@ -262,6 +264,7 @@ namespace ACE.Server.Entity
                                     if (player.Location.Landblock != this.ActiveEvent.Location)
                                     {
                                         arenaPlayer.IsEliminated = true;
+                                        ArenaManager.DispelArenaRares(player);
                                         notEliminatedPlayers.Remove(arenaPlayer);
                                         if (!player.IsInDeathProcess)
                                         {
@@ -778,6 +781,8 @@ namespace ACE.Server.Entity
 
                         SetPlayerRewardLimitProperties(player, winner);
                     }
+
+                    ArenaManager.DispelArenaRares(player);
                 }
             }
             
@@ -1011,6 +1016,8 @@ namespace ACE.Server.Entity
 
                         SetPlayerRewardLimitProperties(player, loser);
                     }
+
+                    ArenaManager.DispelArenaRares(player);
                 }
             }
 
@@ -1200,6 +1207,8 @@ namespace ACE.Server.Entity
 
                         SetPlayerRewardLimitProperties(player, arenaPlayer);
                     }
+
+                    ArenaManager.DispelArenaRares(player);
                 }
             }
         }
@@ -1218,6 +1227,7 @@ namespace ACE.Server.Entity
                 if (player != null)
                 {
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {this.ActiveEvent.EventTypeDisplay} arena event was cancelled before it started.", ChatMessageType.System));
+                    ArenaManager.DispelArenaRares(player);
                 }
             }
 

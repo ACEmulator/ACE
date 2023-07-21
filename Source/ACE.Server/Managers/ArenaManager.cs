@@ -715,5 +715,39 @@ namespace ACE.Server.Managers
             player.IsPendingArenaObserver = false;
             player.IsArenaObserver = false;
         }
+
+        public static void DispelArenaRares(Player player)
+        {
+            if (player == null)
+                return;
+
+            if (player.HasArenaRareDmgBuff)
+            {
+                if (player.EnchantmentManager.HasSpell(5978))
+                {
+                    var enchantment = player.EnchantmentManager.GetEnchantment(5978);
+                    if (enchantment != null)
+                    {
+                        player.EnchantmentManager.Dispel(enchantment);
+                    }
+                }
+
+                player.HasArenaRareDmgBuff = false;
+            }
+
+            if (player.HasArenaRareDmgReductionBuff)
+            {
+                if (player.EnchantmentManager.HasSpell(5192))
+                {
+                    var enchantment = player.EnchantmentManager.GetEnchantment(5192);
+                    if (enchantment != null)
+                    {
+                        player.EnchantmentManager.Dispel(enchantment);
+                    }
+                }
+
+                player.HasArenaRareDmgReductionBuff = false;
+            }
+        }
     }
 }

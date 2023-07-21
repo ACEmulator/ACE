@@ -1,5 +1,5 @@
 using System;
-
+using System.Linq;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
@@ -203,12 +203,34 @@ namespace ACE.Server.WorldObjects
                 //Arena gems
                 if (item.WeenieClassId == 480701 || item.WeenieClassId == 480702)
                 {
-                    if (ArenaManager.GetArenaPlayerByCharacterId(this.Character.Id) == null)
+                    var arenaPlayer = ArenaManager.GetArenaPlayerByCharacterId(this.Character.Id);
+                    if (arenaPlayer == null)
                     {
                         Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You must be a player in an active arena match to use the {item.Name}."));
                         SendUseDoneEvent(WeenieError.CorruptQuality);
                         return;
                     }
+                    else
+                    {
+                        var arenaEvent = ArenaManager.GetActiveEvents().FirstOrDefault(x => x.Id == arenaPlayer.EventId);
+                        if (arenaEvent == null || (arenaEvent.Status != 4 && arenaEvent.Status != 3))
+                        {
+                            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You must be a player in an active arena match to use the {item.Name}."));
+                            SendUseDoneEvent(WeenieError.CorruptQuality);
+                            return;
+                        }
+                        else if (!IsBusy)
+                        {
+                            if (item.WeenieClassId == 480701)
+                            {
+                                this.HasArenaRareDmgBuff = true;
+                            }
+                            else
+                            {
+                                this.HasArenaRareDmgReductionBuff = true;
+                            }
+                        }
+                    } 
                 }
 
                 if (item.CurrentLandblock != null && !item.Visibility && item.Guid != LastOpenedContainerId)

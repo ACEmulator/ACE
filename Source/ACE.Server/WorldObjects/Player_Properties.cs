@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using ACE.Common;
 using ACE.Entity;
@@ -1521,6 +1522,19 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyBool.IsPendingArenaObserver) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.IsPendingArenaObserver); else SetProperty(PropertyBool.IsPendingArenaObserver, value); }
+        }
+
+        
+        public bool HasArenaRareDmgBuff
+        {
+            get => GetProperty(PropertyBool.HasArenaRareDmgBuff) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.HasArenaRareDmgBuff); else SetProperty(PropertyBool.HasArenaRareDmgBuff, value); }
+        }
+
+        public bool HasArenaRareDmgReductionBuff
+        {
+            get => GetProperty(PropertyBool.HasArenaRareDmgReductionBuff) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.HasArenaRareDmgReductionBuff); else SetProperty(PropertyBool.HasArenaRareDmgReductionBuff, value); }
         }
     }
 }
