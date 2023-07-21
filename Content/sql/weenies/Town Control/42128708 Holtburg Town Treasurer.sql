@@ -224,8 +224,8 @@ VALUES (42128708, 2, 22015,  0, 21, 0.9, False) /* Create Pwyll's Guard (22015) 
 	, (42128708, 4, 480609,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
 	, (42128708, 4, 480610,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
 	, (42128708, 4, 480623,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
-	, (42128708, 4, 480482,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
-	 , (42128708, 4, 480481,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */;
+	, (42128708, 4, 480502,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
+	 , (42128708, 4, 480503,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */;
 	
 /* Lifestoned Changelog:
 {

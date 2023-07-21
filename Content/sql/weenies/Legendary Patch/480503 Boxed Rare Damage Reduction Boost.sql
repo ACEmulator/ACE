@@ -6,17 +6,14 @@ VALUES (480503, 'ace480503-boxedRareDamageReductionBoostpk', 38, '2021-11-01 00:
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`)
 VALUES (480503,   1,        128) /* ItemType - Misc */
      , (480503,   5,         50) /* EncumbranceVal */
-     , (480503,  11,          1) /* MaxStackSize */
-     , (480503,  12,          1) /* StackSize */
-     , (480503,  13,         50) /* StackUnitEncumbrance */
-     , (480503,  15,          100) /* StackUnitValue */
      , (480503,  16,          8) /* ItemUseable - Contained */
-     , (480503,  19,          100) /* Value */
+     , (480503,  19,          10) /* Value */
      , (480503,  33,          1) /* Bonded - Bonded */
      , (480503,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (480503,  94,         16) /* TargetType - Creature */
      , (480503, 114,          1) /* Attuned - Attuned */
-     , (480503, 269,          1) /* UseCreateQuantity */;
+     , (480503, 269,          1) /* UseCreateQuantity */
+	 , (480503, 369,         200) /* UseRequiresLevel */;
 
 INSERT INTO `weenie_properties_bool` (`object_Id`, `type`, `value`)
 VALUES (480503,  69, False) /* IsSellable */;
@@ -35,4 +32,5 @@ VALUES (480503,   1, 0x0200011E) /* Setup */
      , (480503,   8, 0x060072E9) /* Icon */
 	 , (480503,  50,  100668293) /* IconOverlay */
      , (480503,  22, 0x3400002B) /* PhysicsEffectTable */
-     , (480503,  38,      480482) /* UseCreateItem - Blank Augmentation Gem */;
+     , (480503,  38,      52025) /* UseCreateItem - Blank Augmentation Gem */;
+
