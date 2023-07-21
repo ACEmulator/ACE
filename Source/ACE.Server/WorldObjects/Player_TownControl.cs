@@ -81,21 +81,29 @@ namespace ACE.Server.WorldObjects
         public int GetTownOwnershipCount()
         {
             int townsOwned = 0;
-            var alleg = AllegianceManager.GetAllegiance(this);
-            
-            if (alleg != null && alleg.MonarchId.HasValue && TownControlAllegiances.IsAllowedAllegiance((int)alleg.MonarchId.Value))
+
+            try
             {
-                var towns = DatabaseManager.TownControl.GetAllTowns();
-                if(towns != null)
+                var alleg = AllegianceManager.GetAllegiance(this);
+
+                if (alleg != null && alleg.MonarchId.HasValue && TownControlAllegiances.IsAllowedAllegiance((int)alleg.MonarchId.Value))
                 {
-                    foreach(var town in towns)
+                    var towns = DatabaseManager.TownControl.GetAllTowns();
+                    if (towns != null)
                     {
-                        if(town.CurrentOwnerID == alleg.MonarchId.Value)
+                        foreach (var town in towns)
                         {
-                            townsOwned++;
+                            if (town.CurrentOwnerID == alleg.MonarchId.Value)
+                            {
+                                townsOwned++;
+                            }
                         }
                     }
                 }
+            }
+            catch(Exception ex)
+            {
+                log.Error($"Error in GetTownOwnershipCount. Ex: {ex}");
             }
 
             return townsOwned;

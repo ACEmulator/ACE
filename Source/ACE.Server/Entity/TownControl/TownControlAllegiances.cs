@@ -16,20 +16,27 @@ namespace ACE.Server.Entity.TownControl
         {
             get
             {
-                var allegWhitelistString = PropertyManager.GetString("town_control_alleglist").Item ?? string.Empty;
-
-                if (_tcAllegianceList == null || !allegWhitelistString.Equals(_tcAllegianceListString))
+                try
                 {
-                    _tcAllegianceList = new List<int>();
-                    var allegWhitelistArray = allegWhitelistString.Split(",");
+                    var allegWhitelistString = PropertyManager.GetString("town_control_alleglist").Item ?? string.Empty;
 
-                    foreach (var allowedMonarchIdString in allegWhitelistArray)
+                    if (_tcAllegianceList == null || !allegWhitelistString.Equals(_tcAllegianceListString))
                     {
-                        if (Int32.TryParse(allowedMonarchIdString, out int allowedMonarchID))
+                        _tcAllegianceList = new List<int>();
+                        var allegWhitelistArray = allegWhitelistString.Split(",");
+
+                        foreach (var allowedMonarchIdString in allegWhitelistArray)
                         {
-                            _tcAllegianceList.Add(allowedMonarchID);
+                            if (Int32.TryParse(allowedMonarchIdString, out int allowedMonarchID))
+                            {
+                                _tcAllegianceList.Add(allowedMonarchID);
+                            }
                         }
                     }
+                }
+                catch(Exception ex)
+                {
+                    return new List<int>();
                 }
 
                 return _tcAllegianceList;
