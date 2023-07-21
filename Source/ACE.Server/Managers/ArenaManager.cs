@@ -209,6 +209,10 @@ namespace ACE.Server.Managers
                     {
                         isPlayerValidState = false;
                     }
+                    else if (player.IsArenaObserver || player.IsPendingArenaObserver)
+                    {
+                        isPlayerValidState = false;
+                    }
                 }
                 else
                 {
@@ -219,7 +223,7 @@ namespace ACE.Server.Managers
                 {
                     //If player is not in a valid state, message them and remove them from the queue
                     if (player != null)
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been removed from the arena queue because during match making you were found to be either not PK status or you are PK tagged.  Please join the queue again when you're in a valid state.", ChatMessageType.System));
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been removed from the arena queue because during match making you were found to be either watching another arena event, are not PK status or you are PK tagged.  Please join the queue again when you're in a valid state.", ChatMessageType.System));
 
                     queuedPlayers.Remove(arenaPlayer.CharacterId);
                 }
