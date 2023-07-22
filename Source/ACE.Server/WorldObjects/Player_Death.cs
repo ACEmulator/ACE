@@ -247,19 +247,26 @@ namespace ACE.Server.WorldObjects
                 //Handle arena kills
                 uint? victimArenaPlayerId = null;
                 uint? killerArenaPlayerId = null;
-                if (ArenaLocation.IsArenaLandblock(Location.Landblock))
+                try
                 {
-                    var victimArenaPlayer = ArenaManager.GetArenaPlayerByCharacterId(Character.Id);                    
-                    var killerArenaPlayer = ArenaManager.GetArenaPlayerByCharacterId(killerPlayer.Guid.Full);
-
-                    if (victimArenaPlayer != null)
+                    if (ArenaLocation.IsArenaLandblock(Location.Landblock))
                     {
-                        ArenaManager.HandlePlayerDeath((uint)Character.Id, (uint)killerPlayer.Guid.Full);
-                        victimArenaPlayerId = victimArenaPlayer.Id;
+                        var victimArenaPlayer = ArenaManager.GetArenaPlayerByCharacterId(Character.Id);
+                        var killerArenaPlayer = ArenaManager.GetArenaPlayerByCharacterId(killerPlayer.Guid.Full);
 
-                        if (killerArenaPlayer != null)
-                            killerArenaPlayerId = killerArenaPlayer.Id;
+                        if (victimArenaPlayer != null)
+                        {
+                            ArenaManager.HandlePlayerDeath((uint)Character.Id, (uint)killerPlayer.Guid.Full);
+                            victimArenaPlayerId = victimArenaPlayer.Id;
+
+                            if (killerArenaPlayer != null)
+                                killerArenaPlayerId = killerArenaPlayer.Id;
+                        }
                     }
+                }
+                catch(Exception ex)
+                {
+                    log.Error($"Error in Player_Death handling arena logic. Ex: {ex}");
                 }
 
                 try
