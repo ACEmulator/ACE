@@ -185,6 +185,10 @@ namespace ACE.Server.WorldObjects
         {
             if (target.IsDead || target.Teleporting) return;
 
+            //dont allow arena observers to heal anyone
+            if (healer != null && (healer.IsArenaObserver || healer.IsPendingArenaObserver))
+                return;
+
             var remainingMsg = "";
 
             if (!UnlimitedUse)
@@ -293,6 +297,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public uint GetHealAmount(Player healer, Player target, CreatureVital vital, out bool criticalHeal, out uint staminaCost)
         {
+            //dont allow arena observers to heal
+            if (healer != null && (healer.IsArenaObserver || healer.IsPendingArenaObserver))
+            {
+                criticalHeal = false;
+                staminaCost = 0;
+                return 0;
+            }
+
             // factors: healing skill, healing kit bonus, stamina, critical chance
             var healingSkill = healer.GetCreatureSkill(Skill.Healing).Current;
             var healBase = healingSkill * (float)HealkitMod.Value;
