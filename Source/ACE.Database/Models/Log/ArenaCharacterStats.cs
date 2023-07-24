@@ -22,14 +22,9 @@ namespace ACE.Database.Models.Log
 
         public uint GetRankPoints()
         {
-            var winPts = (((float)TotalWins / (TotalMatches == 0 ? 1.0f : (float)TotalMatches)) * 100.0f);
-            var drawPts = (((float)TotalDraws / (TotalMatches == 0 ? 1.0f : (float)TotalMatches)) * 10.0f);
-            var matchPts = (TotalMatches / 100);
-            var dmgPts = ((float)TotalDmgDealt / (TotalMatches == 0 ? 1.0f : (float)TotalMatches) / 1000.0f);
-            var killPts = ((float)TotalKills / 10.0f);
-            var dqPts = ((float)TotalDisqualified / 10.0f);
-            var totalPts = winPts + drawPts + matchPts + dmgPts + killPts - dqPts;
-            return Convert.ToUInt32(Math.Round(totalPts));
+            var winPts = TotalWins * 10;
+            var dqPts = TotalDisqualified * 2;
+            return winPts + TotalDraws - TotalLosses - dqPts;
         }
 
         public uint RankPoints { get; set; }
