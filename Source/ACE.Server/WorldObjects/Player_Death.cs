@@ -226,56 +226,59 @@ namespace ACE.Server.WorldObjects
 
 
             //Handle arena deaths and logging PK kills
-            var killerPlayer = PlayerManager.FindByGuid(topDamager.Guid);
-            if (killerPlayer != null && KillerId.HasValue)
-            {                
-                uint? victimMonarchId = null;
-                uint? killerMonarchId = null;
-                var killerAllegiance = AllegianceManager.GetAllegiance(killerPlayer);
-                var victimAllegiance = AllegianceManager.GetAllegiance(this);
-
-                if (killerAllegiance != null)
+            if (topDamager != null)
+            {
+                var killerPlayer = PlayerManager.FindByGuid(topDamager.Guid);
+                if (killerPlayer != null && KillerId.HasValue)
                 {
-                    killerMonarchId = killerAllegiance.MonarchId;
-                }
+                    uint? victimMonarchId = null;
+                    uint? killerMonarchId = null;
+                    var killerAllegiance = AllegianceManager.GetAllegiance(killerPlayer);
+                    var victimAllegiance = AllegianceManager.GetAllegiance(this);
 
-                if (victimAllegiance != null)
-                {
-                    victimMonarchId = victimAllegiance.MonarchId;
-                }
-
-                //Handle arena kills
-                uint? victimArenaPlayerId = null;
-                uint? killerArenaPlayerId = null;
-                try
-                {
-                    if (ArenaLocation.IsArenaLandblock(Location.Landblock))
+                    if (killerAllegiance != null)
                     {
-                        var victimArenaPlayer = ArenaManager.GetArenaPlayerByCharacterId(Character.Id);
-                        var killerArenaPlayer = ArenaManager.GetArenaPlayerByCharacterId(killerPlayer.Guid.Full);
+                        killerMonarchId = killerAllegiance.MonarchId;
+                    }
 
-                        if (victimArenaPlayer != null)
+                    if (victimAllegiance != null)
+                    {
+                        victimMonarchId = victimAllegiance.MonarchId;
+                    }
+
+                    //Handle arena kills
+                    uint? victimArenaPlayerId = null;
+                    uint? killerArenaPlayerId = null;
+                    try
+                    {
+                        if (ArenaLocation.IsArenaLandblock(Location.Landblock))
                         {
-                            ArenaManager.HandlePlayerDeath((uint)Character.Id, (uint)killerPlayer.Guid.Full);
-                            victimArenaPlayerId = victimArenaPlayer.Id;
+                            var victimArenaPlayer = ArenaManager.GetArenaPlayerByCharacterId(Character.Id);
+                            var killerArenaPlayer = ArenaManager.GetArenaPlayerByCharacterId(killerPlayer.Guid.Full);
 
-                            if (killerArenaPlayer != null)
-                                killerArenaPlayerId = killerArenaPlayer.Id;
+                            if (victimArenaPlayer != null)
+                            {
+                                ArenaManager.HandlePlayerDeath((uint)Character.Id, (uint)killerPlayer.Guid.Full);
+                                victimArenaPlayerId = victimArenaPlayer.Id;
+
+                                if (killerArenaPlayer != null)
+                                    killerArenaPlayerId = killerArenaPlayer.Id;
+                            }
                         }
                     }
-                }
-                catch(Exception ex)
-                {
-                    log.Error($"Error in Player_Death handling arena logic. Ex: {ex}");
-                }
+                    catch (Exception ex)
+                    {
+                        log.Error($"Error in Player_Death handling arena logic. Ex: {ex}");
+                    }
 
-                try
-                {
-                    DatabaseManager.Log.LogPkKill((uint)Character.Id, (uint)killerPlayer.Guid.Full, victimMonarchId, killerMonarchId, victimArenaPlayerId, killerArenaPlayerId);
-                }
-                catch (Exception ex)
-                {
-                    log.Error($"Exception logging PK Kill to DB. Ex: {ex}");
+                    try
+                    {
+                        DatabaseManager.Log.LogPkKill((uint)Character.Id, (uint)killerPlayer.Guid.Full, victimMonarchId, killerMonarchId, victimArenaPlayerId, killerArenaPlayerId);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error($"Exception logging PK Kill to DB. Ex: {ex}");
+                    }
                 }
             }
 
