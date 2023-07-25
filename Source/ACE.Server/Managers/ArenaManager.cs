@@ -154,6 +154,10 @@ namespace ACE.Server.Managers
 
             queuedPlayers.Add(characterId, player);
 
+            var queueCount = queuedPlayers.Values.Count(x => x.EventType.Equals(eventType));
+
+            PlayerManager.BroadcastToAll(new GameMessageSystemChat($"A new player has queued for a{(eventType.ToLower().Equals("ffa") ? "n" : "")} {eventType} arena match. There {(queueCount > 1 ? "are" : "is")} currently {queueCount} player{(queueCount > 1 ? "s" : "")} queued for {eventType}", ChatMessageType.Broadcast));
+
             return true;
         }
 
@@ -192,10 +196,10 @@ namespace ACE.Server.Managers
             //log.Info($"ArenaManager.MatchMake() - excludedPlayers.Count = {excludedPlayers.Count}");
 
             //Trim out any players from the queue that aren't online, aren't pk status, or are pk tagged
-            List<ArenaPlayer> queue = new List<ArenaPlayer>();
-            queue.AddRange(queuedPlayers.Values);
+            List<ArenaPlayer> queueCopy = new List<ArenaPlayer>();
+            queueCopy.AddRange(queuedPlayers.Values);
 
-            foreach (var arenaPlayer in queue)
+            foreach (var arenaPlayer in queueCopy)
             {
                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
                 bool isPlayerValidState = true;
@@ -345,6 +349,14 @@ namespace ACE.Server.Managers
                         excludedPlayers.Add(firstArenaPlayer.CharacterId);
                         return MatchMake(supportedEventTypes, excludedPlayers);
                     }
+                }
+                else
+                {
+                    //log.Info($"ArenaManager.MatchMake() - not enough players, adding {firstArenaPlayer.CharacterName} to exclude list and calling MatchMake again");
+                    //There's not enough players to make a match for the first queued player's event type,
+                    //so mark that player excluded and try to matchmake with the next player in the queue
+                    excludedPlayers.Add(firstArenaPlayer.CharacterId);
+                    return MatchMake(supportedEventTypes, excludedPlayers);
                 }
             }
             else

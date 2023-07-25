@@ -575,6 +575,8 @@ namespace ACE.Server.Entity
             this.ActiveEvent.Status = this.ActiveEvent.Status == -1 ? -1 : 4;
 
             DatabaseManager.Log.SaveArenaEvent(this.ActiveEvent);
+
+            PlayerManager.BroadcastToAll(new GameMessageSystemChat($"Arena Match Started: Event Type = {this.ActiveEvent.EventTypeDisplay}, Players = {this.ActiveEvent.PlayersDisplay}, EventID = {this.ActiveEvent.Id}. To watch the event, type /arena watch {this.ActiveEvent.Id}", ChatMessageType.Broadcast));
         }
 
         public void EndEventWithWinner(Guid winningTeamGuid)
