@@ -23,8 +23,10 @@ namespace ACE.Database.Models.Log
         public uint GetRankPoints()
         {
             var winPts = TotalWins * 10;
-            var dqPts = TotalDisqualified * 2;
-            return winPts + TotalDraws - TotalLosses - dqPts;
+            var dqPts = TotalDisqualified * 10;
+            var lossPts = TotalLosses * 5;
+            var rankPts = winPts + TotalDraws - lossPts - dqPts;
+            return rankPts < 0 ? 0 : rankPts;
         }
 
         public uint RankPoints { get; set; }
