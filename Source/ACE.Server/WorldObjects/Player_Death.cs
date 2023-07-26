@@ -632,9 +632,15 @@ namespace ACE.Server.WorldObjects
             {
                 //Don't drop trophy if low level
                 var shouldDropTrophy = true;
+                var shouldDropTcRewards = true;
                 if (this.Level < 100)
                 {
                     shouldDropTrophy = false;
+                }
+
+                if (this.Level < 150)
+                {
+                    shouldDropTcRewards = false;
                 }
 
                 //Don't drop trophy if killer is in same clan
@@ -646,11 +652,23 @@ namespace ACE.Server.WorldObjects
                     if (victimMonarch == killerMonarch)
                     {
                         shouldDropTrophy = false;
+                        shouldDropTcRewards = false;
+                    }
+
+                    if(!victimMonarch.HasValue || !TownControlAllegiances.IsAllowedAllegiance((int)victimMonarch.Value))
+                    {
+                        shouldDropTcRewards = false;
+                    }
+
+                    if (!killerMonarch.HasValue || !TownControlAllegiances.IsAllowedAllegiance((int)killerMonarch.Value))
+                    {
+                        shouldDropTcRewards = false;
                     }
                 }
                 else
                 {
                     shouldDropTrophy = false;
+                    shouldDropTcRewards = false;
                 }
 
                 //Don't drop trophy if two dropped within last hour
@@ -701,7 +719,7 @@ namespace ACE.Server.WorldObjects
                 }
 
                 //Drop bonus trophy during active town control events
-                if (TownControlLandblocks.IsTownControlLandblock(this.Location.Landblock))
+                if (TownControlLandblocks.IsTownControlLandblock(this.Location.Landblock) && shouldDropTcRewards)
                 {
                     //For Town Control landblocks that always drop a set number of pk trophies within a certain subset of cells
                     var townId = TownControlLandblocks.GetTownIdByLandblockId(this.Location.Landblock);
