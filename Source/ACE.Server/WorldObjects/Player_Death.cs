@@ -536,22 +536,6 @@ namespace ACE.Server.WorldObjects
 
             // if player dies on a No Drop landblock,
             // they don't drop any items
-            Player killer = null;
-            try
-            {
-                if (IsPKDeath(corpse.KillerId))
-                {
-                    var iPlayer = PlayerManager.FindByGuid(new ObjectGuid((uint)corpse.KillerId));
-                    if (iPlayer != null && iPlayer is Player)
-                    {
-                        killer = (Player)iPlayer;
-                    }
-                }
-            }
-            catch(Exception ex)
-            {
-                log.Error($"Exception in CalculateDeathItems while looking up Killer player object. ex: {ex}");
-            }
 
             if (corpse.IsOnNoDropLandblock || IsPKLiteDeath(corpse.KillerId))
                 return new List<WorldObject>();
