@@ -537,9 +537,20 @@ namespace ACE.Server.WorldObjects
             // if player dies on a No Drop landblock,
             // they don't drop any items
             Player killer = null;
-            if (IsPKDeath(corpse.KillerId))
+            try
             {
-                killer = (Player)PlayerManager.FindByGuid(new ObjectGuid((uint)corpse.KillerId));                
+                if (IsPKDeath(corpse.KillerId))
+                {
+                    var iPlayer = PlayerManager.FindByGuid(new ObjectGuid((uint)corpse.KillerId));
+                    if (iPlayer != null && iPlayer is Player)
+                    {
+                        killer = (Player)iPlayer;
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                log.Error($"Exception in CalculateDeathItems while looking up Killer player object. ex: {ex}");
             }
 
             if (corpse.IsOnNoDropLandblock || IsPKLiteDeath(corpse.KillerId))
@@ -644,9 +655,16 @@ namespace ACE.Server.WorldObjects
 
                 //Don't drop trophy if killer is in same clan
                 var _killer = PlayerManager.FindByGuid(new ObjectGuid((uint)corpse.KillerId));
-                var victimMonarch = this.MonarchId != null ? this.MonarchId : this.Guid.Full;
-                var killerMonarch = _killer.MonarchId != null ? _killer.MonarchId : _killer.Guid.Full;
-                if (victimMonarch == killerMonarch)
+                if (_killer != null)
+                {
+                    var victimMonarch = this.MonarchId != null ? this.MonarchId : this.Guid.Full;
+                    var killerMonarch = _killer.MonarchId != null ? _killer.MonarchId : _killer.Guid.Full;
+                    if (victimMonarch == killerMonarch)
+                    {
+                        shouldDropTrophy = false;
+                    }
+                }
+                else
                 {
                     shouldDropTrophy = false;
                 }
