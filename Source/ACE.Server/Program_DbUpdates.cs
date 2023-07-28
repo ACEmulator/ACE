@@ -191,7 +191,7 @@ namespace ACE.Server
                 var contentDI = new DirectoryInfo(path);
                 if (contentDI.Exists)
                 {
-                    Console.Write($"Searching for SQL files within {path} .... ");
+                    Console.Write($"Searching for SQL files within {path} ....\n");
 
                     var sqlConnect = new MySqlConnector.MySqlConnection($"server={ConfigManager.Config.MySql.World.Host};port={ConfigManager.Config.MySql.World.Port};user={ConfigManager.Config.MySql.World.Username};password={ConfigManager.Config.MySql.World.Password};database={ConfigManager.Config.MySql.World.Database};{ConfigManager.Config.MySql.World.ConnectionOptions}");
                     foreach (var file in contentDI.GetFiles("*.sql", content_folders_search_option).OrderBy(f => f.FullName))
