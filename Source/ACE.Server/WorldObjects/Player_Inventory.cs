@@ -852,6 +852,13 @@ namespace ACE.Server.WorldObjects
                     return false;
                 }
 
+                if (itemRootOwner == this && item is PetDevice petDevice && petDevice.Pet is not null)
+                {
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You must unsummon your pet before you can transfer this item!"));
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.None));
+                    return false;
+                }
+
                 if (containerRootOwner != null && !containerRootOwner.IsOpen)
                 {
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.TheContainerIsClosed));
