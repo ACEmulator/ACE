@@ -69,8 +69,10 @@ namespace ACE.Entity.Enum.Properties
         LimboSource                      = 40,
         Snooper                          = 41,
         TeleportedCharacter              = 42,
+        [ServerOnly][Ephemeral]
         Pet                              = 43,
         PetOwner                         = 44,
+        [ServerOnly][Ephemeral]
         PetDevice                        = 45,
 
         [ServerOnly]

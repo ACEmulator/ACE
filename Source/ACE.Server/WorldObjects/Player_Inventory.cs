@@ -1356,6 +1356,13 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (item is PetDevice petDevice && petDevice.Pet is not null)
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You must unsummon your pet before you can drop this item!"));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.None));
+                return;
+            }
+
             if (IsTrading && item.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.TradeItemBeingTraded));
@@ -3188,6 +3195,13 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (item is PetDevice petDevice && petDevice.Pet is not null)
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You must unsummon your pet before you can transfer this item!"));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.AttunedItem));
+                return;
+            }
+
             if (IsTrading && item.IsBeingTradedOrContainsItemBeingTraded(ItemsInTradeWindow))
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.TradeItemBeingTraded));
@@ -3300,6 +3314,13 @@ namespace ACE.Server.WorldObjects
             if (item.Name == "IOU" && item.WeenieType == WeenieType.Book && target.Name == "Town Crier")
             {
                 HandleIOUTurnIn(target, item);
+                return;
+            }
+
+            if (item is PetDevice petDevice && petDevice.Pet is not null)
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You must unsummon your pet before you can transfer this item!"));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full, WeenieError.AttunedItem));
                 return;
             }
 
