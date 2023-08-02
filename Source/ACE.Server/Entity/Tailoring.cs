@@ -619,7 +619,7 @@ namespace ACE.Server.Entity
                     #region MorphGemValue
                     case MorphGemValue:
 
-                        //Value gem - lowers value by 1 - 10 %, can't lower below 20k value, 10% chance to increase value by same?
+                        //Value gem - lowers value by 5 - 20%, can't lower below 20k value, 10% chance to increase value by same
 
                         //Get the current Value of the item
                         var currentItemValue = target.GetProperty(PropertyInt.Value);
@@ -640,27 +640,27 @@ namespace ACE.Server.Entity
                         //Roll for an amount to change the item Value by
                         var valRandom = new Random();
                         bool valueGain = valRandom.Next(0, 99) < 10;                        
-                        var percentChange = valRandom.Next(1, 10) / 100f;
+                        var percentChange = valRandom.Next(5, 20) / 100f;
                         var valueChange = (int)Math.Round(currentItemValue.Value * percentChange * (valueGain ? 1 : -1));                        
                         var newValue = currentItemValue.Value + valueChange;
 
-                        //Don't let new Armor Value exceed minimum of 1k
+                        //Don't let new Armor Value exceed minimum of 20k
                         if (newValue < 20000)
                         {
                             valueChange = 20000 - currentItemValue.Value;
                             newValue = 20000;
                         }
 
-                        //Set the new AL value
+                        //Set the new item value
                         player.UpdateProperty(target, PropertyInt.Value, newValue);
 
                         if (valueChange > 0)
                         {
-                            playerMsg = $"Bad luck cunt.  The Morph Gem fucked you.  Your item's value has increased by {valueChange}";
+                            playerMsg = $"Bad luck cunt. The Morph Gem fucked you. Your item's value has increased by {valueChange}";
                         }
                         else if (valueChange == 0)
                         {
-                            playerMsg = $"The Morph Gem shatters against your item and leaves it unchanged.  Could be worse.";
+                            playerMsg = $"The Morph Gem shatters against your item and leaves it unchanged. Could be worse.";
                         }
                         else
                         {
