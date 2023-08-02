@@ -619,7 +619,7 @@ namespace ACE.Server.Entity
                     #region MorphGemValue
                     case MorphGemValue:
 
-                        //Value gem - lowers value by 5 - 20%, can't lower below 20k value, 10% chance to increase value by same
+                        //Value gem - lowers value by 5 - 15%, can't lower below 20k value, 10% chance to increase value by same
 
                         //Get the current Value of the item
                         var currentItemValue = target.GetProperty(PropertyInt.Value);
@@ -640,7 +640,7 @@ namespace ACE.Server.Entity
                         //Roll for an amount to change the item Value by
                         var valRandom = new Random();
                         bool valueGain = valRandom.Next(0, 99) < 10;                        
-                        var percentChange = valRandom.Next(5, 20) / 100f;
+                        var percentChange = valRandom.Next(5, 16) / 100f;
                         var valueChange = (int)Math.Round(currentItemValue.Value * percentChange * (valueGain ? 1 : -1));                        
                         var newValue = currentItemValue.Value + valueChange;
 
