@@ -144,6 +144,13 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (wo is PetDevice petDevice && petDevice.Pet is not null)
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You must unsummon your pet before you can trade this item!"));
+                Session.Network.EnqueueSend(new GameEventTradeFailure(Session, itemGuid, WeenieError.AttunedItem));
+                return;
+            }
+
             if (wo.IsUniqueOrContainsUnique && !target.CheckUniques(wo, this))
             {
                 // WeenieError.TooManyUniqueItems / WeenieErrorWithString._CannotCarryAnymore?
