@@ -17,7 +17,7 @@ namespace ACE.DatLoader
 
         public string FilePath { get; }
 
-        public int Iteration { get { return GetIteration(); } }
+        public int Iteration { get { return GetTotalIterations(); } }
 
         private FileStream stream { get; }
 
@@ -150,11 +150,15 @@ namespace ACE.DatLoader
         /// Language: 994
         /// </summary>
         /// <returns>The iteration from the dat file, or 0 if there was an error</returns>
-        private int GetIteration()
+        private int GetTotalIterations()
         {
             var iteration = ReadFromDat<Iteration>(FileTypes.Iteration.FILE_ID);
-            if (iteration.Ints.Count > 0)
-                return iteration.Ints[0];
+            if (iteration.TotalIterations > 0)
+            {
+                if (iteration.Ints.Count > 1)
+                    log.Error($"{FilePath} contains an incomplete dat file!");
+                return iteration.TotalIterations;
+            }
             else
             {
                 log.Error($"Unable to read iteration from {FilePath}");

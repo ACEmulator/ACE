@@ -136,6 +136,10 @@ namespace ACE.Server.WorldObjects
 
             var startPos = new Physics.Common.Position(healer.PhysicsObj.Position);
 
+            var vital = target.GetCreatureVital(BoosterEnum);
+
+            var missingVital = vital.Missing;
+
             var actionChain = new ActionChain();
             //actionChain.AddAction(healer, () => healer.EnqueueBroadcastMotion(motion));
             actionChain.AddAction(healer, () => healer.SendMotionAsCommands(motionCommand, currentStance));
@@ -150,7 +154,7 @@ namespace ACE.Server.WorldObjects
 
                 // only PKs affected by these caps?
                 if (dist < Healing_MaxMove || healer.PlayerKillerStatus == PlayerKillerStatus.NPK)
-                    DoHealing(healer, target);
+                    DoHealing(healer, target, missingVital);
                 else
                     healer.Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted healing!", ChatMessageType.Broadcast));
 
@@ -166,7 +170,7 @@ namespace ACE.Server.WorldObjects
             healer.NextUseTime = DateTime.UtcNow.AddSeconds(animLength);
         }
 
-        public void DoHealing(Player healer, Player target)
+        public void DoHealing(Player healer, Player target, uint missingVital)
         {
             if (target.IsDead || target.Teleporting) return;
 
@@ -191,7 +195,7 @@ namespace ACE.Server.WorldObjects
 
             // skill check
             var difficulty = 0;
-            var skillCheck = DoSkillCheck(healer, target, vital, ref difficulty);
+            var skillCheck = DoSkillCheck(healer, target, missingVital, ref difficulty);
             if (!skillCheck)
             {
                 var failMsg = new GameMessageSystemChat($"You fail to heal {targetName}.{remainingMsg}", ChatMessageType.Broadcast);
@@ -204,12 +208,13 @@ namespace ACE.Server.WorldObjects
             }
 
             // heal up
-            var healAmount = GetHealAmount(healer, target, vital, out var critical, out var staminaCost);
+            var healAmount = GetHealAmount(healer, target, missingVital, out var critical, out var staminaCost);
 
             healer.UpdateVitalDelta(healer.Stamina, (int)-staminaCost);
-            target.UpdateVitalDelta(vital, healAmount);
+            // Amount displayed to player can exceed actual amount healed due to heal boost ratings, but we only want to record the actual amount healed
+            var actualHealAmount = (uint)target.UpdateVitalDelta(vital, healAmount);
             if (vital.Vital == PropertyAttribute2nd.MaxHealth)
-                target.DamageHistory.OnHeal(healAmount);
+                target.DamageHistory.OnHeal(actualHealAmount);
 
             //if (target.Fellowship != null)
             //target.Fellowship.OnVitalUpdate(target);
@@ -232,7 +237,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Determines if healer successfully heals target for attempt
         /// </summary>
-        public bool DoSkillCheck(Player healer, Player target, CreatureVital vital, ref int difficulty)
+        public bool DoSkillCheck(Player healer, Player target, uint missingVital, ref int difficulty)
         {
             // skill check:
             // (healing skill + healing kit boost) * trainedMod
@@ -243,7 +248,7 @@ namespace ACE.Server.WorldObjects
             var combatMod = healer.CombatMode == CombatMode.NonCombat ? 1.0f : 1.1f;
 
             var effectiveSkill = (int)Math.Round((healingSkill.Current + BoostValue) * trainedMod);
-            difficulty = (int)Math.Round((vital.MaxValue - vital.Current) * 2 * combatMod);
+            difficulty = (int)Math.Round(missingVital * 2 * combatMod);
 
             var skillCheck = SkillCheck.GetSkillChance(effectiveSkill, difficulty);
             return skillCheck > ThreadSafeRandom.Next(0.0f, 1.0f);
@@ -252,7 +257,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the healing amount for this attempt
         /// </summary>
-        public uint GetHealAmount(Player healer, Player target, CreatureVital vital, out bool criticalHeal, out uint staminaCost)
+        public uint GetHealAmount(Player healer, Player target, uint missingVital, out bool criticalHeal, out uint staminaCost)
         {
             // factors: healing skill, healing kit bonus, stamina, critical chance
             var healingSkill = healer.GetCreatureSkill(Skill.Healing).Current;
@@ -263,18 +268,11 @@ namespace ACE.Server.WorldObjects
             var healMax = healBase * 0.5f;
             var healAmount = ThreadSafeRandom.Next(healMin, healMax);
 
-            // verify healing boost comes from target instead of healer?
-            // sounds like target in LumAugHealingRating...
-            var ratingMod = target.GetHealingRatingMod();
-
-            healAmount *= ratingMod;
-
             // chance for critical healing
             criticalHeal = ThreadSafeRandom.Next(0.0f, 1.0f) < 0.1f;
             if (criticalHeal) healAmount *= 2;
 
             // cap to missing vital
-            var missingVital = vital.MaxValue - vital.Current;
             if (healAmount > missingVital)
                 healAmount = missingVital;
 
@@ -288,6 +286,13 @@ namespace ACE.Server.WorldObjects
                 staminaCost = healer.Stamina.Current;
                 healAmount = staminaCost * 5;
             }
+
+            // verify healing boost comes from target instead of healer?
+            // sounds like target in LumAugHealingRating...
+            var ratingMod = target.GetHealingRatingMod();
+
+            healAmount *= ratingMod;
+
             return (uint)Math.Round(healAmount);
         }
     }
