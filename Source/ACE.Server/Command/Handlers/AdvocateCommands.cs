@@ -33,15 +33,17 @@ namespace ACE.Server.Command.Handlers
                 case "off":
                     session.Player.UpdateProperty(session.Player, PropertyBool.Attackable, false, true);
                     session.Network.EnqueueSend(new GameMessageSystemChat("Monsters will only attack you if provoked by you first.", ChatMessageType.Broadcast));
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has toggled Attackable off.");
                     break;
                 case "on":
                 default:
                     session.Player.UpdateProperty(session.Player, PropertyBool.Attackable, true, true);
                     session.Network.EnqueueSend(new GameMessageSystemChat("Monsters will attack you normally.", ChatMessageType.Broadcast));
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has toggled attackable on.");
                     break;
             }
         }
-
+/*
         // bestow <name> <level>
         [CommandHandler("bestow", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, 2,
             "Sets a character's Advocate Level.",
@@ -151,7 +153,7 @@ namespace ACE.Server.Command.Handlers
             else
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{charName} was not found in the database.", ChatMessageType.Broadcast));
         }
-
+*/
         // tele [name,] <longitude> <latitude>
         [CommandHandler("tele", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, 1,
             "Teleports you(or a player) to some location.",
@@ -197,6 +199,15 @@ namespace ACE.Server.Command.Handlers
                 $"{ aceParams[1].AsPosition.RotationZ}, {aceParams[1].AsPosition.RotationW}]", ChatMessageType.Broadcast);
 
             aceParams[0].AsPlayer.Teleport(aceParams[1].AsPosition);
+
+            if(parameters?.Length == 1)
+            {
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used /tele and teleported to {parameters[0]}.");
+            }
+            else
+            {
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used /tele and has teleported {parameters[0]} to {parameters[1]}.");
+            }
         }
     }
 }

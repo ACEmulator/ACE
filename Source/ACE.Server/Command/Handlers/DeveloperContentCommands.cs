@@ -65,7 +65,7 @@ namespace ACE.Server.Command.Handlers.Processors
             return FileType.Undefined;
         }
 
-        [CommandHandler("import-json", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Imports json data from the Content folder", "<type> <wcid>\n<type> - landblock, quest, recipe, spell, weenie (default if not specified)\n<wcid> - filename prefix to search for. can be 'all' to import all files for this content type")]
+                [CommandHandler("import-json", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Imports json data from the Content folder", "<type> <wcid>\n<type> - landblock, quest, recipe, spell, weenie (default if not specified)\n<wcid> - filename prefix to search for. can be 'all' to import all files for this content type")]
         public static void HandleImportJson(Session session, params string[] parameters)
         {
             var param = parameters[0];
@@ -252,7 +252,7 @@ namespace ACE.Server.Command.Handlers.Processors
                         ImportSQLRecipe(session, param);
                         break;
 
-                    case FileType.Spell:
+                   case FileType.Spell:
                         ImportSQLSpell(session, param);
                         break;
 
@@ -267,7 +267,7 @@ namespace ACE.Server.Command.Handlers.Processors
             }
         }
 
-        public static void ImportSQLWeenie(Session session, string wcid, bool withFolders = false)
+                public static void ImportSQLWeenie(Session session, string wcid, bool withFolders = false)
         {
             DirectoryInfo di = VerifyContentFolder(session);
             if (!di.Exists) return;
@@ -939,7 +939,7 @@ namespace ACE.Server.Command.Handlers.Processors
             sql2json_quest(session, quest, sql_folder, sql_file);
         }
 
-        private static void ImportSQLSpell(Session session, string sql_folder, string sql_file)
+       private static void ImportSQLSpell(Session session, string sql_folder, string sql_file)
         {
             if (!uint.TryParse(Regex.Match(sql_file, @"\d+").Value, out var spellId))
             {
@@ -1265,6 +1265,7 @@ namespace ACE.Server.Command.Handlers.Processors
             wo.Location.PositionZ += 0.05f;
 
             session.Network.EnqueueSend(new GameMessageSystemChat($"Creating new landblock instance {(isLinkChild ? "child object " : "")}@ {loc.ToLOCString()}\n{wo.WeenieClassId} - {wo.Name} ({nextStaticGuid:X8})", ChatMessageType.Broadcast));
+            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created new landblock instance {(isLinkChild ? "child object " : "")}@ landblock {landblock:X4}\n{wo.WeenieClassId} - {wo.Name} ({nextStaticGuid:X8}).");
 
             if (!wo.EnterWorld())
             {
@@ -1319,23 +1320,23 @@ namespace ACE.Server.Command.Handlers.Processors
             {
                 var fileWriter = new StreamWriter(sqlFilename);
 
-                if (LandblockInstanceWriter == null)
-                {
-                    LandblockInstanceWriter = new LandblockInstanceWriter();
-                    LandblockInstanceWriter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
-                }
-
-                LandblockInstanceWriter.CreateSQLDELETEStatement(instances, fileWriter);
-
-                fileWriter.WriteLine();
-
-                LandblockInstanceWriter.CreateSQLINSERTStatement(instances, fileWriter);
-
-                fileWriter.Close();
-
-                // import into db
-                ImportSQL(sqlFilename);
+            if (LandblockInstanceWriter == null)
+            {
+                LandblockInstanceWriter = new LandblockInstanceWriter();
+                LandblockInstanceWriter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
             }
+
+            LandblockInstanceWriter.CreateSQLDELETEStatement(instances, fileWriter);
+
+            fileWriter.WriteLine();
+
+            LandblockInstanceWriter.CreateSQLINSERTStatement(instances, fileWriter);
+
+            fileWriter.Close();
+
+            // import into db
+            ImportSQL(sqlFilename);
+                    }
             else
             {
                 // handle special case: deleting the last instance from landblock
@@ -1491,6 +1492,7 @@ namespace ACE.Server.Command.Handlers.Processors
             SyncInstances(session, landblock, instances);
 
             session.Network.EnqueueSend(new GameMessageSystemChat($"Removed {(instance.IsLinkChild ? "child " : "")}{wo.WeenieClassId} - {wo.Name} (0x{guid:X8}) from landblock instances", ChatMessageType.Broadcast));
+            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has removed {(instance.IsLinkChild ? "child " : "")}{wo.WeenieClassId} - {wo.Name} (0x{guid:X8}) from landblock {landblock:X4}.");
         }
 
         public static int GetNumChilds(Session session, LandblockInstanceLink link, List<LandblockInstance> instances)
@@ -1530,6 +1532,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 wo.DeleteObject();
 
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Removed child {wo.WeenieClassId} - {wo.Name} (0x{wo.Guid}) from landblock instances", ChatMessageType.Broadcast));
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has removed child {wo.WeenieClassId} - {wo.Name} (0x{wo.Guid}) from landblock instances.");
             }
             else
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find child object for 0x{link.ChildGuid:X8}", ChatMessageType.Broadcast));
@@ -1537,8 +1540,8 @@ namespace ACE.Server.Command.Handlers.Processors
             foreach (var subLink in child.LandblockInstanceLink)
                 RemoveChild(session, subLink, instances);
         }
-
-        public static EncounterSQLWriter LandblockEncounterWriter;
+        
+       public static EncounterSQLWriter LandblockEncounterWriter;
 
         [CommandHandler("addenc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Spawns a new wcid or classname in the current outdoor cell as an encounter", "<wcid or classname>")]
         public static void HandleAddEncounter(Session session, params string[] parameters)
@@ -1590,6 +1593,7 @@ namespace ACE.Server.Command.Handlers.Processors
             if (wo == null) return;
 
             session.Network.EnqueueSend(new GameMessageSystemChat($"Creating new encounter @ landblock {pos.Landblock:X4}, cellX={cellX}, cellY={cellY}\n{wo.WeenieClassId} - {wo.Name}", ChatMessageType.Broadcast));
+            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created new encounter @ landblock {pos.Landblock:X4}, cellX={cellX}, cellY={cellY}\n{wo.WeenieClassId} - {wo.Name}.");
 
             // add a new encounter (verifications?)
             var encounter = new Encounter();
@@ -1756,6 +1760,7 @@ namespace ACE.Server.Command.Handlers.Processors
             }
 
             session.Network.EnqueueSend(new GameMessageSystemChat($"Removing encounter @ landblock {obj.Location.Landblock:X4}, cellX={cellX}, cellY={cellY}\n{obj.WeenieClassId} - {obj.Name}", ChatMessageType.Broadcast));
+            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has removed encounter @ landblock {obj.Location.Landblock:X4}, cellX={cellX}, cellY={cellY}\n{obj.WeenieClassId} - {obj.Name}.");
 
             encounters.Remove(encounter);
 
@@ -1887,8 +1892,8 @@ namespace ACE.Server.Command.Handlers.Processors
             {
                 json_folder = $"{di.FullName}{sep}json{sep}weenies{sep}";
             }
-            
-            di = new DirectoryInfo(json_folder);
+
+             di = new DirectoryInfo(json_folder);
 
             if (!di.Exists)
                 di.Create();
@@ -2420,12 +2425,14 @@ namespace ACE.Server.Command.Handlers.Processors
             {
                 CommandHandlerHelper.WriteOutputInfo(session, "Clearing landblock instance cache");
                 DatabaseManager.World.ClearCachedLandblockInstances();
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has cleared the landblock instance cache.");
             }
 
             if (mode.HasFlag(CacheType.Recipe))
             {
                 CommandHandlerHelper.WriteOutputInfo(session, "Clearing recipe cache");
                 DatabaseManager.World.ClearCookbookCache();
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has cleared the recipe cache.");
             }
 
             if (mode.HasFlag(CacheType.Spell))
@@ -2433,18 +2440,21 @@ namespace ACE.Server.Command.Handlers.Processors
                 CommandHandlerHelper.WriteOutputInfo(session, "Clearing spell cache");
                 DatabaseManager.World.ClearSpellCache();
                 WorldObject.ClearSpellCache();
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has cleared the spell cache.");
             }
 
             if (mode.HasFlag(CacheType.Weenie))
             {
                 CommandHandlerHelper.WriteOutputInfo(session, "Clearing weenie cache");
                 DatabaseManager.World.ClearWeenieCache();
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has cleared the weenie cache.");
             }
-
+            
             if (mode.HasFlag(CacheType.WieldedTreasure))
             {
                 CommandHandlerHelper.WriteOutputInfo(session, "Clearing wielded treasure cache");
                 DatabaseManager.World.ClearWieldedTreasureCache();
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has cleared the wielded treasure cache.");
             }
         }
 
@@ -2811,7 +2821,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 var angle = Math.Atan2(-dir.Value.X, dir.Value.Y);
                 newRotation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)angle);
             }
-
+            
             newRotation = Quaternion.Normalize(newRotation);
 
             // get landblock for static guid
@@ -3002,7 +3012,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
             CommandHandlerHelper.WriteOutputInfo(session, $"Wrote {path}");
         }
-
+        
         [CommandHandler("vloc2loc", AccessLevel.Developer, CommandHandlerFlag.None, 1, "Output a set of LOCs for a given landblock found in the VLOCS dataset", "<LandblockID>\nExample: @vloc2loc 0x0007\n         @vloc2loc 0xCE95")]
         public static void HandleVLOCtoLOC(Session session, params string[] parameters)
         {

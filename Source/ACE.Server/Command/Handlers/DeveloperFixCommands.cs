@@ -149,7 +149,7 @@ namespace ACE.Server.Command.Handlers
                         player.SetProperty(PropertyBool.FreeAttributeResetRenewed, true);
                     }
                     player.SaveBiotaToDatabase();
-                }
+            }
             }
 
             if (!fix && foundIssues)
@@ -479,7 +479,7 @@ namespace ACE.Server.Command.Handlers
                         used += specializedCost - trainedCost;
 
                         specCreditsSpent += specializedCost;
-                    }
+                            }
                 }
 
                 var targetCredits = totalCredits - used;
@@ -539,7 +539,7 @@ namespace ACE.Server.Command.Handlers
                         player.SetProperty(PropertyInt.TotalSkillCredits, totalCredits);
                         player.SaveBiotaToDatabase();
                     }
-                }
+               }
             }
 
             if (!fix && foundIssues)
@@ -1367,7 +1367,7 @@ namespace ACE.Server.Command.Handlers
             return Math.Min(armorLevel, maxArmorLevel);
         }
 
-        [CommandHandler("verify-clothing-wield-level", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Verifies and optionally fixes any t7/t8 clothing that is missing a wield level requirement")]
+        [CommandHandler("verify-clothing-wield-level", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, "Verifies and optionally fixes any t7/t8 clothing that is missing a wield level requirement")]
         public static void HandleVerifyClothingWieldLevel(Session session, params string[] parameters)
         {
             var fix = parameters.Length > 0 && parameters[0].Equals("fix");
@@ -1590,7 +1590,7 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("verify-shield-rating", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Verifies and optionally fixes any lootgen shields with incorrectly assigned CD/CDR")]
+        [CommandHandler("verify-shield-rating", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, "Verifies and optionally fixes any lootgen shields with incorrectly assigned CD/CDR")]
         public static void HandleRemoveShieldRatings(Session session, params string[] parameters)
         {
             var fix = parameters.Length > 0 && parameters[0].Equals("fix");
@@ -2499,6 +2499,6 @@ namespace ACE.Server.Command.Handlers
                     Console.WriteLine($"Found {foundRareCoins:N0} Rare Coins. {deletedRareCoins:N0} deleted, {newRaresFromCoins:N0} replaced.");
                 }
             }
-        }
+        }        
     }
 }

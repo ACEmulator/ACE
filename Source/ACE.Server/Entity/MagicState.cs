@@ -1,8 +1,13 @@
 using System;
 
+using ACE.Common.Extensions;  // Added by Linae
 using ACE.Entity.Enum;
+using ACE.Server.Network.GameEvent.Events;  // Added by Linae
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
+using log4net;  // Added by Linae
+
+// This file has been edited by Linae of DnF
 
 namespace ACE.Server.Entity
 {
@@ -115,6 +120,12 @@ namespace ACE.Server.Entity
         /// </summary>
         public bool AlwaysTurn;
 
+        /// <summary>
+        /// If a player is frozen or jailed they can not cast a spell.
+        /// Added by Linae of DnF
+        public bool? YouAreFrozen;
+        public bool? YouAreJailed;
+
         public MagicState(Player player)
         {
             Player = player;
@@ -125,6 +136,13 @@ namespace ACE.Server.Entity
         /// </summary>
         public void OnCastStart()
         {
+
+            if (Player.YouAreFrozen == true || Player.YouAreJailed == true)  // Added by Linae
+            {
+                Player.SendSpellcastFrozenError();
+                return;
+            }
+
             Player.IsBusy = true;
             IsCasting = true;
             CastMotionDone = false;

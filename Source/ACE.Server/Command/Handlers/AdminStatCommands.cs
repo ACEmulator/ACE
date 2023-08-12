@@ -11,6 +11,7 @@ using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.Managers;
+using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Entity;
 using ACE.Server.Physics.Managers;
 using ACE.Server.WorldObjects;
@@ -24,7 +25,7 @@ namespace ACE.Server.Command.Handlers
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         // allstats
-        [CommandHandler("allstats", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of all server statistics and usage")]
+        [CommandHandler("allstats", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Displays a summary of all server statistics and usage")]
         public static void HandleAllStats(Session session, params string[] parameters)
         {
             HandleServerStatus(session, parameters);
@@ -39,7 +40,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // serverstatus
-        [CommandHandler("serverstatus", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of server statistics and usage")]
+        [CommandHandler("serverstatus", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Displays a summary of server statistics and usage")]
         public static void HandleServerStatus(Session session, params string[] parameters)
         {
             // This is formatted very similarly to GDL.
@@ -129,7 +130,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // serverstatus
-        [CommandHandler("serverperformance", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of server performance statistics")]
+        [CommandHandler("serverperformance", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Displays a summary of server performance statistics")]
         public static void HandleServerPerformance(Session session, params string[] parameters)
         {
             if (parameters != null && (parameters.Length == 1 || parameters.Length == 2))
