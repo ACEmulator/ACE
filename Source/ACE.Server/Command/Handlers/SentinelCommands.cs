@@ -26,7 +26,7 @@ namespace ACE.Server.Command.Handlers
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         // cloak < on / off / player / creature >
-        [CommandHandler("cloak", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
+        [CommandHandler("cloak", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 1,
             "Sets your cloaking state.",
             "< on / off / player / creature >\n" +
             "This command sets your current cloaking state\n" +
@@ -57,6 +57,7 @@ namespace ACE.Server.Command.Handlers
                     session.Player.SetProperty(PropertyInt.CloakStatus, (int)CloakStatus.Off);
 
                     CommandHandlerHelper.WriteOutputInfo(session, $"You are no longer cloaked, can no longer pass through doors and will appear as an admin.", ChatMessageType.Broadcast);
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has disabled cloaking.");
                     break;
                 case "on":
                     if (session.Player.CloakStatus == CloakStatus.On)
@@ -67,9 +68,10 @@ namespace ACE.Server.Command.Handlers
                     session.Player.SetProperty(PropertyInt.CloakStatus, (int)CloakStatus.On);
 
                     CommandHandlerHelper.WriteOutputInfo(session, $"You are now cloaked.\nYou are now ethereal and can pass through doors.", ChatMessageType.Broadcast);
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has enabled full cloaking.");
                     break;
                 case "player":
-                    if (session.AccessLevel > AccessLevel.Envoy)
+                    if (session.AccessLevel >= AccessLevel.Envoy)
                     {
                         if (session.Player.CloakStatus == CloakStatus.Player)
                             return;
@@ -78,12 +80,13 @@ namespace ACE.Server.Command.Handlers
 
                         session.Player.DeCloak();
                         CommandHandlerHelper.WriteOutputInfo(session, $"You will now appear as a player.", ChatMessageType.Broadcast);
+                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has cloaked as a player.");
                     }
                     else
                         CommandHandlerHelper.WriteOutputInfo(session, $"You do not have permission to do that state", ChatMessageType.Broadcast);
                     break;
                 case "creature":
-                    if (session.AccessLevel > AccessLevel.Envoy)
+                    if (session.AccessLevel >= AccessLevel.Developer)
                     {
                         if (session.Player.CloakStatus == CloakStatus.Creature)
                             return;
@@ -93,6 +96,7 @@ namespace ACE.Server.Command.Handlers
 
                         session.Player.DeCloak();
                         CommandHandlerHelper.WriteOutputInfo(session, $"You will now appear as a creature.\nUse @pk free to be allowed to attack all living things.", ChatMessageType.Broadcast);
+                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has cloaked as a creature.");
                     }
                     else
                         CommandHandlerHelper.WriteOutputInfo(session, $"You do not have permission to do that state", ChatMessageType.Broadcast);
@@ -123,17 +127,19 @@ namespace ACE.Server.Command.Handlers
                 case "off":
                     session.Player.Invincible = false;
                     session.Network.EnqueueSend(new GameMessageSystemChat("You are once again mortal.", ChatMessageType.Broadcast));
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has toggled NeverSayDie off.");
                     break;
                 case "on":
                 default:
                     session.Player.Invincible = true;
                     session.Network.EnqueueSend(new GameMessageSystemChat("You are now immortal.", ChatMessageType.Broadcast));
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has toggled NeverSayDie on.");
                     break;
             }
         }
 
         // portal_bypass
-        [CommandHandler("portal_bypass", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
+        [CommandHandler("portal_bypass", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, 0,
             "Toggles the ability to bypass portal restrictions.",
             "")]
         public static void HandlePortalBypass(Session session, params string[] parameters)
@@ -147,16 +153,18 @@ namespace ACE.Server.Command.Handlers
                 case true:
                     session.Player.IgnorePortalRestrictions = false;
                     session.Network.EnqueueSend(new GameMessageSystemChat("You are once again bound by portal restrictions.", ChatMessageType.Broadcast));
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has toggled Portal_Bypass off.");
                     break;
                 case false:
                     session.Player.IgnorePortalRestrictions = true;
                     session.Network.EnqueueSend(new GameMessageSystemChat("You are no longer bound by portal restrictions.", ChatMessageType.Broadcast));
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has toggled Portal_Bypass on.");
                     break;
             }
         }
 
         // fellowbuff [name]
-        [CommandHandler("fellowbuff", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
+        [CommandHandler("fellowbuff", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, 0,
             "Buffs your fellowship (or a player's fellowship) with all beneficial spells.",
             "[name]\n"
             + "This command buffs your fellowship (or the fellowship of the specified character).")]
@@ -181,10 +189,19 @@ namespace ACE.Server.Command.Handlers
 
             session.Player.CreateSentinelBuffPlayers(fellowshipMembers.Values,
                 fellowshipMembers.Count == 1 && aceParams[0].AsPlayer.Fellowship.FellowshipLeaderGuid == session.Player.Guid.Full);
+
+            if(parameters?.Length == 0)
+            {
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has used the fellowbuff command on their own fellowship.");
+            }
+            else
+            {
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has used the fellowbuff command on a fellow containing player: {parameters[0]}.");
+            }
         }
 
         // buff [name]
-        [CommandHandler("buff", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
+        [CommandHandler("buff", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, 0,
             "Buffs you (or a player) with all beneficial spells.",
             "[name] [maxLevel]\n"
             + "This command buffs yourself (or the specified character).")]
@@ -206,10 +223,19 @@ namespace ACE.Server.Command.Handlers
             };
             if (!CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams)) return;
             session.Player.CreateSentinelBuffPlayers(new Player[] { aceParams[0].AsPlayer }, aceParams[0].AsPlayer == session.Player, aceParams[1].AsULong);
+
+            if(parameters?.Length == 0)
+            {
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has used the buff command on themself.");
+            }
+            else
+            {
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has used the buff command on player: {parameters[0]}.");
+            }
         }
 
         // run < on | off | toggle | check >
-        [CommandHandler("run", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
+        [CommandHandler("run", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, 0,
             "Temporarily boosts your run skill.",
             "( on | off | toggle | check )\n"
             + "Boosts the run skill of the PSR so they can pursue the \"bad folks\". The enchantment will wear off after a while. This command defaults to toggle.")]
@@ -244,19 +270,21 @@ namespace ACE.Server.Command.Handlers
                         session.Player.EnchantmentManager.Remove(runBoost);
                     else
                         session.Network.EnqueueSend(new GameMessageSystemChat("Run speed boost is currently INACTIVE", ChatMessageType.Broadcast));
+                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has disabled Run speed boost.");
                     break;
                 case "on":
                     var spell = new Spell(spellID);
                     var addResult = session.Player.EnchantmentManager.Add(spell, session.Player, null);
                     session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(session, new Enchantment(session.Player, addResult.Enchantment)));
                     session.Network.EnqueueSend(new GameMessageSystemChat("Run forrest, run!", ChatMessageType.Broadcast));
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has enabled Run speed boost.");
                     session.Player.HandleSpellHooks(spell);
                     break;
             }
         }
 
         // boot { account | char | iid } who
-        [CommandHandler("boot", AccessLevel.Sentinel, CommandHandlerFlag.None, 2,
+        [CommandHandler("boot", AccessLevel.Envoy, CommandHandlerFlag.None, 2,
             "Boots the character out of the game.",
             "[account | char | iid] who (, reason) \n"
             + "This command boots the specified character out of the game. You can specify who to boot by account, character name, or player instance id. 'who' is the account / character / instance id to actually boot. You can optionally include a reason for the boot.\n"
@@ -337,7 +365,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // ban < acct > < days > < hours > < minutes >
-        [CommandHandler("ban", AccessLevel.Sentinel, CommandHandlerFlag.None, 4,
+        [CommandHandler("ban", AccessLevel.Envoy, CommandHandlerFlag.None, 4,
             "Bans the specified player account.",
             "[accountname] [days] [hours] [minutes] (reason)\n"
             + "This command bans the specified player account for the specified time. This player will not be able to enter the game with any character until the time expires.\n"
@@ -427,7 +455,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // unban < acct >
-        [CommandHandler("unban", AccessLevel.Sentinel, CommandHandlerFlag.None, 1,
+        [CommandHandler("unban", AccessLevel.Envoy, CommandHandlerFlag.None, 1,
             "Unbans the specified player account.",
             "[accountname]\n" +
             "This command removes the ban from the specified account. The player will then be able to log into the game.")]
@@ -460,7 +488,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // banlist
-        [CommandHandler("banlist", AccessLevel.Sentinel, CommandHandlerFlag.None, 0,
+        [CommandHandler("banlist", AccessLevel.Envoy, CommandHandlerFlag.None, 0,
             "Lists all banned accounts on this world.",
             "")]
         public static void HandleBanlist(Session session, params string[] parameters)
@@ -483,7 +511,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // deaf < on / off >
-        [CommandHandler("deaf", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("deaf", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 1)]
         public static void HandleDeaf(Session session, params string[] parameters)
         {
             // @deaf - Block @tells except for the player you are currently helping.
@@ -494,7 +522,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // deaf < hear | mute > < player >
-        [CommandHandler("deaf", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 2)]
+        [CommandHandler("deaf", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 2)]
         public static void HandleDeafHearOrMute(Session session, params string[] parameters)
         {
             // @deaf hear[name] -add a player to the list of players that you can hear.

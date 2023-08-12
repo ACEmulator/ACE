@@ -60,13 +60,16 @@ namespace ACE.Server.Command.Handlers
                 case "1":
                 case "on":
                     session.Player.HandleAdminvisionToggle(1);
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has activated AdminVision.");
                     break;
                 case "0":
                 case "off":
                     session.Player.HandleAdminvisionToggle(0);
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has deactivated AdminVision.");
                     break;
                 case "toggle":
                     session.Player.HandleAdminvisionToggle(2);
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has toggled AdminVision.");
                     break;
                 case "check":
                 default:
@@ -76,7 +79,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // adminui
-        [CommandHandler("adminui", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("adminui", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0)]
         public static void HandleAdminui(Session session, params string[] parameters)
         {
             // usage: @adminui
@@ -86,7 +89,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // delete
-        [CommandHandler("delete", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0, "Deletes the selected object.", "Players may not be deleted this way.")]
+        [CommandHandler("delete", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0, "Deletes the selected object.", "Players may not be deleted this way.")]
         public static void HandleDeleteSelected(Session session, params string[] parameters)
         {
             // @delete - Deletes the selected object. Players may not be deleted this way.
@@ -135,7 +138,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // draw
-        [CommandHandler("draw", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("draw", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0)]
         public static void HandleDraw(Session session, params string[] parameters)
         {
             // @draw - Draws undrawable things.
@@ -144,7 +147,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // finger [ [-a] character] [-m account]
-        [CommandHandler("finger", AccessLevel.Sentinel, CommandHandlerFlag.None, 1,
+        [CommandHandler("finger", AccessLevel.Envoy, CommandHandlerFlag.None, 1,
             "Show the given character's account name or vice-versa.",
             "[ [-a] character] [-m account]\n"
             + "Given a character name, this command displays the name of the owning account.\nIf the -m option is specified, the argument is considered an account name and the characters owned by that account are displayed.\nIf the -a option is specified, then the character name is fingered but their account is implicitly fingered as well.")]
@@ -249,7 +252,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // freeze
-        [CommandHandler("freeze", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("freeze", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0)]
         public static void HandleFreeze(Session session, params string[] parameters)
         {
             // @freeze - Freezes the selected target for 10 minutes or until unfrozen.
@@ -258,7 +261,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // unfreeze
-        [CommandHandler("unfreeze", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("unfreeze", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0)]
         public static void HandleUnFreeze(Session session, params string[] parameters)
         {
             // @unfreeze - Unfreezes the selected target.
@@ -267,7 +270,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // gag < char name >
-        [CommandHandler("gag", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
+        [CommandHandler("gag", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 1,
             "Prevents a character from talking.",
             "< char name >\nThe character will not be able to @tell or use chat normally.")]
         public static void HandleGag(Session session, params string[] parameters)
@@ -285,7 +288,7 @@ namespace ACE.Server.Command.Handlers
                 if (PlayerManager.GagPlayer(session.Player, playerName))
                 {
                     msg = $"{playerName} has been gagged for five minutes.";
-                }
+}
                 else
                 {
                     msg = $"Unable to gag a character named {playerName}, check the name and re-try the command.";
@@ -296,7 +299,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // ungag < char name >
-        [CommandHandler("ungag", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
+        [CommandHandler("ungag", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 1,
             "Allows a gagged character to talk again.",
             "< char name >\nThe character will again be able to @tell and use chat normally.")]
         public static void HandleUnGag(Session session, params string[] parameters)
@@ -326,7 +329,7 @@ namespace ACE.Server.Command.Handlers
         /// Teleports an admin to their sanctuary position. If a single uint value from 1 to 9 is provided as a parameter then the admin is teleported to the cooresponding named recall point.
         /// </summary>
         /// <param name="parameters">A single uint value from 0 to 9. Value 0 recalls to Sanctuary, values 1 through 9 teleports too the corresponding saved recall point.</param>
-        [CommandHandler("home", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
+        [CommandHandler("home", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, 0,
             "Teleports you to your sanctuary position.",
             "< recall number > - Recalls to a saved position, valid values are 1 - 9.\n" +
             "NOTE: Calling @home without a number recalls your sanctuary position; calling it with a number will teleport you to the corresponding saved position.")]
@@ -407,6 +410,7 @@ namespace ACE.Server.Command.Handlers
                     session.Player.TeleToPosition(positionType);
                     var positionMessage = new GameMessageSystemChat($"Recalling to {positionType}", ChatMessageType.Broadcast);
                     session.Network.EnqueueSend(positionMessage);
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has teleported to their saved position: {positionType}.");
                     return;
                 }
             }
@@ -416,17 +420,18 @@ namespace ACE.Server.Command.Handlers
         }
 
         // mrt
-        [CommandHandler("mrt", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
+        [CommandHandler("mrt", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0,
             "Toggles the ability to bypass housing boundaries",
             "")]
         public static void HandleMRT(Session session, params string[] parameters)
         {
             // @mrt - Toggles the ability to bypass housing boundaries.
             session.Player.HandleMRT();
+            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has toggled bypass_housing_boundries.");
         }
 
         // limbo [on / off]
-        [CommandHandler("limbo", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("limbo", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0)]
         public static void HandleLimbo(Session session, params string[] parameters)
         {
             // @limbo[on / off] - Puts the targeted player in 'limbo' which means that the player cannot damage anything or be damaged by anything.The player will not recieve direct tells, or channel messages, such as fellowship messages and allegiance chat.  The player will be unable to salvage.This status times out after 15 minutes, use '@limbo on' again on the player to reset the timer. You and the player will be notifed when limbo wears off.If neither on or off are specified, on is assumed.
@@ -436,7 +441,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // myiid
-        [CommandHandler("myiid", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0,
+        [CommandHandler("myiid", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
             "Displays your Instance ID (IID)")]
         public static void HandleMyIID(Session session, params string[] parameters)
         {
@@ -455,7 +460,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // pk
-        [CommandHandler("pk", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+        [CommandHandler("pk", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
             "sets your own PK state.",
             "< npk / pk / pkl / free >\n" +
             "This command sets your current player killer state\n" +
@@ -540,7 +545,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // regen
-        [CommandHandler("regen", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0,
+        [CommandHandler("regen", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
             "Sends the selected generator a regeneration message.",
             "")]
         public static void HandleRegen(Session session, params string[] parameters)
@@ -568,6 +573,7 @@ namespace ACE.Server.Command.Handlers
                     wo.ResetGenerator();
                     wo.GeneratorEnteredWorld = false;
                     wo.GeneratorRegeneration(Time.GetUnixTime());
+					PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} sent a regeneration signal to generator {wo.Name} (0x{wo.Guid:X8}) at {session.Player.CurrentLandblock}.");																																														 
                 }
             }
         }
@@ -576,7 +582,7 @@ namespace ACE.Server.Command.Handlers
         /// Command for saving the Admin's current location as the sanctuary position. If a uint between 1-9 is provided as a parameter, the corresponding named recall is saved.
         /// </summary>
         /// <param name="parameters">A single uint value from 0 to 9. Value 0 saves the Sanctuary recall (default), values 1 through 9 save the corresponding named recall point.</param>
-        [CommandHandler("save", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
+        [CommandHandler("save", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, 0,
             "Sets your sanctuary position or a named recall point.",
             "< recall number > - Saves your position into the numbered recall, valid values are 1 - 9.\n" +
             "NOTE: Calling @save without a number saves your sanctuary (Lifestone Recall) position.")]
@@ -656,6 +662,7 @@ namespace ACE.Server.Command.Handlers
                 // Report changes to client
                 var positionMessage = new GameMessageSystemChat($"Set: {positionType} to Loc: {playerPosition}", ChatMessageType.Broadcast);
                 session.Network.EnqueueSend(positionMessage);
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created a new saved location: {positionType} at loc: {playerPosition}.");
                 return;
             }
             // Error parsing the text input, from parameter[0]
@@ -693,92 +700,128 @@ namespace ACE.Server.Command.Handlers
             // TODO: output
         }
 
-        [CommandHandler("smite", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0, "Kills the selected target or all monsters in radar range if \"all\" is specified.", "[all, Player's Name]")]
-        public static void HandleSmite(Session session, params string[] parameters)
-        {
-            // @smite [all] - Kills the selected target or all monsters in radar range if "all" is specified.
-
-            if (parameters?.Length > 0)
+        [CommandHandler("smite", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0, "Kills the selected target or all monsters in radar range if \"all\" is specified.", "[all, Player's Name]")]
+        // rewrite of code by Linae of Drunkenfell
+            public static void HandleSmite(Session session, params string[] parameters)
             {
-                if (parameters[0] == "all")
+                // @smite [all] - Kills the selected target or all monsters in radar range if "all" is specified.
+
+                if (parameters?.Length > 0)
                 {
-                    foreach (var obj in session.Player.PhysicsObj.ObjMaint.GetVisibleObjectsValues())
+                    if (parameters[0] == "all") // is parameter == all?
                     {
-                        var wo = obj.WeenieObj.WorldObject;
-
-                        if (wo is Player) // I don't recall if @smite all would kill players in range, assuming it didn't
-                            continue;
-
-                        var useTakeDamage = PropertyManager.GetBool("smite_uses_takedamage").Item;
-
-                        if (wo is Creature creature && creature.Attackable)
-                            creature.Smite(session.Player, useTakeDamage);
-                    }
-
-                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used smite all.");
-                }
-                else
-                {
-                    string characterName = "";
-
-                    // if parameters are greater then 1, we may have a space in a character name
-                    if (parameters.Length > 1)
-                    {
-                        foreach (string name in parameters)
+                        foreach (var obj in session.Player.PhysicsObj.ObjMaint.GetVisibleObjectsValues())
                         {
-                            // adds a space back inbetween each parameter
-                            if (characterName.Length > 0)
-                                characterName += " " + name;
-                            else
-                                characterName = name;
+                            var wo = obj.WeenieObj.WorldObject;
+
+                            if (wo is Player) // I don't recall if @smite all would kill players in range, assuming it didn't
+                            {
+                                continue;
+                            }
+
+                            var useTakeDamage = PropertyManager.GetBool("smite_uses_takedamage").Item;
+
+                            if (wo is Creature creature && creature.Attackable)
+                            {
+                                creature.Smite(session.Player, useTakeDamage);
+                            }
+                        }
+                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used smite all.");
+                    }
+                    else // parameter must be a name then.
+                    {
+                        if(session.AccessLevel == AccessLevel.Admin) // is issuer a level 5 admin?
+                        {
+                            string characterName = "";
+
+// if parameters are greater then 1, we may have a space in a character name
+                            if (parameters.Length > 1) 
+                            {
+                                foreach (string name in parameters)
+                                {
+                                    // adds a space back inbetween each parameter                                    
+                                    if (characterName.Length > 0)
+                                        characterName += " " + name;
+                                    else
+                                        characterName = name;
+                                }
+                            }
+                            // if there are no spaces, just set the characterName to the first paramter
+                            else 
+                            {
+                                characterName = parameters[0];
+
+                                // look up session
+                                var player = PlayerManager.GetOnlinePlayer(characterName);
+
+// playerSession will be null when the character is not found
+                                if (player != null)
+                                {
+                                    player.Smite(session.Player, PropertyManager.GetBool("smite_uses_takedamage").Item);
+
+                                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used smite on player: {player.Name}");
+                                    return;
+                                }
+                                else // you didn't type a all or a name
+                                {
+                                    ChatPacket.SendServerMessage(session, "You didn't type all or a player's name. Use @smite all to kill all creatures in radar range or @smite [player's name] to smite a player.", ChatMessageType.Broadcast);
+                                    return;
+                                }
+                            }
+                        }
+                        else // you're not level 5 go away
+                        {
+                            CommandHandlerHelper.WriteOutputInfo(session, $"You do not have permission to smite players.", ChatMessageType.Broadcast);
+                            return;
                         }
                     }
-                    // if there are no spaces, just set the characterName to the first paramter
-                    else
-                        characterName = parameters[0];
-
-                    // look up session
-                    var player = PlayerManager.GetOnlinePlayer(characterName);
-
-                    // playerSession will be null when the character is not found
-                    if (player != null)
+                }
+                else // parameter == null so check if we have something targeted/inspected
+                {
+                    if(session.Player.CurrentAppraisalTarget == null) //no target
                     {
-                        player.Smite(session.Player, PropertyManager.GetBool("smite_uses_takedamage").Item);
-
-                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used smite on {player.Name}");
+                        ChatPacket.SendServerMessage(session, "Select a target and use @smite, or use @smite all to kill all creatures in radar range or if you are a level 5 admin, @smite [players' name].", ChatMessageType.Broadcast);
                         return;
                     }
-
-                    ChatPacket.SendServerMessage(session, "Select a target and use @smite, or use @smite all to kill all creatures in radar range or @smite [player's name].", ChatMessageType.Broadcast);
-                }
-            }
-            else
-            {
-                if (session.Player.HealthQueryTarget.HasValue) // Only Creatures will trigger this.. Excludes vendors automatically as a result (Can change design to mimic @delete command)
-                {
-                    var objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
-
-                    var wo = session.Player.CurrentLandblock?.GetObject(objectId) as Creature;
-
-                    if (objectId == session.Player.Guid) // don't kill yourself
-                        return;
-
-                    if (wo != null)
+                    else //ok - we have a target
                     {
-                        wo.Smite(session.Player, PropertyManager.GetBool("smite_uses_takedamage").Item);
+                        var objectId = new ObjectGuid((uint)session.Player.HealthQueryTarget);
 
-                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used smite on {wo.Name} (0x{wo.Guid:X8})");
+                        if(objectId == session.Player.Guid) // don't kill yourself
+                        {
+                        ChatPacket.SendServerMessage(session, "Suicide is painless, but you still can't smite yourself.", ChatMessageType.Broadcast);
+                        return;
+                        }
+
+                        if (objectId.IsPlayer())
+                        {
+                            if(session.AccessLevel == AccessLevel.Admin) // if issuer is lvl 5 then allow                                {
+                            {
+                                var wo = session.Player.CurrentLandblock?.GetObject(objectId) as Creature;
+
+                                wo.Smite(session.Player, PropertyManager.GetBool("smite_uses_takedamage").Item);
+                                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used smite on player '{wo.Name}'");
+                            }
+                            else
+                            {
+                                CommandHandlerHelper.WriteOutputInfo(session, $"You do not have permission to smite players.", ChatMessageType.Broadcast);
+                                return;
+                            }
+                        }
+                        else // target is a creature
+                        {
+                            var wo = session.Player.CurrentLandblock?.GetObject(objectId) as Creature;
+
+                            wo.Smite(session.Player, PropertyManager.GetBool("smite_uses_takedamage").Item);
+                            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used smite on {wo.Name} (0x{wo.Guid:X8})");
+                        }
                     }
                 }
-                else
-                {
-                    ChatPacket.SendServerMessage(session, "Select a target and use @smite, or use @smite all to kill all creatures in radar range or @smite [players' name].", ChatMessageType.Broadcast);
-                }
             }
-        }
+        // end of command
 
         // teleto [char]
-        [CommandHandler("teleto", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
+        [CommandHandler("teleto", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, 1,
             "Teleport yourself to a player",
             "[Player's Name]\n")]
         public static void HandleTeleto(Session session, params string[] parameters)
@@ -789,25 +832,36 @@ namespace ACE.Server.Command.Handlers
             var player = PlayerManager.GetOnlinePlayer(playerName);
             // If the player is found, teleport the admin to the Player's location
             if (player != null)
+                {
                 session.Player.Teleport(player.Location);
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} teleported to {playerName}.");
+                }
             else
+                {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
+                }
         }
-
         /// <summary>
         /// Teleports a player to your current location
         /// </summary>
-        [CommandHandler("teletome", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1, "Teleports a player to your current location.", "PlayerName")]
+        [CommandHandler("teletome", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, 1, "Teleports a player to your current location.", "PlayerName")]
         public static void HandleTeleToMe(Session session, params string[] parameters)
         {
             var playerName = string.Join(" ", parameters);
             var player = PlayerManager.GetOnlinePlayer(playerName);
             if (player == null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Player {player} was not found.", ChatMessageType.Broadcast));
                 return;
             }
             var currentPos = new Position(player.Location);
+
+            if (player.YouAreJailed == true) // added by Linae as a check against our custom /jail command.
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Player {player.Name} is in jail and can not be teleported out.  You must use /pardon.", ChatMessageType.Broadcast));
+                return;
+            }
+
             player.Teleport(session.Player.Location);
             player.SetPosition(PositionType.TeleportedCharacter, currentPos);
             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{session.Player.Name} has teleported you.", ChatMessageType.Magic));
@@ -818,7 +872,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Teleports a player to their previous position
         /// </summary>
-        [CommandHandler("telereturn", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1, "Return a player to their previous location.", "PlayerName")]
+        [CommandHandler("telereturn", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 1, "Return a player to their previous location.", "PlayerName")]
         public static void HandleTeleReturn(Session session, params string[] parameters)
         {
             var playerName = string.Join(" ", parameters);
@@ -843,8 +897,8 @@ namespace ACE.Server.Command.Handlers
         }
 
         // teleallto [char]
-        [CommandHandler("teleallto", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Teleports all players to a player. If no target is specified, all players will be teleported to you.", "[Player's Name]\n")]
-        public static void HandleTeleAllTo(Session session, params string[] parameters)
+        [CommandHandler("teleallto", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0, "Teleports all players to a player. If no target is specified, all players will be teleported to you.", "[Player's Name]\n")]
+         public static void HandleTeleAllTo(Session session, params string[] parameters)
         {
             Player destinationPlayer = null;
 
@@ -856,6 +910,12 @@ namespace ACE.Server.Command.Handlers
 
             foreach (var player in PlayerManager.GetAllOnline())
             {
+                if (player.YouAreJailed == true) // added by Linae to check against our custom /jail command.
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Player {player.Name} is in jail and can not be teleported out. You must use /pardon.", ChatMessageType.Broadcast));
+                    continue;
+                }
+
                 if (player == destinationPlayer)
                     continue;
 
@@ -865,10 +925,10 @@ namespace ACE.Server.Command.Handlers
             }
 
             PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has teleported all online players to their location.");
-        }
+        } 
 
         // telepoi location
-        [CommandHandler("telepoi", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+        [CommandHandler("telepoi", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, 1,
             "Teleport yourself to a named Point of Interest",
             "[POI|list]\n" +
             "@telepoi Arwic\n" +
@@ -898,11 +958,12 @@ namespace ACE.Server.Command.Handlers
                 var portalDest = new Position(weenie.GetPosition(PositionType.Destination));
                 WorldObject.AdjustDungeon(portalDest);
                 session.Player.Teleport(portalDest);
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has teleported to {poi}.");
             }
         }
 
         // teleloc cell x y z [qx qy qz qw]
-        [CommandHandler("teleloc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 4,
+        [CommandHandler("teleloc", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 4,
             "Teleport yourself to the specified location.",
             "cell [x y z] (qw qx qy qz)\n" +
             "@teleloc follows the same number order as displayed from @loc output\n" +
@@ -942,6 +1003,8 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 session.Player.Teleport(new Position(cell, positionData[0], positionData[1], positionData[2], positionData[4], positionData[5], positionData[6], positionData[3]));
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used teleloc and teleported to 0x{cell:X8}, {positionData[0]}, {positionData[1]}, {positionData[2]}, {positionData[4]}, {positionData[5]}, {positionData[6]}, {positionData[3]}.");
+
             }
             catch (Exception)
             {
@@ -955,7 +1018,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // time
-        [CommandHandler("time", AccessLevel.Envoy, CommandHandlerFlag.None, 0,
+        [CommandHandler("time", AccessLevel.Player, CommandHandlerFlag.None, 0,
             "Displays the server's current game time.")]
         public static void HandleTime(Session session, params string[] parameters)
         {
@@ -973,7 +1036,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // trophies
-        [CommandHandler("trophies", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0,
+        [CommandHandler("trophies", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
             "Shows a list of the trophies dropped by the target creature, and the percentage chance of dropping.",
             "")]
         public static void HandleTrophies(Session session, params string[] parameters)
@@ -1043,7 +1106,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // unlock {-all | IID}
-        [CommandHandler("unlock", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("unlock", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 1)]
         public static void HandleUnlock(Session session, params string[] parameters)
         {
             // usage: @unlock {-all | IID}
@@ -1054,7 +1117,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // gamecast <message>
-        [CommandHandler("gamecast", AccessLevel.Envoy, CommandHandlerFlag.None, 1,
+        [CommandHandler("gamecast", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 1,
             "Sends a world-wide broadcast.",
             "<message>\n" +
             "This command sends a world-wide broadcast to everyone in the game. Text is prefixed with 'Broadcast from (admin-name)> '.\n" +
@@ -1082,6 +1145,7 @@ namespace ACE.Server.Command.Handlers
             {
                 if (Enum.IsDefined(typeof(SpellId), spellId))
                     session.Player.LearnSpellWithNetworking((uint)spellId);
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used addspell and added spell {spellId} to their spellbook.");
             }
         }
 
@@ -1097,13 +1161,14 @@ namespace ACE.Server.Command.Handlers
             {
                 var spell = new Entity.Spell(spellId, false);
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} removed from spellbook.", ChatMessageType.Broadcast));
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used removespell and removed spell {spell.Name} from their spellbook.");
             }
             else
                 session.Network.EnqueueSend(new GameMessageSystemChat($"You don't know that spell!", ChatMessageType.Broadcast));
         }
 
         // adminhouse
-        [CommandHandler("adminhouse", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0, "House management tools for admins.")]
+        [CommandHandler("adminhouse", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "House management tools for admins.")]
         public static void HandleAdminhouse(Session session, params string[] parameters)
         {
             // @adminhouse dump: dumps info about currently selected house or house owned by currently selected player.
@@ -2182,7 +2247,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Creates an object or objects in the world -- with lifespans for live events
         /// </summary>
-        [CommandHandler("createliveops", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+        [CommandHandler("createliveops", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
             "Creates an object or objects with lifespans in the world for live events.",
             "<wcid or classname> (amount) (lifespan) (palette) (shade)\n" +
             "This will attempt to spawn the weenie you specify. If you include an amount to spawn, it will attempt to spawn that many of the object.\n" +
@@ -2352,11 +2417,20 @@ namespace ACE.Server.Command.Handlers
 
             if (obj == null || numToSpawn < 1)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"No object was created.", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Amount to spawn was less than 1. No object was created.", ChatMessageType.Broadcast));
                 return;
             }
 
             var objs = new List<WorldObject>();
+
+            if (session.AccessLevel != AccessLevel.Admin)
+            {
+                if (numToSpawn < 1 || numToSpawn > 10)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Amount to spawn must be a number between 1 and 10.", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
 
             if (numToSpawn == 1)
             {
@@ -2383,11 +2457,11 @@ namespace ACE.Server.Command.Handlers
                 }
                 else
                 {
-                    // The number of weenies to spawn will be limited by the physics engine.
-                    for (int i = 0; i < numToSpawn; i++)
-                    {
-                        objs.Add(CreateObjectForCommand(session, weenie));
-                    }
+                        // The number of weenies to spawn will be limited by the physics engine.
+                        for (int i = 0; i < numToSpawn; i++)
+                        {
+                            objs.Add(CreateObjectForCommand(session, weenie));
+                        }
                 }
             }
 
@@ -2453,14 +2527,25 @@ namespace ACE.Server.Command.Handlers
 
             if (!int.TryParse(parameters[1], out int count))
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"count must be an integer value", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Amount to spawn must be an integer value", ChatMessageType.Broadcast));
                 return;
             }
 
-            if (count < 1 || count > ushort.MaxValue)
+            if (session.AccessLevel == AccessLevel.Admin)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"count must be a between 1 and {ushort.MaxValue}", ChatMessageType.Broadcast));
-                return;
+                if (count < 1 || count > ushort.MaxValue)
+                    {
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"Amount to spawn must be a number between 1 and {ushort.MaxValue}", ChatMessageType.Broadcast));
+                        return;
+                    }
+            }
+            if (session.AccessLevel != AccessLevel.Admin)
+            {
+                if (count < 1 || count > 10)
+                   {
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"Amount to spawn must be a number between 1 and 10", ChatMessageType.Broadcast));
+                        return;
+                   }
             }
 
             var named = string.Join(" ", parameters, 2, parameters.Length - 2);
@@ -2488,7 +2573,7 @@ namespace ACE.Server.Command.Handlers
                 PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created {count}x {first.Name} at {first.Location.ToLOCString()}.");
         }
 
-        /// <summary>
+         /// <summary>
         /// Creates an object in your inventory
         /// </summary>
         [CommandHandler("ci", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Creates an object in your inventory.", "wclassid (string or number), Amount to Spawn (optional [default:1]), Palette (optional), Shade (optional)\n")]
@@ -2560,7 +2645,7 @@ namespace ACE.Server.Command.Handlers
             PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created {obj.Name} (0x{obj.Guid:X8}) in their inventory.");
         }
 
-        [CommandHandler("crack", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0, "Cracks the most recently appraised locked target.", "[. open it too]")]
+        [CommandHandler("crack", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Cracks the most recently appraised locked target.", "[. open it too]")]
         public static void HandleCrack(Session session, params string[] parameters)
         {
             bool openIt = (parameters?.Length > 0 && parameters[0] == ".");
@@ -2580,13 +2665,15 @@ namespace ACE.Server.Command.Handlers
                     {
                         res = @lock.Unlock(session.Player.Guid.Full, null, lockCode);
                         ChatPacket.SendServerMessage(session, $"Crack {wo.WeenieType} via {lockCode} result: {res}.{opening}", ChatMessageType.Broadcast);
-                    }
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has cracked {wo.WeenieType} at {session.Player.Location}.");
+		    }
                     else if (resistLockpick.HasValue && resistLockpick > 0)
                     {
                         var difficulty = 0;
                         res = @lock.Unlock(session.Player.Guid.Full, (uint)(resistLockpick * 2), ref difficulty);
                         ChatPacket.SendServerMessage(session, $"Crack {wo.WeenieType} with skill {resistLockpick}*2 result: {res}.{opening}", ChatMessageType.Broadcast);
-                    }
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has cracked {wo.WeenieType} at {session.Player.Location}.");
+		    }
                     else
                         ChatPacket.SendServerMessage(session, $"The {wo.WeenieType} has no key code or lockpick difficulty.  Unable to crack it.{opening}", ChatMessageType.Broadcast);
 
@@ -2617,7 +2704,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // de_n name, text
-        [CommandHandler("de_n", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2, "Sends text to named player, formatted exactly as entered.", "<name>, <text>")]
+        [CommandHandler("de_n", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 2, "Sends text to named player, formatted exactly as entered.", "<name>, <text>")]
         public static void Handlede_n(Session session, params string[] parameters)
         {
             // usage: @de_n name, text
@@ -2626,10 +2713,12 @@ namespace ACE.Server.Command.Handlers
             // @direct_emote_name - Sends text to named player, formatted exactly as entered.
 
             Handledirect_emote_name(session, parameters);
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has sent text to {parameters[0]} using de_n.");
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"The following text was sent: {parameters[1]}");
         }
 
         // direct_emote_name name, text
-        [CommandHandler("direct_emote_name", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2, "Sends text to named player, formatted exactly as entered.", "<name>, <text>")]
+        [CommandHandler("direct_emote_name", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 2, "Sends text to named player, formatted exactly as entered.", "<name>, <text>")]
         public static void Handledirect_emote_name(Session session, params string[] parameters)
         {
             // usage: @de_n name, text
@@ -2637,7 +2726,7 @@ namespace ACE.Server.Command.Handlers
             // Sends text to named player, formatted exactly as entered, with no prefix of any kind.
             // @direct_emote_name - Sends text to named player, formatted exactly as entered.
 
-            var args = string.Join(" ", parameters);
+             var args = string.Join(" ", parameters);
             if (!args.Contains(","))
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"There was no player name specified.", ChatMessageType.Broadcast));
@@ -2650,14 +2739,18 @@ namespace ACE.Server.Command.Handlers
 
                 var player = PlayerManager.GetOnlinePlayer(playerName);
                 if (player != null)
+                {    
                     player.SendMessage(msg);
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has sent text to {parameters[0]} using direct_emote_name.");
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has sent text to {parameters[0]} using direct_emote_name.");
+                }
                 else
                     session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} is not online.", ChatMessageType.Broadcast));
             }
         }
 
         // de_s text
-        [CommandHandler("de_s", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Sends text to selected player, formatted exactly as entered, with no prefix of any kind.", "<text>")]
+        [CommandHandler("de_s", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1, "Sends text to selected player, formatted exactly as entered, with no prefix of any kind.", "<text>")]
         public static void Handlede_s(Session session, params string[] parameters)
         {
             // usage: @de_s text
@@ -2666,10 +2759,12 @@ namespace ACE.Server.Command.Handlers
             // @direct_emote_select - Sends text to selected player, formatted exactly as entered.
 
             Handledirect_emote_select(session, parameters);
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has sent text to {parameters[0]} using de_s.");
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"The following text was sent: {parameters[1]}");
         }
 
         // direct_emote_select text
-        [CommandHandler("direct_emote_select", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Sends text to selected player, formatted exactly as entered, with no prefix of any kind.", "<text>")]
+        [CommandHandler("direct_emote_select", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1, "Sends text to selected player, formatted exactly as entered, with no prefix of any kind.", "<text>")]
         public static void Handledirect_emote_select(Session session, params string[] parameters)
         {
             // usage: @de_s text
@@ -2703,6 +2798,8 @@ namespace ACE.Server.Command.Handlers
                 var msg = string.Join(" ", parameters);
 
                 player.SendMessage(msg);
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has sent text to {parameters[0]} using direct_emote_select.");
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"The following text was sent: {parameters[1]}");
             }
             else
             {
@@ -2722,7 +2819,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // event
-        [CommandHandler("event", AccessLevel.Developer, CommandHandlerFlag.None, 2,
+        [CommandHandler("event", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2,
             "Maniuplates the state of an event",
             "[ start | stop | disable | enable | clear | status ] (name)\n"
             + "@event clear < name > - clears event with name <name> or all events if you put in 'all' (All clears registered generators, <name> does not)\n"
@@ -2862,6 +2959,7 @@ namespace ACE.Server.Command.Handlers
 
                         item.EmoteManager.OnDrop(player);
                         item.SaveBiotaToDatabase();
+                        PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used the fumble command on player {player.Name}.");
                     }
                     else
                         log.Warn($"0x{item.Guid}:{item.Name} for player {player.Name} lost from fumble failure.");
@@ -2874,7 +2972,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // god
-        [CommandHandler("god", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
+        [CommandHandler("god", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0,
             "Turns current character into a god!",
             "Sets attributes and skills to higher than max levels.\n"
             + "To return to a mortal state, use the /ungod command.\n"
@@ -3035,10 +3133,11 @@ namespace ACE.Server.Command.Handlers
             currentPlayer.SetMaxVitals();
 
             ChatPacket.SendServerMessage(session, "You are now a god!!!", ChatMessageType.Broadcast);
+            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has invoked GOD mode.");
         }
 
         // ungod
-        [CommandHandler("ungod", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
+        [CommandHandler("ungod", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0,
             "Returns character to a mortal state.",
             "Sets attributes and skills back to the values they were when you became a god.\n"
             + "If the command fails to revert your state it will default to godmode.\n"
@@ -3151,11 +3250,12 @@ namespace ACE.Server.Command.Handlers
                 currentPlayer.PlayParticleEffect(PlayScript.DispelAll, currentPlayer.Guid);
 
                 ChatPacket.SendServerMessage(session, "You have returned from your godly state.", ChatMessageType.Broadcast);
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has returned to mortality from GOD mode.");
             }
         }
 
         // magic god
-        [CommandHandler("magic god", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("magic god", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0)]
         public static void HandleMagicGod(Session session, params string[] parameters)
         {
             // @magic god - Sets your magic stats to the specfied level.
@@ -3168,7 +3268,7 @@ namespace ACE.Server.Command.Handlers
         }
 
 
-        [CommandHandler("modifyvital", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Adjusts the maximum vital attribute for the last appraised mob/player and restores full vitals", "<Health|Stamina|Mana> <delta>")]
+        [CommandHandler("modifyvital", AccessLevel.Developer, CommandHandlerFlag.None, 2, "Adjusts the maximum vital attribute for the last appraised mob/player and restores full vitals", "<Health|Stamina|Mana> <delta>")]
         public static void HandleModifyVital(Session session, params string[] parameters)
         {
             var lastAppraised = CommandHandlerHelper.GetLastAppraisedObject(session);
@@ -3238,7 +3338,7 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("modifyskill", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Adjusts the skill for the last appraised mob/player", "<skillName> <delta>")]
+        [CommandHandler("modifyskill", AccessLevel.Developer, CommandHandlerFlag.None, 2, "Adjusts the skill for the last appraised mob/player", "<skillName> <delta>")]
         public static void HandleModifySkill(Session session, params string[] parameters)
         {
             var lastAppraised = CommandHandlerHelper.GetLastAppraisedObject(session);
@@ -3281,7 +3381,7 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("modifyattr", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Adjusts an attribute for the last appraised mob/NPC/player", "<attribute> <delta>")]
+        [CommandHandler("modifyattr", AccessLevel.Developer, CommandHandlerFlag.None, 2, "Adjusts an attribute for the last appraised mob/NPC/player", "<attribute> <delta>")]
         public static void HandleModifyAttribute(Session session, params string[] parameters)
         {
             var lastAppraised = CommandHandlerHelper.GetLastAppraisedObject(session);
@@ -3323,7 +3423,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // heal
-        [CommandHandler("heal", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0,
+        [CommandHandler("heal", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, 0,
             "Heals yourself (or the selected creature)",
             "\n" + "This command fully restores your(or the selected creature's) health, mana, and stamina")]
         public static void HandleHeal(Session session, params string[] parameters)
@@ -3382,7 +3482,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // gamecastlocalemote <message>
-        [CommandHandler("gamecastlocalemote", AccessLevel.Developer, CommandHandlerFlag.None, 1,
+        [CommandHandler("gamecastlocalemote", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, 1,
             "Sends text to all players within chat range, formatted exactly as entered.",
             "<message>\n" +
             "Sends text to all players within chat range, formatted exactly as entered, with no prefix of any kind.\n" +
@@ -3574,7 +3674,7 @@ namespace ACE.Server.Command.Handlers
                 {
                     var questsHdr = $"Quest Registry for {creature.Name} (0x{creature.Guid}):\n";
                     questsHdr += "================================================\n";
-                    session.Player.SendMessage(questsHdr);
+                     session.Player.SendMessage(questsHdr);
 
                     var quests = creature.QuestManager.GetQuests();
 
@@ -3705,15 +3805,15 @@ namespace ACE.Server.Command.Handlers
                     if (parameters[1].Equals("on"))
                     {
                         if (parameters.Length < 3)
-                        {
-                            session.Player.SendMessage($"You must specify bits to turn on or off.");
-                            return;
-                        }
-                        if (parameters.Length < 2)
-                        {
-                            session.Player.SendMessage($"You must specify a quest to set its bits.");
-                            return;
-                        }
+                    {
+                        session.Player.SendMessage($"You must specify bits to turn on or off.");
+                        return;
+                    }
+                    if (parameters.Length < 2)
+                    {
+                        session.Player.SendMessage($"You must specify a quest to set its bits.");
+                        return;
+                    }
 
                         var questName = parameters[2];
 
@@ -3948,18 +4048,18 @@ namespace ACE.Server.Command.Handlers
 
                             var quest = fellowship.QuestManager.GetQuest(questName);
                             if (quest != null)
-                            {
-                                var numTimesCompleted = quest.NumTimesCompleted;
-                                session.Player.SendMessage($"{questName} stamped with {numTimesCompleted} completions.");
-                            }
-                            else
-                            {
-                                session.Player.SendMessage($"Couldn't stamp {questName} on {creature.Name}");
-                            }
-                            return;
-                        }
+                    {
+                        var numTimesCompleted = quest.NumTimesCompleted;
+                        session.Player.SendMessage($"{questName} stamped with {numTimesCompleted} completions.");
                     }
                     else
+                    {
+                        session.Player.SendMessage($"Couldn't stamp {questName} on {creature.Name}");
+                    }
+                    return;
+                }
+            }
+            else
                         session.Player.SendMessage($"Selected object {wo.Name} (0x{objectId}) is not a player and cannot have a fellowship.");
                 }
             }
@@ -3981,7 +4081,7 @@ namespace ACE.Server.Command.Handlers
             // TODO: output
         }
 
-        // rename <Current Name> <New Name>
+ // rename <Current Name> <New Name>
         [CommandHandler("rename", AccessLevel.Envoy, CommandHandlerFlag.None, 2,
             "Rename a character. (Do NOT include +'s for admin names)",
             "< Current Name >, < New Name >")]
@@ -4025,7 +4125,7 @@ namespace ACE.Server.Command.Handlers
                     onlinePlayer.SavePlayerToDatabase();
 
                     CommandHandlerHelper.WriteOutputInfo(session, $"Player named \"{oldName}\" renamed to \"{newName}\" successfully!", ChatMessageType.Broadcast);
-
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has renamed '{oldName}' to '{newName}'.");
                     onlinePlayer.Session.LogOffPlayer();
                 });
             }
@@ -4057,6 +4157,7 @@ namespace ACE.Server.Command.Handlers
                     offlinePlayer.SaveBiotaToDatabase();
 
                     CommandHandlerHelper.WriteOutputInfo(session, $"Player named \"{oldName}\" renamed to \"{newName}\" successfully!", ChatMessageType.Broadcast);
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has renamed '{oldName}' to '{newName}'.");
                 });
             }
             else
@@ -4124,16 +4225,21 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Sets whether you lose items should you die.
         /// </summary>
-        [CommandHandler("sticky", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Sets whether you lose items should you die.", "<off/on>")]
+        [CommandHandler("sticky", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, "Sets whether you lose items should you die.", "<off/on>")]
         public static void HandleSticky(Session session, params string[] parameters)
         {
             bool sticky = !(parameters.Length > 0 && parameters[0] == "off");
 
             if (sticky)
+                {
                 CommandHandlerHelper.WriteOutputInfo(session, "You will no longer drop any items on death.");
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has invoked Sticky on themself.");
+                }
             else
+                {
                 CommandHandlerHelper.WriteOutputInfo(session, "You will now drop items on death normally.");
-
+                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has removed Sticky from themself.");
+                }
             session.Player.NoCorpse = sticky;
         }
 
@@ -4147,7 +4253,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // watchmen
-        [CommandHandler("watchmen", AccessLevel.Admin, CommandHandlerFlag.None, 0,
+        [CommandHandler("watchmen", AccessLevel.Envoy, CommandHandlerFlag.None, 0,
             "Displays a list of accounts with the specified level of admin access.",
             "(accesslevel)")]
         public static void Handlewatchmen(Session session, params string[] parameters)
@@ -4349,7 +4455,7 @@ namespace ACE.Server.Command.Handlers
                 if (PropertyManager.ModifyLong(paramters[0], longVal))
                 {
                     CommandHandlerHelper.WriteOutputInfo(session, "Long property successfully updated!");
-                    PlayerManager.BroadcastToAuditChannel(session?.Player, $"Successfully changed server long property {paramters[0]} to {longVal}");
+                        PlayerManager.BroadcastToAuditChannel(session?.Player, $"Successfully changed server long property {paramters[0]} to {longVal}");
                 }
                 else
                     CommandHandlerHelper.WriteOutputInfo(session, "Unknown long property was not updated. Type showprops for a list of properties.");
@@ -4535,7 +4641,7 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-        [CommandHandler("getenchantments", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, "Shows the enchantments for the last appraised item")]
+        [CommandHandler("getenchantments", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the enchantments for the last appraised item")]
         public static void HandleGetEnchantments(Session session, params string[] parameters)
         {
             var item = CommandHandlerHelper.GetLastAppraisedObject(session);
@@ -4552,14 +4658,14 @@ namespace ACE.Server.Command.Handlers
         }
 
         // cm <material type> <quantity> <ave. workmanship>
-        [CommandHandler("cm", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Create a salvage bag in your inventory", "<material_type>, optional: <structure> <workmanship> <num_items>")]
+        [CommandHandler("cm", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1, "Create a salvage bag in your inventory", "<material_type>, optional: <structure> <workmanship> <num_items>")]
         public static void HandleCM(Session session, params string[] parameters)
         {
             // Format is: @cm <material type> <quantity> <ave. workmanship>
             HandleCISalvage(session, parameters);
         }
 
-        [CommandHandler("cisalvage", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Create a salvage bag in your inventory", "<material_type>, optional: <structure> <workmanship> <num_items>")]
+        [CommandHandler("cisalvage", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1, "Create a salvage bag in your inventory", "<material_type>, optional: <structure> <workmanship> <num_items>")]
         public static void HandleCISalvage(Session session, params string[] parameters)
         {
             if (!Enum.TryParse(parameters[0], true, out MaterialType materialType))
@@ -4591,9 +4697,10 @@ namespace ACE.Server.Command.Handlers
             salvageBag.NumItemsInMaterial = numItemsInMaterial;
 
             session.Player.TryCreateInInventoryWithNetworking(salvageBag);
+            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has created a bag of {materialType} salvage in their inventory.");
         }
 
-        [CommandHandler("setlbenviron", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+        [CommandHandler("setlbenviron", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
             "Sets or clears your current landblock's environment option",
             "(name or id of EnvironChangeType)\nleave blank to reset to default.\nlist to get a complete list of options.")]
         public static void HandleSetLBEnviron(Session session, params string[] parameters)
@@ -4629,7 +4736,7 @@ namespace ACE.Server.Command.Handlers
             session.Player.CurrentLandblock?.DoEnvironChange(environChange);
         }
 
-        [CommandHandler("setglobalenviron", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+        [CommandHandler("setglobalenviron", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0,
             "Sets or clears server's global environment option",
             "(name or id of EnvironChangeType)\nleave blank to reset to default.\nlist to get a complete list of options.")]
         public static void HandleSetGlobalEnviron(Session session, params string[] parameters)
@@ -4677,7 +4784,7 @@ namespace ACE.Server.Command.Handlers
             return msg;
         }
 
-        [CommandHandler("movetome", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, "Moves the last appraised object to the current player location.")]
+        [CommandHandler("movetome", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, "Moves the last appraised object to the current player location.")]
         public static void HandleMoveToMe(Session session, params string[] parameters)
         {
             var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
@@ -4720,6 +4827,7 @@ namespace ACE.Server.Command.Handlers
             }
 
             obj.SendUpdatePosition(true);
+            PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has moved {obj.Name} (0x{obj.Guid}) to their current location.");
         }
 
         [CommandHandler("reload-loot-tables", AccessLevel.Admin, CommandHandlerFlag.None, "reloads the latest data from the loot tables", "optional profile folder")]

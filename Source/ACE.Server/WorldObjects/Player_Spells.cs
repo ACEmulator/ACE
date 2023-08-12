@@ -15,6 +15,8 @@ using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
+// This file has been edited by Linae of DnF
+
 namespace ACE.Server.WorldObjects
 {
     partial class Player
@@ -202,7 +204,7 @@ namespace ACE.Server.WorldObjects
 
         public void CreateSentinelBuffPlayers(IEnumerable<Player> players, bool self = false, ulong maxLevel = 8)
         {
-            if (!(Session.AccessLevel >= AccessLevel.Sentinel)) return;
+            if (!(Session.AccessLevel >= AccessLevel.Advocate)) return;  // Edited use level by Linae
 
             var SelfOrOther = self ? "Self" : "Other";
 
@@ -265,7 +267,7 @@ namespace ACE.Server.WorldObjects
                     var itemBuffsForPlayer = buffsForPlayer.Where(k => k.Spell.School == MagicSchool.ItemEnchantment).ToList();
 
                     lifeBuffsForPlayer.ForEach(spl =>
-                    {
+                     {
                         CreateEnchantmentSilent(spl.Spell, targetPlayer);
                     });
                     critterBuffsForPlayer.ForEach(spl =>
@@ -305,7 +307,7 @@ namespace ACE.Server.WorldObjects
                 targetPlayer.HandleSpellHooks(spell);
             }
         }
-
+        
         // TODO: switch this over to SpellProgressionTables
         private static string[] Buffs = new string[] {
 #region spells

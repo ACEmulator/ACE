@@ -5,6 +5,8 @@ using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 
+// This file has been edited by Linae of DnF
+
 namespace ACE.Server.Network.GameAction.Actions
 {
     public static class GameActionChatChannel
@@ -51,9 +53,10 @@ namespace ACE.Server.Network.GameAction.Actions
                             session.Network.EnqueueSend(statusMessage);
                             break;
                         }
-
-                        PlayerManager.BroadcastToChannel(groupChatType, session.Player, message, true);
-                    }
+                			PlayerManager.BroadcastToAuditChannel(session.Player, $"{message}"); // Added by Linae
+                        // Below is the original code.
+                        //    PlayerManager.BroadcastToChannel(groupChatType, session.Player, message, true);
+                        }
                     break;
                 case Channel.Advocate1:
                 case Channel.Advocate2:

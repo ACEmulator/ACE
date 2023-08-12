@@ -11,6 +11,8 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics;
 
+// This file has been edited by Linae of DnF
+
 namespace ACE.Server.WorldObjects
 {
     public class Gem : Stackable
@@ -53,6 +55,12 @@ namespace ACE.Server.WorldObjects
         {
             if (!(activator is Player player))
                 return;
+
+            if (player.YouAreFrozen == true || player.YouAreJailed == true)  // Added by Linae
+            {
+                player.SendGemFrozenError();
+                return;
+            }
 
             if (player.IsBusy || player.Teleporting || player.suicideInProgress)
             {

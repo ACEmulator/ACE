@@ -17,6 +17,8 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Managers;
 
+// This file has been edited by Linae of DnF
+
 namespace ACE.Server.WorldObjects
 {
     partial class Player
@@ -72,7 +74,7 @@ namespace ACE.Server.WorldObjects
 
             if (RecallsDisabled)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ExitTrainingAcademyToUseCommand));
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You either need to leave the Training Academy or be thawed or pardoned by an Admin to use this ability.", ChatMessageType.Broadcast));  // thawed or pardoned added by Linae
                 return;
             }
 
@@ -139,7 +141,7 @@ namespace ACE.Server.WorldObjects
 
             if (RecallsDisabled)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ExitTrainingAcademyToUseCommand));
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You either need to leave the Training Academy or be thawed or pardoned by an Admin to use this ability.", ChatMessageType.Broadcast));  // thawed or pardoned added by Linae
                 return;
             }
 
@@ -212,7 +214,7 @@ namespace ACE.Server.WorldObjects
 
             if (RecallsDisabled)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ExitTrainingAcademyToUseCommand));
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You either need to leave the Training Academy or be thawed or pardoned by an Admin to use this ability.", ChatMessageType.Broadcast));  // thawed or pardoned added by Linae
                 return;
             }
 
@@ -281,7 +283,7 @@ namespace ACE.Server.WorldObjects
 
             if (RecallsDisabled)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ExitTrainingAcademyToUseCommand));
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You either need to leave the Training Academy or be thawed or pardoned by an Admin to use this ability.", ChatMessageType.Broadcast));  // thawed or pardoned added by Linae
                 return;
             }
 
@@ -374,7 +376,7 @@ namespace ACE.Server.WorldObjects
 
             if (RecallsDisabled)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ExitTrainingAcademyToUseCommand));
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You either need to leave the Training Academy or be thawed or pardoned by an Admin to use this ability.", ChatMessageType.Broadcast));  // thawed or pardoned added by Linae
                 return;
             }
 
@@ -495,7 +497,7 @@ namespace ACE.Server.WorldObjects
 
             if (RecallsDisabled)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ExitTrainingAcademyToUseCommand));
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You either need to leave the Training Academy or be thawed or pardoned by an Admin to use this ability.", ChatMessageType.Broadcast));  // thawed or pardoned added by Linae
                 return;
             }
 
@@ -579,7 +581,7 @@ namespace ACE.Server.WorldObjects
 
             if (RecallsDisabled)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.ExitTrainingAcademyToUseCommand));
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You either need to leave the Training Academy or be thawed or pardoned by an Admin to use this ability.", ChatMessageType.Broadcast));  // thawed or pardoned added by Linae
                 return;
             }
 
@@ -851,6 +853,24 @@ namespace ACE.Server.WorldObjects
             0x5963,     // Gauntlet Arena Two (Eldritch Web)
             0x5964,     // Gauntlet Arena One (Radiant Blood)
             0x5965,     // Gauntlet Arena Two (Radiant Blood)
+
+        // The below landblocks are added specifically for DnF by Linae
+            0x9204,     // Crypt's Bar
+            0x5954,     // Rynthid Testicle Weapons
+            0x586B,     // Olthoi Hive Queen
+            0xC7B7,     // PoQ
+            0xF93B,     // Empyrean Rescue
+            0x8B03,     // Apostate Finale
+            0xE401,     // Saving Asheron
+            0x1F50,     // Aerfalle Keep
+            0x6651,     // Hoshino Tower
+            0x3FB1,     // Unleash the GK's
+            0x584F,     // Nanjou Tower
+            0x5875,     // Rynthid Foothold
+            0x00A7,     // Quiddity Seed
+            0x00BC,     // Prodical Harby
+            0x584E,     // Serpent Burial Grounds
+            0x5764,     // Oubliette
         };
 
         /// <summary>
