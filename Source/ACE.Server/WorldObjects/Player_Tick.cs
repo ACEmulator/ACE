@@ -36,8 +36,6 @@ namespace ACE.Server.WorldObjects
         private double houseRentWarnTimestamp;
         private const double houseRentWarnInterval = 3600;
 
-        private uint CurrentLandcell = 0;
-
         public void Player_Tick(double currentUnixTime)
         {
             if (CharacterSaveFailed)
@@ -137,8 +135,6 @@ namespace ACE.Server.WorldObjects
                     ArenaManager.ExitArenaObserverMode(this);
                 }
             }
-
-            LogLandcells();
 
             PhysicsObj.ObjMaint.DestroyObjects();
 
@@ -837,15 +833,6 @@ namespace ACE.Server.WorldObjects
 
             if (MagicState.IsCasting)
                 HandleMotionDone_Magic(motionID, success);
-        }
-        public void LogLandcells()
-        {
-            if (this.CurrentLandcell != this.Location.Cell)
-            {
-                log.Info($"Landcell: {this.Location.Cell}");
-                this.CurrentLandcell = this.Location.Cell;
-            }
-
         }
     }
 }
