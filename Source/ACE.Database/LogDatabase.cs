@@ -544,6 +544,28 @@ namespace ACE.Database
 
         #endregion Arenas
 
+        #region Rare Log
+
+        public void LogRare(RareLog rareLog)
+        {
+            try
+            {                
+                using (var context = new LogDbContext())
+                {
+                    context.RareLogs.Add(rareLog);
+                    context.SaveChanges();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Exception in LogRare saving rare event to DB. ex: {ex}");
+            }
+
+            return;
+        }
+
+        #endregion
+
         //public bool ExampleCustomSql()
         //{            
         //    var sql = @$"";

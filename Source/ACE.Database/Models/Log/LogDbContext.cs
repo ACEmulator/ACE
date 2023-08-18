@@ -29,6 +29,8 @@ namespace ACE.Database.Models.Log
 
         public virtual DbSet<ArenaCharacterStats> ArenaCharacterStats { get; set; }
 
+        public virtual DbSet<RareLog> RareLogs { get; set; }
+
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -324,6 +326,34 @@ namespace ACE.Database.Models.Log
                 entity.Property(e => e.TotalDmgReceived)
                     .HasColumnName("total_dmg_received");
 
+            });
+
+            modelBuilder.Entity<RareLog>(entity =>
+            {
+                entity.HasKey(e => e.Id)
+                    .HasName("PRIMARY");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.ToTable("rare_log");
+
+                entity.Property(e => e.CharacterId)
+                    .HasColumnName("characterId");
+
+                entity.Property(e => e.CharacterName)
+                    .HasColumnName("characterName");
+
+                entity.Property(e => e.ItemBiotaId)
+                    .HasColumnName("itemBiotaId");
+
+                entity.Property(e => e.ItemWeenieId)
+                    .HasColumnName("itemWeenieId");
+
+                entity.Property(e => e.ItemName)
+                    .HasColumnName("itemName");
+
+                entity.Property(e => e.CreatedDateTime)
+                    .HasColumnName("createDateTime");               
             });
 
             OnModelCreatingPartial(modelBuilder);
