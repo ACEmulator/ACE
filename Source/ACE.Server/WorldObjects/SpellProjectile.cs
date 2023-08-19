@@ -460,6 +460,8 @@ namespace ACE.Server.WorldObjects
                     return 0.0f;
             }
 
+            //TODO if this is gauntlet, dont allow pvp dmg
+
             var critDamageBonus = 0.0f;
             var weaponCritDamageMod = 1.0f;
             var weaponResistanceMod = 1.0f;
@@ -609,7 +611,17 @@ namespace ACE.Server.WorldObjects
                         skillBonus = Spell.MinDamage * percentageBonus;
                     }
                 }
-                baseDamage = ThreadSafeRandom.Next(Spell.MinDamage, Spell.MaxDamage);
+
+                var minDmg = Spell.MinDamage;
+                var spellType = GetProjectileSpellType(Spell.Id);
+                if (isPVP && Spell.School == MagicSchool.WarMagic && (spellType == ProjectileSpellType.Arc || spellType == ProjectileSpellType.Bolt))
+                {
+                    var warVarianceMod = PropertyManager.GetDouble("pvp_dmg_mod_war_variance", 1).Item;
+                    var modifiedVariance = Convert.ToInt32(Math.Round(Spell.Variance * warVarianceMod));
+                    minDmg = Spell.MaxDamage - modifiedVariance;
+                }
+
+                baseDamage = ThreadSafeRandom.Next(minDmg, Spell.MaxDamage);
 
                 weaponResistanceMod = GetWeaponResistanceModifier(weapon, sourceCreature, attackSkill, Spell.DamageType);
 
