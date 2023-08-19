@@ -245,6 +245,9 @@ namespace ACE.Entity.Enum.Properties
         [ServerOnly]
         ArenaSameClanDailyRewardCount = 9009,
 
+        [ServerOnly]
+        LastChugTimestamp = 9010,
+
         /***** FOREDAWN CUSTOMS *****/
         ForedawnPvpDamageMulti = 52000
     }

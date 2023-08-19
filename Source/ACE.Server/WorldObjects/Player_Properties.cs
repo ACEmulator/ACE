@@ -1536,5 +1536,13 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyBool.HasArenaRareDmgReductionBuff) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.HasArenaRareDmgReductionBuff); else SetProperty(PropertyBool.HasArenaRareDmgReductionBuff, value); }
         }
+
+
+        /* Chug Timer */
+        public double? LastChugTimestamp
+        {
+            get => GetProperty(PropertyFloat.LastChugTimestamp) ?? 0;
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.LastChugTimestamp); else SetProperty(PropertyFloat.LastChugTimestamp, value.Value); }
+        }
     }
 }

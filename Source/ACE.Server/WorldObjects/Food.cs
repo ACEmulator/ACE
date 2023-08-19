@@ -8,6 +8,7 @@ using ACE.Server.Entity;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics;
 using ACE.Server.Managers;
+using ACE.Common;
 
 namespace ACE.Server.WorldObjects
 {
@@ -125,6 +126,19 @@ namespace ACE.Server.WorldObjects
                 if (arenaEvent != null && arenaEvent.IsOvertime)
                 {
                     boostValue = 0;
+                }
+            }
+
+            var chugTimerMillis = PropertyManager.GetLong("pvp_chug_timer").Item;
+            if (chugTimerMillis > 0)
+            {
+                if (player.LastChugTimestamp.HasValue && Time.GetDateTimeFromTimestamp(player.LastChugTimestamp.Value) > DateTime.Now.AddMilliseconds(chugTimerMillis * -1))
+                {
+                    boostValue = 0;
+                }
+                else if(boostValue > 0)
+                {
+                    player.LastChugTimestamp = Time.GetUnixTime(DateTime.Now);
                 }
             }
 
