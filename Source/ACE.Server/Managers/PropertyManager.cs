@@ -690,6 +690,7 @@ namespace ACE.Server.Managers
                 ("pvp_dmg_mod_war", new Property<double>(1.0, "Scales the amount of damage for war magic")),
                 ("pvp_dmg_mod_war_variance", new Property<double>(1.0, "Scales the low end for war magic bolts and arcs without effecting top end.  Values under 1 will reduce the variance and increase min dmg by the amount the variance was reduced.  Values over 1 will increase variance and reduce min dmg to match.")),
                 ("pvp_dmg_mod_war_streak", new Property<double>(1.0, "Scales the amount of damage for war streaks")),
+                ("pvp_dmg_mod_war_blast", new Property<double>(1.0, "Scales the amount of damage for war blasts")),
                 ("pvp_dmg_mod_void", new Property<double>(1.0, "Scales the amount of damage players take from Void Magic (not including streaks and DOTs which have their own mods)")),
                 ("pvp_dmg_mod_war_cb_crit", new Property<double>(1.0, "Scales the amount of CB crit damage for war magic.")),
                 ("pvp_dmg_mod_void_streak", new Property<double>(1.0, "Scales the amount of damage for void streaks.")),

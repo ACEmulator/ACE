@@ -656,7 +656,10 @@ namespace ACE.Server.WorldObjects
                     if (SpellType == ProjectileSpellType.Streak)
                         dmgMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_war_streak").Item; // scales war streak damages
 
-                    if(criticalHit && weapon.HasImbuedEffect(ImbuedEffectType.CripplingBlow))
+                    if (SpellType == ProjectileSpellType.Blast)
+                        dmgMod = (float)PropertyManager.GetDouble("pvp_dmg_mod_war_blast").Item; // scales war blast damages
+
+                    if (criticalHit && weapon.HasImbuedEffect(ImbuedEffectType.CripplingBlow))
                     {
                         dmgMod *= (float)PropertyManager.GetDouble("pvp_dmg_mod_war_cb_crit").Item;
                     }
