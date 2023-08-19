@@ -769,7 +769,8 @@ namespace ACE.Server.Managers
                 ("proxycheck_api_key", new Property<string>("", "API key for proxycheck.io service for VPN detection")),
                 ("town_control_alleglist", new Property<string>("", "A comma separated list of MonarchID values to whitelist allegiances for participation in town control events")),
                 ("town_control_globals_webhook", new Property<string>("", "Webhook to be send Town Control global messages.")),
-                ("arenas_blacklist", new Property<string>("", "A comma separated list of CharacterID values that cannot participate in Arenas"))
+                ("arenas_blacklist", new Property<string>("", "A comma separated list of CharacterID values that cannot participate in Arenas")),
+                ("arena_globals_webhook", new Property<string>("", "Webhook to be send Arena global messages."))
                 );
     }
 }

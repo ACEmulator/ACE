@@ -65,6 +65,8 @@ namespace ACE.Server.Managers
                 if (queuedPlayers.Count() > 0)
                     queuedPlayers.Clear();
 
+                LastTickDateTime = DateTime.Now;
+
                 return;
             }
 

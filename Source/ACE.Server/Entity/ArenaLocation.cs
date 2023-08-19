@@ -7,6 +7,7 @@ using ACE.Entity.Enum;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Handlers;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Managers;
 using log4net;
@@ -303,7 +304,6 @@ namespace ACE.Server.Entity
                             }
                         }
 
-
                         //For overtime testing, push the start date back so overtime starts 30 seconds into the match
                         //if (this.ActiveEvent.StartDateTime < DateTime.Now.AddSeconds(-30) && this.ActiveEvent.StartDateTime > DateTime.Now.AddMinutes(-15))
                         //{
@@ -330,6 +330,18 @@ namespace ACE.Server.Entity
                                 if (player != null)
                                 {
                                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"OVERTIME! Chugs are disabled and all healing will be incrementally less effective as time goes on.  Overtime Remaining: {this.ActiveEvent.OvertimeRemainingDisplay}", ChatMessageType.System));
+                                }
+                            }
+
+                            if (this.ActiveEvent.Observers != null)
+                            {
+                                foreach (var observer in this.ActiveEvent.Observers)
+                                {
+                                    var player = PlayerManager.GetOnlinePlayer(observer);
+                                    if (player != null)
+                                    {
+                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"OVERTIME! Chugs are disabled and all healing will be incrementally less effective as time goes on.  Overtime Remaining: {this.ActiveEvent.OvertimeRemainingDisplay}", ChatMessageType.System));
+                                    }
                                 }
                             }
                             break;
@@ -359,6 +371,25 @@ namespace ACE.Server.Entity
                                     {
                                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Remaining Event Time: {this.ActiveEvent.TimeRemainingDisplay}", ChatMessageType.System));
                                     }                                    
+                                }
+                            }
+
+                            if (this.ActiveEvent.Observers != null)
+                            {
+                                foreach (var observer in this.ActiveEvent.Observers)
+                                {
+                                    var player = PlayerManager.GetOnlinePlayer(observer);
+                                    if (player != null)
+                                    {
+                                        if (this.ActiveEvent.IsOvertime)
+                                        {
+                                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Overtime Remaining: {this.ActiveEvent.OvertimeRemainingDisplay}\nHealing Reduction: {this.ActiveEvent.OvertimeHealingModifierDisplay}", ChatMessageType.System));
+                                        }
+                                        else
+                                        {
+                                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Remaining Event Time: {this.ActiveEvent.TimeRemainingDisplay}", ChatMessageType.System));
+                                        }
+                                    }
                                 }
                             }
 
@@ -576,7 +607,21 @@ namespace ACE.Server.Entity
 
             DatabaseManager.Log.SaveArenaEvent(this.ActiveEvent);
 
-            PlayerManager.BroadcastToAll(new GameMessageSystemChat($"Arena Match Started: Event Type = {this.ActiveEvent.EventTypeDisplay}, Players = {this.ActiveEvent.PlayersDisplay}, EventID = {this.ActiveEvent.Id}. To watch the event, type /arena watch {this.ActiveEvent.Id}", ChatMessageType.Broadcast));
+            var msg = $"Arena Match Started: Event Type = {this.ActiveEvent.EventTypeDisplay}, Players = {this.ActiveEvent.PlayersDisplay}, EventID = {this.ActiveEvent.Id}. To watch the event, type /arena watch {this.ActiveEvent.Id}";
+            PlayerManager.BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+            try
+            {
+                var webhookUrl = PropertyManager.GetString("arena_globals_webhook").Item;
+                if (!string.IsNullOrEmpty(webhookUrl))
+                {
+                    _ = TurbineChatHandler.SendWebhookedChat("Arenas", msg, webhookUrl, "Global");
+                }
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("Failed sending Arena global message to webhook. Ex:{0}", ex);
+            }
+            
         }
 
         public void EndEventWithWinner(Guid winningTeamGuid)
@@ -652,7 +697,7 @@ namespace ACE.Server.Entity
                 var player = PlayerManager.GetOnlinePlayer(winner.CharacterId);
                 if (player != null)
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Congratulations, you've won the {this.ActiveEvent.EventTypeDisplay} arena event against {loserList}!\nIf you're still in the {this.ArenaName} arena you have a short period before you're teleported to your Lifestone so hurry up and loot.", ChatMessageType.System));
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Congratulations, you've won the {this.ActiveEvent.EventTypeDisplay} arena event against {loserList}!\nIf you're still in {this.ArenaName} you have a short period before you're teleported to your Lifestone so hurry up and loot.", ChatMessageType.System));
 
                     //Reward the winners
                     var shouldReward = IsPlayerRewardEligible(player, winner, this.ActiveEvent.Players) && !underageViolation;
@@ -1024,7 +1069,21 @@ namespace ACE.Server.Entity
             }
 
             //Global Broadcast
-            PlayerManager.BroadcastToAll(new GameMessageSystemChat($"{winnerList} just won a {this.ActiveEvent.EventTypeDisplay} arena event against {loserList} in the {this.ArenaName} arena", ChatMessageType.Broadcast));
+            var globalMsg = $"{winnerList} just won a {this.ActiveEvent.EventTypeDisplay} arena event against {loserList} in {this.ArenaName}";
+            PlayerManager.BroadcastToAll(new GameMessageSystemChat(globalMsg, ChatMessageType.Broadcast));
+            try
+            {
+                var webhookUrl = PropertyManager.GetString("arena_globals_webhook").Item;
+                if (!string.IsNullOrEmpty(webhookUrl))
+                {
+                    _ = TurbineChatHandler.SendWebhookedChat("Arenas", globalMsg, webhookUrl, "Global");
+                }
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("Failed sending Arena global message to webhook. Ex:{0}", ex);
+            }
+
         }
 
         public void SetPlayerRewardLimitProperties(Player player, ArenaPlayer arenaPlayer)
@@ -1212,6 +1271,21 @@ namespace ACE.Server.Entity
 
                     ArenaManager.DispelArenaRares(player);
                 }
+            }
+
+            var drawMsg = $"Arena event ended in a draw: {this.ActiveEvent.EventTypeDisplay} - {this.ActiveEvent.PlayersDisplay} - {this.ArenaName}";
+            PlayerManager.BroadcastToAll(new GameMessageSystemChat(drawMsg, ChatMessageType.Broadcast));
+            try
+            {
+                var webhookUrl = PropertyManager.GetString("arena_globals_webhook").Item;
+                if (!string.IsNullOrEmpty(webhookUrl))
+                {
+                    _ = TurbineChatHandler.SendWebhookedChat("Arenas", drawMsg, webhookUrl, "Global");
+                }
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("Failed sending Arena global message to webhook. Ex:{0}", ex);
             }
         }
 
