@@ -802,6 +802,12 @@ namespace ACE.Server.Command.Handlers
             if(session.Player.IsArenaObserver || session.Player.IsPendingArenaObserver)
                 return $"You cannot join an arena queue while you're watching an arena event. Use /arena cancel to stop watching the current event before you queue.";
 
+            if (!session.Player.IsPK)
+                return $"You cannot join an arena queue while until you are in a PK state";
+
+            if(session.Player.PKTimerActive)
+                return $"You cannot join an arena queue while you are PK tagged";
+
             string returnMsg;
             if(!ArenaManager.AddPlayerToQueue(
                 session.Player.Character.Id,
