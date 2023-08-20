@@ -1167,7 +1167,7 @@ namespace ACE.Server.Command.Handlers
                     }
                 }
                 else if (parameters.Length > 1 && parameters[1] == "name")
-                {                    
+                {
                     var playerName = "";
                     for (var i = 2; i < parameters.Length; i++)
                         playerName += $"{parameters[i]} ";
@@ -1287,13 +1287,13 @@ namespace ACE.Server.Command.Handlers
                 else if (parameters.Length > 1 && parameters[1] == "summary")
                 {
                     var apartmentsTotal = 3000d;
-                    var cottagesTotal   = 2600d;
-                    var villasTotal     = 570d;
-                    var mansionsTotal   = 80d;
+                    var cottagesTotal = 2600d;
+                    var villasTotal = 570d;
+                    var mansionsTotal = 80d;
 
-                    var cottages   = 0;
-                    var villas     = 0;
-                    var mansions   = 0;
+                    var cottages = 0;
+                    var villas = 0;
+                    var mansions = 0;
                     var apartments = 0;
 
                     for (var i = 1u; i < 6251; i++)
@@ -1322,9 +1322,9 @@ namespace ACE.Server.Command.Handlers
                     }
 
                     var apartmentsAvail = (apartmentsTotal - apartments) / apartmentsTotal;
-                    var cottagesAvail   = (cottagesTotal - cottages) / cottagesTotal;
-                    var villasAvail     = (villasTotal - villas) / villasTotal;
-                    var mansionsAvail   = (mansionsTotal - mansions) / mansionsTotal;
+                    var cottagesAvail = (cottagesTotal - cottages) / cottagesTotal;
+                    var villasAvail = (villasTotal - villas) / villasTotal;
+                    var mansionsAvail = (mansionsTotal - mansions) / mansionsTotal;
 
                     var msg = "HUD Report:\n";
                     msg += "=========================================================\n";
@@ -1499,7 +1499,7 @@ namespace ACE.Server.Command.Handlers
                 msg += "@adminhouse payrent off / on: sets the targeted house to not require / require normal maintenance payments.\n";
 
                 session.Player.SendMessage(msg);
-            }    
+            }
         }
 
         private static void DumpHouse(Session session, House targetHouse, WorldObject wo)
@@ -1577,7 +1577,7 @@ namespace ACE.Server.Command.Handlers
                     session.Player.SendMessage(msg, ChatMessageType.System);
                 }
 
-                session.Player.SendMessage(AppendHouseLinkDump(house), ChatMessageType.System);                
+                session.Player.SendMessage(AppendHouseLinkDump(house), ChatMessageType.System);
 
                 if (house.HouseType == HouseType.Villa || house.HouseType == HouseType.Mansion)
                 {
@@ -1797,7 +1797,7 @@ namespace ACE.Server.Command.Handlers
 
                     var names = string.Join(" ", parameters).Split(",");
 
-                    var newCharName = names[1].TrimStart(' ').TrimEnd(' ');                    
+                    var newCharName = names[1].TrimStart(' ').TrimEnd(' ');
 
                     if (newCharName.StartsWith("+"))
                         newCharName = newCharName.Substring(1);
@@ -2447,7 +2447,7 @@ namespace ACE.Server.Command.Handlers
             var obj = WorldObjectFactory.CreateNewWorldObject(weenie);
 
             //if (obj.TimeToRot == null)
-                //obj.TimeToRot = double.MaxValue;
+            //obj.TimeToRot = double.MaxValue;
 
             if (obj.WeenieType == WeenieType.Creature)
                 obj.Location = session.Player.Location.InFrontOf(5f, true);
@@ -2716,7 +2716,7 @@ namespace ACE.Server.Command.Handlers
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat($"You must select a player to send them a message.", ChatMessageType.Broadcast));
                 return;
-            }    
+            }
 
             var wo = session.Player.CurrentLandblock?.GetObject(objectId);
 
@@ -3162,7 +3162,7 @@ namespace ACE.Server.Command.Handlers
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"Exception ( { e.Source } - {e.Message} ) caught while {currentPlayer.Name} was attempting to return to normal from godmode.");
+                    Console.WriteLine($"Exception ( {e.Source} - {e.Message} ) caught while {currentPlayer.Name} was attempting to return to normal from godmode.");
                     ChatPacket.SendServerMessage(session, "Error returning to mortal state, defaulting to godmode.", ChatMessageType.Broadcast);
                     DoGodMode(true, session, true);
                     return;
@@ -4800,7 +4800,7 @@ namespace ACE.Server.Command.Handlers
             var queuedPlayers = ArenaManager.GetQueuedPlayers();
             if (queuedPlayers != null)
             {
-                foreach(var arenaPlayer in queuedPlayers)
+                foreach (var arenaPlayer in queuedPlayers)
                 {
                     returnMsg.Append($"  CharacterID = {arenaPlayer.CharacterId}\n");
                     returnMsg.Append($"  CharacterName = {arenaPlayer.CharacterName}\n");
@@ -4830,9 +4830,9 @@ namespace ACE.Server.Command.Handlers
             returnMsg.Append($"\nActive Events:\n\n");
 
             var activeEvents = ArenaManager.GetActiveEvents();
-            if(activeEvents != null)
+            if (activeEvents != null)
             {
-                foreach(var arenaEvent in activeEvents)
+                foreach (var arenaEvent in activeEvents)
                 {
                     returnMsg.Append($"  EventID = {arenaEvent.Id}\n");
                     returnMsg.Append($"  EventType = {arenaEvent.EventType}\n");
@@ -4905,7 +4905,7 @@ namespace ACE.Server.Command.Handlers
             }
 
             ArenaManager.ClearQueue(eventType);
-            CommandHandlerHelper.WriteOutputInfo(session, $"You've successfully cleared the queue for {(string.IsNullOrEmpty(eventType) ? "all arena event types" : "the " + eventType + " event type")}");            
+            CommandHandlerHelper.WriteOutputInfo(session, $"You've successfully cleared the queue for {(string.IsNullOrEmpty(eventType) ? "all arena event types" : "the " + eventType + " event type")}");
         }
 
         [CommandHandler("arenacancelevent", AccessLevel.Sentinel, CommandHandlerFlag.None, 1,
@@ -4922,7 +4922,7 @@ namespace ACE.Server.Command.Handlers
                 {
                     eventId = int.Parse(eventIdParam);
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     CommandHandlerHelper.WriteOutputInfo(session, $"Invalid parameters.  EventID {eventIdParam} is not a valid number.\nUsage:\n  /ArenaCancelEvent EventID");
                     return;
@@ -4945,6 +4945,58 @@ namespace ACE.Server.Command.Handlers
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Invalid parameters.  Must provide a single EventID as parameter.\nUsage:\n  /ArenaCancelEvent EventID");
                 return;
+            }
+        }
+
+        [CommandHandler("arenarecalcelo", AccessLevel.Sentinel, CommandHandlerFlag.None, 0,
+            "Recalculates all players ELO from match history")]
+        public static void HandleArenaRecalcELO(Session session, params string[] parameters)
+        {
+            //Process 1v1
+            var arenaEvents = DatabaseManager.Log.GetAllArenaEvents();
+            Dictionary<uint, uint> characterRankings = new Dictionary<uint, uint>();
+            arenaEvents = arenaEvents.Where(x => x.EventType.ToLower().Equals("1v1"))?.OrderBy(x => x.CreatedDateTime).ToList() ?? new List<ArenaEvent>();
+            foreach(var arenaEvent in arenaEvents)
+            {
+                if(arenaEvent.WinningTeamGuid.HasValue)
+                {
+                    var winner = arenaEvent.Players?.FirstOrDefault(x => x.TeamGuid == arenaEvent.WinningTeamGuid);
+                    if(winner != null)
+                    {
+                        var loser = arenaEvent.Players?.FirstOrDefault(x => x.CharacterId != winner.CharacterId);
+                        if(loser != null)
+                        {
+                            var winnerCurrentRank = characterRankings.ContainsKey(winner.CharacterId) ? characterRankings[winner.CharacterId] : 1500;
+                            var loserCurrentRank = characterRankings.ContainsKey(loser.CharacterId) ? characterRankings[loser.CharacterId] : 1500;
+
+                            var rankChange = ArenaRanking.GetRankChange(winnerCurrentRank, loserCurrentRank, 32);
+
+                            var winnerNewRank = (int)winnerCurrentRank + rankChange > 0 ? (uint)(winnerCurrentRank + rankChange) : default(uint);
+                            var loserNewRank = (int)loserCurrentRank - rankChange > 0 ? (uint)(loserCurrentRank - rankChange) : default(uint);
+
+                            if (characterRankings.ContainsKey(winner.CharacterId))
+                            {
+                                characterRankings[winner.CharacterId] = winnerNewRank;
+                            }
+                            else
+                            {
+                                characterRankings.Add(winner.CharacterId, winnerNewRank);
+                            }
+
+                            if (characterRankings.ContainsKey(loser.CharacterId))
+                            {
+                                characterRankings[loser.CharacterId] = loserNewRank;
+                            }
+                            else
+                            {
+                                characterRankings.Add(loser.CharacterId, loserNewRank);
+                            }
+
+                            DatabaseManager.Log.AddToArenaStats(winner.CharacterId, winner.CharacterName, "1v1", 0, 0, 0, 0, 0, 0, 0, 0, 0, winnerNewRank);
+                            DatabaseManager.Log.AddToArenaStats(loser.CharacterId, loser.CharacterName, "1v1", 0, 0, 0, 0, 0, 0, 0, 0, 0, loserNewRank);
+                        }
+                    }
+                }
             }
         }
     }

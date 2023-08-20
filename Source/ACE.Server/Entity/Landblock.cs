@@ -33,6 +33,7 @@ using ACE.Adapter.GDLE.Models;
 using ACE.Database.Models.TownControl;
 using K4os.Compression.LZ4.Engine;
 using ACE.Server.Network.Handlers;
+using ACE.Server.Entity;
 
 namespace ACE.Server.Entity
 {

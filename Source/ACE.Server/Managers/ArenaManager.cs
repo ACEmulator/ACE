@@ -13,7 +13,6 @@ using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
@@ -28,6 +27,7 @@ using System.Runtime.CompilerServices;
 using System.Net.NetworkInformation;
 using ACE.Server.Entity.Actions;
 using Microsoft.Extensions.Logging;
+using ACE.Server.Entity;
 
 namespace ACE.Server.Managers
 {

@@ -29,7 +29,7 @@ namespace ACE.Server.Entity
 {
     public class ArenaLocation
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public uint LandblockId { get; set; }
 
@@ -61,7 +61,7 @@ namespace ACE.Server.Entity
             if (!HasActiveEvent && lastTickDateTime > DateTime.Now.AddSeconds(-5))
             {
                 return;
-            }            
+            }
 
             if (HasActiveEvent)
             {
@@ -70,20 +70,20 @@ namespace ACE.Server.Entity
                 //If arenas are disabled
                 if (PropertyManager.GetBool("disable_arenas").Item)
                 {
-                    this.ActiveEvent.Status = -1;
+                    ActiveEvent.Status = -1;
                     EndEventCancel();
                     ClearPlayersFromArena();
-                    this.ActiveEvent = null;                    
+                    ActiveEvent = null;
                     return;
                 }
 
                 //If arenas observers are disabled
                 if (!PropertyManager.GetBool("arena_allow_observers").Item)
                 {
-                    if ((this.ActiveEvent.Observers?.Count ?? 0) > 0)
+                    if ((ActiveEvent.Observers?.Count ?? 0) > 0)
                     {
                         List<uint> activeObservers = new List<uint>();
-                        foreach (var observer in this.ActiveEvent.Observers)
+                        foreach (var observer in ActiveEvent.Observers)
                         {
                             var observerPlayer = PlayerManager.GetOnlinePlayer(observer);
                             if (observerPlayer != null)
@@ -92,26 +92,26 @@ namespace ACE.Server.Entity
                             }
                         }
 
-                        foreach(var observer in activeObservers)
+                        foreach (var observer in activeObservers)
                         {
-                            this.ActiveEvent.Observers.Remove(observer);
+                            ActiveEvent.Observers.Remove(observer);
                             var observerPlayer = PlayerManager.GetOnlinePlayer(observer);
                             if (observerPlayer != null)
                             {
                                 ArenaManager.ExitArenaObserverMode(observerPlayer);
-                            }                            
-                        }                        
+                            }
+                        }
                     }
                 }
 
                 //Drive the active arena event through its lifecycle
-                switch (this.ActiveEvent.Status)
+                switch (ActiveEvent.Status)
                 {
                     case -1: //Event cancelled
                         //log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = -1");
                         ClearPlayersFromArena();
                         EndEventCancel();
-                        this.ActiveEvent = null;
+                        ActiveEvent = null;
                         break;
 
                     case 1: //Not started                            
@@ -121,25 +121,25 @@ namespace ACE.Server.Entity
                         //Verify all players are still online, pk status and not pvp tagged
                         if (!ValidateArenaEventPlayers(out string resultMsg))
                         {
-                            log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 1 - Invalid Player State, canceling event. Reason = {resultMsg}");
-                            this.ActiveEvent.CancelReason = resultMsg;
-                            ArenaManager.CancelEvent(this.ActiveEvent);
+                            log.Info($"ArenaLocation.Tick() - {ArenaName} status = 1 - Invalid Player State, canceling event. Reason = {resultMsg}");
+                            ActiveEvent.CancelReason = resultMsg;
+                            ArenaManager.CancelEvent(ActiveEvent);
                         }
 
                         //Broadcast to all players that a match was found and begin the countdown
                         //log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 1 - Broadcasting that a match has been found");
-                        foreach (var arenaPlayer in this.ActiveEvent.Players)
+                        foreach (var arenaPlayer in ActiveEvent.Players)
                         {
                             var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
                             if (player != null)
                             {
-                                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} - You have been matched for a {this.ActiveEvent.EventTypeDisplay} arena event.  Prepare yourself, you will be teleported to the arena shortly.", ChatMessageType.System));
+                                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} - You have been matched for a {ActiveEvent.EventTypeDisplay} arena event.  Prepare yourself, you will be teleported to the arena shortly.", ChatMessageType.System));
                             }
                         }
 
-                        this.ActiveEvent.PreEventCountdownStartDateTime = DateTime.Now;
+                        ActiveEvent.PreEventCountdownStartDateTime = DateTime.Now;
 
-                        this.ActiveEvent.Status = this.ActiveEvent.Status == -1 ? -1 : 2;
+                        ActiveEvent.Status = ActiveEvent.Status == -1 ? -1 : 2;
                         break;
 
                     case 2://Pre-event countdown in progress
@@ -149,55 +149,55 @@ namespace ACE.Server.Entity
                         //Verify all players are still online, pk status and not pvp tagged
                         if (!ValidateArenaEventPlayers(out string resultMsg2))
                         {
-                            log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 1 - Invalid Player State, canceling event. Reason = {resultMsg2}");
-                            this.ActiveEvent.CancelReason = resultMsg2;
-                            ArenaManager.CancelEvent(this.ActiveEvent);
+                            log.Info($"ArenaLocation.Tick() - {ArenaName} status = 1 - Invalid Player State, canceling event. Reason = {resultMsg2}");
+                            ActiveEvent.CancelReason = resultMsg2;
+                            ArenaManager.CancelEvent(ActiveEvent);
                             return;
                         }
 
                         //Check if the pre-event countdown has completed
                         //if so, teleport all players to the arena and move to the next status
-                        if (DateTime.Now.AddSeconds(-10) > this.ActiveEvent.PreEventCountdownStartDateTime)
+                        if (DateTime.Now.AddSeconds(-10) > ActiveEvent.PreEventCountdownStartDateTime)
                         {
                             //log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 2 - PreEventCountdown is complete");
 
                             //Pre-Event countdown is complete
-                            List<Position> positions = ArenaLocation.GetArenaLocationStartingPositions(this.ActiveEvent.Location);
+                            List<Position> positions = GetArenaLocationStartingPositions(ActiveEvent.Location);
                             var playerList = new List<Player>();
-                            foreach (var arenaPlayer in this.ActiveEvent.Players)
+                            foreach (var arenaPlayer in ActiveEvent.Players)
                             {
                                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
                                 if (player != null)
                                 {
-                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Players are now being teleported to the {this.ActiveEvent.EventTypeDisplay} arena event.\nAfter a brief pause to allow everyone to arrive, the event will begin.", ChatMessageType.System));
+                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Players are now being teleported to the {ActiveEvent.EventTypeDisplay} arena event.\nAfter a brief pause to allow everyone to arrive, the event will begin.", ChatMessageType.System));
                                     playerList.Add(player);
                                 }
                                 else
                                 {
                                     //this shouldn't happen since we checked all players are online, but if it does, cancel
-                                    log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 2 - PreEventCountdown is complete but player {arenaPlayer.CharacterName} is offline.  Canceling the event.");
-                                    this.ActiveEvent.CancelReason = $"{arenaPlayer.CharacterName} logged off before being teleported to the arena";
-                                    ArenaManager.CancelEvent(this.ActiveEvent);
+                                    log.Info($"ArenaLocation.Tick() - {ArenaName} status = 2 - PreEventCountdown is complete but player {arenaPlayer.CharacterName} is offline.  Canceling the event.");
+                                    ActiveEvent.CancelReason = $"{arenaPlayer.CharacterName} logged off before being teleported to the arena";
+                                    ArenaManager.CancelEvent(ActiveEvent);
                                     break;
                                 }
                             }
 
                             //For team event types, add players to fellowships
-                            if (this.ActiveEvent.EventType.Equals("2v2"))
+                            if (ActiveEvent.EventType.Equals("2v2"))
                             {
                                 CreateTeamFellowships();
                             }
 
                             //Teleport into the arena
                             for (int i = 0; i < playerList.Count; i++)
-                            {                                
+                            {
                                 var j = i < positions.Count ? i : positions.Count - 1;
-                                log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 2 - teleporting {playerList[i].Name} to position {positions[j].ToLOCString}");
+                                log.Info($"ArenaLocation.Tick() - {ArenaName} status = 2 - teleporting {playerList[i].Name} to position {positions[j].ToLOCString}");
                                 playerList[i].Teleport(positions[j]);
                             }
 
-                            this.ActiveEvent.CountdownStartDateTime = DateTime.Now;
-                            this.ActiveEvent.Status = this.ActiveEvent.Status == -1 ? -1 : 3;
+                            ActiveEvent.CountdownStartDateTime = DateTime.Now;
+                            ActiveEvent.Status = ActiveEvent.Status == -1 ? -1 : 3;
                         }
                         else
                         {
@@ -211,10 +211,10 @@ namespace ACE.Server.Entity
                         //log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 3");
 
                         //Countdown is complete, start the event
-                        if (DateTime.Now.AddSeconds(-15) > this.ActiveEvent.CountdownStartDateTime)
+                        if (DateTime.Now.AddSeconds(-15) > ActiveEvent.CountdownStartDateTime)
                         {
-                            log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 3, countdown is complete, start the fight");
-                            foreach (var arenaPlayer in this.ActiveEvent.Players)
+                            log.Info($"ArenaLocation.Tick() - {ArenaName} status = 3, countdown is complete, start the fight");
+                            foreach (var arenaPlayer in ActiveEvent.Players)
                             {
                                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
                                 if (player != null)
@@ -238,8 +238,8 @@ namespace ACE.Server.Entity
                         //log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 4");
 
                         //Check if any players are no longer in the arena
-                        var notEliminatedPlayers = this.ActiveEvent.Players.Where(x => !x.IsEliminated)?.ToList() ?? new List<ArenaPlayer>();
-                        foreach (var arenaPlayer in this.ActiveEvent.Players)
+                        var notEliminatedPlayers = ActiveEvent.Players.Where(x => !x.IsEliminated)?.ToList() ?? new List<ArenaPlayer>();
+                        foreach (var arenaPlayer in ActiveEvent.Players)
                         {
                             if (!arenaPlayer.IsEliminated)
                             {
@@ -262,7 +262,7 @@ namespace ACE.Server.Entity
                                     }
 
                                     //if the player is not on the arena landblock they're eliminated
-                                    if (player.Location.Landblock != this.ActiveEvent.Location)
+                                    if (player.Location.Landblock != ActiveEvent.Location)
                                     {
                                         arenaPlayer.IsEliminated = true;
                                         ArenaManager.DispelArenaRares(player);
@@ -276,21 +276,21 @@ namespace ACE.Server.Entity
                                 }
 
                                 //
-                                if(arenaPlayer.IsEliminated && !arenaPlayer.IsDisqualified)
+                                if (arenaPlayer.IsEliminated && !arenaPlayer.IsDisqualified)
                                 {
                                     arenaPlayer.FinishPlace = notEliminatedPlayers.Count() + 1;
 
-                                    if(player != null)
-                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been eliminated from the {this.ActiveEvent.EventTypeDisplay} arena match in {this.ArenaName}.  You finished in {arenaPlayer.FinishPlaceDisplay} place.", ChatMessageType.System));
+                                    if (player != null)
+                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been eliminated from the {ActiveEvent.EventTypeDisplay} arena match in {ArenaName}.  You finished in {arenaPlayer.FinishPlaceDisplay} place.", ChatMessageType.System));
                                 }
                             }
                         }
 
                         //Check if there's a winner
-                        if (this.ActiveEvent.WinningTeamGuid.HasValue)
+                        if (ActiveEvent.WinningTeamGuid.HasValue)
                         {
-                            log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 4, WinningTeamGuid is already set, ending event with winner");
-                            EndEventWithWinner(this.ActiveEvent.WinningTeamGuid.Value);
+                            log.Info($"ArenaLocation.Tick() - {ArenaName} status = 4, WinningTeamGuid is already set, ending event with winner");
+                            EndEventWithWinner(ActiveEvent.WinningTeamGuid.Value);
                             break;
                         }
                         else
@@ -298,7 +298,7 @@ namespace ACE.Server.Entity
                             //log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 4, WinningTeamGuid is not set, checking for winner");
                             if (CheckForArenaWinner(out Guid? winningTeamGuid) && winningTeamGuid.HasValue)
                             {
-                                log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 4, winner found, ending event with winner");
+                                log.Info($"ArenaLocation.Tick() - {ArenaName} status = 4, winner found, ending event with winner");
                                 EndEventWithWinner(winningTeamGuid.Value);
                                 break;
                             }
@@ -320,27 +320,27 @@ namespace ACE.Server.Entity
                         //}
 
                         //Check if the time limit has been exceeded
-                        if (!this.ActiveEvent.IsOvertime && this.ActiveEvent.TimeRemaining <= TimeSpan.Zero)
+                        if (!ActiveEvent.IsOvertime && ActiveEvent.TimeRemaining <= TimeSpan.Zero)
                         {
-                            log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 4, event time limit exceeded, going to overtime");
-                            this.ActiveEvent.IsOvertime = true;
-                            foreach (var arenaPlayer in this.ActiveEvent.Players)
+                            log.Info($"ArenaLocation.Tick() - {ArenaName} status = 4, event time limit exceeded, going to overtime");
+                            ActiveEvent.IsOvertime = true;
+                            foreach (var arenaPlayer in ActiveEvent.Players)
                             {
                                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
                                 if (player != null)
                                 {
-                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"OVERTIME! Chugs are disabled and all healing will be incrementally less effective as time goes on.  Overtime Remaining: {this.ActiveEvent.OvertimeRemainingDisplay}", ChatMessageType.System));
+                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"OVERTIME! Chugs are disabled and all healing will be incrementally less effective as time goes on.  Overtime Remaining: {ActiveEvent.OvertimeRemainingDisplay}", ChatMessageType.System));
                                 }
                             }
 
-                            if (this.ActiveEvent.Observers != null)
+                            if (ActiveEvent.Observers != null)
                             {
-                                foreach (var observer in this.ActiveEvent.Observers)
+                                foreach (var observer in ActiveEvent.Observers)
                                 {
                                     var player = PlayerManager.GetOnlinePlayer(observer);
                                     if (player != null)
                                     {
-                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"OVERTIME! Chugs are disabled and all healing will be incrementally less effective as time goes on.  Overtime Remaining: {this.ActiveEvent.OvertimeRemainingDisplay}", ChatMessageType.System));
+                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"OVERTIME! Chugs are disabled and all healing will be incrementally less effective as time goes on.  Overtime Remaining: {ActiveEvent.OvertimeRemainingDisplay}", ChatMessageType.System));
                                     }
                                 }
                             }
@@ -348,9 +348,9 @@ namespace ACE.Server.Entity
                         }
 
                         //Check if overtime has been exceeded
-                        if (this.ActiveEvent.IsOvertime && this.ActiveEvent.OvertimeRemaining <= TimeSpan.Zero)
+                        if (ActiveEvent.IsOvertime && ActiveEvent.OvertimeRemaining <= TimeSpan.Zero)
                         {
-                            log.Info($"ArenaLocation.Tick() - {this.ArenaName} status = 4, event time limit exceeded, ending in draw");
+                            log.Info($"ArenaLocation.Tick() - {ArenaName} status = 4, event time limit exceeded, ending in draw");
                             EndEventTimelimitExceeded();
                             break;
                         }
@@ -358,43 +358,43 @@ namespace ACE.Server.Entity
                         //Message arena players with time updates every 30 seconds
                         if (DateTime.Now.AddSeconds(-30) > lastEventTimerMessage)
                         {
-                            foreach (var arenaPlayer in this.ActiveEvent.Players)
+                            foreach (var arenaPlayer in ActiveEvent.Players)
                             {
                                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
                                 if (player != null)
                                 {
-                                    if(this.ActiveEvent.IsOvertime)
+                                    if (ActiveEvent.IsOvertime)
                                     {
-                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Overtime Remaining: {this.ActiveEvent.OvertimeRemainingDisplay}\nHealing Reduction: {this.ActiveEvent.OvertimeHealingModifierDisplay}", ChatMessageType.System));
+                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Overtime Remaining: {ActiveEvent.OvertimeRemainingDisplay}\nHealing Reduction: {ActiveEvent.OvertimeHealingModifierDisplay}", ChatMessageType.System));
                                     }
                                     else
                                     {
-                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Remaining Event Time: {this.ActiveEvent.TimeRemainingDisplay}", ChatMessageType.System));
-                                    }                                    
+                                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Remaining Event Time: {ActiveEvent.TimeRemainingDisplay}", ChatMessageType.System));
+                                    }
                                 }
                             }
 
-                            if (this.ActiveEvent.Observers != null)
+                            if (ActiveEvent.Observers != null)
                             {
-                                foreach (var observer in this.ActiveEvent.Observers)
+                                foreach (var observer in ActiveEvent.Observers)
                                 {
                                     var player = PlayerManager.GetOnlinePlayer(observer);
                                     if (player != null)
                                     {
-                                        if (this.ActiveEvent.IsOvertime)
+                                        if (ActiveEvent.IsOvertime)
                                         {
-                                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Overtime Remaining: {this.ActiveEvent.OvertimeRemainingDisplay}\nHealing Reduction: {this.ActiveEvent.OvertimeHealingModifierDisplay}", ChatMessageType.System));
+                                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Overtime Remaining: {ActiveEvent.OvertimeRemainingDisplay}\nHealing Reduction: {ActiveEvent.OvertimeHealingModifierDisplay}", ChatMessageType.System));
                                         }
                                         else
                                         {
-                                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Remaining Event Time: {this.ActiveEvent.TimeRemainingDisplay}", ChatMessageType.System));
+                                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Remaining Event Time: {ActiveEvent.TimeRemainingDisplay}", ChatMessageType.System));
                                         }
                                     }
                                 }
                             }
 
                             lastEventTimerMessage = DateTime.Now;
-                        }                        
+                        }
 
                         break;
 
@@ -404,9 +404,9 @@ namespace ACE.Server.Entity
 
                         //Check if the post-event countdown is completed
                         //If so, teleport any remaining players out of the arena and release the arena for the next event
-                        if (DateTime.Now.AddSeconds(-45) > this.ActiveEvent.EndDateTime)
+                        if (DateTime.Now.AddSeconds(-45) > ActiveEvent.EndDateTime)
                         {
-                            foreach (var arenaPlayer in this.ActiveEvent.Players)
+                            foreach (var arenaPlayer in ActiveEvent.Players)
                             {
                                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
                                 if (player != null)
@@ -419,23 +419,23 @@ namespace ACE.Server.Entity
                                 }
                             }
 
-                            this.ActiveEvent = null;
+                            ActiveEvent = null;
                         }
                         else //if there's no players in the arena go ahead and end the event early
                         {
                             bool hasPlayers = false;
-                            foreach (var arenaPlayer in this.ActiveEvent.Players)
+                            foreach (var arenaPlayer in ActiveEvent.Players)
                             {
                                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
-                                if (player != null && player.Location.Landblock == this.LandblockId)
+                                if (player != null && player.Location.Landblock == LandblockId)
                                 {
                                     hasPlayers = true;
                                 }
                             }
 
-                            if(!hasPlayers)
+                            if (!hasPlayers)
                             {
-                                this.ActiveEvent = null;
+                                ActiveEvent = null;
                             }
                         }
                         break;
@@ -458,11 +458,11 @@ namespace ACE.Server.Entity
         {
             //log.Info($"ArenaLocation.MatchMake() - {this.ArenaName}");
 
-            var arenaEvent = ArenaManager.MatchMake(this.SupportedEventTypes);
+            var arenaEvent = ArenaManager.MatchMake(SupportedEventTypes);
             if (arenaEvent != null)
             {
-                this.ActiveEvent = arenaEvent;
-                this.ActiveEvent.Location = this.LandblockId;
+                ActiveEvent = arenaEvent;
+                ActiveEvent.Location = LandblockId;
             }
         }
 
@@ -472,7 +472,7 @@ namespace ACE.Server.Entity
             var isPlayerPkTagged = false;
             var isPlayerMissing = false;
             resultMsg = "";
-            foreach (var arenaPlayer in this.ActiveEvent.Players)
+            foreach (var arenaPlayer in ActiveEvent.Players)
             {
                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
                 if (player != null)
@@ -495,7 +495,7 @@ namespace ACE.Server.Entity
                 }
             }
 
-            if(resultMsg.StartsWith("\n"))
+            if (resultMsg.StartsWith("\n"))
                 resultMsg = resultMsg.Remove(0, 1);
 
             return !isPlayerMissing && !isPlayerNpk && !isPlayerPkTagged;
@@ -503,12 +503,12 @@ namespace ACE.Server.Entity
 
         public void CreateTeamFellowships()
         {
-            if (this.ActiveEvent == null || this.ActiveEvent.Players == null || this.ActiveEvent.Players.Count < 4)
+            if (ActiveEvent == null || ActiveEvent.Players == null || ActiveEvent.Players.Count < 4)
                 return;
 
             //Get a distinct list of teams
             List<Guid> teamIds = new List<Guid>();
-            foreach (var arenaPlayer in this.ActiveEvent.Players)
+            foreach (var arenaPlayer in ActiveEvent.Players)
             {
                 if (arenaPlayer.TeamGuid.HasValue && !teamIds.Contains(arenaPlayer.TeamGuid.Value))
                 {
@@ -519,7 +519,7 @@ namespace ACE.Server.Entity
             //For each team, pick a leader, create a fellow and recruit team members into the fellow
             foreach (var teamId in teamIds)
             {
-                var teamArenaPlayers = this.ActiveEvent.Players.Where(x => x.TeamGuid == teamId);
+                var teamArenaPlayers = ActiveEvent.Players.Where(x => x.TeamGuid == teamId);
 
                 var teamLeadArenaPlayer = teamArenaPlayers?.FirstOrDefault();
 
@@ -555,7 +555,7 @@ namespace ACE.Server.Entity
         {
             winningTeamGuid = null;
 
-            if (this.ActiveEvent == null || this.ActiveEvent.Players == null || this.ActiveEvent.Players.Count < 2 || this.ActiveEvent.Status < 4)
+            if (ActiveEvent == null || ActiveEvent.Players == null || ActiveEvent.Players.Count < 2 || ActiveEvent.Status < 4)
                 return false;
 
             //Check to see if there's only one team still alive and in the arena
@@ -564,7 +564,7 @@ namespace ACE.Server.Entity
 
             //Get a distinct list of teams
             List<Guid> teamsStillAlive = new List<Guid>();
-            foreach (var arenaPlayer in this.ActiveEvent.Players)
+            foreach (var arenaPlayer in ActiveEvent.Players)
             {
                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
                 if (player != null && player.IsPK && (player.CurrentLandblock?.IsArenaLandblock ?? false))
@@ -578,10 +578,10 @@ namespace ACE.Server.Entity
 
             if (teamsStillAlive.Count == 1)
             {
-                if(this.ActiveEvent.EventType.Equals("ffa"))
+                if (ActiveEvent.EventType.Equals("ffa"))
                 {
-                    var winner = this.ActiveEvent.Players.FirstOrDefault(x => x.TeamGuid == teamsStillAlive[0]);
-                    if(winner != null)
+                    var winner = ActiveEvent.Players.FirstOrDefault(x => x.TeamGuid == teamsStillAlive[0]);
+                    if (winner != null)
                     {
                         winner.FinishPlace = 1;
                     }
@@ -593,21 +593,21 @@ namespace ACE.Server.Entity
 
             if (teamsStillAlive.Count == 0)
             {
-                winningTeamGuid = this.ActiveEvent.Players.First().TeamGuid;
+                winningTeamGuid = ActiveEvent.Players.First().TeamGuid;
                 return true;
             }
 
             return false;
         }
-        
+
         public void StartEvent()
         {
-            this.ActiveEvent.StartDateTime = DateTime.Now;
-            this.ActiveEvent.Status = this.ActiveEvent.Status == -1 ? -1 : 4;
+            ActiveEvent.StartDateTime = DateTime.Now;
+            ActiveEvent.Status = ActiveEvent.Status == -1 ? -1 : 4;
 
-            DatabaseManager.Log.SaveArenaEvent(this.ActiveEvent);
+            DatabaseManager.Log.SaveArenaEvent(ActiveEvent);
 
-            var msg = $"Arena Match Started: Event Type = {this.ActiveEvent.EventTypeDisplay}, Players = {this.ActiveEvent.PlayersDisplay}, EventID = {this.ActiveEvent.Id}. To watch the event, type /arena watch {this.ActiveEvent.Id}";
+            var msg = $"Arena Match Started: Event Type = {ActiveEvent.EventTypeDisplay}, Players = {ActiveEvent.PlayersDisplay}, EventID = {ActiveEvent.Id}. To watch the event, type /arena watch {ActiveEvent.Id}";
             PlayerManager.BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
             try
             {
@@ -621,24 +621,24 @@ namespace ACE.Server.Entity
             {
                 log.ErrorFormat("Failed sending Arena global message to webhook. Ex:{0}", ex);
             }
-            
+
         }
 
         public void EndEventWithWinner(Guid winningTeamGuid)
         {
-            log.Info($"ArenaLocation.EndEventWithWinner() - {this.ArenaName} - WinningTeamGuid = {winningTeamGuid}");
+            log.Info($"ArenaLocation.EndEventWithWinner() - {ArenaName} - WinningTeamGuid = {winningTeamGuid}");
 
             //This method isn't really threadsafe, but we can guard against a race condition by just
             //making sure the location's tick event hasn't already ended the event before a character's death has ended it or vice versa
-            if (this.ActiveEvent.Status > 4)
+            if (ActiveEvent.Status > 4)
                 return;
 
-            this.ActiveEvent.Status = 5;
+            ActiveEvent.Status = 5;
 
-            this.ActiveEvent.EndDateTime = DateTime.Now;
-            this.ActiveEvent.WinningTeamGuid = winningTeamGuid;
+            ActiveEvent.EndDateTime = DateTime.Now;
+            ActiveEvent.WinningTeamGuid = winningTeamGuid;
 
-            var livingWinners = this.ActiveEvent.Players.Where(x => x.TeamGuid == winningTeamGuid && !x.IsEliminated && !x.IsDisqualified);
+            var livingWinners = ActiveEvent.Players.Where(x => x.TeamGuid == winningTeamGuid && !x.IsEliminated && !x.IsDisqualified);
             if (livingWinners != null)
             {
                 foreach (var winner in livingWinners)
@@ -647,19 +647,19 @@ namespace ACE.Server.Entity
                 }
             }
 
-            DatabaseManager.Log.SaveArenaEvent(this.ActiveEvent);
-            
+            DatabaseManager.Log.SaveArenaEvent(ActiveEvent);
+
             string winnerList = "";
-            var winners = this.ActiveEvent.Players.Where(x => x.TeamGuid == winningTeamGuid)?.ToList();
+            var winners = ActiveEvent.Players.Where(x => x.TeamGuid == winningTeamGuid)?.ToList();
             string loserList = "";
-            var losers = this.ActiveEvent.Players.Where(x => x.TeamGuid != winningTeamGuid)?.ToList();
+            var losers = ActiveEvent.Players.Where(x => x.TeamGuid != winningTeamGuid)?.ToList();
 
             winners.ForEach(x => winnerList += string.IsNullOrEmpty(winnerList) ? x.CharacterName : $", {x.CharacterName}");
             losers.ForEach(x => loserList += string.IsNullOrEmpty(loserList) ? x.CharacterName : $", {x.CharacterName}");
 
             bool underageViolation = false;
             var underageCount = 0;
-            foreach (var arenaPlayer in this.ActiveEvent.Players)
+            foreach (var arenaPlayer in ActiveEvent.Players)
             {
                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
                 if (player != null && player.Age <= PropertyManager.GetLong("arenas_reward_min_age").Item) //days in seconds
@@ -668,17 +668,58 @@ namespace ACE.Server.Entity
                 }
             }
 
-            if (underageCount > 0 && (this.ActiveEvent.EventType.Equals("1v1") || this.ActiveEvent.EventType.Equals("2v2")))
+            if (underageCount > 0 && (ActiveEvent.EventType.Equals("1v1") || ActiveEvent.EventType.Equals("2v2")))
             {
                 underageViolation = true;
             }
-            else if (underageCount > 2 && (this.ActiveEvent.EventType.Equals("ffa")))
+            else if (underageCount > 2 && ActiveEvent.EventType.Equals("ffa"))
             {
                 underageViolation = true;
             }
 
+            Dictionary<uint,uint> newRankings = new Dictionary<uint,uint>();
+            if(ActiveEvent.EventType.Equals("1v1"))
+            {
+                var winner = winners.FirstOrDefault();
+                var loser = losers.FirstOrDefault();
+                if (winner != null && loser != null)
+                {
+                    var winnerCurrentRank = DatabaseManager.Log.GetCharacterArenaStatsByEvent(winner.CharacterId, "1v1")?.RankPoints ?? 1500;
+                    var loserCurrentRank = DatabaseManager.Log.GetCharacterArenaStatsByEvent(loser.CharacterId, "1v1")?.RankPoints ?? 1500;
+
+                    var rankChange = ArenaRanking.GetRankChange(winnerCurrentRank, loserCurrentRank, 32);
+
+                    var winnerNewRank = (int)winnerCurrentRank + rankChange > 0 ? (uint)(winnerCurrentRank + rankChange) : default(uint);
+                    var loserNewRank = (int)loserCurrentRank - rankChange > 0 ? (uint)(loserCurrentRank - rankChange) : default(uint);
+
+                    if (newRankings.ContainsKey(winner.CharacterId))
+                    {
+                        newRankings[winner.CharacterId] = winnerNewRank;
+                    }
+                    else
+                    {
+                        newRankings.Add(winner.CharacterId, winnerNewRank);
+                    }
+
+                    if (newRankings.ContainsKey(loser.CharacterId))
+                    {
+                        newRankings[loser.CharacterId] = loserNewRank;
+                    }
+                    else
+                    {
+                        newRankings.Add(loser.CharacterId, loserNewRank);
+                    }
+                }    
+            }
+
             foreach (var winner in winners)
             {
+                uint? newRank = null;
+                if(newRankings.ContainsKey(winner.CharacterId))
+                {
+                    newRank = newRankings[winner.CharacterId];
+                }
+
                 //Add to stats
                 DatabaseManager.Log.AddToArenaStats(
                     winner.CharacterId,
@@ -692,19 +733,20 @@ namespace ACE.Server.Entity
                     winner.TotalDeaths,
                     winner.TotalKills,
                     winner.TotalDmgDealt,
-                    winner.TotalDmgReceived);
+                    winner.TotalDmgReceived,
+                    newRank);
 
                 var player = PlayerManager.GetOnlinePlayer(winner.CharacterId);
                 if (player != null)
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Congratulations, you've won the {this.ActiveEvent.EventTypeDisplay} arena event against {loserList}!\nIf you're still in {this.ArenaName} you have a short period before you're teleported to your Lifestone so hurry up and loot.", ChatMessageType.System));
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Congratulations, you've won the {ActiveEvent.EventTypeDisplay} arena event against {loserList}!\nIf you're still in {ArenaName} you have a short period before you're teleported to your Lifestone so hurry up and loot.", ChatMessageType.System));
 
                     //Reward the winners
-                    var shouldReward = IsPlayerRewardEligible(player, winner, this.ActiveEvent.Players) && !underageViolation;
+                    var shouldReward = IsPlayerRewardEligible(player, winner, ActiveEvent.Players) && !underageViolation;
 
                     if (shouldReward)
                     {
-                        switch (this.ActiveEvent.EventType)
+                        switch (ActiveEvent.EventType)
                         {
                             case "1v1":
                             case "2v2":
@@ -763,7 +805,7 @@ namespace ACE.Server.Entity
                                     player.Session.Network.EnqueueSend(new GameMessageCreateObject(arenaKey));
                                     var msg = new GameMessageSystemChat($"You have received one of Darkbeat's Lost Storage Keys", ChatMessageType.Broadcast);
                                     player.Session.Network.EnqueueSend(msg);
-                                }                                
+                                }
                                 break;
 
                             case "ffa":
@@ -832,11 +874,17 @@ namespace ACE.Server.Entity
                     ArenaManager.DispelArenaRares(player);
                 }
             }
-            
+
             //Process losers
             foreach (var loser in losers)
             {
-                bool isDraw = loser.EventType.Equals("ffa") && loser.FinishPlace <=3 && loser.FinishPlace > 0;
+                bool isDraw = loser.EventType.Equals("ffa") && loser.FinishPlace <= 3 && loser.FinishPlace > 0;
+
+                uint? newRank = null;
+                if (newRankings.ContainsKey(loser.CharacterId))
+                {
+                    newRank = newRankings[loser.CharacterId];
+                }
 
                 //Add to stats
                 DatabaseManager.Log.AddToArenaStats(
@@ -845,30 +893,31 @@ namespace ACE.Server.Entity
                     loser.EventType,
                     1,
                     0,
-                    isDraw ? (uint)1 : (uint)0,
-                    isDraw ? (uint)0 : (uint)1,
-                    loser.FinishPlace == -1 ? (uint)1 : (uint)0,
+                    isDraw ? 1 : (uint)0,
+                    isDraw ? 0 : (uint)1,
+                    loser.FinishPlace == -1 ? 1 : (uint)0,
                     loser.TotalDeaths,
                     loser.TotalKills,
                     loser.TotalDmgDealt,
-                    loser.TotalDmgReceived);
+                    loser.TotalDmgReceived,
+                    newRank);
 
                 var player = PlayerManager.GetOnlinePlayer(loser.CharacterId);
                 if (player != null)
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Tough luck, you've lost the {this.ActiveEvent.EventTypeDisplay} arena event to {winnerList}\nIf you're still in the {this.ArenaName} arena you have a short period before you're teleported to your lifestone.", ChatMessageType.System));
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Tough luck, you've lost the {ActiveEvent.EventTypeDisplay} arena event to {winnerList}\nIf you're still in the {ArenaName} arena you have a short period before you're teleported to your lifestone.", ChatMessageType.System));
 
                     if (loser.EventType.Equals("ffa"))
                     {
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The Free for All arena match in {this.ArenaName} has finished and you placed {loser.FinishPlaceDisplay}\nIf you're still in the {this.ArenaName} arena you have a short period before you're teleported to your lifestone.", ChatMessageType.System));
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The Free for All arena match in {ArenaName} has finished and you placed {loser.FinishPlaceDisplay}\nIf you're still in the {ArenaName} arena you have a short period before you're teleported to your lifestone.", ChatMessageType.System));
                     }
 
-                    var shouldReward = IsPlayerRewardEligible(player, loser, this.ActiveEvent.Players) && !underageViolation;
+                    var shouldReward = IsPlayerRewardEligible(player, loser, ActiveEvent.Players) && !underageViolation;
 
                     if (shouldReward)
                     {
                         //Reward the losers here
-                        switch (this.ActiveEvent.EventType)
+                        switch (ActiveEvent.EventType)
                         {
                             case "1v1":
                             case "2v2":
@@ -1068,7 +1117,7 @@ namespace ACE.Server.Entity
             }
 
             //Global Broadcast
-            var globalMsg = $"{winnerList} just won a {this.ActiveEvent.EventTypeDisplay} arena event against {loserList} in {this.ArenaName}";
+            var globalMsg = $"{winnerList} just won a {ActiveEvent.EventTypeDisplay} arena event against {loserList} in {ArenaName}";
             PlayerManager.BroadcastToAll(new GameMessageSystemChat(globalMsg, ChatMessageType.Broadcast));
             try
             {
@@ -1100,7 +1149,7 @@ namespace ACE.Server.Entity
             player.ArenaDailyRewardCount++;
 
             //Same clan opponents count
-            var sameClanOpponents = this.ActiveEvent.Players.Where(x => x.MonarchId == arenaPlayer.MonarchId && x.TeamGuid != arenaPlayer.TeamGuid);
+            var sameClanOpponents = ActiveEvent.Players.Where(x => x.MonarchId == arenaPlayer.MonarchId && x.TeamGuid != arenaPlayer.TeamGuid);
             if (sameClanOpponents != null && sameClanOpponents.Count() > 0)
                 player.ArenaSameClanDailyRewardCount++;
 
@@ -1115,7 +1164,7 @@ namespace ACE.Server.Entity
             player.ArenaHourlyCount++;
 
             //Opponents Log
-            var opponents = this.ActiveEvent.Players.Where(x => x.TeamGuid != arenaPlayer.TeamGuid);
+            var opponents = ActiveEvent.Players.Where(x => x.TeamGuid != arenaPlayer.TeamGuid);
             if (opponents != null)
             {
                 var opponentRewards = player.ArenaRewardsByOpponent;
@@ -1131,7 +1180,7 @@ namespace ACE.Server.Entity
                     }
                 }
                 player.ArenaRewardsByOpponent = opponentRewards;
-            }            
+            }
         }
 
         public bool IsPlayerRewardEligible(Player player, ArenaPlayer arenaPlayer, List<ArenaPlayer> allArenaPlayers)
@@ -1157,7 +1206,7 @@ namespace ACE.Server.Entity
             }
 
             //You can't get more than 5 rewards playing against a clanmate per day
-            if(player.ArenaSameClanDailyRewardCount >= 5 && (player.ArenaDailyRewardTimestamp ?? 0) >= Time.GetUnixTime(DateTime.Today))
+            if (player.ArenaSameClanDailyRewardCount >= 5 && (player.ArenaDailyRewardTimestamp ?? 0) >= Time.GetUnixTime(DateTime.Today))
             {
                 return false;
             }
@@ -1166,9 +1215,9 @@ namespace ACE.Server.Entity
             if ((player.ArenaDailyRewardTimestamp ?? 0) >= Time.GetUnixTime(DateTime.Today))
             {
                 var todaysArenaRewardsByOpponent = player.ArenaRewardsByOpponent;
-                foreach(var opponent in allArenaPlayers)
+                foreach (var opponent in allArenaPlayers)
                 {
-                    if(arenaPlayer.CharacterId != opponent.CharacterId &&
+                    if (arenaPlayer.CharacterId != opponent.CharacterId &&
                         arenaPlayer.TeamGuid != opponent.TeamGuid &&
                         todaysArenaRewardsByOpponent.ContainsKey(opponent.CharacterId) &&
                         todaysArenaRewardsByOpponent[opponent.CharacterId] >= 3)
@@ -1183,12 +1232,12 @@ namespace ACE.Server.Entity
 
         public void EndEventTimelimitExceeded()
         {
-            log.Info($"ArenaLocation.EndEventTimelimitExceeded() - {this.ArenaName}");
-            this.ActiveEvent.EndDateTime = DateTime.Now;
-            this.ActiveEvent.Status = 6;
+            log.Info($"ArenaLocation.EndEventTimelimitExceeded() - {ArenaName}");
+            ActiveEvent.EndDateTime = DateTime.Now;
+            ActiveEvent.Status = 6;
 
             //Set FinishPlace for all living players 
-            var remainingPlayers = this.ActiveEvent.Players.Where(x => !x.IsDisqualified && !x.IsEliminated);
+            var remainingPlayers = ActiveEvent.Players.Where(x => !x.IsDisqualified && !x.IsEliminated);
             if (remainingPlayers != null && remainingPlayers.Count() > 0)
             {
                 foreach (var arenaPlayer in remainingPlayers)
@@ -1197,11 +1246,11 @@ namespace ACE.Server.Entity
                 }
             }
 
-            DatabaseManager.Log.SaveArenaEvent(this.ActiveEvent);
+            DatabaseManager.Log.SaveArenaEvent(ActiveEvent);
 
             bool underageViolation = false;
             var underageCount = 0;
-            foreach (var arenaPlayer in this.ActiveEvent.Players)
+            foreach (var arenaPlayer in ActiveEvent.Players)
             {
                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
 
@@ -1211,16 +1260,16 @@ namespace ACE.Server.Entity
                 }
             }
 
-            if (underageCount > 0 && (this.ActiveEvent.EventType.Equals("1v1") || this.ActiveEvent.EventType.Equals("2v2")))
+            if (underageCount > 0 && (ActiveEvent.EventType.Equals("1v1") || ActiveEvent.EventType.Equals("2v2")))
             {
                 underageViolation = true;
             }
-            else if (underageCount > 2 && (this.ActiveEvent.EventType.Equals("ffa")))
+            else if (underageCount > 2 && ActiveEvent.EventType.Equals("ffa"))
             {
                 underageViolation = true;
             }
 
-            foreach (var arenaPlayer in this.ActiveEvent.Players)
+            foreach (var arenaPlayer in ActiveEvent.Players)
             {
                 var isLoss = arenaPlayer.FinishPlace > 3 || arenaPlayer.FinishPlace < 1;
                 var isDq = arenaPlayer.FinishPlace == -1;
@@ -1231,9 +1280,9 @@ namespace ACE.Server.Entity
                     arenaPlayer.EventType,
                     1,
                     0,
-                    isLoss ? (uint)0 : (uint)1,
-                    isLoss ? (uint)1 : (uint)0,
-                    isDq ? (uint)1 : (uint)0,
+                    isLoss ? 0 : (uint)1,
+                    isLoss ? 1 : (uint)0,
+                    isDq ? 1 : (uint)0,
                     arenaPlayer.TotalDeaths,
                     arenaPlayer.TotalKills,
                     arenaPlayer.TotalDmgDealt,
@@ -1243,9 +1292,9 @@ namespace ACE.Server.Entity
                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
                 if (player != null)
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {this.ActiveEvent.EventTypeDisplay} arena event has ended in a draw.  If you are still in the arena you can recall now or have a short period before you are teleported to your lifestone.", ChatMessageType.System));
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {ActiveEvent.EventTypeDisplay} arena event has ended in a draw.  If you are still in the arena you can recall now or have a short period before you are teleported to your lifestone.", ChatMessageType.System));
 
-                    var shouldReward = IsPlayerRewardEligible(player, arenaPlayer, this.ActiveEvent.Players) && !underageViolation;
+                    var shouldReward = IsPlayerRewardEligible(player, arenaPlayer, ActiveEvent.Players) && !underageViolation;
 
                     if (shouldReward)
                     {
@@ -1284,7 +1333,7 @@ namespace ACE.Server.Entity
                 }
             }
 
-            var drawMsg = $"Arena event ended in a draw: {this.ActiveEvent.EventTypeDisplay} - {this.ActiveEvent.PlayersDisplay} - {this.ArenaName}";
+            var drawMsg = $"Arena event ended in a draw: {ActiveEvent.EventTypeDisplay} - {ActiveEvent.PlayersDisplay} - {ArenaName}";
             PlayerManager.BroadcastToAll(new GameMessageSystemChat(drawMsg, ChatMessageType.Broadcast));
             try
             {
@@ -1302,23 +1351,23 @@ namespace ACE.Server.Entity
 
         public void EndEventCancel()
         {
-            log.Info($"ArenaLocation.EndEventCancel() - {this.ArenaName}");
-            this.ActiveEvent.EndDateTime = DateTime.Now;
-            this.ActiveEvent.Status = -1;
+            log.Info($"ArenaLocation.EndEventCancel() - {ArenaName}");
+            ActiveEvent.EndDateTime = DateTime.Now;
+            ActiveEvent.Status = -1;
 
-            DatabaseManager.Log.SaveArenaEvent(this.ActiveEvent);
+            DatabaseManager.Log.SaveArenaEvent(ActiveEvent);
 
-            foreach (var arenaPlayer in this.ActiveEvent.Players)
+            foreach (var arenaPlayer in ActiveEvent.Players)
             {
                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
                 if (player != null)
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {this.ActiveEvent.EventTypeDisplay} arena event was cancelled before it started.", ChatMessageType.System));
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {ActiveEvent.EventTypeDisplay} arena event was cancelled before it started.", ChatMessageType.System));
                     ArenaManager.DispelArenaRares(player);
                 }
             }
 
-            this.ActiveEvent = null;
+            ActiveEvent = null;
         }
 
         public void ClearPlayersFromArena()
@@ -1327,9 +1376,9 @@ namespace ACE.Server.Entity
 
             try
             {
-                var arenaLandblock = LandblockManager.GetLandblock(new LandblockId(this.LandblockId << 16), false);
+                var arenaLandblock = LandblockManager.GetLandblock(new LandblockId(LandblockId << 16), false);
                 var playerList = arenaLandblock.GetCurrentLandblockPlayers();
-                foreach(var player in playerList)
+                foreach (var player in playerList)
                 {
                     if (player.IsAdmin)
                         continue;
@@ -1344,7 +1393,7 @@ namespace ACE.Server.Entity
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've been teleported to your lifestone because you were inside an arena location without being an active participant in an arena event", ChatMessageType.System));
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 log.Error($"Exception in ArenaLocation.ClearPlayersFromArena. ex: {ex}");
             }
@@ -1360,7 +1409,7 @@ namespace ACE.Server.Entity
             var pklArena = new ArenaLocation();
             pklArena.LandblockId = 0x0067;
             pklArena.SupportedEventTypes = new List<string>();
-            pklArena.SupportedEventTypes.Add("1v1");            
+            pklArena.SupportedEventTypes.Add("1v1");
             pklArena.SupportedEventTypes.Add("2v2");
             pklArena.SupportedEventTypes.Add("ffa");
             pklArena.ArenaName = "PKL Arena";
@@ -1451,7 +1500,7 @@ namespace ACE.Server.Entity
         {
             get
             {
-                if(_arenaLandblocks == null)
+                if (_arenaLandblocks == null)
                 {
                     _arenaLandblocks = new List<uint>()
                     {
@@ -1694,6 +1743,6 @@ namespace ACE.Server.Entity
         public static bool IsArenaLandblock(uint landblockId)
         {
             return ArenaLandblocks.Contains(landblockId);
-        }        
+        }
     }
 }

@@ -14,6 +14,7 @@ using ACE.Server.WorldObjects;
 using ACE.Server.Entity.TownControl;
 using ACE.Database;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 
 namespace ACE.Server.Entity
 {

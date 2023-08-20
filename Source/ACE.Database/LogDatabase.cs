@@ -313,7 +313,7 @@ namespace ACE.Database
             return 0;
         }
 
-        public void AddToArenaStats(uint characterId, string characterName, string eventType, uint totalMatches, uint totalWins, uint totalDraws, uint totalLosses, uint totalDisqualified, uint totalDeaths, uint totalKills, uint totalDmgDealt, uint totalDmgReceived)
+        public void AddToArenaStats(uint characterId, string characterName, string eventType, uint totalMatches, uint totalWins, uint totalDraws, uint totalLosses, uint totalDisqualified, uint totalDeaths, uint totalKills, uint totalDmgDealt, uint totalDmgReceived, uint? newRankPoints = null)
         {
             try
             {
@@ -342,7 +342,7 @@ namespace ACE.Database
                     stats.TotalKills += totalKills;
                     stats.TotalDmgDealt += totalDmgDealt;
                     stats.TotalDmgReceived += totalDmgReceived;
-                    stats.RankPoints = stats.GetRankPoints();
+                    stats.RankPoints = newRankPoints.HasValue ? newRankPoints.Value : stats.RankPoints;
 
                     context.SaveChanges();
                 }
@@ -351,6 +351,23 @@ namespace ACE.Database
             {
                 log.Error($"Exception saving ArenaCharacterStats. ex: {ex}");
             }
+        }
+
+        public ArenaCharacterStats GetCharacterArenaStatsByEvent(uint characterId, string eventType)
+        {
+            try
+            {
+                using (var context = new LogDbContext())
+                {
+                    return context.ArenaCharacterStats.FirstOrDefault(x => x.CharacterId == characterId && x.EventType.Equals(eventType));                    
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Error in GetCharacterArenaStatsByEvent. ex:{ex}");
+            }
+
+            return null;
         }
 
         public string GetArenaStatsByCharacterId(uint characterId, string characterName)
@@ -486,32 +503,7 @@ namespace ACE.Database
             }
 
             return new List<ArenaCharacterStats>();
-        }
-
-        public List<ArenaEvent> GetAllActiveEvents()
-        {
-            try
-            {
-                using (var context = new LogDbContext())
-                {
-                    var result = context.ArenaEvents
-                            .AsNoTracking()
-                            .OrderByDescending(r => r.StartDateTime)
-                            .Where(r => !r.EndDateTime.HasValue);
-
-                    if (result != null)
-                    {
-                        return result.ToList();
-                    }
-                }
-            }
-            catch(Exception ex)
-            {
-                log.Error($"Exception in GetAllActiveEvents. ex: {ex}");
-            }
-
-            return new List<ArenaEvent>();
-        }
+        }        
 
         public uint CreateArenaPlayer(ArenaPlayer player)
         {
@@ -540,6 +532,57 @@ namespace ACE.Database
                 context.Entry(player).State = EntityState.Modified;
                 context.SaveChanges();
             }
+        }
+
+        public List<ArenaEvent> GetAllArenaEvents()
+        {
+            List<ArenaEvent> eventList = null;
+
+            try
+            {
+                using (var context = new LogDbContext())
+                {
+                    eventList = context.ArenaEvents
+                            .AsNoTracking()
+                            .OrderByDescending(r => r.StartDateTime)
+                            .Where(r => r.EndDateTime.HasValue)?.ToList() ?? new List<ArenaEvent>();                    
+                }
+
+                foreach(var arenaEvent in eventList)
+                {
+                    arenaEvent.Players = GetAllArenaPlayersByEvent(arenaEvent.Id);
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Exception in GetAllArenaEvents. Ex: {ex}");
+            }
+
+            return eventList ?? new List<ArenaEvent>();
+        }
+
+        public List<ArenaPlayer> GetAllArenaPlayersByEvent(uint eventId)
+        {
+            List<ArenaPlayer> playerList = null;
+
+            try
+            {
+                using (var context = new LogDbContext())
+                {
+                    var result =
+                        context.ArenaPlayers
+                            .AsNoTracking();
+
+                    result = result.Where(x => x.EventId == (uint?)eventId);
+                    playerList = result?.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Exception in GetAllArenaPlayersByEvent. Ex: {ex}");
+            }
+
+            return playerList ?? new List<ArenaPlayer>();
         }
 
         #endregion Arenas
