@@ -836,8 +836,7 @@ namespace ACE.Server.Entity
             //Process losers
             foreach (var loser in losers)
             {
-                bool isDraw = loser.EventType.Equals("ffa") && loser.FinishPlace <=5 && loser.FinishPlace > 0;
-                bool isOvertime = this.ActiveEvent.IsOvertime;
+                bool isDraw = loser.EventType.Equals("ffa") && loser.FinishPlace <=3 && loser.FinishPlace > 0;
 
                 //Add to stats
                 DatabaseManager.Log.AddToArenaStats(
@@ -846,8 +845,8 @@ namespace ACE.Server.Entity
                     loser.EventType,
                     1,
                     0,
-                    isDraw || isOvertime ? (uint)1 : (uint)0,
-                    isDraw || isOvertime ? (uint)0 : (uint)1,
+                    isDraw ? (uint)1 : (uint)0,
+                    isDraw ? (uint)0 : (uint)1,
                     loser.FinishPlace == -1 ? (uint)1 : (uint)0,
                     loser.TotalDeaths,
                     loser.TotalKills,
@@ -1188,6 +1187,16 @@ namespace ACE.Server.Entity
             this.ActiveEvent.EndDateTime = DateTime.Now;
             this.ActiveEvent.Status = 6;
 
+            //Set FinishPlace for all living players 
+            var remainingPlayers = this.ActiveEvent.Players.Where(x => !x.IsDisqualified && !x.IsEliminated);
+            if (remainingPlayers != null && remainingPlayers.Count() > 0)
+            {
+                foreach (var arenaPlayer in remainingPlayers)
+                {
+                    arenaPlayer.FinishPlace = remainingPlayers.Count();
+                }
+            }
+
             DatabaseManager.Log.SaveArenaEvent(this.ActiveEvent);
 
             bool underageViolation = false;
@@ -1213,15 +1222,18 @@ namespace ACE.Server.Entity
 
             foreach (var arenaPlayer in this.ActiveEvent.Players)
             {
+                var isLoss = arenaPlayer.FinishPlace > 3 || arenaPlayer.FinishPlace < 1;
+                var isDq = arenaPlayer.FinishPlace == -1;
+
                 DatabaseManager.Log.AddToArenaStats(
                     arenaPlayer.CharacterId,
                     arenaPlayer.CharacterName,
                     arenaPlayer.EventType,
                     1,
                     0,
-                    arenaPlayer.FinishPlace == -1 ? (uint)0 : (uint)1,
-                    0,
-                    arenaPlayer.FinishPlace == -1 ? (uint)1 : (uint)0,
+                    isLoss ? (uint)0 : (uint)1,
+                    isLoss ? (uint)1 : (uint)0,
+                    isDq ? (uint)1 : (uint)0,
                     arenaPlayer.TotalDeaths,
                     arenaPlayer.TotalKills,
                     arenaPlayer.TotalDmgDealt,
@@ -1232,7 +1244,6 @@ namespace ACE.Server.Entity
                 if (player != null)
                 {
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {this.ActiveEvent.EventTypeDisplay} arena event has ended in a draw.  If you are still in the arena you can recall now or have a short period before you are teleported to your lifestone.", ChatMessageType.System));
-
 
                     var shouldReward = IsPlayerRewardEligible(player, arenaPlayer, this.ActiveEvent.Players) && !underageViolation;
 

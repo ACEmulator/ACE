@@ -295,12 +295,15 @@ namespace ACE.Server.Managers
                             break;
                         case "ffa":
 
-                            if (otherPlayers.Count() >= 9 || (otherPlayers.Count() >= 6 && firstArenaPlayer.CreateDateTime < DateTime.Now.AddMinutes(-3)))
+                            if (otherPlayers.Count() >= 9 ||
+                                (otherPlayers.Count() >= 6 && firstArenaPlayer.CreateDateTime < DateTime.Now.AddMinutes(-1)) ||
+                                (otherPlayers.Count() >= 5 && firstArenaPlayer.CreateDateTime < DateTime.Now.AddMinutes(-2)) ||
+                                (otherPlayers.Count() >= 4 && firstArenaPlayer.CreateDateTime < DateTime.Now.AddMinutes(-3)))
                             {
                                 finalPlayerList.Add(firstArenaPlayer);
 
-                                //if we have 10 total players, start the match, or if we have at least 7 total players after having waited for 3 minutes, start the match
-                                //Don't allow more than 3 players from the same clan                                
+                                //if we have 10 total players, start the match, or if we have at least 5 total players after having waited for 3 minutes, start the match
+                                //Don't allow more than 2 players from the same clan                                
                                 foreach (var player in otherPlayers)
                                 {
                                     if (finalPlayerList.Count(x => x.MonarchId == player.MonarchId) <= 1)
@@ -312,7 +315,10 @@ namespace ACE.Server.Managers
                                         break;
                                 }
 
-                                if (finalPlayerList.Count() >= 10 || (finalPlayerList.Count() >= 7 && firstArenaPlayer.CreateDateTime > DateTime.Now.AddMinutes(-3)))
+                                if (finalPlayerList.Count() >= 10 ||
+                                    (finalPlayerList.Count() >= 7 && firstArenaPlayer.CreateDateTime < DateTime.Now.AddMinutes(-1)) ||
+                                    (finalPlayerList.Count() >= 6 && firstArenaPlayer.CreateDateTime < DateTime.Now.AddMinutes(-2)) ||
+                                    (finalPlayerList.Count() >= 5 && firstArenaPlayer.CreateDateTime < DateTime.Now.AddMinutes(-3)))
                                 {
                                     weHaveEnoughPlayers = true;
                                     foreach (var player in finalPlayerList)
@@ -438,6 +444,7 @@ namespace ACE.Server.Managers
                 (arenaLocation.ActiveEvent.EventType.Equals("ffa")))
             {
                 victim.IsEliminated = true;
+                victim.TotalDeaths++;
 
                 //Set the finish place                 
                 var notEliminatedPlayers = arenaLocation.ActiveEvent.Players.Where(x => !x.IsEliminated);
@@ -455,11 +462,6 @@ namespace ACE.Server.Managers
 
             //TODO for future events dieing won't eliminate you
             //may have rules like 3rd death you're eliminated
-
-            if (victim != null && !victim.IsEliminated)
-            {
-                victim.TotalDeaths++;
-            }
 
             if (killer != null && !killer.IsEliminated)
             {
