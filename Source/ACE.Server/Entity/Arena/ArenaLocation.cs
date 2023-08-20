@@ -878,7 +878,9 @@ namespace ACE.Server.Entity
             //Process losers
             foreach (var loser in losers)
             {
-                bool isDraw = loser.EventType.Equals("ffa") && loser.FinishPlace <= 3 && loser.FinishPlace > 0;
+                bool isFFA = loser.EventType.Equals("ffa");                
+                bool isOvertime = this.ActiveEvent.IsOvertime;
+                bool isDraw = (!isFFA && isOvertime) || (isFFA && loser.FinishPlace <= 3 && loser.FinishPlace > 0);
 
                 uint? newRank = null;
                 if (newRankings.ContainsKey(loser.CharacterId))
@@ -893,8 +895,8 @@ namespace ACE.Server.Entity
                     loser.EventType,
                     1,
                     0,
-                    isDraw ? 1 : (uint)0,
-                    isDraw ? 0 : (uint)1,
+                    isDraw || isOvertime ? 1 : (uint)0,
+                    isDraw || isOvertime ? 0 : (uint)1,
                     loser.FinishPlace == -1 ? 1 : (uint)0,
                     loser.TotalDeaths,
                     loser.TotalKills,
