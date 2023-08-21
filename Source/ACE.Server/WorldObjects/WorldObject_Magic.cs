@@ -281,9 +281,9 @@ namespace ACE.Server.WorldObjects
 
                     // TODO: replace with some kind of 'rootOwner unless equip' concept?
                     if (itemCaster != null && (equip || itemCaster is Gem || itemCaster is Food))
-                        CreateEnchantment(targetCreature ?? target, itemCaster, itemCaster, spell, equip);
+                        CreateEnchantment(targetCreature ?? target, itemCaster, weapon, spell, equip);
                     else
-                        CreateEnchantment(targetCreature ?? target, this, this, spell, equip, isWeaponSpell: isWeaponSpell);
+                        CreateEnchantment(targetCreature ?? target, this, weapon, spell, equip, isWeaponSpell: isWeaponSpell);
 
                     break;
 
