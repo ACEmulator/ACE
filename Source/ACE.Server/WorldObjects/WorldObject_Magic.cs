@@ -283,7 +283,7 @@ namespace ACE.Server.WorldObjects
                     if (itemCaster != null && (equip || itemCaster is Gem || itemCaster is Food))
                         CreateEnchantment(targetCreature ?? target, itemCaster, itemCaster, spell, equip);
                     else
-                        CreateEnchantment(targetCreature ?? target, this, this, spell, equip, isWeaponSpell: isWeaponSpell);
+                        CreateEnchantment(targetCreature ?? target, this, weapon, spell, equip, isWeaponSpell: isWeaponSpell);
 
                     break;
 
