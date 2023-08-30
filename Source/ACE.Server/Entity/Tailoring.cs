@@ -45,6 +45,7 @@ namespace ACE.Server.Entity
         public const uint MorphGemRemovePlayerReq = 480485;
         public const uint MorphGemSlayerRandom = 480610;
         public const uint MorphGemRemoveLevelReq = 480609;
+        public const uint MorphGemSlayerUpgrade = 480639;
 
         public const int MorphGemMinValue = 20000;
 
@@ -210,6 +211,7 @@ namespace ACE.Server.Entity
                 case MorphGemRemovePlayerReq:
                 case MorphGemSlayerRandom:
                 case MorphGemRemoveLevelReq:
+                case MorphGemSlayerUpgrade:
                     ApplyMorphGem(player, source, target);
                     return;
             }
@@ -1261,6 +1263,41 @@ namespace ACE.Server.Entity
                         break;
 
                     #endregion MorphGemRemoveLevelReq
+
+                    #region MorphGemSlayerUpgrade
+
+                    case MorphGemSlayerUpgrade:
+
+                        var tinkerLottoLog2 = target.GetProperty(PropertyString.TinkerLottoLog);
+                        if (!String.IsNullOrEmpty(tinkerLottoLog2) && tinkerLottoLog2.Contains("Slayer") && target.SlayerCreatureType != null)
+                        {
+                            if(target.SlayerDamageBonus < 1.8)
+                            {
+                                playerMsg = $"The Morph Gem alters your weapon's slayer damage bonus to 1.8";
+                                target.SlayerDamageBonus = 1.8;
+                                player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                            }
+                            else
+                            {
+                                playerMsg = $"Your weapon's slayer damage bonus is already >= 1.8";
+                                player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                                player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                                return;
+                            }    
+                        }
+                        else
+                        {
+                            //Must be a slayer that was applied by tinker lotto
+                            playerMsg = "The gem can only be applied to weapons that hit the tinkering lottery to add a slayer";
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        break;
+
+                    #endregion MorphGemSlayerUpgrade
+
                     default:
                         player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                         return;
@@ -1525,6 +1562,7 @@ namespace ACE.Server.Entity
                 case MorphGemRemovePlayerReq:
                 case MorphGemSlayerRandom:
                 case MorphGemRemoveLevelReq:
+                case MorphGemSlayerUpgrade:
 
                     return true;
 
