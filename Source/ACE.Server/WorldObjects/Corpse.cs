@@ -16,6 +16,7 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Database.Models.Log;
 using ACE.Database;
+using ACE.Server.Network.Handlers;
 
 namespace ACE.Server.WorldObjects
 {
@@ -388,6 +389,19 @@ namespace ACE.Server.WorldObjects
                     catch(Exception ex)
                     {
                         log.Error($"Error logging loot generated rare to DB. Ex: {ex}");
+                    }
+
+                    try
+                    {
+                        string rareAuditUrl = PropertyManager.GetString("rare_audit_webhook").Item;
+                        if (!string.IsNullOrEmpty(rareAuditUrl))
+                        {
+                            _ = TurbineChatHandler.SendWebhookedChat("", $"Rare item {wo.Name} was generated on a corpse killed by {killerPlayer.Character.Name}.  ItemBiotaId = {wo.Biota.Id}", rareAuditUrl, "Rare Audit");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error($"Error logging loot generated rare to webhook. Ex: {ex}");
                     }
 
                     if (realTimeRares)
