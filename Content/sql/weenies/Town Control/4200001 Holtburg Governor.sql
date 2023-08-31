@@ -71,7 +71,8 @@ VALUES (4200001,   1, 0x020016E1) /* Setup */
      , (4200001,   6, 0x04001425) /* PaletteBase */
      , (4200001,   7, 0x10000410) /* ClothingBase */
      , (4200001,   8, 0x06001036) /* Icon */
-     , (4200001,  22, 0x34000017) /* PhysicsEffectTable */;
+     , (4200001,  22, 0x34000017) /* PhysicsEffectTable */
+	 , (4200001,  35,       2121) /* DeathTreasureType - Loot Tier: 8 */;
 
 INSERT INTO `weenie_properties_i_i_d` (`object_Id`, `type`, `value`)
 VALUES (4200001,  16, 0x7A5B4017) /* ActivationTarget */;

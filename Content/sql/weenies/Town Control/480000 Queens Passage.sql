@@ -10,7 +10,7 @@ VALUES (480000,   1,        128) /* ItemType - Misc */
      , (480000,   8,         25) /* Mass */
      , (480000,   9,          0) /* ValidLocations - None */
      , (480000,  16,         32) /* ItemUseable - Remote */
-     , (480000,  19,       1000) /* Value */
+     , (480000,  19,       250) /* Value */
      , (480000,  33,          1) /* Bonded - Bonded */
      , (480000,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (480000, 150,        103) /* HookPlacement - Hook */

@@ -12,7 +12,7 @@ VALUES (30082,   1,    4194304) /* ItemType - CraftCookingBase */
      , (30082,  12,          1) /* StackSize */
      , (30082,  16,     524296) /* ItemUseable - SourceContainedTargetContained */
      , (30082,  17,        166) /* RareId */
-     , (30082,  19,          1000) /* Value */
+     , (30082,  19,          250) /* Value */
      , (30082,  33,         -1) /* Bonded - Slippery */
      , (30082,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (30082,  94,        134) /* TargetType - Vestements, Misc */;

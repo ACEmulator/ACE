@@ -10,7 +10,7 @@ VALUES (480008,   1,        512) /* ItemType - Container */
      , (480008,   6,         48) /* ItemsCapacity */
      , (480008,  16,         56) /* ItemUseable - ContainedViewedRemote */
      , (480008,  18,          8) /* UiEffects - BoostMana */
-     , (480008,  19,         250) /* Value */
+     , (480008,  19,         100) /* Value */
      , (480008,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */;
 
 INSERT INTO `weenie_properties_bool` (`object_Id`, `type`, `value`)

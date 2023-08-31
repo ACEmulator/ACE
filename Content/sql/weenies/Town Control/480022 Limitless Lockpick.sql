@@ -8,7 +8,7 @@ VALUES (480022,   1,      16384) /* ItemType - Key */
      , (480022,   5,          5) /* EncumbranceVal */
      , (480022,  16,    2097160) /* ItemUseable - SourceContainedTargetRemote */
      , (480022,  17,        149) /* RareId */
-     , (480022,  19,          250) /* Value */
+     , (480022,  19,          100) /* Value */
      , (480022,  33,         1) /* Bonded - Slippery */
 	 , (480022, 114,          1) /* Attuned - Attuned */
      , (480022,  88,         20) /* LockpickMod */

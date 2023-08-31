@@ -11,10 +11,10 @@ VALUES (1910507,   1,       2048) /* ItemType - Gem */
      , (1910507,  11,          1) /* MaxStackSize */
      , (1910507,  12,          1) /* StackSize */
      , (1910507,  13,         50) /* StackUnitEncumbrance */
-     , (1910507,  15,      50) /* StackUnitValue */
+     , (1910507,  15,      20) /* StackUnitValue */
      , (1910507,  16,          1) /* ItemUseable - No */
      , (1910507,  18,          1) /* UiEffects - Magical */
-     , (1910507,  19,      50) /* Value */
+     , (1910507,  19,      20) /* Value */
      , (1910507,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (1910507, 158,          7) /* WieldRequirements - Level */
      , (1910507, 159,          1) /* WieldSkillType - Axe */

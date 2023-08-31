@@ -10,7 +10,7 @@ VALUES (480002,   1,        128) /* ItemType - Misc */
      , (480002,   8,         25) /* Mass */
      , (480002,   9,          0) /* ValidLocations - None */
      , (480002,  16,         32) /* ItemUseable - Remote */
-     , (480002,  19,       1000) /* Value */
+     , (480002,  19,       250) /* Value */
      , (480002,  33,          1) /* Bonded - Bonded */
      , (480002,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (480002, 150,        103) /* HookPlacement - Hook */

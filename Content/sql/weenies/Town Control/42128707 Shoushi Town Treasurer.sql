@@ -188,11 +188,12 @@ VALUES (42128707, 2, 22017,  0, 21, 0.9, False) /* Create Koji's Fiend (22017) f
 	 , (42128707, 4, 4200020,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
 	, (42128707, 4, 450613,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
 	, (42128707, 4, 482000,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
+	, (42128707, 4, 480630,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
 	, (42128707, 4, 450609,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
 	, (42128707, 4, 480004,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
      , (42128707, 4, 480006,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
      , (42128707, 4, 480007,  0, 0, 0, False) /* Create Burning Blunt (4200020) for Shop */
-     , (42128707, 4, 480013,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
+     , (42128707, 4, 480635,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
 	 , (42128707, 4, 4200141,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
 	 , (42128707, 4, 480600,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
 	 , (42128707, 4, 8037,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
@@ -216,6 +217,11 @@ VALUES (42128707, 2, 22017,  0, 21, 0.9, False) /* Create Koji's Fiend (22017) f
 	 , (42128707, 4, 30082,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
 	 , (42128707, 4, 4200026,  0, 0, 0, False) /* Create Vestiri Robe (450010) for Shop */
      , (42128707, 4, 4200023,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
+	 , (42128707, 4, 480639,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
+	 , (42128707, 4, 480640,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
+	 , (42128707, 4, 480641,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
+	 , (42128707, 4, 480633,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
+	 , (42128707, 4, 480637,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
 	 , (42128707, 4, 480483,  0, 0, 0, False) /* Create Vestiri Robe (450010) for Shop */
      , (42128707, 4, 480484,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
 	, (42128707, 4, 480609,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */

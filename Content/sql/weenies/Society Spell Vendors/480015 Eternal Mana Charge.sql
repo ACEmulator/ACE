@@ -9,7 +9,7 @@ VALUES (480015,   1,     524288) /* ItemType - ManaStone */
      , (480015,   8,         50) /* Mass */
      , (480015,  16,     655368) /* ItemUseable - SourceContainedTargetSelfOrContained */
      , (480015,  18,          1) /* UiEffects - Magical */
-     , (480015,  19,          500) /* Value */
+     , (480015,  19,          200) /* Value */
      , (480015,  33,         1) /* Bonded - Slippery */
 	 , (480015, 114,          1) /* Attuned - Attuned */
      , (480015,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */

@@ -1,0 +1,194 @@
+{
+  "wcid": 480631,
+  "weenieType": 64,
+  "boolStats": [
+    {
+      "key": 13,
+      "value": 1
+    },
+    {
+      "key": 22,
+      "value": 1
+    },
+    {
+      "key": 23,
+      "value": 1
+    }
+  ],
+  "intStats": [
+    {
+      "key": 1,
+      "value": 128
+    },
+    {
+      "key": 3,
+      "value": 20
+    },
+    {
+      "key": 5,
+      "value": 5000
+    },
+    {
+      "key": 8,
+      "value": 25
+    },
+    {
+      "key": 9,
+      "value": 0
+    },
+    {
+      "key": 16,
+      "value": 32
+    },
+    {
+      "key": 19,
+      "value": 500
+    },
+    {
+      "key": 33,
+      "value": 1
+    },
+    {
+      "key": 93,
+      "value": 1044
+    },
+    {
+      "key": 150,
+      "value": 103
+    },
+    {
+      "key": 151,
+      "value": 9
+    },
+    {
+      "key": 197,
+      "value": 4
+    }
+  ],
+  "didStats": [
+    {
+      "key": 1,
+      "value": 33560289
+    },
+    {
+      "key": 2,
+      "value": 150994951
+    },
+    {
+      "key": 3,
+      "value": 536870917
+    },
+    {
+      "key": 4,
+      "value": 805306370
+    },
+    {
+      "key": 6,
+      "value": 67114021
+    },
+    {
+      "key": 7,
+      "value": 268436496
+    },
+    {
+      "key": 8,
+      "value": 100667446
+    },
+    {
+      "key": 22,
+      "value": 872415255
+    }
+  ],
+  "iidStats": [],
+  "floatStats": [
+    {
+      "key": 39,
+      "value": 1.0
+    },
+    {
+      "key": 54,
+      "value": 3.0
+    }
+  ],
+  "int64Stats": [],
+  "stringStats": [
+    {
+      "key": 1,
+      "value": "Holtburg Outpost"
+    },
+    {
+      "key": 14,
+      "value": "This item can be hooked to the Floor or Yard hooks of mansions. Use this item to be transported to the Holtburg Governor."
+    }
+  ],
+  "emoteTable": [
+    {
+      "key": 7,
+      "value": [
+        {
+          "category": 7,
+          "emotes": [
+            {
+              "type": 99,
+              "delay": 0.0,
+              "extent": 1.0,
+              "mPosition": {
+                "frame": {
+                  "origin": {
+                    "x": 176.618,
+                    "y": 71.6801,
+                    "z": 46.005
+                  },
+                  "angles": {
+                    "w": 0.697868,
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.716226
+                  }
+                },
+                "objcell_id": 2780037179
+              }
+            }
+          ],
+          "probability": 1.0
+        }
+      ]
+    }
+  ],
+  "lastModified": "2023-08-20T17:50:51.271361Z",
+  "modifiedBy": "ACE.Adapter",
+  "changelog": [
+    {
+      "created": "2023-08-20T17:39:30.42Z",
+      "author": "ACE.Adapter",
+      "comment": "Weenie exported from ACEmulator world database using ACE.Adapter"
+    },
+    {
+      "created": "2023-08-20T17:41:19.5590064Z",
+      "author": "ACE.Adapter",
+      "comment": "Weenie exported from ACEmulator world database using ACE.Adapter"
+    },
+    {
+      "created": "2023-08-20T17:44:56.8635192Z",
+      "author": "ACE.Adapter",
+      "comment": "Weenie exported from ACEmulator world database using ACE.Adapter"
+    },
+    {
+      "created": "2023-08-20T17:46:51.4177076Z",
+      "author": "ACE.Adapter",
+      "comment": "Weenie exported from ACEmulator world database using ACE.Adapter"
+    },
+    {
+      "created": "2023-08-20T17:50:11.6078242Z",
+      "author": "ACE.Adapter",
+      "comment": "Weenie exported from ACEmulator world database using ACE.Adapter"
+    },
+    {
+      "created": "2023-08-20T17:50:51.2709912Z",
+      "author": "ACE.Adapter",
+      "comment": "Weenie exported from ACEmulator world database using ACE.Adapter"
+    }
+  ],
+  "userChangeSummary": "Weenie exported from ACEmulator world database using ACE.Adapter",
+  "isDone": false
+}

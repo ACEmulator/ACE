@@ -7,7 +7,7 @@ INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`)
 VALUES (460001,   1,        128) /* ItemType - Misc */
      , (460001,   5,        200) /* EncumbranceVal */
      , (460001,  16,         32) /* ItemUseable - Remote */
-     , (460001,  19,        1000) /* Value */
+     , (460001,  19,        250) /* Value */
      , (460001,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (460001, 151,          9) /* HookType - Floor, Yard */;
 

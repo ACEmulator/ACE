@@ -15,7 +15,7 @@ VALUES (30093,   1,        128) /* ItemType - Misc */
      , (30093,  15,          500) /* StackUnitValue */
      , (30093,  16,     524296) /* ItemUseable - SourceContainedTargetContained */
      , (30093,  17,        152) /* RareId */
-     , (30093,  19,          500) /* Value */
+     , (30093,  19,          100) /* Value */
 	 , (30093, 114,          1) /* Attuned - Attuned */
      , (30093,  33,         1) /* Bonded */
      , (30093,  92,        100) /* Structure */

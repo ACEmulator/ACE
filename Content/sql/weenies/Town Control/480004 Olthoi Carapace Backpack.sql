@@ -11,7 +11,7 @@ VALUES (480004,   1,        512) /* ItemType - Container */
      , (480004,   8,          0) /* Mass */
      , (480004,   9,          0) /* ValidLocations - None */
      , (480004,  16,         56) /* ItemUseable - ContainedViewedRemote */
-     , (480004,  19,      250) /* Value */
+     , (480004,  19,      100) /* Value */
      , (480004,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (480004,  96,       2000) /* EncumbranceCapacity */;
 

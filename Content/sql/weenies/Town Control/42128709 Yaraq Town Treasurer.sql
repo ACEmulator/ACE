@@ -189,6 +189,7 @@ VALUES (42128709, 2, 12213,  0, 3, 0.9, False) /* Create Veil of Darkness (12213
 	 , (42128709, 4, 460001,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
 	 , (42128709, 4, 480002,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
 	, (42128709, 4, 481000,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+    , (42128709, 4, 480632,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
 	, (42128709, 4, 480003,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
 	, (42128709, 4, 480005,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
     , (42128709, 4, 450610,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
@@ -216,6 +217,11 @@ VALUES (42128709, 2, 12213,  0, 3, 0.9, False) /* Create Veil of Darkness (12213
 	, (42128709, 4, 30082,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
 	, (42128709, 4, 4200026,  0, 0, 0, False) /* Create Vestiri Robe (450010) for Shop */
      , (42128709, 4, 4200023,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
+	 , (42128709, 4, 480639,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
+	 , (42128709, 4, 480640,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
+	 , (42128709, 4, 480641,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
+	 , (42128709, 4, 480633,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
+	 , (42128709, 4, 480637,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
 	 , (42128709, 4, 480483,  0, 0, 0, False) /* Create Vestiri Robe (450010) for Shop */
      , (42128709, 4, 480484,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
 	, (42128709, 4, 480609,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */

@@ -9,9 +9,9 @@ VALUES (450609,   1,        128) /* ItemType - Misc */
      , (450609,  11,          1) /* MaxStackSize */
      , (450609,  12,          1) /* StackSize */
      , (450609,  13,         50) /* StackUnitEncumbrance */
-     , (450609,  15,          100) /* StackUnitValue */
+     , (450609,  15,          50) /* StackUnitValue */
      , (450609,  16,          8) /* ItemUseable - Contained */
-     , (450609,  19,          100) /* Value */
+     , (450609,  19,          50) /* Value */
      , (450609,  33,          1) /* Bonded - Bonded */
      , (450609,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (450609,  94,         16) /* TargetType - Creature */
@@ -33,5 +33,6 @@ INSERT INTO `weenie_properties_d_i_d` (`object_Id`, `type`, `value`)
 VALUES (450609,   1, 0x0200011E) /* Setup */
      , (450609,   3, 0x20000014) /* SoundTable */
      , (450609,   8, 0x060072E9) /* Icon */
+	 , (450609,  50, 0x06005A8B) /* IconOverlay */
      , (450609,  22, 0x3400002B) /* PhysicsEffectTable */
      , (450609,  38,      29295) /* UseCreateItem - Blank Augmentation Gem */;

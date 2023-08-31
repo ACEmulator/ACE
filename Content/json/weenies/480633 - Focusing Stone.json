@@ -1,0 +1,189 @@
+{
+  "wcid": 480633,
+  "weenieType": 64,
+  "boolStats": [
+    {
+      "key": 13,
+      "value": 1
+    },
+    {
+      "key": 15,
+      "value": 1
+    },
+    {
+      "key": 22,
+      "value": 1
+    },
+    {
+      "key": 69,
+      "value": 0
+    }
+  ],
+  "intStats": [
+    {
+      "key": 1,
+      "value": 128
+    },
+    {
+      "key": 3,
+      "value": 14
+    },
+    {
+      "key": 5,
+      "value": 150
+    },
+    {
+      "key": 8,
+      "value": 25
+    },
+    {
+      "key": 9,
+      "value": 0
+    },
+    {
+      "key": 16,
+      "value": 32
+    },
+    {
+      "key": 19,
+      "value": 250
+    },
+    {
+      "key": 33,
+      "value": 1
+    },
+    {
+      "key": 93,
+      "value": 1044
+    },
+    {
+      "key": 150,
+      "value": 103
+    },
+    {
+      "key": 151,
+      "value": 2
+    },
+    {
+      "key": 197,
+      "value": 16
+    },
+    {
+      "key": 280,
+      "value": 3
+    }
+  ],
+  "didStats": [
+    {
+      "key": 1,
+      "value": 33556976
+    },
+    {
+      "key": 3,
+      "value": 536870932
+    },
+    {
+      "key": 6,
+      "value": 67111928
+    },
+    {
+      "key": 7,
+      "value": 268436041
+    },
+    {
+      "key": 8,
+      "value": 100671374
+    },
+    {
+      "key": 22,
+      "value": 872415275
+    },
+    {
+      "key": 27,
+      "value": 1073742049
+    },
+    {
+      "key": 28,
+      "value": 2348
+    },
+    {
+      "key": 36,
+      "value": 234881046
+    }
+  ],
+  "iidStats": [],
+  "floatStats": [
+    {
+      "key": 39,
+      "value": 0.7
+    },
+    {
+      "key": 54,
+      "value": 3.0
+    },
+    {
+      "key": 76,
+      "value": 0.2
+    },
+    {
+      "key": 167,
+      "value": 15.0
+    }
+  ],
+  "int64Stats": [],
+  "stringStats": [
+    {
+      "key": 1,
+      "value": "Focusing Stone"
+    },
+    {
+      "key": 14,
+      "value": "This item can be placed on wall hooks, where it can be used to cast Brilliance"
+    }
+  ],
+  "emoteTable": [
+    {
+      "key": 7,
+      "value": [
+        {
+          "category": 7,
+          "emotes": [
+            {
+              "type": 19,
+              "delay": 0.0,
+              "extent": 1.0,
+              "spellid": 2348
+            }
+          ],
+          "probability": 1.0
+        }
+      ]
+    }
+  ],
+  "lastModified": "2023-08-20T18:24:14.6097692Z",
+  "modifiedBy": "ACE.Adapter",
+  "changelog": [
+    {
+      "created": "2023-08-20T18:18:22.1858279Z",
+      "author": "ACE.Adapter",
+      "comment": "Weenie exported from ACEmulator world database using ACE.Adapter"
+    },
+    {
+      "created": "2023-08-20T18:20:39.0970118Z",
+      "author": "ACE.Adapter",
+      "comment": "Weenie exported from ACEmulator world database using ACE.Adapter"
+    },
+    {
+      "created": "2023-08-20T18:22:00.6734021Z",
+      "author": "ACE.Adapter",
+      "comment": "Weenie exported from ACEmulator world database using ACE.Adapter"
+    },
+    {
+      "created": "2023-08-20T18:24:14.609424Z",
+      "author": "ACE.Adapter",
+      "comment": "Weenie exported from ACEmulator world database using ACE.Adapter"
+    }
+  ],
+  "userChangeSummary": "Weenie exported from ACEmulator world database using ACE.Adapter",
+  "isDone": false
+}

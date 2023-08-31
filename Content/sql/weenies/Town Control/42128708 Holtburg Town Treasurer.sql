@@ -188,6 +188,7 @@ VALUES (42128708, 2, 22015,  0, 21, 0.9, False) /* Create Pwyll's Guard (22015) 
 	 , (42128708, 4, 4200020,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
 	 , (42128708, 4, 480000,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
 	 , (42128708, 4, 480001,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
+	 , (42128708, 4, 480631,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
 	 , (42128708, 4, 2031668,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
 	 , (42128708, 4, 480008,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
 	, (42128708, 4, 480009,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
@@ -219,6 +220,11 @@ VALUES (42128708, 2, 22015,  0, 21, 0.9, False) /* Create Pwyll's Guard (22015) 
 	 , (42128708, 4, 30082,  0, 0, 0, False) /* Create Burglers Tools (4200012) for Shop */
 	 , (42128708, 4, 4200026,  0, 0, 0, False) /* Create Vestiri Robe (450010) for Shop */
      , (42128708, 4, 4200023,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
+	 , (42128708, 4, 480639,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
+	 , (42128708, 4, 480640,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
+	 , (42128708, 4, 480641,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
+	 , (42128708, 4, 480633,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
+	 , (42128708, 4, 480637,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
 	 , (42128708, 4, 480483,  0, 0, 0, False) /* Create Vestiri Robe (450010) for Shop */
      , (42128708, 4, 480484,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
 	, (42128708, 4, 480609,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */

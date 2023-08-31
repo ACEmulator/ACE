@@ -12,7 +12,7 @@ VALUES (480003,   1,        512) /* ItemType - Container */
      , (480003,   9,          0) /* ValidLocations - None */
      , (480003,  16,         56) /* ItemUseable - ContainedViewedRemote */
      , (480003,  18,          1) /* UiEffects - Magical */
-     , (480003,  19,          250) /* Value */
+     , (480003,  19,          100) /* Value */
      , (480003,  33,          1) /* Bonded - Bonded */
      , (480003,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (480003,  96,       2000) /* EncumbranceCapacity */;

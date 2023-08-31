@@ -34,4 +34,5 @@ VALUES (450610,   1, 0x0200011E) /* Setup */
      , (450610,   3, 0x20000014) /* SoundTable */
      , (450610,   8, 0x060072EB) /* Icon */
      , (450610,  22, 0x3400002B) /* PhysicsEffectTable */
+     , (450610,  50, 0x06006F64) /* IconOverlay */
      , (450610,  38,      43901) /* UseCreateItem - Promissory Note */;

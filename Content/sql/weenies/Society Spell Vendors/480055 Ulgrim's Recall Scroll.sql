@@ -9,7 +9,7 @@ VALUES (480055,   1,       8192) /* ItemType - Writable */
      , (480055,   8,         90) /* Mass */
      , (480055,   9,          0) /* ValidLocations - None */
      , (480055,  16,          8) /* ItemUseable - Contained */
-     , (480055,  19,         500) /* Value */
+     , (480055,  19,         100) /* Value */
      , (480055,  33,          1) /* Bonded - Bonded */
      , (480055,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (480055, 150,        103) /* HookPlacement - Hook */

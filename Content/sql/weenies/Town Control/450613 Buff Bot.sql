@@ -10,7 +10,7 @@ VALUES (450613,   1,        128) /* ItemType - Misc */
      , (450613,   8,         25) /* Mass */
      , (450613,   9,          0) /* ValidLocations - None */
      , (450613,  16,         32) /* ItemUseable - Remote */
-     , (450613,  19,       1000) /* Value */
+     , (450613,  19,       250) /* Value */
      , (450613,  33,          1) /* Bonded - Bonded */
      , (450613,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
      , (450613, 150,        103) /* HookPlacement - Hook */
