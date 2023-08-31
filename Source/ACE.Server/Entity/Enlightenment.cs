@@ -128,9 +128,9 @@ namespace ACE.Server.Entity
 
         public static void RemoveAbility(Player player)
         {
-            RemoveSociety(player);
-            RemoveLuminance(player);
-            RemoveAetheria(player);
+            //RemoveSociety(player);
+            //RemoveLuminance(player);
+            //RemoveAetheria(player);
             RemoveAttributes(player);
             RemoveSkills(player);
             RemoveLevel(player);
