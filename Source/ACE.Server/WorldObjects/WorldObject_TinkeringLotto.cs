@@ -658,19 +658,20 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case DamageType.Pierce | DamageType.Slash:
-                    if (!this.ImbuedEffect.HasFlag(ImbuedEffectType.PierceRending))
+                    
+                    if (new Random().Next(2) == 0 && !this.ImbuedEffect.HasFlag(ImbuedEffectType.PierceRending))
                     {
                         this.ImbuedEffect = ImbuedEffectType.PierceRending;
                         this.SetProperty(PropertyDataId.IconUnderlay, 0x0600335b);
-                        resultMsg = $"Added Pierce and Slash Rending";
-                        HandleTinkerLottoLog("PierceSlashRend");
+                        resultMsg = $"Added Pierce Rending";
+                        HandleTinkerLottoLog("PierceRend");
                     }
-                    if (!this.ImbuedEffect.HasFlag(ImbuedEffectType.SlashRending))
+                    else if (!this.ImbuedEffect.HasFlag(ImbuedEffectType.SlashRending))
                     {
                         this.ImbuedEffect = ImbuedEffectType.SlashRending;
                         this.SetProperty(PropertyDataId.IconUnderlay, 0x0600335c);
-                        resultMsg = $"Added Pierce and Slash Rending";
-                        HandleTinkerLottoLog("PierceSlashRend");
+                        resultMsg = $"Added Slash Rending";
+                        HandleTinkerLottoLog("SlashRend");
                     }
                     break;
             }
@@ -738,9 +739,9 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case DamageType.Pierce | DamageType.Slash:
-                    this.ResistanceModifierType = this.W_DamageType;
+                    this.ResistanceModifierType = new Random().Next(2) == 0 ? DamageType.Pierce : DamageType.Slash;
                     this.ResistanceModifier = 1.5;
-                    resultMsg = $"Added Pierce and Slash Cleaving";
+                    resultMsg = $"Added {ResistanceModifierType} Cleaving";
                     HandleTinkerLottoLog("PierceSlashCleaving");
                     break;
             }
