@@ -460,7 +460,7 @@ namespace ACE.Server.WorldObjects
         private string TinkeringLotto_ApplySlayerMutation()
         {
             var selectSlayerType = ThreadSafeRandom.Next(1, 27);
-            this.SlayerDamageBonus = 1.80f;
+            this.SlayerDamageBonus = 1.20f;
 
             switch (selectSlayerType)
             {
