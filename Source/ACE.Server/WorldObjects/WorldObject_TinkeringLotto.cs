@@ -459,8 +459,8 @@ namespace ACE.Server.WorldObjects
 
         private string TinkeringLotto_ApplySlayerMutation()
         {
-            var selectSlayerType = ThreadSafeRandom.Next(1, 25);
-            this.SlayerDamageBonus = 1.20f;
+            var selectSlayerType = ThreadSafeRandom.Next(1, 27);
+            this.SlayerDamageBonus = 1.80f;
 
             switch (selectSlayerType)
             {
@@ -489,7 +489,7 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case 7:
-                    this.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Mite;
+                    this.SlayerCreatureType = ACE.Entity.Enum.CreatureType.GearKnight;
                     break;
 
                 case 8:
@@ -497,7 +497,7 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case 9:
-                    this.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Mumiyah;
+                    this.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Monouga;
                     break;
 
                 case 10:
@@ -562,6 +562,14 @@ namespace ACE.Server.WorldObjects
 
                 case 25:
                     this.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Eater;
+                    break;
+
+                case 26:
+                    this.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Sclavus;
+                    break;
+
+                case 27:
+                    this.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Moarsman;
                     break;
 
                 default:
