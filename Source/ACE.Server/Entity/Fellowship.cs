@@ -565,8 +565,6 @@ namespace ACE.Server.Entity
         /// <param name="player">The fellowship member who originated the luminance</param>
         public void SplitLuminance(ulong amount, XpType xpType, ShareType shareType, Player player)
         {
-            return; //Hard disable luminance
-
             // https://asheron.fandom.com/wiki/Announcements_-_2002/02_-_Fever_Dreams#Letter_to_the_Players_1
 
             shareType &= ~ShareType.Fellowship;
