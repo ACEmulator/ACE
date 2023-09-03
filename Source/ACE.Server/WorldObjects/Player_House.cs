@@ -43,18 +43,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var slumlord = (SlumLord)CurrentLandblock.GetObject(slumlord_id);
-
-            // Housing Disabled (apartments only).
-            if (slumlord.House.HouseType == HouseType.Apartment
-                || slumlord.House.HouseType == HouseType.Cottage
-                || slumlord.House.HouseType == HouseType.Villa
-                //|| slumlord.House.HouseType == HouseType.Mansion
-                )
-            {
-                Session.Network.EnqueueSend(new GameMessageSystemChat("Only Mansions are available for purchase at this time...", ChatMessageType.Broadcast));
-                return;
-            }
+            var slumlord = (SlumLord)CurrentLandblock.GetObject(slumlord_id);            
 
             if (slumlord == null)
             {
