@@ -11,7 +11,7 @@ VALUES (1910506,   1,       2048) /* ItemType - Gem */
      , (1910506,  11,          1) /* MaxStackSize */
      , (1910506,  12,          1) /* StackSize */
      , (1910506,  13,         50) /* StackUnitEncumbrance */
-     , (1910506,  15,      20 /* StackUnitValue */
+     , (1910506,  15,      20) /* StackUnitValue */
      , (1910506,  16,          1) /* ItemUseable - No */
      , (1910506,  18,          1) /* UiEffects - Magical */
      , (1910506,  19,      20) /* Value */
