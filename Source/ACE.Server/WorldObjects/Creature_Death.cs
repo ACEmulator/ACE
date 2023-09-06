@@ -616,6 +616,7 @@ namespace ACE.Server.WorldObjects
 
                 foreach (var item in corpse.Inventory.Values)
                     item.SaveBiotaToDatabase();
+            }            
         }
 
         public bool CanGenerateRare
