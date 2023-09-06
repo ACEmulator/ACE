@@ -616,7 +616,6 @@ namespace ACE.Server.WorldObjects
 
                 foreach (var item in corpse.Inventory.Values)
                     item.SaveBiotaToDatabase();
-            }
         }
 
         public bool CanGenerateRare
@@ -692,7 +691,7 @@ namespace ACE.Server.WorldObjects
                     else
                         droppedItems.Add(wo);
 
-                    DoCantripLogging(killer, wo);
+                    //DoCantripLogging(killer, wo);
                 }
             }
 
