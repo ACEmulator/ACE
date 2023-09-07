@@ -218,7 +218,6 @@ VALUES (42128709, 2, 12213,  0, 3, 0.9, False) /* Create Veil of Darkness (12213
 	, (42128709, 4, 4200026,  0, 0, 0, False) /* Create Vestiri Robe (450010) for Shop */
      , (42128709, 4, 4200023,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
 	 , (42128709, 4, 480639,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
-	 , (42128709, 4, 480640,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
 	 , (42128709, 4, 480641,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
 	 , (42128709, 4, 480633,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
 	 , (42128709, 4, 480637,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */

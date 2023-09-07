@@ -221,7 +221,6 @@ VALUES (42128708, 2, 22015,  0, 21, 0.9, False) /* Create Pwyll's Guard (22015) 
 	 , (42128708, 4, 4200026,  0, 0, 0, False) /* Create Vestiri Robe (450010) for Shop */
      , (42128708, 4, 4200023,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
 	 , (42128708, 4, 480639,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
-	 , (42128708, 4, 480640,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
 	 , (42128708, 4, 480641,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
 	 , (42128708, 4, 480633,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
 	 , (42128708, 4, 480637,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
