@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using ACE.Common;
+using ACE.Database.Models.Auth;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
@@ -46,7 +47,7 @@ namespace ACE.Server.Entity
         public const uint MorphGemSlayerRandom = 480610;
         public const uint MorphGemRemoveLevelReq = 480609;
         public const uint MorphGemSlayerUpgrade = 480639;
-
+        public const uint MorphGemBurningCoal = 480638;
         public const int MorphGemMinValue = 20000;
 
         
@@ -212,6 +213,7 @@ namespace ACE.Server.Entity
                 case MorphGemSlayerRandom:
                 case MorphGemRemoveLevelReq:
                 case MorphGemSlayerUpgrade:
+                case MorphGemBurningCoal:
                     ApplyMorphGem(player, source, target);
                     return;
             }
@@ -1298,6 +1300,57 @@ namespace ACE.Server.Entity
 
                     #endregion MorphGemSlayerUpgrade
 
+                    #region MorphGemBurningCoal
+
+                    case MorphGemBurningCoal:
+
+                        //Check if the item is undies, armor or jewelry; everything else is not allowed
+                        if(!(target.ItemType == ItemType.Armor || target.ItemType == ItemType.Jewelry || target.ItemType == ItemType.Clothing))
+                        {
+                            playerMsg = "The gem can only be applied to armor, clothing or jewelry";
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        //Check if the item already has Blazing Heart (3204) on it
+                        var spells = target.Biota.GetKnownSpellsIds(target.BiotaDatabaseLock);
+
+                        if(spells == null || spells.Count < 1)
+                        {
+                            playerMsg = "The gem can only be applied to magical items";
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+                        else if(spells != null && spells.Contains(3204))
+                        {
+                            playerMsg = "Your target item already has Blazing Heart on it, you cannot add it twice";
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        var blazingHeartRoll = ThreadSafeRandom.Next(0, 99);
+
+                        if (blazingHeartRoll < 38)
+                        {
+                            target.Biota.GetOrAddKnownSpell(3204, target.BiotaDatabaseLock, out _);                            
+                            playerMsg = $"With a steady hand and pure heart, you skillfully apply the morph gem to your {target.NameWithMaterial} and have successfully added the spell Blazing Heart";
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                        }
+                        else
+                        {
+                            target.ChangesDetected = true;
+                            player.TryConsumeFromInventoryWithNetworking(target, 1);
+                            playerMsg = $"Your hands quiver with anticipation as you attempt to apply the morph gem to your {target.NameWithMaterial}. Unfortunately the gem shatters on contact and with it your item has been destroyed.";
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                        }
+
+                        break;
+
+                    #endregion MorphGemBurningCoal
+
                     default:
                         player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                         return;
@@ -1563,6 +1616,7 @@ namespace ACE.Server.Entity
                 case MorphGemSlayerRandom:
                 case MorphGemRemoveLevelReq:
                 case MorphGemSlayerUpgrade:
+                case MorphGemBurningCoal:
 
                     return true;
 
