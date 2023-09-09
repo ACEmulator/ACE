@@ -649,6 +649,7 @@ namespace ACE.Server.Managers
                 ("town_control_reward_zerg_limit", new Property<long>(9, "the maximum numbers of players from the same clan allowed in the town control conflict landblock")), 
                 ("town_control_periodic_reward_seconds", new Property<long>(50, "the number seconds between periodic trophy awards during an active town control event")),
                 ("town_control_periodic_reward_defender_seconds", new Property<long>(25, "the number seconds between periodic trophy awards during an active town control event for the defending clan")),
+                ("town_control_reward_defender_lum_amount", new Property<long>(500, "the amount of lum each defender gets every {town_control_periodic_reward_seconds} during an active town control event")),
                 ("arenas_min_level", new Property<long>(25, "the minimum level required to join an arena queue")),
                 ("arenas_reward_min_level", new Property<long>(25, "the minimum level required to get arena rewards")),
                 ("arenas_reward_min_age", new Property<long>(864000, "the minimum in-game age in seconds required to get arena rewards")),
@@ -752,6 +753,8 @@ namespace ACE.Server.Managers
                 ("pvp_dmg_mod_tw_hollow", new Property<double>(1.0, "Scales the amount of damage for TW Hollow.")),
                 ("pvp_dmg_mod_tw_phantom", new Property<double>(1.0, "Scales the amount of damage for TW Phantom.")),
                 ("pvp_cs_critrate_mod", new Property<double>(1.0, "Scales the crit rate for CS")),
+                //("pvp_dmg_mod_ratings_bonus", new Property<double>(1.0, "Scales the bonus received from dmg related ratings during pvp")),
+                //("pvp_dmg_mod_ratings_cap", new Property<double>(100.0, "Caps the ratings amount that can be applied for any given rating type during pvp")),
                 ("cloak_max_proc_rate", new Property<double>(25.0, "Cap cloak proc chance to this percentage (100.0 will effectively use the standard ACE proc rate).")),
                 ("town_control_trophy_chance", new Property<double>(0.25, "the change that a town control trophy is given to a player that is within the landblock of an active town control event with each player tick"))
                 );

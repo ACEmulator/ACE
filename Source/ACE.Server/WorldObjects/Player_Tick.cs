@@ -5,6 +5,7 @@ using System.Numerics;
 
 using ACE.Common;
 using ACE.Database;
+using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -719,6 +720,13 @@ namespace ACE.Server.WorldObjects
                             var msg = new GameMessageSystemChat($"You have received a participation trophy.", ChatMessageType.Broadcast);
                             Session.Network.EnqueueSend(msg);
                             SetProperty(PropertyFloat.TownControlTrophyTimer, Time.GetFutureUnixTime(isDefender ? PropertyManager.GetLong("town_control_periodic_reward_defender_seconds").Item : PropertyManager.GetLong("town_control_periodic_reward_seconds").Item));
+
+                            //If player is a defender, give periodic lum
+                            if (isDefender && this.MaximumLuminance != null)
+                            {
+                                var lumAmount = PropertyManager.GetLong("town_control_reward_defender_lum_amount").Item;
+                                this.GrantLuminance(lumAmount, XpType.Quest);                                
+                            }
                         }
                         else if(!String.IsNullOrEmpty(trophyValidationMsg) && isTrophyTimerPast)
                         {
