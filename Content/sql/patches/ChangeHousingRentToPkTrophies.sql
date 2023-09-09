@@ -15,7 +15,7 @@ VALUES
 /* Buy item list for cottages */
 INSERT INTO ace_world.weenie_properties_create_list
 (object_Id, destination_type, weenie_class_Id, stack_Size, palette, shade, try_to_Bond)
-SELECT class_id, 16, 1000002, 25, 0, 0, 0
+SELECT class_id, 16, 1000002, 50, 0, 0, 0
 FROM ace_world.weenie
 WHERE `type` = 55
 AND class_Name LIKE '%cottage%';
@@ -31,7 +31,7 @@ AND class_Name LIKE '%cottage%';
 /* Buy item list for villas */
 INSERT INTO ace_world.weenie_properties_create_list
 (object_Id, destination_type, weenie_class_Id, stack_Size, palette, shade, try_to_Bond)
-SELECT class_id, 16, 1000002, 35, 0, 0, 0
+SELECT class_id, 16, 1000002, 100, 0, 0, 0
 FROM ace_world.weenie
 WHERE `type` = 55
 AND class_Name LIKE '%villa%';
@@ -39,7 +39,7 @@ AND class_Name LIKE '%villa%';
 /* Rent item list for villas */
 INSERT INTO ace_world.weenie_properties_create_list
 (object_Id, destination_type, weenie_class_Id, stack_Size, palette, shade, try_to_Bond)
-SELECT class_id, 32, 1000002, 35, 0, 0, 0
+SELECT class_id, 32, 1000002, 50, 0, 0, 0
 FROM ace_world.weenie
 WHERE `type` = 55
 AND class_Name LIKE '%villa%';
@@ -47,7 +47,7 @@ AND class_Name LIKE '%villa%';
 /* Buy item list for mansions */
 INSERT INTO ace_world.weenie_properties_create_list
 (object_Id, destination_type, weenie_class_Id, stack_Size, palette, shade, try_to_Bond)
-SELECT class_id, 16, 1000002, 150, 0, 0, 0
+SELECT class_id, 16, 1000002, 500, 0, 0, 0
 FROM ace_world.weenie
 WHERE `type` = 55
 AND class_Name LIKE '%mansion%';
