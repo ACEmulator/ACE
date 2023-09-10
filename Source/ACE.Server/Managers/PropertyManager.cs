@@ -619,6 +619,7 @@ namespace ACE.Server.Managers
                 ("arena_allow_same_ip_match", new Property<bool>(false, "enable this allow two characters connected from the same IP to be matched in an arena event")),
                 ("arena_allow_observers", new Property<bool>(true, "enable this to allow players to watch arena matches as invisible observers")),
                 ("tinker_lotto_enabled", new Property<bool>(false, "enables the tinkering lotto feature")),
+                ("force_materialization", new Property<bool>(true, "forces players to materialize on login")),
                 ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world"))
                 );
 
@@ -653,7 +654,8 @@ namespace ACE.Server.Managers
                 ("arenas_min_level", new Property<long>(25, "the minimum level required to join an arena queue")),
                 ("arenas_reward_min_level", new Property<long>(25, "the minimum level required to get arena rewards")),
                 ("arenas_reward_min_age", new Property<long>(864000, "the minimum in-game age in seconds required to get arena rewards")),
-                ("pvp_chug_timer", new Property<long>(0, "the minimum time in milliseconds between chugs. if a chug is used within X milliseconds of a previous one, it will heal for 0. if value is set to 0 the feature is disabled."))
+                ("pvp_chug_timer", new Property<long>(0, "the minimum time in milliseconds between chugs. if a chug is used within X milliseconds of a previous one, it will heal for 0. if value is set to 0 the feature is disabled.")),
+                ("force_materialization_duration", new Property<long>(1, "the number of seconds a player should materialize for before logging out"))
                 );
 
         public static readonly ReadOnlyDictionary<string, Property<double>> DefaultDoubleProperties =

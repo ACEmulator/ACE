@@ -510,33 +510,110 @@ namespace ACE.Server.WorldObjects
 
         public bool IsLoggingOut;
 
+        public bool ForceMaterialization = PropertyManager.GetBool("force_materialization").Item;
+
+        public long MaterializedDuration = PropertyManager.GetLong("force_materialization_duration").Item;
+
+        public enum LogoutState
+        {
+            Pending,
+            InProgress,
+            Ready
+        }
+
+        public LogoutState MaterializedLogoutState = LogoutState.Pending;
+
+        public LogoutState PkLogoutState = LogoutState.Pending;
+
         /// <summary>
         /// Do the player log out work.<para />
         /// If you want to force a player to logout, use Session.LogOffPlayer().
         /// </summary>
         public bool LogOut(bool clientSessionTerminatedAbruptly = false, bool forceImmediate = false)
-        {            
-            if (PKLogoutActive && !forceImmediate)
+        {
+            if (PKLogoutActive && !forceImmediate || PkLogoutState != LogoutState.Pending)
             {
-                //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
-                Session.Network.EnqueueSend(new GameMessageSystemChat("Beginning delayed player killer logoff...", ChatMessageType.Broadcast));
+                return HandlePKLogout();
+            }
 
-                if (!PKLogout)
-                {
-                    PKLogout = true;
-
-                    IsFrozen = true;
-                    EnqueueBroadcastPhysicsState();
-
-                    LogoffTimestamp = Time.GetFutureUnixTime(PropertyManager.GetLong("pk_timer").Item);
-                    PlayerManager.AddPlayerToLogoffQueue(this);
-                }
-                return false;
+            if (ForceMaterialization || MaterializedLogoutState != LogoutState.Pending)
+            {
+                return HandleMaterializeLogout();
             }
 
             LogOut_Inner(clientSessionTerminatedAbruptly);
 
             return true;
+        }
+
+        private bool HandlePKLogout()
+        {
+            log.Debug($"HandlePkLogout -> State -> ${PkLogoutState}");
+            if (PkLogoutState is LogoutState.Ready)
+            {
+                LogOut_Inner();
+                return true;
+            }
+
+            if (PkLogoutState is LogoutState.InProgress)
+                return false;
+
+            if (!PKLogout && PkLogoutState is LogoutState.Pending)
+            {
+                QueuePlayerToLogoff();
+            }
+
+            return false;
+        }
+
+        private void QueuePlayerToLogoff()
+        {
+            PkLogoutState = LogoutState.InProgress;
+            PKLogout = true;
+
+            if (ForceMaterialization)
+                OnTeleportComplete();
+
+            IsFrozen = true;
+            EnqueueBroadcastPhysicsState();
+
+            //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
+            Session.Network.EnqueueSend(new GameMessageSystemChat("Logging out in 20s...", ChatMessageType.Magic));
+
+            LogoffTimestamp = Time.GetFutureUnixTime(PropertyManager.GetLong("pk_timer").Item);
+            PlayerManager.AddPlayerToLogoffQueue(this);
+        }
+
+        private bool HandleMaterializeLogout()
+        {
+            log.Debug($"HandleMaterialize -> State -> ${MaterializedLogoutState}");
+            if (MaterializedLogoutState is LogoutState.Ready)
+            {
+                LogOut_Inner();
+                return true;
+            }
+
+            if (MaterializedLogoutState is LogoutState.InProgress)
+            {
+                return false;
+            }
+
+            if (Teleporting && MaterializedLogoutState is LogoutState.Pending)
+            {
+                ForceMaterialize();
+                return false;
+            }
+
+            LogOut_Inner();
+            return true;
+        }
+
+        public void ForceMaterialize()
+        {
+            MaterializedLogoutState = LogoutState.InProgress;
+            OnTeleportComplete();
+            LogoffTimestamp = Time.GetFutureUnixTime(MaterializedDuration);
+            PlayerManager.AddPlayerToLogoffQueue(this);
         }
 
         public void LogOut_Inner(bool clientSessionTerminatedAbruptly = false)
