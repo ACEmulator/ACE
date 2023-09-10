@@ -288,7 +288,14 @@ namespace ACE.Server.WorldObjects.Managers
         /// <returns></returns>
         public void UpdateSquelchDB()
         {
-            Squelches = new SquelchDB(Player.Character.GetSquelches(Player.CharacterDatabaseLock), Player.SquelchGlobal);
+            try
+            {
+                Squelches = new SquelchDB(Player.Character.GetSquelches(Player.CharacterDatabaseLock), Player.SquelchGlobal);
+            }
+            catch(Exception ex)
+            {
+                
+            }
         }
 
         /// <summary>
