@@ -9,7 +9,8 @@ VALUES (480634,   1,       2048) /* ItemType - Gem */
      , (480634,  11,        100) /* MaxStackSize */
      , (480634,  12,          1) /* StackSize */
      , (480634,  13,         10) /* StackUnitEncumbrance */
-	 , (480634,  33,         -1) /* Bonded - Slippery */
+     , (480634, 114,          1) /* Attuned - Attuned */
+     , (480634,  33,          1) /* Bonded - Bonded */
      , (480634,  15,      10000) /* StackUnitValue */
      , (480634,  16,          1) /* ItemUseable - No */
      , (480634,  19,      10000) /* Value */
