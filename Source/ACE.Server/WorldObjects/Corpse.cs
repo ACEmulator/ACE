@@ -393,10 +393,13 @@ namespace ACE.Server.WorldObjects
 
                     try
                     {
-                        string rareAuditUrl = PropertyManager.GetString("rare_audit_webhook").Item;
-                        if (!string.IsNullOrEmpty(rareAuditUrl))
+                        if (tier > 2)
                         {
-                            _ = TurbineChatHandler.SendWebhookedChat("", $"Rare item {wo.Name} was generated on a corpse killed by {killerPlayer.Character.Name}.  ItemBiotaId = {wo.Biota.Id}", rareAuditUrl, "Rare Audit");
+                            string rareAuditUrl = PropertyManager.GetString("rare_audit_webhook").Item;
+                            if (!string.IsNullOrEmpty(rareAuditUrl))
+                            {
+                                _ = TurbineChatHandler.SendWebhookedChat("", $"Rare item {wo.Name} was generated on a corpse killed by {killerPlayer.Character.Name}.  ItemBiotaId = {wo.Biota.Id}", rareAuditUrl, "Rare Audit");
+                            }
                         }
                     }
                     catch (Exception ex)
