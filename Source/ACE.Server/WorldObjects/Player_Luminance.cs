@@ -44,7 +44,15 @@ namespace ACE.Server.WorldObjects
                 Fellowship.SplitLuminance((ulong)amount, xpType, shareType, this);
             }
             else
+            {
+                //Town Control - give bonus % to xp for each town your clan owns
+                var townsOwned = GetTownOwnershipCount();
+                if (townsOwned > 0)
+                {
+                    amount = (long)Math.Round((amount * (1 + (Math.Min(townsOwned, 3)) * 0.1)));
+                }
                 AddLuminance(amount, xpType);
+            }
         }
 
         private void AddLuminance(long amount, XpType xpType)
