@@ -577,7 +577,10 @@ namespace ACE.Server.Entity
             else
             {
                 // pre-filter: evenly divide between luminance-eligible fellows
-                var shareableMembers = GetFellowshipMembers().Values.Where(f => f.MaximumLuminance != null).ToList();
+                // updated: retail supposedly did not do this
+                //var shareableMembers = GetFellowshipMembers().Values.Where(f => f.MaximumLuminance != null).ToList();
+
+                var shareableMembers = GetFellowshipMembers().Values.ToList();
 
                 if (shareableMembers.Count == 0)
                     return;
@@ -589,6 +592,8 @@ namespace ACE.Server.Entity
 
                 foreach (var member in inRange)
                 {
+                    if (member.MaximumLuminance == null) continue;
+
                     var fellowXpType = player == member ? xpType : XpType.Fellowship;
 
                     member.GrantLuminance(perAmount, fellowXpType, shareType);
