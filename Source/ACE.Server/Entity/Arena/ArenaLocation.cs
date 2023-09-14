@@ -1210,7 +1210,16 @@ namespace ACE.Server.Entity
             //You can't get more than 5 rewards playing against a clanmate per day
             if (player.ArenaSameClanDailyRewardCount >= 5 && (player.ArenaDailyRewardTimestamp ?? 0) >= Time.GetUnixTime(DateTime.Today))
             {
-                return false;
+                var sameClanOpponents = allArenaPlayers
+                    .Where(x =>
+                      x.CharacterId != arenaPlayer.CharacterId &&
+                      x.TeamGuid != arenaPlayer.TeamGuid &&
+                      x.MonarchId == arenaPlayer.MonarchId);
+
+                if (sameClanOpponents != null && sameClanOpponents.Count() > 0)
+                {
+                    return false;
+                }
             }
 
             //You can't get more than 3 rewards from same person per day
