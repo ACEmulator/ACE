@@ -959,6 +959,10 @@ namespace ACE.Server.Entity
                     else if (wo.ProjectileTarget == null && !(wo is SpellProjectile))
                     {
                         log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] at {wo.Location.ToLOCString()}");
+                        if(wo.WeenieClassId == 1000002) //PK Trophy
+                        {
+                            wo.Destroy();
+                        }
                     }
 
                     return false;
