@@ -26,7 +26,7 @@ namespace ACE.Database.Models.Auth
             {
                 var config = Common.ConfigManager.Config.MySql.Authentication;
 
-                var connectionString = $"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database};TreatTinyAsBoolean=False;SslMode=None;AllowPublicKeyRetrieval=true;ApplicationName=ACEmulator";
+                var connectionString = $"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database};{config.ConnectionOptions}";
 
                 optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), builder =>
                 {

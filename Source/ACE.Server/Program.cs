@@ -14,6 +14,7 @@ using ACE.DatLoader;
 using ACE.Server.Command;
 using ACE.Server.Managers;
 using ACE.Server.Network.Managers;
+using ACE.Server.Mods;
 
 namespace ACE.Server
 {
@@ -232,6 +233,14 @@ namespace ACE.Server
             log.Info("Initializing DatManager...");
             DatManager.Initialize(ConfigManager.Config.Server.DatFilesDirectory, true);
 
+            if (ConfigManager.Config.DDD.EnableDATPatching)
+            {
+                log.Info("Initializing DDDManager...");
+                DDDManager.Initialize();
+            }
+            else
+                log.Info("DAT Patching Disabled...");
+
             log.Info("Initializing DatabaseManager...");
             DatabaseManager.Initialize();
 
@@ -311,6 +320,9 @@ namespace ACE.Server
             // This should be last
             log.Info("Initializing CommandManager...");
             CommandManager.Initialize();
+
+            log.Info("Initializing ModManager...");
+            ModManager.Initialize();
 
             if (!PropertyManager.GetBool("world_closed", false).Item)
             {

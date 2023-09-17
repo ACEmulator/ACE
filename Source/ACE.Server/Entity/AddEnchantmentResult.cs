@@ -59,7 +59,7 @@ namespace ACE.Server.Entity
             StackType = stackType;
         }
 
-        public void BuildStack(List<PropertiesEnchantmentRegistry> entries, Spell spell, WorldObject caster, bool equip = false)
+        public void BuildStack(List<PropertiesEnchantmentRegistry> entries, Spell spell, WorldObject caster, bool equip = false, bool isWeaponSpell = false)
         {
             Surpass = new List<PropertiesEnchantmentRegistry>();
             Refresh = new List<PropertiesEnchantmentRegistry>();
@@ -95,7 +95,7 @@ namespace ACE.Server.Entity
                         // handle special case to prevent message: Pumpkin Shield casts Web of Defense on you, refreshing Aura of Defense
                         var spellDuration = equip ? double.PositiveInfinity : spell.Duration;
 
-                        if (!equip && caster is Player player && player.AugmentationIncreasedSpellDuration > 0)
+                        if (!equip && caster is Player player && player.AugmentationIncreasedSpellDuration > 0 && !isWeaponSpell)
                             spellDuration *= 1.0f + player.AugmentationIncreasedSpellDuration * 0.2f;
 
                         var entryDuration = entry.Duration == -1 ? double.PositiveInfinity : entry.Duration;

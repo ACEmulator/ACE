@@ -32,7 +32,8 @@ namespace ACE.Server.Network
         private const int timeBetweenAck = 2000; // 2s
 
         private readonly Session session;
-        private readonly ConnectionListener connectionListener;
+        private readonly ConnectionListener connectionC2S; // This is the connection the client transmits on. In retail this would be port 9000 for GLS; For world servers, examples would be port 9002 / 9004 / 9006 / 9008.
+        private readonly ConnectionListener connectionS2C; // This is the connection the server transmits on. In retail this would be port 9001 for GLS; For world servers, examples would be port 9003 / 9005 / 9007 / 9009.
 
         private readonly Object[] currentBundleLocks = new Object[(int)GameMessageGroup.QueueMax];
         private readonly NetworkBundle[] currentBundles = new NetworkBundle[(int)GameMessageGroup.QueueMax];
@@ -92,7 +93,8 @@ namespace ACE.Server.Network
         public NetworkSession(Session session, ConnectionListener connectionListener, ushort clientId, ushort serverId)
         {
             this.session = session;
-            this.connectionListener = connectionListener;
+            connectionC2S = connectionListener;
+            connectionS2C = SocketManager.GetMatchedConnectionListener(connectionC2S);
 
             ClientId = clientId;
             ServerId = serverId;
@@ -661,15 +663,15 @@ namespace ACE.Server.Network
                 // This is to catch a race condition between .Count and .Min() and .Max()
                 try
                 {
-                    log.Error($"Session {session.Network?.ClientId}\\{session.EndPoint} ({session.Account}:{session.Player?.Name}) retransmit requested packet {sequence} not in cache. Cache range {cachedPackets.Keys.Min()} - {cachedPackets.Keys.Max()}.");
+                    log.Error($"Session {session.Network?.ClientId}\\{session.EndPointC2S} ({session.Account}:{session.Player?.Name}) retransmit requested packet {sequence} not in cache. Cache range {cachedPackets.Keys.Min()} - {cachedPackets.Keys.Max()}.");
                 }
                 catch
                 {
-                    log.Error($"Session {session.Network?.ClientId}\\{session.EndPoint} ({session.Account}:{session.Player?.Name}) retransmit requested packet {sequence} not in cache. Cache is empty. Race condition threw exception.");
+                    log.Error($"Session {session.Network?.ClientId}\\{session.EndPointC2S} ({session.Account}:{session.Player?.Name}) retransmit requested packet {sequence} not in cache. Cache is empty. Race condition threw exception.");
                 }
             }
             else
-                log.Error($"Session {session.Network?.ClientId}\\{session.EndPoint} ({session.Account}:{session.Player?.Name}) retransmit requested packet {sequence} not in cache. Cache is empty.");
+                log.Error($"Session {session.Network?.ClientId}\\{session.EndPointC2S} ({session.Account}:{session.Player?.Name}) retransmit requested packet {sequence} not in cache. Cache is empty.");
 
             return false;
         }
@@ -691,7 +693,7 @@ namespace ACE.Server.Network
                 else
                     packet.Header.Sequence = ConnectionData.PacketSequence.NextValue;
                 packet.Header.Id = ServerId;
-                packet.Header.Iteration = 0x14;
+                packet.Header.Iteration = 0x01;
                 packet.Header.Time = (ushort)Timers.PortalYearTicks;
 
                 if (packet.Header.Sequence >= 2u && !isNak)
@@ -722,7 +724,9 @@ namespace ACE.Server.Network
 
             try
             {
-                var socket = connectionListener.Socket;
+                // On connection to server, client expects response on the connection it initiated, once that occurs, the client connects to the +1 port and then the server transmits on that connection, while the client continues to transmit on the initial port.
+                var socket = (session.EndPointS2C is null) ? connectionC2S.Socket : connectionS2C.Socket;
+                var endPoint = (session.EndPointS2C is null) ? session.EndPointC2S : session.EndPointS2C;
 
                 packet.CreateReadyToSendPacket(buffer, out var size);
 
@@ -732,14 +736,14 @@ namespace ACE.Server.Network
                 {
                     var listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
                     var sb = new StringBuilder();
-                    sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", size, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
+                    sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", size, listenerEndpoint.Address, listenerEndpoint.Port, endPoint.Address, endPoint.Port, session.Network.ClientId));
                     sb.AppendLine(buffer.BuildPacketString(0, size));
                     packetLog.Debug(sb.ToString());
                 }
 
                 try
                 {
-                    socket.SendTo(buffer, size, SocketFlags.None, session.EndPoint);
+                    socket.SendTo(buffer, size, SocketFlags.None, endPoint);
                 }
                 catch (SocketException ex)
                 {
@@ -750,7 +754,7 @@ namespace ACE.Server.Network
                     var listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
                     var sb = new StringBuilder();
                     sb.AppendLine(ex.ToString());
-                    sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", buffer.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
+                    sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", buffer.Length, listenerEndpoint.Address, listenerEndpoint.Port, endPoint.Address, endPoint.Port, session.Network.ClientId));
                     log.Error(sb.ToString());
 
                     session.Terminate(SessionTerminationReason.SendToSocketException, null, null, ex.Message);

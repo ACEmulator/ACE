@@ -29,10 +29,12 @@ namespace ACE.Server.Network.Enum
         AccountLoggedIn,
         ServerShuttingDown,
         AccountBanned,
-        ClientOutOfDate,
+        ClientVersionIncorrect,
         ForcedLogOffRequested,
         CharacterSaveFailed,
-        BiotaSaveFailed
+        BiotaSaveFailed,
+        DATsPatchingDisabled,
+        DATsNewerThanServer
     }
     public static class SessionTerminationReasonHelper
     {
@@ -62,7 +64,9 @@ namespace ACE.Server.Network.Enum
             "Client is not up to date",
             "Forced log off requested by Admin",
             "Character Save Failed",
-            "Biota Save Failed"
+            "Biota Save Failed",
+            "Client has older DATs than server and patching is disabled",
+            "Client has newer DATs than server and cannot be downgraded"
         };
         public static string GetDescription(this SessionTerminationReason reason)
         {
