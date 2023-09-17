@@ -13,7 +13,7 @@ namespace ACE.Server.Mods
         public string Author { get; set; } = "";
         public string Description { get; set; }
         public string Version { get; set; } = "1.0";
-        public uint Priority { get; set; } = 1;
+        public uint Priority { get; set; } = 0u;
 
         /// <summary>
         /// Determines whether mod is patched on load.
