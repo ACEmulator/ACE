@@ -7,7 +7,7 @@ namespace ACE.DatLoader.Entity
     public class Polygon : IUnpackable
     {
         public byte NumPts { get; private set; }
-        public StipplingType Stippling { get; private set; } // Whether it has that textured/bumpiness to it
+        public StipplingType Stippling { get; private set; }    // determines which sides of the polygon to render
 
         public CullMode SidesType { get; private set; }
         public short PosSurface { get; private set; }
