@@ -53,7 +53,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("cmdver", AccessLevel.Envoy, CommandHandlerFlag.None, 0)]
         public static void Handlecmdver(Session session, params string[] parameters)
         {
-            var msg = $"DnF Command Update Version 1.52.4418 Requires core >= 1.52.4418";
+            var msg = $"DnF Command Update Version 1.54.4437 Requires core >= 1.54.4437";
 
             if(session == null)
             {
@@ -1275,7 +1275,7 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
-[CommandHandler("setlbenvironbyCellID", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
+        [CommandHandler("setlbenvironbyCellID", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
             "Sets or clears the specified landblock's environment option",
             "(cell id, name or id of EnvironChangeType)\nleave blank to reset to default.\nlist to get a complete list of options.")]
         public static void DNFHandleSetLBEnvironbyID(Session session, params string[] parameters)
@@ -1331,6 +1331,143 @@ namespace ACE.Server.Command.Handlers
             msg += "Clear resets to default.\nAll options ending with Fog are continuous.\nAll options ending with Fog2 are continuous and blank radar.\nAll options ending with Sound play once and do not repeat.";
 
             return msg;
+        }
+
+        [CommandHandler("ipdupes", AccessLevel.Envoy, CommandHandlerFlag.None, 0, "If a single IP address has more than 3 connections, displays all connections for that address.")]
+        public static void DNFHandleIPDupes(Session session, params string[] parameters)
+        {
+            AccessLevel? targetAccessLevel = null;
+            if (parameters?.Length > 0)
+            {
+                if (Enum.TryParse(parameters[0], true, out AccessLevel parsedAccessLevel))
+                {
+                    targetAccessLevel = parsedAccessLevel;
+                }
+                else
+                {
+                    try
+                    {
+                        uint accessLevel = Convert.ToUInt16(parameters[0]);
+                        targetAccessLevel = (AccessLevel)accessLevel;
+                    }
+                    catch (Exception)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, "Invalid AccessLevel value", ChatMessageType.Broadcast);
+                        return;
+                    }
+                }
+            }
+
+            if (targetAccessLevel.HasValue)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Listing only {targetAccessLevel.Value.ToString()}s:", ChatMessageType.Broadcast);
+            }
+
+            var players = PlayerManager.GetAllOnline().ToList();
+            var addressCount = new Dictionary<string, int>();
+
+            foreach (var player in players)
+            {
+                string address = player.Session.EndPointC2S.Address.ToString();
+                if (addressCount.ContainsKey(address))
+                {
+                    addressCount[address]++;
+                }
+                else
+                {
+                    addressCount[address] = 1;
+                }
+            }
+
+            int threshold = 3;
+            var playersWithDuplicates = new List<Player>();
+
+            foreach (var player in players)
+            {
+                string address = player.Session.EndPointC2S.Address.ToString();
+                if (addressCount[address] > threshold)
+                {
+                    playersWithDuplicates.Add(player);
+                }
+            }
+
+            playersWithDuplicates.Sort((a, b) =>
+            {
+                int result = a.Session.EndPointC2S.Address.ToString().CompareTo(b.Session.EndPointC2S.Address.ToString());
+                if (result == 0)
+                {
+                    result = a.Account.AccountName.ToString().CompareTo(b.Account.AccountName.ToString());
+                }
+                return result;
+            });
+
+            if (!playersWithDuplicates.Any())
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "There are currently no IP addresses with more than 3 connections.", ChatMessageType.Broadcast);
+                return;
+            }
+
+            foreach (var player in playersWithDuplicates)
+            {
+                if (targetAccessLevel.HasValue && player.Account.AccessLevel != ((uint)targetAccessLevel.Value))
+                    continue;
+
+                string message = $"Player:\"{player.Name}\" AccountName:\"{player.Account.AccountName}\" IP:\"{player.Session.EndPointC2S.Address}\"";
+                CommandHandlerHelper.WriteOutputInfo(session, message, ChatMessageType.Broadcast);
+            }
+        }
+
+       [CommandHandler("iplist", AccessLevel.Envoy, CommandHandlerFlag.None, 0, "List all connections sorted by IP address then AccountName")]
+        public static void DNFHandleListAllIP(Session session, params string[] parameters)
+        {
+            string message = "";
+            uint playerCounter = 0;
+
+            AccessLevel? targetAccessLevel = null;
+            if (parameters?.Length > 0)
+            {
+                if (Enum.TryParse(parameters[0], true, out AccessLevel parsedAccessLevel))
+                {
+                    targetAccessLevel = parsedAccessLevel;
+                }
+                else
+                {
+                    try
+                    {
+                        uint accessLevel = Convert.ToUInt16(parameters[0]);
+                        targetAccessLevel = (AccessLevel)accessLevel;
+                    }
+                    catch (Exception)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, "Invalid AccessLevel value", ChatMessageType.Broadcast);
+                        return;
+                    }
+                }
+            }
+
+            var players = PlayerManager.GetAllOnline().ToList();
+
+            players.Sort((a, b) =>
+            {
+                int result = a.Session.EndPointC2S.Address.ToString().CompareTo(b.Session.EndPointC2S.Address.ToString());
+                if (result == 0)
+                {
+                    result = a.Account.AccountName.ToString().CompareTo(b.Account.AccountName.ToString());
+                }
+                return result;
+            });
+
+            if (targetAccessLevel.HasValue)
+                message += $"Listing only {targetAccessLevel.Value.ToString()}s:\n";
+
+            foreach (var player in players)
+            {
+                if (targetAccessLevel.HasValue && player.Account.AccessLevel != ((uint)targetAccessLevel.Value))
+                    continue;
+                message += $"Player:\"{player.Name}\" AccountName:\"{player.Account.AccountName}\" IP:\"{player.Session.EndPointC2S.Address}\"\n";;
+                playerCounter++;
+            }
+            CommandHandlerHelper.WriteOutputInfo(session, message, ChatMessageType.Broadcast);
         }
     }
 }
