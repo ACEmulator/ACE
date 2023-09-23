@@ -256,6 +256,10 @@ namespace ACE.Server.WorldObjects
             // do the appropriate combat stance shuffling, based on the item types
             // todo: instead of switching the weapon immediately, the weapon should be swapped in the middle of the animation chain
 
+            // todo: find better / more appropriate logic for this
+            // should this be based on something else, such as CombatUse?
+            if ((wieldedLocation & EquipMask.Selectable) == 0) return;
+
             if (CombatMode != CombatMode.NonCombat && CombatMode != CombatMode.Undef)
             {
                 switch (wieldedLocation)
