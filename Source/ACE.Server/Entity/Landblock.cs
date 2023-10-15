@@ -280,6 +280,98 @@ namespace ACE.Server.Entity
             }
         }
 
+
+        public void HandleZergControl()
+        {
+            try
+            {
+                if (ZergControlLandblocks.IsZergControlLandblock(this.Id.Landblock))
+                {
+                    var area = ZergControlLandblocks.GetLandblockZergControlArea(this.Id.Landblock);
+
+                    Dictionary<uint, List<IPlayer>> clansInZergControlArea = new Dictionary<uint, List<IPlayer>>();
+                    List<IPlayer> playersInZergControlArea = new List<IPlayer>();
+                    List<IPlayer> playersNotWhitelisted = new List<IPlayer>();
+
+                    foreach (var block in area.AreaLandblockIds)
+                    {
+                        var landblock = LandblockManager.GetLandblock(new LandblockId(block << 16), false);
+                        var playersInLandblock = landblock.GetCurrentLandblockPlayers();
+                        foreach (var landblockPlayer in playersInLandblock)
+                        {
+                            var lbPlayerAlleg = AllegianceManager.GetAllegiance(landblockPlayer);
+                            if (lbPlayerAlleg != null && lbPlayerAlleg.MonarchId.HasValue && !playersInZergControlArea.Contains(landblockPlayer))
+                            {
+                                if (clansInZergControlArea.ContainsKey(lbPlayerAlleg.MonarchId.Value))
+                                {
+                                    clansInZergControlArea[lbPlayerAlleg.MonarchId.Value].Add(landblockPlayer);
+                                }
+                                else
+                                {
+                                    var playerList = new List<IPlayer>();
+                                    playerList.Add(landblockPlayer);
+                                    clansInZergControlArea.Add(lbPlayerAlleg.MonarchId.Value, playerList);
+                                }
+
+                                playersInZergControlArea.Add(landblockPlayer);
+                            }
+
+                            if (!landblockPlayer.IsAdmin &&
+                                (lbPlayerAlleg == null || !lbPlayerAlleg.MonarchId.HasValue || !TownControlAllegiances.IsAllowedAllegiance((int)lbPlayerAlleg.MonarchId.Value)))
+                            {
+                                playersNotWhitelisted.Add(landblockPlayer);
+                            }
+                        }
+                    }
+
+                    //Boot any excess players from clans with too many players in the area
+                    foreach (var clanPlayers in clansInZergControlArea.Values)
+                    {
+                        if (clanPlayers.Count > area.MaxPlayersPerAllegiance)
+                        {
+                            var overageCount = clanPlayers.Count - (int)area.MaxPlayersPerAllegiance;
+                            var playersToKick = clanPlayers.TakeLast(overageCount);
+
+                            foreach (var playerToKick in playersToKick)
+                            {
+                                try
+                                {
+                                    //Teleport to LS
+                                    var currPlayer = (Player)playerToKick;
+                                    currPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat("You have violated the max number of members allowed inside of a zerg restricted area.  Fuck you.", ChatMessageType.Broadcast));
+                                    currPlayer.Teleport(currPlayer.Sanctuary);
+                                }
+                                catch (Exception ex)
+                                {
+                                    log.Error($"Failed kicking player {playerToKick.Name} to lifestone after allegiance violated zerg control landblock restrictions.  Ex: {ex}");
+                                }
+                            }
+                        }
+                    }
+
+                    //Boot any players in the area who are not part of a whitelisted allegiance
+                    foreach (var disallowedPlayer in playersNotWhitelisted)
+                    {
+                        try
+                        {
+                            var currPlayer = (Player)disallowedPlayer;
+                            currPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat("You have violated the whitelist inside of a zerg restricted area.  Fuck you.", ChatMessageType.Broadcast));
+                            currPlayer.Teleport(currPlayer.Sanctuary);
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Error($"Failed removing player {disallowedPlayer.Name} to LS for violating zerg control landblock whitelist.  Ex: {ex}");
+                        }
+                    }
+                }                
+            }
+            catch(Exception ex)
+            {
+                log.Error($"Error in HandleZergControl. Ex: {ex}");
+            }
+        }
+
+
         /// <summary>
         /// Monster Locations, Generators<para />
         /// This will be called from a separate task from our constructor. Use thread safety when interacting with this landblock.
@@ -696,6 +788,7 @@ namespace ACE.Server.Entity
             ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Landblock_Tick_WorldObject_Heartbeat, stopwatch.Elapsed.TotalSeconds);
 
             HandleTownControl();
+            HandleZergControl();
 
             Monitor5m.RegisterEventEnd();
             Monitor1h.RegisterEventEnd();
