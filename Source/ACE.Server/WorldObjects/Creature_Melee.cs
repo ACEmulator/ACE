@@ -6,6 +6,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Physics;
+using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
 {
@@ -113,6 +114,8 @@ namespace ACE.Server.WorldObjects
         public List<Creature> GetCleaveTarget(Creature target, WorldObject weapon)
         {
             var player = this as Player;
+            var targetPlayer = target as Player;
+            var disablePlayerCleave = PropertyManager.GetBool("disable_pvp_cleave").Item;
 
             if (!weapon.IsCleaving) return null;
 
@@ -132,6 +135,10 @@ namespace ACE.Server.WorldObjects
                 // only cleave creatures
                 var creature = obj.WeenieObj.WorldObject as Creature;
                 if (creature == null || creature.Teleporting || creature.IsDead) continue;
+
+                //Disable cleave on player targets
+                if (disablePlayerCleave && targetPlayer != null)
+                    continue;
 
                 if (player != null && player.CheckPKStatusVsTarget(creature, null) != null)
                     continue;
