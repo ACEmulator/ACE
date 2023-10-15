@@ -1331,21 +1331,26 @@ namespace ACE.Server.Entity
                             return;
                         }
 
-                        var blazingHeartRoll = ThreadSafeRandom.Next(0, 99);
+                        target.Biota.GetOrAddKnownSpell(3204, target.BiotaDatabaseLock, out _);
+                        playerMsg = $"With a steady hand and pure heart, you skillfully apply the morph gem to your {target.NameWithMaterial} and have successfully added the spell Blazing Heart";
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
 
-                        if (blazingHeartRoll < 38)
-                        {
-                            target.Biota.GetOrAddKnownSpell(3204, target.BiotaDatabaseLock, out _);                            
-                            playerMsg = $"With a steady hand and pure heart, you skillfully apply the morph gem to your {target.NameWithMaterial} and have successfully added the spell Blazing Heart";
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
-                        }
-                        else
-                        {
-                            target.ChangesDetected = true;
-                            player.TryConsumeFromInventoryWithNetworking(target, 1);
-                            playerMsg = $"Your hands quiver with anticipation as you attempt to apply the morph gem to your {target.NameWithMaterial}. Unfortunately the gem shatters on contact and with it your item has been destroyed.";
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
-                        }
+                        //Previously we rolled for a chance for success, but changed it to be 100% success.  Leaving the code to roll commented out in case we change our minds.
+                        //var blazingHeartRoll = ThreadSafeRandom.Next(0, 99);
+
+                        //if (blazingHeartRoll < 38)
+                        //{
+                        //    target.Biota.GetOrAddKnownSpell(3204, target.BiotaDatabaseLock, out _);                            
+                        //    playerMsg = $"With a steady hand and pure heart, you skillfully apply the morph gem to your {target.NameWithMaterial} and have successfully added the spell Blazing Heart";
+                        //    player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                        //}
+                        //else
+                        //{
+                        //    target.ChangesDetected = true;
+                        //    player.TryConsumeFromInventoryWithNetworking(target, 1);
+                        //    playerMsg = $"Your hands quiver with anticipation as you attempt to apply the morph gem to your {target.NameWithMaterial}. Unfortunately the gem shatters on contact and with it your item has been destroyed.";
+                        //    player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                        //}
 
                         break;
 
