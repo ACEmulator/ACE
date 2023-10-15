@@ -36,13 +36,13 @@ namespace ACE.Server.Entity
                     _zergControlLandblocksMap.Add(0xE9F1, shoushiTC1);
 
                     var shoushiTC2 = new ZergControlArea();
-                    shoushiTC1.MaxPlayersPerAllegiance = 6;
-                    shoushiTC1.AreaLandblockIds = new uint[] { 0xE9F0, 0xE9F1, 0xE8F1 };
+                    shoushiTC2.MaxPlayersPerAllegiance = 6;
+                    shoushiTC2.AreaLandblockIds = new uint[] { 0xE9F0, 0xE9F1, 0xE8F1 };
                     _zergControlLandblocksMap.Add(0xE9F0, shoushiTC2);
 
                     var shoushiTC3 = new ZergControlArea();
-                    shoushiTC1.MaxPlayersPerAllegiance = 6;
-                    shoushiTC1.AreaLandblockIds = new uint[] { 0xE9F0, 0xE9F1, 0xE8F1 };
+                    shoushiTC3.MaxPlayersPerAllegiance = 6;
+                    shoushiTC3.AreaLandblockIds = new uint[] { 0xE9F0, 0xE9F1, 0xE8F1 };
                     _zergControlLandblocksMap.Add(0xE8F1, shoushiTC3);
                 }
 
