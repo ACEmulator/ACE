@@ -15,6 +15,7 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects.Entity;
 using Google.Protobuf.WellKnownTypes;
+using log4net;
 
 namespace ACE.Server.WorldObjects.Managers
 {
@@ -29,6 +30,9 @@ namespace ACE.Server.WorldObjects.Managers
 
     public class EnchantmentManager
     {
+
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public WorldObject WorldObject { get; }
         public Player Player { get; }
 
@@ -1321,7 +1325,7 @@ namespace ACE.Server.WorldObjects.Managers
                 {
                     return;
                 }
-            }
+            }           
 
             // get the total tick amount
             var tickAmountTotal = 0.0f;
@@ -1386,6 +1390,41 @@ namespace ACE.Server.WorldObjects.Managers
                     var arenaEvent = ArenaManager.GetArenaEventByLandblock(targetPlayer.Location.Landblock);
                     if (arenaEvent != null && arenaEvent.IsOvertime)
                         tickAmount = tickAmount * arenaEvent.OvertimeHealingModifier * 0.25f;
+                }
+
+                //Add an additional modifier for hybrid void characters in pvp
+                if (sourcePlayer != null && targetPlayer != null)
+                {
+                    try
+                    {                        
+                        var isHybrid = false;
+                        foreach (var playerSkill in sourcePlayer.Skills)
+                        {
+                            if(playerSkill.Key == Skill.FinesseWeapons ||
+                                playerSkill.Key == Skill.HeavyWeapons ||
+                                playerSkill.Key == Skill.LightWeapons ||
+                                playerSkill.Key == Skill.WarMagic ||
+                                playerSkill.Key == Skill.MissileWeapons ||
+                                playerSkill.Key == Skill.TwoHandedCombat)
+                            {
+                                if(playerSkill.Value.AdvancementClass == SkillAdvancementClass.Trained || playerSkill.Value.AdvancementClass == SkillAdvancementClass.Specialized)
+                                {
+                                    isHybrid = true;
+                                    break;
+                                }
+                            }                            
+                        }
+
+                        if (isHybrid)
+                        {
+                            var hybridMod = PropertyManager.GetDouble("pvp_void_hybrid_mod").Item;
+                            tickAmount = tickAmount * (float)hybridMod;
+                        }
+                    }
+                    catch(Exception ex)
+                    {
+                        log.Error($"Error in EnchantmentManager.ApplyDamageTick while applying pvp_void_hybrid_mod. Ex: {ex}");
+                    }
                 }
 
                 // make sure the target's current health is not exceeded
