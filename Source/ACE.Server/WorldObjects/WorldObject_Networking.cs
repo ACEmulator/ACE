@@ -1415,7 +1415,42 @@ namespace ACE.Server.WorldObjects
                 if (Visibility && !player.Adminvision)
                     continue;
 
-                player.Session.Network.EnqueueSend(msgs);
+                if (this is Player self)
+                {
+                    /// These values will trigger a cast delay. Only tweak these values if you know what you're doing. 
+                    var startCastDelayThreshold = 0.1;
+                    var endCastDelayThreshold = 0.65;
+                    var broadcastDelay = 0.2;
+                    if (
+                        (float)(DateTime.UtcNow - self.MagicState.StartTime).TotalSeconds <= startCastDelayThreshold ||
+                        (float)(DateTime.UtcNow - self.MagicState.CastGestureStartTime).TotalSeconds > endCastDelayThreshold)
+                    {
+
+                        var broadcastChain = new ActionChain();
+
+                        /// Lower the broadcast delay if you don't want animations to get too far ahead of themselves. 0.2 should be the max. 
+                        broadcastChain.AddDelaySeconds(broadcastDelay);
+
+                        broadcastChain.AddAction(this, () =>
+                        {
+                            player.Session.Network.EnqueueSend(msgs);
+                        });
+
+                        broadcastChain.EnqueueChain();
+
+
+                    }
+                    else
+                    {
+                        player.Session.Network.EnqueueSend(msgs);
+
+                    }
+
+                }
+                else
+                {
+                    player.Session.Network.EnqueueSend(msgs);
+                }
             }
             return nearbyPlayers;
         }
