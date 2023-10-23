@@ -12,8 +12,8 @@ using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
-using Lifestoned.DataModel.Shared;
 using log4net;
+using EquipMask = ACE.Entity.Enum.EquipMask;
 using ItemType = ACE.Entity.Enum.ItemType;
 
 namespace ACE.Server.Entity
