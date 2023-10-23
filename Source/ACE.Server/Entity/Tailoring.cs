@@ -12,7 +12,9 @@ using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
+using Lifestoned.DataModel.Shared;
 using log4net;
+using ItemType = ACE.Entity.Enum.ItemType;
 
 namespace ACE.Server.Entity
 {
@@ -48,9 +50,9 @@ namespace ACE.Server.Entity
         public const uint MorphGemRemoveLevelReq = 480609;
         public const uint MorphGemSlayerUpgrade = 480639;
         public const uint MorphGemBurningCoal = 480638;
-        public const int MorphGemMinValue = 20000;
+        public const uint MorphGemImpen = 480700;
 
-        
+        public const int MorphGemMinValue = 20000;
 
         // Some WCIDs have Overlay Icons that need to be removed (e.g. Olthoi Alduressa Gauntlets or Boots)
         // There are other examples not here, like some stamped shields that might need to be added, as well.
@@ -214,6 +216,7 @@ namespace ACE.Server.Entity
                 case MorphGemRemoveLevelReq:
                 case MorphGemSlayerUpgrade:
                 case MorphGemBurningCoal:
+                case MorphGemImpen:
                     ApplyMorphGem(player, source, target);
                     return;
             }
@@ -1247,8 +1250,20 @@ namespace ACE.Server.Entity
 
                     case MorphGemRemoveLevelReq:
 
-                        if (!target.GetProperty(PropertyInt.WieldDifficulty).HasValue)
+                        if (!target.GetProperty(PropertyInt.WieldDifficulty).HasValue ||
+                            !target.GetProperty(PropertyInt.WieldRequirements).HasValue ||
+                            target.GetProperty(PropertyInt.WieldRequirements) != 7)
                         {
+                            playerMsg = "The gem can only be applied to items that have a Level requirement";
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        if (target is MeleeWeapon || target is Caster || target is MissileLauncher)
+                        {
+                            playerMsg = "The gem can not be applied to weapons";
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
                             player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                             return;
                         }
@@ -1355,6 +1370,89 @@ namespace ACE.Server.Entity
                         break;
 
                     #endregion MorphGemBurningCoal
+
+                    #region MorphGemImpen
+                    case MorphGemImpen:
+
+                        //Check if an Impen already exists on this item
+                        var targetItemSpells = target.Biota.GetKnownSpellsIds(target.BiotaDatabaseLock);
+                        if(!target.ItemMaxMana.HasValue || targetItemSpells == null || targetItemSpells.Count == 0)
+                        {
+                            playerMsg = "The gem can only be applied to magical items";
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        //2604 - minor impen
+                        //2592 - major impen
+                        //4667 - epic impen
+                        //6095 - legendary impen
+                        //3710 - prodigal impen
+                        if (targetItemSpells.Contains(2604) ||
+                           targetItemSpells.Contains(2592) ||
+                           targetItemSpells.Contains(4667) ||
+                           targetItemSpells.Contains(6095) ||
+                           targetItemSpells.Contains(3710))
+                        {
+                            playerMsg = "The gem cannot be used on an item that already has an Impenetrability cantrip";
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        //Validation passed
+                        //Roll for success or failure (33% chance of success)
+                        var success = ThreadSafeRandom.Next(0, 2) == 0;
+
+                        //If success, roll for what level impen to add
+                        if (success)
+                        {
+                            playerMsg = "You successfully apply the morph gem and have added {0} Impenetrability cantrip to your {1}";
+
+                            var spellId = 0;
+                            var impenLevel = ThreadSafeRandom.Next(0, 99);
+                            if(impenLevel < 50) //50% chance for minor
+                            {
+                                spellId = 2604;
+                                String.Format(playerMsg, "a Minor", target.Name);
+                            }
+                            else if (impenLevel < 90) //40% chance for major
+                            {
+                                spellId = 2592;
+                                String.Format(playerMsg, "a Major", target.Name);
+                            }
+                            else //10% chance for epic
+                            {
+                                spellId = 4667;
+                                String.Format(playerMsg, "an Epic", target.Name);
+                            }
+                            
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                            target.Biota.GetOrAddKnownSpell(spellId, target.BiotaDatabaseLock, out _);
+                        }
+                        else //If failed, destroy the target item
+                        {
+                            if (target.OwnerId == player.Guid.Full || player.GetInventoryItem(target.Guid) != null)
+                            {
+                                if (!player.TryConsumeFromInventoryWithNetworking(target))
+                                    log.Warn($"Tailoring.ApplyMorphGem failed to consume target item for Impen Morph Gem. Player = {player.Name}, Target = {target.Name}");
+                            }
+                            else if (target.WielderId == player.Guid.Full)
+                            {
+                                if (!player.TryDequipObjectWithNetworking(target.Guid, out _, Player.DequipObjectAction.ConsumeItem))
+                                    log.Warn($"Tailoring.ApplyMorphGem failed to consume target item for Impen Morph Gem. Player = {player.Name}, Target = {target.Name}");
+                            }
+                            else
+                            {
+                                target.Destroy();
+                            }
+
+                            var destroyMessage = new GameMessageSystemChat($"The morph gem fails to apply and has destroyed your {target.Name}", ChatMessageType.Craft);
+                            player.Session.Network.EnqueueSend(destroyMessage);
+                        }
+                        break;
+                    #endregion MorphGemImpen
 
                     default:
                         player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
@@ -1622,6 +1720,7 @@ namespace ACE.Server.Entity
                 case MorphGemRemoveLevelReq:
                 case MorphGemSlayerUpgrade:
                 case MorphGemBurningCoal:
+                case MorphGemImpen:
 
                     return true;
 
