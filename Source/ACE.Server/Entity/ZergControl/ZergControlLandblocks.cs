@@ -21,27 +21,27 @@ namespace ACE.Server.Entity
 
                     //Zerg control Town Control landblocks to 6
                     var holtTC = new ZergControlArea();
-                    holtTC.MaxPlayersPerAllegiance = 6;
+                    holtTC.MaxPlayersPerAllegiance = 9;
                     holtTC.AreaLandblockIds = new uint[] { 0x4FF1 };
                     _zergControlLandblocksMap.Add(0x4FF1, holtTC);
 
                     var yaraqTC = new ZergControlArea();
-                    yaraqTC.MaxPlayersPerAllegiance = 6;
+                    yaraqTC.MaxPlayersPerAllegiance = 9;
                     yaraqTC.AreaLandblockIds = new uint[] { 0x00AB };
                     _zergControlLandblocksMap.Add(0x00AB, yaraqTC);
 
                     var shoushiTC1 = new ZergControlArea();
-                    shoushiTC1.MaxPlayersPerAllegiance = 6;
+                    shoushiTC1.MaxPlayersPerAllegiance = 9;
                     shoushiTC1.AreaLandblockIds = new uint[] { 0xE9F0, 0xE9F1, 0xE8F1 };
                     _zergControlLandblocksMap.Add(0xE9F1, shoushiTC1);
 
                     var shoushiTC2 = new ZergControlArea();
-                    shoushiTC2.MaxPlayersPerAllegiance = 6;
+                    shoushiTC2.MaxPlayersPerAllegiance = 9;
                     shoushiTC2.AreaLandblockIds = new uint[] { 0xE9F0, 0xE9F1, 0xE8F1 };
                     _zergControlLandblocksMap.Add(0xE9F0, shoushiTC2);
 
                     var shoushiTC3 = new ZergControlArea();
-                    shoushiTC3.MaxPlayersPerAllegiance = 6;
+                    shoushiTC3.MaxPlayersPerAllegiance = 9;
                     shoushiTC3.AreaLandblockIds = new uint[] { 0xE9F0, 0xE9F1, 0xE8F1 };
                     _zergControlLandblocksMap.Add(0xE8F1, shoushiTC3);
                 }
