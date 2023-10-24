@@ -244,12 +244,29 @@ namespace ACE.Server.Managers
                 session.Player.Location = new Position(session.Player.Sanctuary);
             }
 
+            //Handle players who disconnected while Arena observers
             if (session.Player.IsArenaObserver ||
                 session.Player.IsPendingArenaObserver ||
                 (!session.Player.IsPlussed && session.Player.Cloaked.HasValue && session.Player.Cloaked.Value))
                 ArenaManager.ExitArenaObserverMode(session.Player);
 
-            if(session.Player.HasArenaRareDmgBuff || session.Player.HasArenaRareDmgReductionBuff)
+            //Catch-all in case anyone gets stuck being cloaked or unattackable but isn't still flagged as an Arena Observer
+            if (!session.Player.IsPlussed)
+            {
+                player.RecallsDisabled = false;
+                player.IsFrozen = false;
+                player.Attackable = true;
+                if (player.GagDuration <= 0)
+                {
+                    player.IsGagged = false;
+                }
+                player.EnqueueBroadcastPhysicsState();
+                player.DeCloak();
+                player.IsPendingArenaObserver = false;
+                player.IsArenaObserver = false;
+            }
+
+            if (session.Player.HasArenaRareDmgBuff || session.Player.HasArenaRareDmgReductionBuff)
                 ArenaManager.DispelArenaRares(session.Player);
 
             var olthoiPlayerReturnedToLifestone = session.Player.IsOlthoiPlayer && character.TotalLogins >= 1 && session.Player.LoginAtLifestone;
