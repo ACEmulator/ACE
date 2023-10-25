@@ -858,8 +858,14 @@ namespace ACE.Server.WorldObjects
                     item.Destroy();
             }
 
-            if (this is Pet pet && pet.P_PetOwner?.CurrentActivePet == this)
-                pet.P_PetOwner.CurrentActivePet = null;
+            if (this is Pet pet)
+            {
+                if (pet.P_PetOwner?.CurrentActivePet == this)
+                    pet.P_PetOwner.CurrentActivePet = null;
+
+                if (pet.P_PetDevice?.Pet == Guid.Full)
+                    pet.P_PetDevice.Pet = null;
+            }
 
             if (this is Vendor vendor)
             {

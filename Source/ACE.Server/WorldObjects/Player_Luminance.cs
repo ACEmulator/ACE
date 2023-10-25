@@ -18,8 +18,10 @@ namespace ACE.Server.WorldObjects
                 return;
 
             // following the same model as Player_Xp
-
+            var questModifier = PropertyManager.GetDouble("quest_lum_modifier").Item;
             var modifier = PropertyManager.GetDouble("luminance_modifier").Item;
+            if (xpType == XpType.Quest)
+                modifier *= questModifier;
 
             // should this be passed upstream to fellowship?
             var enchantment = GetXPAndLuminanceModifier(xpType);

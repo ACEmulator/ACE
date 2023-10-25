@@ -74,7 +74,7 @@ namespace ACE.Server.Network.Handlers
             }
             catch (Exception ex)
             {
-                log.ErrorFormat("Received LoginRequest from {0} that threw an exception.", session.EndPoint);
+                log.ErrorFormat("Received LoginRequest from {0} that threw an exception.", session.EndPointC2S);
                 log.Error(ex);
             }
         }
@@ -107,7 +107,7 @@ namespace ACE.Server.Network.Handlers
                             log.Warn($"Automatically setting account AccessLevel to Admin for account \"{loginRequest.Account}\" because there are no admin accounts in the current database.");
                         }
 
-                        account = DatabaseManager.Authentication.CreateAccount(loginRequest.Account.ToLower(), loginRequest.Password, accessLevel, session.EndPoint.Address);
+                        account = DatabaseManager.Authentication.CreateAccount(loginRequest.Account.ToLower(), loginRequest.Password, accessLevel, session.EndPointC2S.Address);
                     }
                 }
             }
@@ -133,6 +133,12 @@ namespace ACE.Server.Network.Handlers
             {
                 // these are null if ConnectionData.DiscardSeeds() is called because of some other error condition.
                 session.Terminate(SessionTerminationReason.BadHandshake, new GameMessageCharacterError(CharacterError.ServerCrash1));
+                return;
+            }
+
+            if (loginRequest.ClientVersion == null || !loginRequest.ClientVersion.Equals("1802"))
+            {
+                session.Terminate(SessionTerminationReason.ClientVersionIncorrect, new GameMessageBootAccount(" because your client is not the correct version for this server. Please visit http://play.emu.ac/ to update to latest client"));
                 return;
             }
 
@@ -205,7 +211,7 @@ namespace ACE.Server.Network.Handlers
                 {
                     try
                     {
-                        var currIp = session.EndPoint.Address.ToString();
+                        var currIp = session.EndPointC2S.ToString();
                         bool isVpn = false;
                         if (!VpnApprovedIPs.Contains(currIp))
                         {
@@ -289,14 +295,14 @@ namespace ACE.Server.Network.Handlers
                 }
             }
 
-            account.UpdateLastLogin(session.EndPoint.Address);
+            account.UpdateLastLogin(session.EndPointC2S.Address);
 
             session.SetAccount(account.AccountId, account.AccountName, (AccessLevel)account.AccessLevel);
             session.State = SessionState.AuthConnectResponse;
 
             try
             {
-                new LogDatabase().LogAccountSessionStart(session.AccountId, session.Account, session.EndPoint.Address.ToString());
+                new LogDatabase().LogAccountSessionStart(session.AccountId, session.Account, session.EndPointC2S.Address.ToString());
             }
             catch (Exception ex)
             {
