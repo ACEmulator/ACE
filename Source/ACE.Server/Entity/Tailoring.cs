@@ -723,7 +723,8 @@ namespace ACE.Server.Entity
                     #region MorphGemArcane
                     case MorphGemArcane:
 
-                        // Lower arcane lore requirement on items - 1 - 20 - 10 % chance to increase lore by same range
+                        // Lower arcane lore requirement on items
+                        // 90% chance to lower arcance by 25, 10% chance to increase it by 50
 
                         //Get the current Arcane of the item
                         var currentItemArcane = target.GetProperty(PropertyInt.ItemDifficulty);
@@ -735,9 +736,9 @@ namespace ACE.Server.Entity
                         }
 
                         //Roll for an amount to change the item Arcane by
-                        var arcaneRandom = new Random();
-                        var arcaneGain = arcaneRandom.Next(0, 99) < 10;
-                        var arcaneChange = arcaneRandom.Next(1,20) * (arcaneGain ? 1 : -1);
+                        var arcaneRoll = ThreadSafeRandom.Next(0, 99);
+
+                        var arcaneChange = arcaneRoll > 9 ? -25 : 50;
 
                         var newArcane = currentItemArcane.Value + arcaneChange;
 
@@ -753,11 +754,11 @@ namespace ACE.Server.Entity
 
                         if (arcaneChange > 0)
                         {
-                            playerMsg = $"Bad luck cunt.  The Morph Gem fucked you.  Your item arcane requirement has increased by {arcaneChange}";
+                            playerMsg = $"The Morph Gem shatters against your {target.NameWithMaterial} and as a result its arcane requirement has increased by {arcaneChange}";
                         }
                         else if (arcaneChange == 0)
                         {
-                            playerMsg = $"The Morph Gem shatters against your item and leaves it unchanged.  Could be worse.";
+                            playerMsg = $"The Morph Gem shatters against your {target.NameWithMaterial} and leaves it unchanged.  Could be worse.";
                         }
                         else
                         {
