@@ -38,7 +38,7 @@ namespace ACE.Server.Entity
 
         //public const uint MorphGemArmorLevel = 4200022;
         public const uint MorphGemValue = 4200023;
-        //public const uint MorphGemArmorWork = 4200024;
+        public const uint MorphGemRandomWorkmanship = 490027;
         public const uint MorphGemArcane = 4200026;
         //public const uint MorphGemRandomEpic = 4200027;
         //public const uint MorphGemRandomSet = 4200028;
@@ -217,6 +217,7 @@ namespace ACE.Server.Entity
                 case MorphGemSlayerUpgrade:
                 case MorphGemBurningCoal:
                 case MorphGemImpen:
+                case MorphGemRandomWorkmanship:
                     ApplyMorphGem(player, source, target);
                     return;
             }
@@ -681,60 +682,43 @@ namespace ACE.Server.Entity
 
                     #endregion MorphGemValue
 
-                    #region MorphGemArmorWork
-                    //case MorphGemArmorWork:
+                    #region MorphGemRandomWorkmanship
+                    case MorphGemRandomWorkmanship:
 
-                    //    //Get the current Work of the item
-                    //    var currentItemWork = target.GetProperty(PropertyInt.ItemWorkmanship);
+                        //Get the current Work of the item
+                        var currentItemWork = target.GetProperty(PropertyInt.ItemWorkmanship);
 
-                    //    if (!currentItemWork.HasValue)
-                    //    {
-                    //        player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
-                    //        return;
-                    //    }
+                        if (!currentItemWork.HasValue)
+                        {
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
 
-                    //    //Roll for a value to change the Workmanship by
-                    //    var workRandom = new Random();
-                    //    var workGain = workRandom.Next(0, 9);
-                    //    var workLoss = workRandom.Next(0, 9);
-                    //    var workChange = workGain - workLoss;
-                    //    workChange = workChange > 1 ? 1 : workChange < -2 ? -2 : workChange;
+                        //Roll for a value to set the Workmanship to
+                        var workRandom = ThreadSafeRandom.Next(1,10);
+                        var workChange =  (currentItemWork.Value - workRandom);
 
-                    //    var newWork = currentItemWork.Value + workChange;
+                        //Set the new Workmanship value
+                        player.UpdateProperty(target, PropertyInt.ItemWorkmanship, workRandom);
 
-                    //    //Don't let new Workmanship exceed maximums
-                    //    if (newWork > MaxItemWork)
-                    //    {
-                    //        workChange = (int)MaxItemWork - currentItemWork.Value;
-                    //        newWork = (int)MaxItemWork;
-                    //    }
-                    //    else if (newWork < MinItemWork)
-                    //    {
-                    //        newWork = (int)MinItemWork;
-                    //        workChange = newWork - currentItemWork.Value;
-                    //    }
+                        if (workChange < 0)
+                        {
+                            playerMsg = $"You fail applying the Morph Gem to your {target.NameWithMaterial}. I am uninspired. Your armor workmanship has increased by {workChange}";
+                        }
+                        else if (workChange == 0)
+                        {
+                            playerMsg = $"The Morph Gem shatters against your {target.NameWithMaterial} and leaves it unchanged.  Could be worse.";
+                        }
+                        else
+                        {
+                            playerMsg = $"You apply the Morph Gem skillfully and have reduced the workmanship of your {target.NameWithMaterial} by {workChange}";
+                        }
 
-                    //    //Set the new Workmanship value
-                    //    player.UpdateProperty(target, PropertyInt.ItemWorkmanship, newWork);
+                        //Send player message confirming the applied morph gem
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
 
-                    //    if (workChange > 0)
-                    //    {
-                    //        playerMsg = $"Bad luck cunt.  The Morph Gem fucked you.  Your armor workmanship has increased by {workChange}";
-                    //    }
-                    //    else if (workChange == 0)
-                    //    {
-                    //        playerMsg = $"The Morph Gem shatters against your armor and leaves it unchanged.  Could be worse.";
-                    //    }
-                    //    else
-                    //    {
-                    //        playerMsg = $"You apply the Morph Gem skillfully and have reduced the workmanship of your armor by {-1 * workChange}";
-                    //    }
-
-                    //    //Send player message confirming the applied morph gem
-                    //    player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
-
-                    //    break;
-                    #endregion MorphGemArmorWork
+                        break;
+                    #endregion MorphGemRandomWorkmanship
 
                     #region MorphGemArcane
                     case MorphGemArcane:
@@ -1721,11 +1705,9 @@ namespace ACE.Server.Entity
                 case MorphGemSlayerUpgrade:
                 case MorphGemBurningCoal:
                 case MorphGemImpen:
-
+                case MorphGemRandomWorkmanship:
                     return true;
-
                 default:
-
                     return false;
             }
         }
