@@ -277,19 +277,125 @@ namespace ACE.Server.Managers
                         case "2v2":
                             if (otherPlayers.Count() >= 3)
                             {
-                                weHaveEnoughPlayers = true;
-                                finalPlayerList.Add(firstArenaPlayer);
-                                finalPlayerList.AddRange(otherPlayers.Take(3));
+                                //Match up team 1 with other queued fellow or allegiance members as first priority
+                                var foundFirstTeamMatch = false;
 
-                                firstArenaPlayer.TeamGuid = Guid.NewGuid();
-                                var firstPlayerTeamMate = finalPlayerList.Where(x => x.CharacterId != firstArenaPlayer.CharacterId).OrderBy(x => Guid.NewGuid()).First();
-                                firstPlayerTeamMate.TeamGuid = firstArenaPlayer.TeamGuid;
-
-                                var secondTeam = finalPlayerList.Where(x => !x.TeamGuid.HasValue);
-                                var secondTeamGuid = Guid.NewGuid();
-                                foreach (var secondTeamPlayer in secondTeam)
+                                //Check to see if any other queued players are in same fellow as first player
+                                var firstPlayer = PlayerManager.GetOnlinePlayer(firstArenaPlayer.CharacterId);
+                                Fellowship firstPlayerFellowship = null;
+                                if(firstPlayer != null)
                                 {
-                                    secondTeamPlayer.TeamGuid = secondTeamGuid;
+                                    firstPlayerFellowship = firstPlayer.Fellowship;
+                                }
+
+                                if(firstPlayerFellowship != null)
+                                {
+                                    foreach(var otherArenaPlayer in otherPlayers)
+                                    {
+                                        var otherPlayer = PlayerManager.GetOnlinePlayer(otherArenaPlayer.CharacterId);
+                                        if(otherPlayer != null && firstPlayerFellowship.FellowshipMembers.ContainsKey(otherPlayer.Guid.Full))
+                                        {
+                                            foundFirstTeamMatch = true;
+                                            firstArenaPlayer.TeamGuid = Guid.NewGuid();
+                                            otherArenaPlayer.TeamGuid = firstArenaPlayer.TeamGuid;
+                                            finalPlayerList.Add(firstArenaPlayer);
+                                            finalPlayerList.Add(otherArenaPlayer);
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (!foundFirstTeamMatch)
+                                {
+                                    //Check to see if any other queued players are in a allegiance as first player
+                                    var sameAllegQueuedPlayers = otherPlayers.Where(x => x.MonarchId == firstArenaPlayer.MonarchId)?.OrderBy(x => x.CreateDateTime);
+                                    if (sameAllegQueuedPlayers != null && sameAllegQueuedPlayers.Any())
+                                    {
+                                        foundFirstTeamMatch = true;
+                                        var allegTeamMate = sameAllegQueuedPlayers.First();
+                                        firstArenaPlayer.TeamGuid = Guid.NewGuid();
+                                        allegTeamMate.TeamGuid = firstArenaPlayer.TeamGuid;
+                                        finalPlayerList.Add(firstArenaPlayer);
+                                        finalPlayerList.Add(allegTeamMate);
+                                    }
+                                }
+
+                                //Match up team 2 with other queued fellow or allegiance members as first priority
+                                var foundSecondTeamMatch = false;
+                                var secondTeamCandidates = otherPlayers.Where(x => x.CharacterId != firstArenaPlayer.CharacterId && !x.TeamGuid.HasValue)?.OrderBy(x => x.CreateDateTime);
+                                
+                                foreach(var secondTeamCandidate in secondTeamCandidates)
+                                {
+                                    //Check to see if there's another queued player in the same fellow
+                                    var secondTeamLeaderPlayer = PlayerManager.GetOnlinePlayer(secondTeamCandidate.CharacterId);
+                                    Fellowship secondTeamLeaderFellowship = null;
+                                    if (secondTeamLeaderPlayer != null)
+                                    {
+                                        secondTeamLeaderFellowship = secondTeamLeaderPlayer.Fellowship;
+                                    }
+
+                                    if (secondTeamLeaderFellowship != null)
+                                    {
+                                        foreach (var otherArenaPlayer in secondTeamCandidates.Where(x => x.CharacterId != secondTeamCandidate.CharacterId))
+                                        {
+                                            var otherPlayer = PlayerManager.GetOnlinePlayer(otherArenaPlayer.CharacterId);
+                                            if (otherPlayer != null && secondTeamLeaderFellowship.FellowshipMembers.ContainsKey(otherPlayer.Guid.Full))
+                                            {
+                                                foundSecondTeamMatch = true;
+                                                secondTeamCandidate.TeamGuid = Guid.NewGuid();
+                                                otherArenaPlayer.TeamGuid = firstArenaPlayer.TeamGuid;
+                                                finalPlayerList.Add(secondTeamCandidate);
+                                                finalPlayerList.Add(otherArenaPlayer);
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    //Check to see if there's another queued player in the same allegiance
+                                    if(!foundSecondTeamMatch)
+                                    {
+                                        var sameAllegQueuedPlayers = secondTeamCandidates.Where(x => x.CharacterId != secondTeamCandidate.CharacterId && x.MonarchId == secondTeamCandidate.MonarchId)?.OrderBy(x => x.CreateDateTime);
+                                        if (sameAllegQueuedPlayers != null && sameAllegQueuedPlayers.Any())
+                                        {
+                                            foundSecondTeamMatch = true;
+                                            var allegTeamMate = sameAllegQueuedPlayers.First();
+                                            secondTeamCandidate.TeamGuid = Guid.NewGuid();
+                                            allegTeamMate.TeamGuid = secondTeamCandidate.TeamGuid;
+                                            finalPlayerList.Add(secondTeamCandidate);
+                                            finalPlayerList.Add(allegTeamMate);
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                //If we didn't find a match for Team 1 based on fellowship or allegiance, assign a team mate at random
+                                if (!foundFirstTeamMatch)
+                                {
+                                    firstArenaPlayer.TeamGuid = Guid.NewGuid();
+                                    var firstPlayerTeamMate = otherPlayers.Where(x => x.CharacterId != firstArenaPlayer.CharacterId && !x.TeamGuid.HasValue).OrderBy(x => Guid.NewGuid()).First();
+                                    firstPlayerTeamMate.TeamGuid = firstArenaPlayer.TeamGuid;
+                                    finalPlayerList.Add(firstArenaPlayer);
+                                    finalPlayerList.Add(firstPlayerTeamMate);
+                                    foundFirstTeamMatch = true;
+                                }
+
+                                //If we didn't find a match for Team 2 based on fellowship or allegiance, assign a team at random
+                                if (!foundSecondTeamMatch)
+                                {
+                                    var secondTeamPlayers = otherPlayers.Where(x => !x.TeamGuid.HasValue).Take(2);
+                                    var secondTeamGuid = new Guid();
+                                    foreach(var secondTeamPlayer in secondTeamPlayers)
+                                    {
+                                        secondTeamPlayer.TeamGuid = secondTeamGuid;
+                                        finalPlayerList.Add(secondTeamPlayer);
+                                    }
+
+                                    foundSecondTeamMatch = true;
+                                }
+
+                                if(foundFirstTeamMatch && foundSecondTeamMatch)
+                                {
+                                    weHaveEnoughPlayers = true;
                                 }
                             }
                             break;
