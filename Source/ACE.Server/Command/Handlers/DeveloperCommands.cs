@@ -2955,7 +2955,7 @@ namespace ACE.Server.Command.Handlers
 
             if (player != session.Player)
                 {
-                    session.Network.EnqueueSend(new GameMessageSystemChat("Removed vitae for " + player.Name, ChatMessageType.Broadcast));
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Removed vitae for " + player.Name, ChatMessageType.Broadcast));
                     PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has removed vitae for '{player.Name}'.");
                 }
         }
