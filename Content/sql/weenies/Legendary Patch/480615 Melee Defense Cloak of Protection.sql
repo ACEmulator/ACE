@@ -13,7 +13,7 @@ VALUES (480615,   1,          4) /* ItemType - Clothing */
      , (480615,  18,          1) /* UiEffects - Magical */
 	 , (480615,  33,          1) /* Bonded - Normal */
      , (480615, 114,          1) /* Attuned - Attuned */
-     , (480615,  19,     2) /* Value */
+     , (480615,  19,     5) /* Value */
      , (480615,  28,          0) /* ArmorLevel */
      , (480615,  36,       9999) /* ResistMagic */
      , (480615,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */
@@ -22,14 +22,14 @@ VALUES (480615,   1,          4) /* ItemType - Clothing */
      , (480615, 160,        180) /* WieldDifficulty */
      , (480615, 169,         16) /* TsysMutationData */
      , (480615, 265,         71) /* EquipmentSetId - CloakMagicDefense */
-     , (480615, 267,     86400) /* Lifespan */
-     , (480615, 319,          4) /* ItemMaxLevel */
+     , (480615, 267,     604800) /* Lifespan */
+     , (480615, 319,          5) /* ItemMaxLevel */
      , (480615, 320,          2) /* ItemXpStyle - ScalesWithLevel */
 	 , (480615, 352,          2) /* CloakWeaveProc -200 dmg */
-     , (480615, 371,          2) /* GearDamageResist */;
+     , (480615, 371,          3) /* GearDamageResist */;
 
 INSERT INTO `weenie_properties_int64` (`object_Id`, `type`, `value`)
-VALUES (480615,   4, 15000000000) /* ItemTotalXp */
+VALUES (480615,   4, 31000000000) /* ItemTotalXp */
      , (480615,   5, 1000000000) /* ItemBaseXp */;
 
 INSERT INTO `weenie_properties_bool` (`object_Id`, `type`, `value`)
@@ -61,5 +61,5 @@ VALUES (480615,   1, 0x02001B2A) /* Setup */
      , (480615,   8, 0x0600709C) /* Icon */
      , (480615,  22, 0x3400002B) /* PhysicsEffectTable */
      , (480615,  36, 0x0E00001E) /* MutateFilter */
-     , (480615,  50, 0x06006C37) /* IconOverlay */
+     , (480615,  50, 100691000) /* IconOverlay */
      /*, (480615,  55,       5753)  ProcSpell */;
