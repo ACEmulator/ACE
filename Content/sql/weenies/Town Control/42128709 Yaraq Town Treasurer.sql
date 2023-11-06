@@ -190,6 +190,12 @@ VALUES (42128709, 2, 12213,  0, 3, 0.9, False) /* Create Veil of Darkness (12213
 	 , (42128709, 4, 480002,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
 	, (42128709, 4, 481000,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
     , (42128709, 4, 480632,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
+	, (42128709, 4, 490017,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
+	, (42128709, 4, 490018,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
+	, (42128709, 4, 490019,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
+	, (42128709, 4, 490024,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
+	, (42128709, 4, 490026,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
+	, (42128709, 4, 490031,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
 	, (42128709, 4, 480003,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
 	, (42128709, 4, 480005,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
     , (42128709, 4, 450610,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
@@ -227,7 +233,8 @@ VALUES (42128709, 2, 12213,  0, 3, 0.9, False) /* Create Veil of Darkness (12213
 	, (42128709, 4, 480610,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
 	, (42128709, 4, 480623,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
 	, (42128709, 4, 480502,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
-	 , (42128709, 4, 480503,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */;
+	 , (42128709, 4, 480503,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
+	 , (42128709, 4, 490027,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */;
 	
 /* Lifestoned Changelog:
 {

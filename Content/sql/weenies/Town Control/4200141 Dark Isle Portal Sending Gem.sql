@@ -11,7 +11,7 @@ VALUES (4200141,   1,       2048) /* ItemType - Gem */
      , (4200141,   9,          0) /* ValidLocations - None */
      , (4200141,  16,          8) /* ItemUseable - Contained */
      , (4200141,  18,          1) /* UiEffects - Magical */
-     , (4200141,  19,          250) /* Value */
+     , (4200141,  19,          25) /* Value */
      , (4200141,  33,          0) /* Bonded - Normal */
      , (4200141,  93,       3092) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity, LightingOn */
      , (4200141,  94,         16) /* TargetType - Creature */

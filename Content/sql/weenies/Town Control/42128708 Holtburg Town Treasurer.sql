@@ -189,6 +189,12 @@ VALUES (42128708, 2, 22015,  0, 21, 0.9, False) /* Create Pwyll's Guard (22015) 
 	 , (42128708, 4, 480000,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
 	 , (42128708, 4, 480001,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
 	 , (42128708, 4, 480631,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
+	 , (42128708, 4, 490017,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
+	, (42128708, 4, 490018,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
+	, (42128708, 4, 490019,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
+	, (42128708, 4, 490024,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
+	, (42128708, 4, 490026,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
+  , (42128708, 4, 490031,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
 	 , (42128708, 4, 2031668,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
 	 , (42128708, 4, 480008,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
 	, (42128708, 4, 480009,  0, 0, 0, False) /* Create A Fuckin' Bang (4200019) for Shop */
@@ -230,7 +236,8 @@ VALUES (42128708, 2, 22015,  0, 21, 0.9, False) /* Create Pwyll's Guard (22015) 
 	, (42128708, 4, 480610,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
 	, (42128708, 4, 480623,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
 	, (42128708, 4, 480502,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
-	 , (42128708, 4, 480503,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */;
+	 , (42128708, 4, 480503,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
+	 , (42128708, 4, 490027,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */;
 	
 /* Lifestoned Changelog:
 {
