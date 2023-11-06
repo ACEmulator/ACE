@@ -51,5 +51,7 @@ namespace ACE.Common
         public bool LandblockPreloading { get; set; }
 
         public List<PreloadedLandblocks> PreloadedLandblocks { get; set; }
+
+        public HeartbeatSettings Heartbeat { get; set; }
     }
 }
