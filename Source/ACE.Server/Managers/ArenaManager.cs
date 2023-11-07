@@ -343,7 +343,7 @@ namespace ACE.Server.Managers
                                             {
                                                 foundSecondTeamMatch = true;
                                                 secondTeamCandidate.TeamGuid = Guid.NewGuid();
-                                                otherArenaPlayer.TeamGuid = firstArenaPlayer.TeamGuid;
+                                                otherArenaPlayer.TeamGuid = secondTeamCandidate.TeamGuid;
                                                 finalPlayerList.Add(secondTeamCandidate);
                                                 finalPlayerList.Add(otherArenaPlayer);
                                                 break;
@@ -383,7 +383,7 @@ namespace ACE.Server.Managers
                                 if (!foundSecondTeamMatch)
                                 {
                                     var secondTeamPlayers = otherPlayers.Where(x => !x.TeamGuid.HasValue).Take(2);
-                                    var secondTeamGuid = new Guid();
+                                    var secondTeamGuid = Guid.NewGuid();
                                     foreach(var secondTeamPlayer in secondTeamPlayers)
                                     {
                                         secondTeamPlayer.TeamGuid = secondTeamGuid;
