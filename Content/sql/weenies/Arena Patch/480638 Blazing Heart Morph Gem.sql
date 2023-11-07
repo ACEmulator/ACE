@@ -24,7 +24,7 @@ VALUES (480638,   1, False) /* Stuck */
 
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)
 VALUES (480638,   1, 'Blazing Heart Morph Gem') /* Name */
-     , (480638,  14, 'Applying this gem to loot type items has a 38% chance to apply the spell Blazing Heart.') /* Use */;
+     , (480638,  14, 'Applying this gem to loot type items has a 100% chance to apply the spell Blazing Heart.') /* Use */;
 
 INSERT INTO `weenie_properties_d_i_d` (`object_Id`, `type`, `value`)
 VALUES (480638,   1, 0x02000179) /* Setup */

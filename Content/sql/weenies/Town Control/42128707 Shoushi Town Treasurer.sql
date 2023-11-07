@@ -189,6 +189,12 @@ VALUES (42128707, 2, 22017,  0, 21, 0.9, False) /* Create Koji's Fiend (22017) f
 	, (42128707, 4, 450613,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
 	, (42128707, 4, 482000,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
 	, (42128707, 4, 480630,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
+	, (42128707, 4, 490017,  0, 0, 0, False) /* Create Festival Robe (450011) for Shop */
+	, (42128707, 4, 490018,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
+	, (42128707, 4, 490019,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
+	, (42128707, 4, 490024,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
+	, (42128707, 4, 490026,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
+    , (42128707, 4, 490031,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
 	, (42128707, 4, 450609,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
 	, (42128707, 4, 480004,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
      , (42128707, 4, 480006,  0, 0, 0, False) /* Create Town Control Trinket of Experience (4200017) for Shop */
@@ -227,7 +233,8 @@ VALUES (42128707, 2, 22017,  0, 21, 0.9, False) /* Create Koji's Fiend (22017) f
 	, (42128707, 4, 480610,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
 	, (42128707, 4, 480623,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
 	, (42128707, 4, 480502,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
-	 , (42128707, 4, 480503,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */;
+	 , (42128707, 4, 480503,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
+	 , (42128707, 4, 490027,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */;
 
 /* Lifestoned Changelog:
 {
