@@ -768,10 +768,10 @@ namespace ACE.Server.Entity
                                     player.GrantLevelProportionalXp(0.1, 1000000, 50000000, true);
                                 }
 
-                                //Give 3k lum
+                                //Give 8k lum
                                 if (player.MaximumLuminance != null)
                                 {
-                                    player.GrantLuminance(3000, XpType.Quest, ShareType.None);
+                                    player.GrantLuminance(8000, XpType.Quest, ShareType.None);
                                 }
 
                                 //Give 5 PK trophies
@@ -826,10 +826,10 @@ namespace ACE.Server.Entity
                                     player.GrantLevelProportionalXp(0.25, 1000000, 50000000, true);
                                 }
 
-                                //Give 5k lum
+                                //Give 20k lum
                                 if (player.MaximumLuminance != null)
                                 {
-                                    player.GrantLuminance(3000, XpType.Quest, ShareType.None);
+                                    player.GrantLuminance(20000, XpType.Quest, ShareType.None);
                                 }
 
                                 //Give 5 PK trophies
@@ -927,10 +927,10 @@ namespace ACE.Server.Entity
                                 //Give 2.5% xp to next level
                                 player.GrantLevelProportionalXp(0.025, 250000, 25000000, true);
 
-                                //Give 1k lum
+                                //Give 3k lum
                                 if (player.MaximumLuminance != null)
                                 {
-                                    player.GrantLuminance(1000, XpType.Quest, ShareType.None);
+                                    player.GrantLuminance(3000, XpType.Quest, ShareType.None);
                                 }
 
                                 //Give 1 PK trophy
@@ -978,10 +978,10 @@ namespace ACE.Server.Entity
                                         player.GrantLevelProportionalXp(0.15, 1000000, 50000000, true);
                                     }
 
-                                    //Give 3k lum
+                                    //Give 8k lum
                                     if (player.MaximumLuminance != null)
                                     {
-                                        player.GrantLuminance(3000, XpType.Quest, ShareType.None);
+                                        player.GrantLuminance(8000, XpType.Quest, ShareType.None);
                                     }
 
                                     //Give 3 PK trophies
@@ -1033,10 +1033,10 @@ namespace ACE.Server.Entity
                                         player.GrantLevelProportionalXp(0.05, 1000000, 50000000, true);
                                     }
 
-                                    //Give 3k lum
+                                    //Give 5k lum
                                     if (player.MaximumLuminance != null)
                                     {
-                                        player.GrantLuminance(3000, XpType.Quest, ShareType.None);
+                                        player.GrantLuminance(5000, XpType.Quest, ShareType.None);
                                     }
 
                                     //Give 1 PK trophies
@@ -1088,10 +1088,10 @@ namespace ACE.Server.Entity
                                         player.GrantLevelProportionalXp(0.025, 1000000, 50000000, true);
                                     }
 
-                                    //Give 1.5k lum
+                                    //Give 3k lum
                                     if (player.MaximumLuminance != null)
                                     {
-                                        player.GrantLuminance(1500, XpType.Quest, ShareType.None);
+                                        player.GrantLuminance(3000, XpType.Quest, ShareType.None);
                                     }
 
                                     //25% chance to give 1 Darkbeat's Lost Storage Keys
