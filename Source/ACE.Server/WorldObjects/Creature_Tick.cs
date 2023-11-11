@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ACE.Database;
+using ACE.Database.Models.TownControl;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.TownControl;
+using ACE.Server.Entity.WorldBoss;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Handlers;
@@ -226,6 +228,25 @@ namespace ACE.Server.WorldObjects
                 catch (Exception ex)
                 {
                     log.ErrorFormat("Exception applying Town Control behavior in creature tick.  WeenieClassID = {0}, Ex: {1}", this.WeenieClassId, ex);
+                }
+            }
+
+            else if(WorldBosses.IsWorldBoss(this.WeenieClassId))
+            {
+                if(this.Health.Percent < 1 && (!this.WorldBoss_LastPeriodicGlobal.HasValue || this.WorldBoss_LastPeriodicGlobal < DateTime.Now.AddMinutes(-2)))
+                {
+                    var msg = "";
+                    string coordsDisplay = this.Location.GetMapCoordStr();
+                    if (this.WorldBoss_LastPeriodicGlobal.HasValue)
+                    {
+                        msg = $"The daring battle to destroy {this.Name} continues! Hurry to join the fray at {coordsDisplay}. Do not dawdle for {this.Name} has already been reduced to {Math.Round(this.Health.Percent * 100)}% of his power. But beware; while some may choose to assist in defeating {this.Name}, others will choose a darker path of greed and spilt blood in pursuit of self enrichment.";
+                    }
+                    else
+                    {
+                        msg = $"A brave adventurer has enjoined {this.Name} in battle! All those who seek glory and fortune must head to {coordsDisplay}. But beware; while some may choose to assist in defeating {this.Name}, others will choose a darker path of greed and spilt blood in pursuit of self enrichment.";
+                    }
+                    PlayerManager.BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                    this.WorldBoss_LastPeriodicGlobal = DateTime.Now;
                 }
             }
 

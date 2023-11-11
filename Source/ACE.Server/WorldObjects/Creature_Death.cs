@@ -11,6 +11,7 @@ using ACE.Entity.Models;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Entity.TownControl;
+using ACE.Server.Entity.WorldBoss;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
@@ -56,6 +57,11 @@ namespace ACE.Server.WorldObjects
             if (this.IsTownControlBoss)
             {
                 HandleTownControlBossDeath();
+            }
+
+            if(WorldBosses.IsWorldBoss(this.WeenieClassId))
+            {
+                HandleWorldBossDeath();
             }
 
             return GetDeathMessage(lastDamager, damageType, criticalHit);
@@ -1224,6 +1230,63 @@ namespace ACE.Server.WorldObjects
             catch (Exception ex)
             {
                 log.ErrorFormat("Exception in Creature_Death.HandleTownControlBossDeath. Ex: {0}", ex);
+            }
+        }
+
+        public void HandleWorldBossDeath()
+        {
+            log.Info("Creature_Death.HandleWorldBossDeath");
+
+            try
+            {
+                var deadBoss = WorldBosses.WorldBossMap[this.WeenieClassId];
+                var killer = DamageHistory.TopDamager;
+
+                //var deadBossWeenie = DatabaseManager.World.GetWeenie(this.WeenieClassId);
+                //var deadBossNameProp = deadBossWeenie.WeeniePropertiesString.FirstOrDefault(x => x.Type == (ushort)PropertyString.Name);
+                //var deadBossName = deadBossNameProp?.Value;
+
+                if (!killer.IsPlayer)
+                {
+                    //TODO - what to do if the killer isn't a player?                        
+                    log.DebugFormat("World Boss - {0} killer is not a player", deadBoss.Name);  
+                }
+
+                WorldBossManager.HandleBossDeath();
+
+                //Global broadcast the kill
+                var globalMsg = $"{deadBoss.Name} has been slain by {killer.Name} and the land is once again safe from {deadBoss.Name}'s terror... for now";
+                PlayerManager.BroadcastToAll(new GameMessageSystemChat(globalMsg, ChatMessageType.Broadcast));
+
+                //Send global to webhook
+                try
+                {
+                    _ = TurbineChatHandler.SendWebhookedChat("World Boss", globalMsg, null, "");
+                }
+                catch (Exception ex)
+                {
+                    log.ErrorFormat("Failed sending World Boss Death global message to webhook. Ex:{0}", ex);
+                }
+
+                //Award bonus rewards to anyone in the landblock
+                var landblockPlayers = this.CurrentLandblock.GetCurrentLandblockPlayers();
+                foreach (var player in landblockPlayers)
+                {
+                    var tcTrophy = WorldObjectFactory.CreateNewWorldObject(1000002); //PK Trophy
+                    tcTrophy.SetStackSize(5);
+
+                    var invCreateResult = player.TryCreateInInventoryWithNetworking(tcTrophy);
+                    if (invCreateResult)
+                    {
+                        player.Session.Network.EnqueueSend(new GameMessageCreateObject(tcTrophy));
+                        var msg = new GameMessageSystemChat($"You have received 5 PK Trophies for participating in the death of the mighty {deadBoss.Name}.", ChatMessageType.Broadcast);
+                        player.Session.Network.EnqueueSend(msg);
+                    }
+                }                        
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("Exception in Creature_Death.HandleWorldBossDeath. Ex: {0}", ex);
             }
         }
     }

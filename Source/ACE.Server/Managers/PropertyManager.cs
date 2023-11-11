@@ -621,6 +621,7 @@ namespace ACE.Server.Managers
                 ("tinker_lotto_enabled", new Property<bool>(false, "enables the tinkering lotto feature")),
                 ("force_materialization", new Property<bool>(true, "forces players to materialize on login")),
                 ("disable_pvp_cleave", new Property<bool>(false, "disables melee cleave attacks from targeting players")),
+                ("disable_world_bosses", new Property<bool>(true, "disables spawning of world bosses")), 
                 ("world_closed", new Property<bool>(false, "enable this to startup world as a closed to players world"))
                 );
 

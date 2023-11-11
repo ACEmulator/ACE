@@ -427,5 +427,7 @@ namespace ACE.Server.WorldObjects
         public bool TownControl_ConflictBroadcast1Sent = false;
         public bool TownControl_ConflictBroadcast2Sent = false;
         public bool TownControl_ConflictBroadcast3Sent = false;
+
+        public DateTime? WorldBoss_LastPeriodicGlobal = null;
     }
 }

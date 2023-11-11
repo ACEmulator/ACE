@@ -34,6 +34,7 @@ using Position = ACE.Entity.Position;
 using ACE.Server.Network.Handlers;
 using System.Text;
 using ACE.Database.Models.Log;
+using Microsoft.Extensions.Logging;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -4998,6 +4999,25 @@ namespace ACE.Server.Command.Handlers
                     }
                 }
             }
+        }
+
+        [CommandHandler("worldbossinfo", AccessLevel.Sentinel, CommandHandlerFlag.None, 0,
+            "Displays debug info about world bosses")]
+        public static void HandleWorldBossInfo(Session session, params string[] parameters)
+        {
+            var msg = $"ActiveWorldBoss = {WorldBossManager.GetActiveWorldBoss()?.Name ?? "Null"}\nNextSpawnTime = {WorldBossManager.GetNextSpawnTime()?.ToString(new CultureInfo("en-us"))}";
+            CommandHandlerHelper.WriteOutputInfo(session, msg);
+        }
+
+        [CommandHandler("worldbossspawn", AccessLevel.Sentinel, CommandHandlerFlag.None, 0,
+            "Displays debug info about world bosses")]
+        public static void HandleWorldBossSpawn(Session session, params string[] parameters)
+        {
+            CommandHandlerHelper.WriteOutputInfo(session, "Spawning new world boss");
+            WorldBossManager.SpawnNewWorldBoss();
+            var boss = WorldBossManager.GetActiveWorldBoss();
+            CommandHandlerHelper.WriteOutputInfo(session, $"{boss.Name} spawned at {boss.Location}");
+
         }
     }
 }
