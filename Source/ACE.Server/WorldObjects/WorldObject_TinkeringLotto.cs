@@ -563,7 +563,7 @@ namespace ACE.Server.WorldObjects
 
                     this.ProcSpellRate = 0.15f;
                     this.ProcSpellSelfTargeted = false;
-                    this.ItemSpellcraft = 450;
+                    this.ItemSpellcraft = 525;
                     if (this.ItemType == ItemType.Caster)
                     {
                         this.ProcSpell = (uint)SpellId.MagicYieldOther8;
