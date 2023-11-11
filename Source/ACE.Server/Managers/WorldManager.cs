@@ -48,10 +48,25 @@ namespace ACE.Server.Managers
         public static readonly ActionQueue ActionQueue = new ActionQueue();
         public static readonly DelayManager DelayManager = new DelayManager();
 
+        public static string GlobalChatGagsByIP
+        {
+            get
+            {
+                return PropertyManager.GetString("globalchatgag_ip_list").Item;
+            }
+
+            set
+            {
+                PropertyManager.ModifyString("globalchatgag_ip_list", value);
+            }
+
+        }
+
         static WorldManager()
         {
             Physics = new PhysicsEngine(new ObjectMaint(), new SmartBox());
             Physics.Server = true;
+            GlobalChatGagsByIP = PropertyManager.GetString("globalchatgag_ip_list").Item;
         }
 
         public static void Initialize()
@@ -268,6 +283,14 @@ namespace ACE.Server.Managers
 
             if (session.Player.HasArenaRareDmgBuff || session.Player.HasArenaRareDmgReductionBuff)
                 ArenaManager.DispelArenaRares(session.Player);
+
+
+            //Handle global chat gag by IP
+            if(!player.IsGlobalChatGagged && GlobalChatGagsByIP.Contains(session.EndPoint.Address.ToString()))
+            {
+                player.IsGlobalChatGagged = true;
+                player.SaveBiotaToDatabase();
+            }
 
             var olthoiPlayerReturnedToLifestone = session.Player.IsOlthoiPlayer && character.TotalLogins >= 1 && session.Player.LoginAtLifestone;
             if (olthoiPlayerReturnedToLifestone)

@@ -598,6 +598,7 @@ namespace ACE.Server.WorldObjects
         }
 
         private bool gagNoticeSent = false;
+        private bool globalChatGagNoticeSent = false;
 
         public void GagsTick()
         {
@@ -607,6 +608,12 @@ namespace ACE.Server.WorldObjects
                 {
                     SendGagNotice();
                     gagNoticeSent = true;
+                }
+
+                if(IsGlobalChatGagged && !globalChatGagNoticeSent)
+                {
+                    SendGlobalChatGagNotice();
+                    globalChatGagNoticeSent = true;
                 }
 
                 // check for gag expiration, if expired, remove gag.

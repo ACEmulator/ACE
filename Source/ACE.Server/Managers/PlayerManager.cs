@@ -744,6 +744,72 @@ namespace ACE.Server.Managers
             return true;
         }
 
+
+        public static bool GlobalChatGagPlayer(Player issuer, string playerName)
+        {
+            var player = FindByName(playerName);
+
+            if (player == null)
+                return false;
+
+            player.SetProperty(ACE.Entity.Enum.Properties.PropertyBool.IsGlobalChatGagged, true);
+            player.SaveBiotaToDatabase();
+
+            //Save player's IP to the general chat gag list
+            var onlinePlayer = PlayerManager.GetOnlinePlayer(player.Guid);
+            if(onlinePlayer != null && !WorldManager.GlobalChatGagsByIP.Contains(onlinePlayer.Session.EndPoint.Address.ToString()))
+            {
+                WorldManager.GlobalChatGagsByIP = WorldManager.GlobalChatGagsByIP + "," + onlinePlayer.Session.EndPoint.Address.ToString();
+            }    
+
+            BroadcastToAuditChannel(issuer, $"{issuer.Name} has global chat gagged {player.Name} and all associated accounts.");
+
+            return true;
+        }
+
+        public static bool GlobalChatUnGagPlayer(Player issuer, string playerName)
+        {
+            var player = FindByName(playerName);
+
+            if (player == null)
+                return false;
+
+            player.RemoveProperty(ACE.Entity.Enum.Properties.PropertyBool.IsGlobalChatGagged);            
+            player.SaveBiotaToDatabase();
+            
+            BroadcastToAuditChannel(issuer, $"{issuer.Name} has ungagged global chat for {player.Name}.");
+
+            return true;
+        }
+
+        public static bool GlobalChatUnGagPlayerIP(Player issuer, string playerName)
+        {
+            var player = FindByName(playerName);
+
+            if (player == null)
+                return false;
+
+            GlobalChatUnGagPlayer(issuer, playerName);
+
+            //Remove player's IP from the global chat gag list
+            var onlinePlayer = PlayerManager.GetOnlinePlayer(player.Guid);
+            if (onlinePlayer != null)
+            {
+                if (WorldManager.GlobalChatGagsByIP.Contains(onlinePlayer.Session.EndPoint.Address.ToString()))
+                {
+                    WorldManager.GlobalChatGagsByIP = WorldManager.GlobalChatGagsByIP.Replace(onlinePlayer.Session.EndPoint.Address.ToString(), "").Replace(",,", "");
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            BroadcastToAuditChannel(issuer, $"{issuer.Name} has ungagged global chat for {player.Name}.");
+
+            return true;
+        }
+
         public static void BootAllPlayers()
         {
             foreach (var player in GetAllOnline().Where(p => p.Session.AccessLevel < AccessLevel.Advocate))

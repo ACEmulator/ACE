@@ -111,6 +111,19 @@ namespace ACE.Server.Network.Handlers
 
                 var gameMessageTurbineChat = new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_EVENT_BINARY, ChatNetworkBlobDispatchType.ASYNCMETHOD_SENDTOROOMBYNAME, adjustedChannelID, session.Player.Name, message, senderID, adjustedchatType);
 
+                if (session.Player.IsGlobalChatGagged &&
+                    adjustedchatType == ChatType.General ||
+                    adjustedchatType == ChatType.Trade ||
+                    adjustedchatType == ChatType.LFG ||
+                    adjustedchatType == ChatType.Society ||
+                    adjustedchatType == ChatType.Olthoi ||
+                    adjustedchatType == ChatType.Roleplay)
+                {                    
+                    HandleChatReject(session, contextId, chatType, gameMessageTurbineChat, "because this account is global chat gagged");
+                    session.Player.SendGlobalChatGagError();
+                    return;
+                }
+
                 if (adjustedChannelID > TurbineChatChannel.Olthoi || adjustedChannelID == TurbineChatChannel.Allegiance) // Channel must be an allegiance channel
                 {
                     //var allegiance = AllegianceManager.FindAllegiance(channelID);

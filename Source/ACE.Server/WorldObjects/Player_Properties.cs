@@ -1288,6 +1288,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.IsGagged); else SetProperty(PropertyBool.IsGagged, value); }
         }
 
+        public bool IsGlobalChatGagged
+        {
+            get => GetProperty(PropertyBool.IsGlobalChatGagged) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IsGlobalChatGagged); else SetProperty(PropertyBool.IsGlobalChatGagged, value); }
+        }
+
         public bool RecallsDisabled
         {
             get => GetProperty(PropertyBool.RecallsDisabled) ?? false;

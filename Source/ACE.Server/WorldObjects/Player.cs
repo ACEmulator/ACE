@@ -973,6 +973,18 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, msg), new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast));
         }
 
+        public void SendGlobalChatGagNotice()
+        {
+            var msg = "Your general chat privileges have been suspended.";
+            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, msg), new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast));
+        }
+
+        public void SendGlobalChatGagError()
+        {
+            var msg = "You are unable to talk globally because you are a disgusting excuse for a human being. Hang your head in shame, then get help, do better, and transform your life by being a decent person.";
+            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, msg), new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast));
+        }
+
         public void SendUngagNotice()
         {
             var msg = "Your chat privileges have been restored.";

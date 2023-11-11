@@ -204,6 +204,9 @@ namespace ACE.Entity.Enum.Properties
 
         [ServerOnly]
         HasArenaRareDmgReductionBuff     = 9014,
+
+        [ServerOnly]
+        IsGlobalChatGagged = 9015,
     }
 
     public static class PropertyBoolExtensions

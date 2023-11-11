@@ -349,6 +349,102 @@ namespace ACE.Server.Command.Handlers
             }
         }
 
+        // globalchatgag < char name >
+        [CommandHandler("globalchatgag", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
+            "Prevents a character from talking in global chat.",
+            "< char name >\nThe character will not be able to use global chat normally.")]
+        public static void HandleGlobalChatGag(Session session, params string[] parameters)
+        {
+            // usage: @globalchatgag < char name >
+            // This command gags the specified character and all other characters associated with this character's IP indefinitely.  The gagged characters will not be able to use global chat.
+            // @globalchatgag - Prevents a character from talking in general chat.
+            // @globalchatungag - Allows a gagged character to talk again.
+
+            var msg = "";
+
+            if (parameters.Length > 0)
+            {
+                var playerName = string.Join(" ", parameters);                
+
+                if (PlayerManager.GlobalChatGagPlayer(session.Player, playerName))
+                {
+                    msg = $"{playerName} and all associated accounts have been gagged from global chat.";
+                }
+                else
+                {
+                    msg = $"Unable to gag a character named {playerName}, check the name and re-try the command.";
+                }
+
+                CommandHandlerHelper.WriteOutputInfo(session, msg, ChatMessageType.WorldBroadcast);
+            }
+            else
+            {
+                msg = "Invalid parameters: correct usage /globalchatgag <playerName>";
+                CommandHandlerHelper.WriteOutputInfo(session, msg, ChatMessageType.WorldBroadcast);
+            }
+        }
+
+        // globalchatungag < char name >
+        [CommandHandler("globalchatungag", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
+            "Restores a character's privilege to talk in global chat.",
+            "< char name >\nThe character will once again be able to use global chat normally.")]
+        public static void HandleGlobalChatUnGag(Session session, params string[] parameters)
+        {
+            var msg = "";
+
+            if (parameters.Length > 0)
+            {
+                var playerName = string.Join(" ", parameters);
+
+                if (PlayerManager.GlobalChatUnGagPlayer(session.Player, playerName))
+                {
+                    msg = $"{playerName} has been ungagged from global chat.";
+                }
+                else
+                {
+                    msg = $"Unable to ungag a character named {playerName}, check the name and re-try the command.";
+                }
+
+                CommandHandlerHelper.WriteOutputInfo(session, msg, ChatMessageType.WorldBroadcast);
+            }
+            else
+            {
+                msg = "Invalid parameters: correct usage /globalchatungag <playerName>";
+                CommandHandlerHelper.WriteOutputInfo(session, msg, ChatMessageType.WorldBroadcast);
+            }
+        }
+
+        // globalchatungag < char name >
+        [CommandHandler("globalchatungagip", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
+            "Removes a character's IP from the global chat gag list.",
+            "< char name >\nThe character will once again be able to use global chat normally.")]
+        public static void HandleGlobalChatUnGagPlayerIP(Session session, params string[] parameters)
+        {
+            var msg = "";
+
+            if (parameters.Length > 0)
+            {
+                var playerName = string.Join(" ", parameters);
+
+                if (PlayerManager.GlobalChatUnGagPlayerIP(session.Player, playerName))
+                {
+                    msg = $"{playerName}'s IP has been removed from the global chat gag list.";
+                }
+                else
+                {
+                    msg = $"Unable to ungag a character named {playerName}, the character must be online, check the name and re-try the command.";
+                }
+
+                CommandHandlerHelper.WriteOutputInfo(session, msg, ChatMessageType.WorldBroadcast);
+            }
+            else
+            {
+                msg = "Invalid parameters: correct usage /globalchatungag <playerName>";
+                CommandHandlerHelper.WriteOutputInfo(session, msg, ChatMessageType.WorldBroadcast);
+            }
+        }
+
+
         /// <summary>
         /// Teleports an admin to their sanctuary position. If a single uint value from 1 to 9 is provided as a parameter then the admin is teleported to the cooresponding named recall point.
         /// </summary>
