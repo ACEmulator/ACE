@@ -45,14 +45,14 @@ VALUES (490048,   1, 'Bracelet of Dexterity') /* Name */
      , (490048,  16, 'This bracelet grants the wearer agility and speed. This bracelet looks well made, craftmanship that only could be obtained in the ancient empyrean forges.') /* LongDesc */;
 
 INSERT INTO `weenie_properties_d_i_d` (`object_Id`, `type`, `value`)
-VALUES (30352,   1, 0x020000FB) /* Setup */
-     , (30352,   3, 0x20000014) /* SoundTable */
-     , (30352,   6, 0x04000BEF) /* PaletteBase */
-     , (30352,   8, 0x06005BDE) /* Icon */
-     , (30352,  22, 0x3400002B) /* PhysicsEffectTable */
-     , (30352,  36, 0x0E000012) /* MutateFilter */
-     , (30352,  46, 0x38000032) /* TsysMutationFilter */
-     , (30352,  52, 0x06005B0C) /* IconUnderlay */;
+VALUES (490048,   1, 0x020000FB) /* Setup */
+     , (490048,   3, 0x20000014) /* SoundTable */
+     , (490048,   6, 0x04000BEF) /* PaletteBase */
+     , (490048,   8, 0x06005BDE) /* Icon */
+     , (490048,  22, 0x3400002B) /* PhysicsEffectTable */
+     , (490048,  36, 0x0E000012) /* MutateFilter */
+     , (490048,  46, 0x38000032) /* TsysMutationFilter */
+     , (490048,  52, 0x06005B0C) /* IconUnderlay */;
 
 INSERT INTO `weenie_properties_spell_book` (`object_Id`, `spell`, `probability`)
 VALUES (490048,  6106,      2)  /* Legendary Bludge Ward */
