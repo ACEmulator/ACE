@@ -1,7 +1,7 @@
 DELETE FROM `weenie` WHERE `class_Id` = 480566;
 
 INSERT INTO `weenie` (`class_Id`, `class_Name`, `type`, `last_Modified`)
-VALUES (480566, 'ace480566-bloodlettingdagger', 6, '2021-11-08 06:01:47') /* MeleeWeapon */;
+VALUES (480566, 'ace480566-bloodlettingdaggerpk', 6, '2021-11-08 06:01:47') /* MeleeWeapon */;
 
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`)
 VALUES (480566,   1,          1) /* ItemType - MeleeWeapon */
@@ -32,7 +32,7 @@ INSERT INTO `weenie_properties_float` (`object_Id`, `type`, `value`)
 VALUES (480566,  12,     0.5) /* Shade */
      , (480566,  21,     0.4) /* WeaponLength */
      , (480566,  22,     0.6) /* DamageVariance */
-     , (480566,  76,     0.5) /* Translucency *;
+     , (480566,  76,     0.5) /* Translucency */;
 
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)
 VALUES (480566,   1, 'Bloodletting Dagger') /* Name */;
@@ -44,3 +44,6 @@ VALUES (480566,   1, 0x02001839) /* Setup */
      , (480566,   7, 0x10000538) /* ClothingBase */
      , (480566,   8, 0x06003151) /* Icon */
      , (480566,  22, 0x3400002B) /* PhysicsEffectTable */;
+
+
+

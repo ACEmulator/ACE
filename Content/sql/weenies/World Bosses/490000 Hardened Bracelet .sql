@@ -42,7 +42,7 @@ VALUES (490000,   5,  -0.033) /* ManaRate */
 
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)
 VALUES (490000,   1, 'Hardened Bracelet') /* Name */
-     , (490000,  16, 'This bracelet grants the wearer a kind of specialized extra sense. Through the mind''s eye, the workmanship of an item can be assessed. Ways to improve an item or repair flaws are made visible, allowing the user to more expertly make modifications.') /* LongDesc */;
+     , (490000,  16, 'This bracelet grants the wearer protection against Bludgeoning and Flame. This bracelet looks well made, craftmanship that only could be obtained in the ancient empyrean forges.') /* LongDesc */;
 
 INSERT INTO `weenie_properties_d_i_d` (`object_Id`, `type`, `value`)
 VALUES (490000,   1, 0x020000FB) /* Setup */

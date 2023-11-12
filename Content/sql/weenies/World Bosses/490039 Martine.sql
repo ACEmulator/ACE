@@ -12,8 +12,8 @@ VALUES (490039,   1,         16) /* ItemType - Creature */
      , (490039,  25,        899) /* Level */
      , (490039,  27,          0) /* ArmorType - None */
 	 , (490039, 103,          3) /* GeneratorDestructionType - Destroy */
-	 , (490039,  81,          20) /* MaxGeneratedObjects */
-     , (490039,  82,          20) /* InitGeneratedObjects */
+	 , (490039,  81,          50) /* MaxGeneratedObjects */
+     , (490039,  82,          50) /* InitGeneratedObjects */
      , (490039,  40,          1) /* CombatMode - NonCombat */
      , (490039,  68,         13) /* TargetingTactic - Random, LastDamager, TopDamager */
      , (490039,  93,       1032) /* PhysicsState - ReportCollisions, Gravity */

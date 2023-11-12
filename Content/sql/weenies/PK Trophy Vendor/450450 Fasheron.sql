@@ -446,6 +446,8 @@ VALUES (450450, 4, 450531,  0, 0, 0, False) /* Create Gelidite Robe (450531) for
 	 , (450450, 4, 480564,  0, 0, 0, False) /* Create Paradox-touched Olthoi Dagger (1043046) for Shop */ 
 	 , (450450, 4, 480565,  0, 0, 0, False) /* Create Paradox-touched Olthoi Dagger (1043046) for Shop */ 
 	 , (450450, 4, 480566,  0, 0, 0, False) /* Create Paradox-touched Olthoi Dagger (1043046) for Shop */ 
+	 , (450450, 4, 490055,  0, 0, 0, False) /* Create Paradox-touched Olthoi Dagger (1043046) for Shop */ 
+	 , (450450, 4, 490056,  0, 0, 0, False) /* Create Paradox-touched Olthoi Dagger (1043046) for Shop */ 
      , (450450, 4, 1008799,  0, 0, 0, False) /* Create Great Work Staff of the Lightbringer (1008799) for Shop */
      , (450450, 4, 1011329,  0, 0, 0, False) /* Create Aun Tanua's War Taiaha (1011329) for Shop */
      , (450450, 4, 1011431,  0, 0, 0, False) /* Create Audetaunga's Taiaha of the Mountains (1011431) for Shop */
@@ -460,6 +462,8 @@ VALUES (450450, 4, 450531,  0, 0, 0, False) /* Create Gelidite Robe (450531) for
      , (450450, 4, 1040089,  0, 0, 0, False) /* Create Empowered Sword of Lost Hope (1040089) for Shop */
      , (450450, 4, 1040517,  0, 0, 0, False) /* Create Olthoibane Sword of Lost Light (1040517) for Shop */
      , (450450, 4, 1040519,  0, 0, 0, False) /* Create Skeletonbane Sword of Lost Light (1040519) for Shop */
+	 , (450450, 4, 490053,  0, 0, 0, False) /* Create Skeletonbane Sword of Lost Light (1040519) for Shop */
+	 , (450450, 4, 490054,  0, 0, 0, False) /* Create Skeletonbane Sword of Lost Light (1040519) for Shop */
      , (450450, 4, 1031291,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */
      , (450450, 4, 450792,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */
      , (450450, 4, 450793,  0, 0, 0, False) /* Create Renlen's Grace (1031291) for Shop */	 
