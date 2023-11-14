@@ -50,7 +50,11 @@ namespace ACE.Server.Entity
         public const uint MorphGemRemoveLevelReq = 480609;
         public const uint MorphGemSlayerUpgrade = 480639;
         public const uint MorphGemBurningCoal = 480638;
-        public const uint MorphGemImpen = 480700;
+        public const uint MorphGemImpen = 490025;
+        public const uint MorphGemBanditHilt = 490026;
+        public const uint MorphGemRareUpgrade = 490040;
+
+        public const uint MorphGemFpDiamond = 490023;
 
         public const int MorphGemMinValue = 20000;
 
@@ -218,6 +222,9 @@ namespace ACE.Server.Entity
                 case MorphGemBurningCoal:
                 case MorphGemImpen:
                 case MorphGemRandomWorkmanship:
+                case MorphGemFpDiamond:
+                case MorphGemBanditHilt:
+                case MorphGemRareUpgrade:
                     ApplyMorphGem(player, source, target);
                     return;
             }
@@ -1359,6 +1366,15 @@ namespace ACE.Server.Entity
                     #region MorphGemImpen
                     case MorphGemImpen:
 
+                        //Validate target is either armor or undies
+                        if (target.WeenieType != WeenieType.Clothing)
+                        {
+                            playerMsg = "The gem can only be applied to armor and underclothes";
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }    
+
                         //Check if an Impen already exists on this item
                         var targetItemSpells = target.Biota.GetKnownSpellsIds(target.BiotaDatabaseLock);
                         if(!target.ItemMaxMana.HasValue || targetItemSpells == null || targetItemSpells.Count == 0)
@@ -1400,17 +1416,17 @@ namespace ACE.Server.Entity
                             if(impenLevel < 50) //50% chance for minor
                             {
                                 spellId = 2604;
-                                String.Format(playerMsg, "a Minor", target.Name);
+                                playerMsg = String.Format(playerMsg, "a Minor", target.Name);
                             }
                             else if (impenLevel < 90) //40% chance for major
                             {
                                 spellId = 2592;
-                                String.Format(playerMsg, "a Major", target.Name);
+                                playerMsg = String.Format(playerMsg, "a Major", target.Name);
                             }
                             else //10% chance for epic
                             {
                                 spellId = 4667;
-                                String.Format(playerMsg, "an Epic", target.Name);
+                                playerMsg = String.Format(playerMsg, "an Epic", target.Name);
                             }
                             
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
@@ -1438,6 +1454,38 @@ namespace ACE.Server.Entity
                         }
                         break;
                     #endregion MorphGemImpen
+
+                    #region MorphGemBanditHilt
+                    case MorphGemBanditHilt:
+
+                        //Check if the target is a LW multi-strike weapon
+                        playerMsg = "This gem isn't fully implemented yet.  Hold onto it, eventually it will work.";
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                        player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                        return;
+                        break;
+                    #endregion MorphGemBanditHilt
+
+
+                    #region MorphGemRareUpgrade
+                    case MorphGemRareUpgrade:
+
+                        playerMsg = "This gem isn't fully implemented yet.  Hold onto it, eventually it will work.";
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                        player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                        return;
+                        break;
+                    #endregion MorphGemFpDiamond
+
+                    #region MorphGemFpDiamond
+                    case MorphGemFpDiamond:
+
+                        playerMsg = "This gem isn't fully implemented yet.  Hold onto it, eventually it will work.";
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                        player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                        return;
+                        break;
+                    #endregion MorphGemFpDiamond
 
                     default:
                         player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
@@ -1707,6 +1755,8 @@ namespace ACE.Server.Entity
                 case MorphGemBurningCoal:
                 case MorphGemImpen:
                 case MorphGemRandomWorkmanship:
+                case MorphGemBanditHilt:
+                case MorphGemRareUpgrade:
                     return true;
                 default:
                     return false;
