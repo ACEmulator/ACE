@@ -13,7 +13,9 @@ using ACE.Server.Factories.Tables;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects;
+using ACE.Server.WorldObjects.Managers;
 using log4net;
 using EquipMask = ACE.Entity.Enum.EquipMask;
 using ItemType = ACE.Entity.Enum.ItemType;
@@ -513,15 +515,14 @@ namespace ACE.Server.Entity
 
         public static void ApplyMorphGem(Player player, WorldObject source, WorldObject target)
         {                        
-            // Remove Melee D requirement - weenie ID = 480483
-            // Alter imbue gems - ? Random change to change current imbue to alternative(AR/ CS / CB) -would need to adjust icon underlay and imbue - 480486
-            // Remove Player wield requirement(similar to amethyst) - 480485
-
 
             try
             {
-                //Only allow loot gen items to be morphed, except for player req and level req ones
-                if ((target.ItemWorkmanship == null || target.IsAttunedOrContainsAttuned || target.ResistMagic == 9999) && source.WeenieClassId != MorphGemRemoveLevelReq && source.WeenieClassId != MorphGemRemovePlayerReq)
+                //Only allow loot gen items to be morphed, except for player req, level req ones and rare armor gems
+                if ((target.ItemWorkmanship == null || target.IsAttunedOrContainsAttuned || target.ResistMagic == 9999)
+                    && source.WeenieClassId != MorphGemRemoveLevelReq
+                    && source.WeenieClassId != MorphGemRemovePlayerReq
+                    && source.WeenieClassId != MorphGemRareUpgrade)
                 {
                     player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                     return;
@@ -1481,10 +1482,60 @@ namespace ACE.Server.Entity
                     #region MorphGemRareUpgrade
                     case MorphGemRareUpgrade:
 
-                        playerMsg = "This gem isn't fully implemented yet.  Hold onto it, eventually it will work.";
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
-                        player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
-                        return;
+                        if (!target.GetProperty(PropertyInt.RareId).HasValue)
+                        {
+                            playerMsg = "This gem can only be used on rare armor, jewelry and weapons";
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        if( target.WeenieType != WeenieType.Clothing &&
+                            target.WeenieType != WeenieType.Caster &&
+                            target.WeenieType != WeenieType.MeleeWeapon &&
+                            target.WeenieType != WeenieType.MissileLauncher &&
+                            target.ItemType != ItemType.Jewelry &&
+                            !target.IsShield)
+                        {
+                            playerMsg = "This gem can only be used on rare armor, jewelry and weapons";
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        //Get a list of epic spells
+                        var itemEpicList = target.EpicCantrips.Keys;
+                        if (itemEpicList == null || itemEpicList.Count < 1)
+                        {
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("The target item has no epic cantrips to upgrade", ChatMessageType.Broadcast));
+                            return;
+                        }
+
+
+                        //Find the counterpart legendary spell
+                        //Remove the epic
+                        //Add the legendary
+                        foreach (var epicSpellId in itemEpicList)
+                        {
+                            var epicSpell = new Spell(epicSpellId, true);
+                            var epicSpellName = epicSpell.ToString();
+
+                            foreach(var spellLevels in ArmorCantrips.Table)
+                            {
+                                if (spellLevels[2] == (SpellId)epicSpellId)
+                                {
+                                    var legendarySpellId = spellLevels[3];
+
+                                    target.Biota.TryRemoveKnownSpell(epicSpellId, target.BiotaDatabaseLock);
+                                    target.Biota.GetOrAddKnownSpell((int)legendarySpellId, target.BiotaDatabaseLock, out _);
+                                    break;
+                                }
+                            }
+                        }
+
+                        //Return a message to the player
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {target.NameWithMaterial} has had its epic armor cantrips upgraded to legendaries", ChatMessageType.Broadcast));
                         break;
                     #endregion MorphGemFpDiamond
 
