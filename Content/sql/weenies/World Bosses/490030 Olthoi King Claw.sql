@@ -20,7 +20,7 @@ VALUES (490030,  22, True ) /* Inscribable */
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)
 VALUES (490030,   1, 'Olthoi King Claw') /* Name */
      , (490030,  16, 'A long claw from the Olthoi King, which must be dead if you are holding it.') /* LongDesc */
-     , (490030,  33, 'PickedUpOlthoiKingClaw') /* Quest */;
+     , (490030,  33, 'OlthoiKingClaw') /* Quest */;
 
 INSERT INTO `weenie_properties_d_i_d` (`object_Id`, `type`, `value`)
 VALUES (490030,   1, 0x02000871) /* Setup */
