@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Security.Policy;
 using ACE.Common;
 using ACE.Database.Models.Auth;
 using ACE.Entity.Enum;
@@ -1459,10 +1461,19 @@ namespace ACE.Server.Entity
                     case MorphGemBanditHilt:
 
                         //Check if the target is a LW multi-strike weapon
-                        playerMsg = "This gem isn't fully implemented yet.  Hold onto it, eventually it will work.";
+                        if(target.WeenieType != WeenieType.MeleeWeapon ||
+                            target.WeaponSkill != Skill.LightWeapons ||
+                            (!target.W_AttackType.HasFlag(AttackType.DoubleSlash) && !target.W_AttackType.HasFlag(AttackType.DoubleThrust)))
+                        {
+                            playerMsg = "This gem can only be used on Light Weapon melee weapons with the Multi-Strike property";
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
+                            player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
+                            return;
+                        }
+
+                        target.W_AttackType = AttackType.TripleStrike;
+                        playerMsg = $"The morph gem alters your {target.NameWithMaterial} into a Triple-Strike weapon";
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(playerMsg, ChatMessageType.Broadcast));
-                        player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
-                        return;
                         break;
                     #endregion MorphGemBanditHilt
 
