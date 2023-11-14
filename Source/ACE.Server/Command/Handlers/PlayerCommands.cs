@@ -18,6 +18,11 @@ using ACE.Server.WorldObjects;
 using ACE.Database.Models.Log;
 using System.Text;
 using ACE.Server.Entity.TownControl;
+using ACE.Entity.Enum.Properties;
+using System.Threading;
+using ACE.Database.Models.Auth;
+using ACE.DatLoader;
+using ACE.Server.Network.Enum;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -548,8 +553,8 @@ namespace ACE.Server.Command.Handlers
         {
             if (parameters.Count() < 1)
             {
-                CommandHandlerHelper.WriteOutputInfo(session, $"Invalid parameters.  Proper syntax is as follows...\n  To join a 1v1 arena match: /arena join\n  To join a specific type of arena match, replace eventType with the string code for the type of match you want to join, such as 1v1, 5v5, 5v5v5, 9v9. : /arena join eventType\n  To get your current character's stats: /arena stats\n  To get a named character's stats, replace characterName with the target character's name: /arena stats characterName");
-                return;
+                CommandHandlerHelper.WriteOutputInfo(session, $"Invalid parameters.  See the arena help file below for valid parameters.");
+                parameters[0] = "help";
             }
 
             var actionType = parameters[0];
@@ -803,7 +808,7 @@ namespace ACE.Server.Command.Handlers
                 return $"You cannot join an arena queue while you're watching an arena event. Use /arena cancel to stop watching the current event before you queue.";
 
             if (!session.Player.IsPK)
-                return $"You cannot join an arena queue while until you are in a PK state";
+                return $"You cannot join an arena queue until you are in a PK state";
 
             if(session.Player.PKTimerActive)
                 return $"You cannot join an arena queue while you are PK tagged";
@@ -881,6 +886,116 @@ namespace ACE.Server.Command.Handlers
                 CommandHandlerHelper.WriteOutputInfo(session, $"Invalid parameters, please provide a player name for the player that needs to be logged off.");
                 return;
             }            
+        }
+
+        // rename <Current Name> <New Name>
+        [CommandHandler("buyrename", AccessLevel.Player, CommandHandlerFlag.None, 1,
+            "Purchase a character rename for 200 PK trophies",
+            "< New Name >")]
+        public static void HandleBuyRename(Session session, params string[] parameters)
+        {
+            if(parameters.Length < 1)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Invalid parameters: please provide a new character name. Usage: /BuyRename <NewCharacterName>", ChatMessageType.Broadcast);
+                return;
+            }
+
+            var numPkTrophiesInInventory = session.Player.GetNumInventoryItemsOfWCID(1000002);
+            if(numPkTrophiesInInventory < 200)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Renaming your character costs 200 PK trophies. You don't have enough PK trophies in your inventory to cover the cost.", ChatMessageType.Broadcast);
+                return;
+            }
+
+            var newName = string.Join(" ", parameters).Trim();
+            var oldName = session.Player.Name;            
+
+            if (oldName.StartsWith("+"))
+                oldName = oldName.Substring(1);
+            if (newName.StartsWith("+"))
+                newName = newName.Substring(1);
+
+            newName = newName.First().ToString().ToUpper() + newName.Substring(1);
+
+            //Verify the new name is not in the taboo table
+            if (PropertyManager.GetBool("taboo_table").Item && DatManager.PortalDat.TabooTable.ContainsBadWord(newName.ToLowerInvariant()))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Error, unable to rename your character to \"{newName}\" as that name is not allowed per the taboo table.", ChatMessageType.Broadcast);
+                return;
+            }
+
+            if (PropertyManager.GetBool("creature_name_check").Item && DatabaseManager.World.IsCreatureNameInWorldDatabase(newName))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Error, unable to rename your character to \"{newName}\" as that name matches a creature name.", ChatMessageType.Broadcast);
+                return;
+            }
+
+            //Verify the new name has only alpha characters, apostrophies or dashes, and isn't more than 32 characters
+            if(newName.Length > 32)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Error, unable to rename your character to \"{newName}\" as that name exceeds the maximum 32 character limit.", ChatMessageType.Broadcast);
+                return;
+            }
+
+            var hasInvalidChars = false;
+            foreach(Char c in newName)
+            {
+                if(!Char.IsLetter(c) && c != '\'' && c != '-' && c != ' ')
+                {
+                    hasInvalidChars = true;
+                }
+            }
+
+            if (hasInvalidChars)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Error, unable to rename your character to \"{newName}\" as that name contains invalid characters for a player name.  Player names may only contain characters A-Z, spaces, apostrophes or dashes.", ChatMessageType.Broadcast);
+                return;
+            }
+
+            var onlinePlayer = PlayerManager.GetOnlinePlayer(oldName);
+            if (onlinePlayer != null)
+            {
+                DatabaseManager.Shard.IsCharacterNameAvailable(newName, isAvailable =>
+                {
+                    if (!isAvailable)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Error, a player named \"{newName}\" already exists.", ChatMessageType.Broadcast);
+                        return;
+                    }
+
+                    //Recheck if the player has sufficient funds to purchase the rename
+                    numPkTrophiesInInventory = session.Player.GetNumInventoryItemsOfWCID(1000002);
+                    if (numPkTrophiesInInventory < 200)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Renaming your character costs 200 PK trophies. You don't have enough PK trophies in your inventory to cover the cost.", ChatMessageType.Broadcast);
+                        return;
+                    }
+                    else
+                    {
+                        if(!session.Player.TryConsumeFromInventoryWithNetworking(1000002, 200))
+                        {
+                            CommandHandlerHelper.WriteOutputInfo(session, $"Error: failed consuming 200 PK trophies from your inventory. Please try again or contact an admin for support.", ChatMessageType.Broadcast);
+
+                            //Log this failure to the audit log
+                            PlayerManager.BroadcastToAuditChannel(session.Player, $"Error: player {session.Player.Name} used /BuyRename command, and was verified to have enough PK trophies, but failed to consume the PK trophies with TryConsumeFromInventoryWithNetworking.");                            
+                            return;
+                        }
+
+                        CommandHandlerHelper.WriteOutputInfo(session, $"200 PK trophies have been removed from your inventory", ChatMessageType.Broadcast);
+                    }
+
+                    onlinePlayer.Character.Name = newName;
+                    onlinePlayer.CharacterChangesDetected = true;
+                    onlinePlayer.Name = newName;
+                    onlinePlayer.SavePlayerToDatabase();
+
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Player named \"{oldName}\" renamed to \"{newName}\" successfully!", ChatMessageType.Broadcast);
+
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"Player {oldName} used /BuyRename command to rename themselves to {newName}.");
+
+                    onlinePlayer.Session.LogOffPlayer();
+                });
+            }
         }
 
         #region Town Control
