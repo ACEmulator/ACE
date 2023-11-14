@@ -5101,7 +5101,7 @@ namespace ACE.Server.Command.Handlers
             "Displays debug info about world bosses")]
         public static void HandleWorldBossInfo(Session session, params string[] parameters)
         {
-            var msg = $"ActiveWorldBoss = {WorldBossManager.GetActiveWorldBoss()?.Name ?? "Null"}\nNextSpawnTime = {WorldBossManager.GetNextSpawnTime()?.ToString(new CultureInfo("en-us"))}";
+            var msg = $"Active World Boss = {WorldBossManager.GetActiveWorldBoss()?.Name ?? "Null"}\nLocation = {WorldBossManager.GetActiveWorldBoss()?.Location.ToLOCString() ?? "Null"}\nNextSpawnTime = {WorldBossManager.GetNextSpawnTime()?.ToString(new CultureInfo("en-us"))}";
             CommandHandlerHelper.WriteOutputInfo(session, msg);
         }
 
