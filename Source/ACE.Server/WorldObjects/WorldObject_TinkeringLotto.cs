@@ -553,32 +553,32 @@ namespace ACE.Server.WorldObjects
                     resultMsg = string.IsNullOrEmpty(resultMsg) ? currRollResultMsg : $"{resultMsg}\n{currRollResultMsg}";
                 }
 
-                //roll again for a 15% chance to add...
-                //cast on strike imperil for melee/missile weps
-                //cast on strike magic yield for casters
-                roll = rand.NextDouble();
-                if (roll < 0.15)
-                {
-                    var currRollResultMsg = "";
+                ////roll again for a 15% chance to add...
+                ////cast on strike imperil for melee/missile weps
+                ////cast on strike magic yield for casters
+                //roll = rand.NextDouble();
+                //if (roll < 0.15)
+                //{
+                //    var currRollResultMsg = "";
 
-                    this.ProcSpellRate = 0.15f;
-                    this.ProcSpellSelfTargeted = false;
-                    this.ItemSpellcraft = 525;
-                    if (this.ItemType == ItemType.Caster)
-                    {
-                        this.ProcSpell = (uint)SpellId.MagicYieldOther8;
-                        currRollResultMsg = "Added Cast on Strike Magic Yield";
-                        HandleTinkerLottoLog("COSYIELD");
-                    }
-                    else
-                    {
-                        this.ProcSpell = (uint)SpellId.ImperilOther8;
-                        currRollResultMsg = "Added Cast on Strike Imperil";
-                        HandleTinkerLottoLog("COSIMP");
-                    }
+                //    this.ProcSpellRate = 0.15f;
+                //    this.ProcSpellSelfTargeted = false;
+                //    this.ItemSpellcraft = 525;
+                //    if (this.ItemType == ItemType.Caster)
+                //    {
+                //        this.ProcSpell = (uint)SpellId.MagicYieldOther8;
+                //        currRollResultMsg = "Added Cast on Strike Magic Yield";
+                //        HandleTinkerLottoLog("COSYIELD");
+                //    }
+                //    else
+                //    {
+                //        this.ProcSpell = (uint)SpellId.ImperilOther8;
+                //        currRollResultMsg = "Added Cast on Strike Imperil";
+                //        HandleTinkerLottoLog("COSIMP");
+                //    }
 
-                    resultMsg = string.IsNullOrEmpty(resultMsg) ? currRollResultMsg : $"{resultMsg}\n{currRollResultMsg}";
-                }
+                //    resultMsg = string.IsNullOrEmpty(resultMsg) ? currRollResultMsg : $"{resultMsg}\n{currRollResultMsg}";
+                //}
             }
 
             return resultMsg;
