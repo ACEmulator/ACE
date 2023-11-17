@@ -1120,7 +1120,7 @@ namespace ACE.Server.Entity
                         var tinkerLottoLog = target.GetProperty(PropertyString.TinkerLottoLog);
                         if (!String.IsNullOrEmpty(tinkerLottoLog) && tinkerLottoLog.Contains("Slayer") && target.SlayerCreatureType != null)
                         {
-                            var selectSlayerType = ThreadSafeRandom.Next(1, 25);
+                            var selectSlayerType = ThreadSafeRandom.Next(1, 27);
                             switch (selectSlayerType)
                             {
                                 case 1:
@@ -1148,7 +1148,7 @@ namespace ACE.Server.Entity
                                     break;
 
                                 case 7:
-                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Mite;
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.GearKnight;
                                     break;
 
                                 case 8:
@@ -1156,7 +1156,7 @@ namespace ACE.Server.Entity
                                     break;
 
                                 case 9:
-                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Mumiyah;
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Monouga;
                                     break;
 
                                 case 10:
@@ -1221,6 +1221,14 @@ namespace ACE.Server.Entity
 
                                 case 25:
                                     target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Eater;
+                                    break;
+
+                                case 26:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Sclavus;
+                                    break;
+
+                                case 27:
+                                    target.SlayerCreatureType = ACE.Entity.Enum.CreatureType.Moarsman;
                                     break;
                             }
 
