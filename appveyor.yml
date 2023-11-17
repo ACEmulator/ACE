@@ -43,7 +43,8 @@ environment:
     secure: huM6kANmgP1OdlmHulXVZA==
   access_token:
     secure: lGLpqex+Weod6ZiPw34RwTv999QvoSZ+imTcmYhiJWQL6XkfkVUYcqOO6pJDuAYt
-services: mysql
+services: 
+  - mysql
 before_build:
 - cmd: AppVeyor\AppVeyorBeforeCompile.bat
 build:
