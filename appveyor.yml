@@ -21,6 +21,7 @@ init:
     REM appveyor UpdateBuild -Version "%REVISED_VERSION%"
 
     REM set APPVEYOR_BUILD_VERSION=%REVISED_VERSION%
+- ps: Start-Service MySQL80
 dotnet_csproj:
   patch: true
   file: '**\*.csproj'
