@@ -32,7 +32,11 @@
     <ApplicationIcon>images\ace_retro_icon_2.ico</ApplicationIcon>
   </PropertyGroup>
 
-  <ItemGroup>
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    </ItemGroup>
+
+    <ItemGroup>
     <None Remove="Entity\Mutations\ArmorLevel\armor_level_extremity.txt" />
     <None Remove="Entity\Mutations\ArmorLevel\armor_level_non_extremity.txt" />
     <None Remove="Entity\Mutations\ArmorLevel\covenant_armor.txt" />
