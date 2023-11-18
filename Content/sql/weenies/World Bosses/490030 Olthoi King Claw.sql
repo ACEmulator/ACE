@@ -10,7 +10,7 @@ VALUES (490030,   1,        128) /* ItemType - Misc */
      , (490030,   9,          0) /* ValidLocations - None */
      , (490030,  16,          1) /* ItemUseable - No */
      , (490030,  19,          0) /* Value */
-     , (490030,  33,          -1) /* Bonded - Bonded */
+     , (490030,  33,         -1) /* Bonded - Bonded */
      , (490030,  93,       1044) /* PhysicsState - Ethereal, IgnoreCollisions, Gravity */;
 
 INSERT INTO `weenie_properties_bool` (`object_Id`, `type`, `value`)
@@ -26,5 +26,5 @@ INSERT INTO `weenie_properties_d_i_d` (`object_Id`, `type`, `value`)
 VALUES (490030,   1, 0x02000871) /* Setup */
      , (490030,   3, 0x20000014) /* SoundTable */
      , (490030,   8, 0x06002AF4) /* Icon */
-     , (490030,  52, 0x06005B0C) /* IconUnderlay */;
+     , (490030,  52, 0x06005B0C) /* IconUnderlay */
      , (490030,  22, 0x3400002B) /* PhysicsEffectTable */;

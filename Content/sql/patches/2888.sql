@@ -6,18 +6,15 @@ VALUES (2888 	/* id */
 	 , 8		/* tier */
 	 , 0.9		/* loot_Quality_Mod */
 	 , 19		/* unknown_Chances */
-	 , 0		/* item_Chance */
+	 , 1		/* item_Chance */
 	 , 0		/* item_Min_Amount */
-	 , 0		/* item_Max_Amount */
-	 , 0		/* item_Treasure_Type_Selection_Chances */
 	 , 1		/* item_Max_Amount */
 	 , 11		/* item_Treasure_Type_Selection_Chances */
 	 , 100		/* magic_Item_Chance */
 	 , 20		/* magic_Item_Min_Amount */
 	 , 40		/* magic_Item_Max_Amount */
 	 , 22		/* magic_Item_Treasure_Type_Selection_Chances */
-	 , 100		/* mundane_Item_Chance */
-	 , 0		/* mundane_Item_Chance */
+	 , 1		/* mundane_Item_Chance */
 	 , 0		/* mundane_Item_Min_Amount */
 	 , 1		/* mundane_Item_Max_Amount */
 	 , 7		/* mundane_Item_Type_Selection_Chances */
