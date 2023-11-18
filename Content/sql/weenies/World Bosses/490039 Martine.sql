@@ -59,12 +59,12 @@ VALUES (490039,   1,       5) /* HeartbeatInterval */
      , (490039,  74,       0) /* ResistManaDrain */
      , (490039,  75,       1) /* ResistManaBoost */
      , (490039,  80,       3) /* AiUseMagicDelay */
-     , (490039, 104,      10) /* ObviousRadarRange */
+     , (490039, 104,      40) /* ObviousRadarRange */
      , (490039, 122,       2) /* AiAcquireHealth */
      , (490039, 125,       0) /* ResistHealthDrain */
      , (490039, 127,       2) /* AiCounteractEnchantment */
-	 , (490039,  43,      15) /* GeneratorRadius */
-	 , (490039,  41,     1200) /* RegenerationInterval */;
+	 , (490039,  43,      20) /* GeneratorRadius */
+	 , (490039,  41,     600) /* RegenerationInterval */;
 
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)
 VALUES (490039,   1, 'Martine') /* Name */;
@@ -78,7 +78,7 @@ VALUES (490039,   1, 0x02000D41) /* Setup */
      , (490039,   7, 0x100003AD) /* ClothingBase */
      , (490039,   8, 0x06001036) /* Icon */
      , (490039,  22, 0x34000004) /* PhysicsEffectTable */
-	 , (490039,  35,         10001) /* DeathTreasureType - Loot Tier: 6 */;
+	 , (490039,  35,         2888) /* DeathTreasureType - Loot Tier: 6 */;
 
 INSERT INTO `weenie_properties_attribute` (`object_Id`, `type`, `init_Level`, `level_From_C_P`, `c_P_Spent`)
 VALUES (490039,   1, 1300, 0, 0) /* Strength */
@@ -96,7 +96,7 @@ VALUES (490039,   1,  499750, 0, 0, 500000) /* MaxHealth */
 INSERT INTO `weenie_properties_skill` (`object_Id`, `type`, `level_From_P_P`, `s_a_c`, `p_p`, `init_Level`, `resistance_At_Last_Check`, `last_Used_Time`)
 VALUES (490039,  6, 0, 3, 0,   400, 0, 608.0722585280382) /* MeleeDefense        Specialized */
      , (490039,  7, 0, 3, 0, 200, 0, 608.0722585280382) /* MissileDefense      Specialized */
-     , (490039, 13, 0, 3, 0, 900, 0, 608.0722585280382) /* UnarmedCombat       Specialized */
+     , (490039, 44, 0, 3, 0, 900, 0, 608.0722585280382) /* Heavy Weapon      Specialized */
      , (490039, 15, 0, 3, 0,  450, 0, 608.0722585280382) /* MagicDefense        Specialized */
      , (490039, 20, 0, 3, 0, 100, 0, 608.0722585280382) /* Deception           Specialized */
      , (490039, 24, 0, 3, 0, 200, 0, 608.0722585280382) /* Run                 Specialized */
@@ -116,26 +116,9 @@ VALUES (490039,  0,  4,  0,    0,  900, 1800, 1800, 1800, 1800, 1494, 1800, 1800
      , (490039,  8,  4, 45, 0.75,  900, 1800, 1800, 1800, 1800, 1494, 1800, 1800,    0, 3,    0,    0, 0.22,    0,    0, 0.22,    0,    0, 0.22,    0,    0, 0.22) /* Foot */;
 
 INSERT INTO `weenie_properties_spell_book` (`object_Id`, `spell`, `probability`)
-VALUES (490039,   4496,      2)  /* Regeneration Self VIII */
-     , (490039,  4452,   2.04)  /* Lightning Streak VIII */
-     , (490039,  2037,   2.04)  /* Flaming Irruption */
-     , (490039,   279,      2)  /* Magic Resistance Self VI */
-     , (490039,  4291,      2)  /* Armor Self VIII */
-     , (490039,  1882,      2)  /* Nullify All Magic Self */
-     , (490039,  4643,   2.04)  /* Drain Health Other VIII */
-     , (490039,  4645,   2.04)  /* Drain Stamina Other VIII */
-     , (490039,  2030,   2.04)  /* Flaming Blaze */
-     , (490039,  4470,      2)  /* Lightning Protection Self VIII */
-     , (490039,  2031,   2.04)  /* Steel Thorns */
-     , (490039,  2032,   2.04)  /* Electric Blaze */
-     , (490039,  4644,  2.004)  /* Drain Mana Other VIII */
-     , (490039,  2033,   2.04)  /* Acidic Spray */
-     , (490039,  2035,   2.04)  /* Electric Discharge */
-     , (490039,  2036,   2.04)  /* Fuming Acid */
-     , (490039,  2039,   2.04)  /* Sparking Fury */
+VALUES (490039,  4426,   2.04)  /* Incantation of Lightning Arc */
 	 , (490039,  4481,   2.04)  /* Incantation of Fire Vulnerability Other */
-	 , (490039,  4483,   2.04)  /* Incantation of Lightning Vulnerability Other */
-     , (490039,  4464,      2)  /* Bludgeoning Protection Self VIII */;
+	 , (490039,  4483,   2.04)  /* Incantation of Lightning Vulnerability Other */;
 	  
 INSERT INTO `weenie_properties_event_filter` (`object_Id`, `event`)
 VALUES (490039, 414) /* PLAYER_DEATH_EVENT */;
@@ -205,7 +188,7 @@ VALUES (@parent_id,  0,   7 /* PhysScript */, 1, 1, NULL, NULL, NULL, NULL, NULL
      , (@parent_id,  3,  19 /* CastSpellInstant */, 1, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 6181 /* Burning Earth */, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 INSERT INTO `weenie_properties_emote` (`object_Id`, `category`, `probability`, `weenie_Class_Id`, `style`, `substyle`, `quest`, `vendor_Type`, `min_Health`, `max_Health`)
-VALUES (490039, 14 /* Taunt */, 0.2, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+VALUES (490039, 14 /* Taunt */, 0.6, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 SET @parent_id = LAST_INSERT_ID();
 
@@ -265,6 +248,7 @@ VALUES (490039, 9, 490028,  0, 0, 1, False) /* Create Shard of the Curator of To
      , (490039, 9, 490028,  0, 0, 1, False) /* Create Shard of the Curator of Torment's Mask (52008) for ContainTreasure */;
 	 
 INSERT INTO `weenie_properties_generator` (`object_Id`, `probability`, `weenie_Class_Id`, `delay`, `init_Create`, `max_Create`, `when_Create`, `where_Create`, `stack_Size`, `palette_Id`, `shade`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`)
-VALUES (490039, -1, 51349, 1, 10, 10, 1, 2, -1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0) /* Generate Follower of Deewain (43784) (x1 up to max of 1) - Regenerate upon Destruction - Location to (re)Generate: Scatter */
-, (490039, -1, 22517, 1, 5, 5, 1, 2, -1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0) /* Generate Follower of Deewain (43784) (x1 up to max of 1) - Regenerate upon Destruction - Location to (re)Generate: Scatter */
-, (490039, -1, 51314, 1, 4, 4, 1, 2, -1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0) /* Generate Follower of Deewain (43784) (x1 up to max of 1) - Regenerate upon Destruction - Location to (re)Generate: Scatter */;
+VALUES (490039, -1, 490062, 1, 8, 8, 1, 2, -1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0) /* Generate Follower of Deewain (43784) (x1 up to max of 1) - Regenerate upon Destruction - Location to (re)Generate: Scatter */
+, (490039, -1, 490060, 1, 3, 3, 1, 2, -1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0) /* Generate Follower of Deewain (43784) (x1 up to max of 1) - Regenerate upon Destruction - Location to (re)Generate: Scatter */
+, (490039, -1, 490063, 1, 6, 6, 1, 2, -1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0) /* Generate Follower of Deewain (43784) (x1 up to max of 1) - Regenerate upon Destruction - Location to (re)Generate: Scatter */
+, (490039, -1, 490061, 1, 3, 3, 1, 2, -1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0) /* Generate Follower of Deewain (43784) (x1 up to max of 1) - Regenerate upon Destruction - Location to (re)Generate: Scatter */;

@@ -45,7 +45,7 @@ VALUES (490036,   1,       5) /* HeartbeatInterval */
      , (490036,  17,    0.82) /* ArmorModVsFire */
      , (490036,  18,     1.7) /* ArmorModVsAcid */
      , (490036,  19,    1.35) /* ArmorModVsElectric */
-     , (490036,  31,      33) /* VisualAwarenessRange */
+     , (490036,  31,      50) /* VisualAwarenessRange */
      , (490036,  34,     1.1) /* PowerupTime */
      , (490036,  36,       1) /* ChargeSpeed */
      , (490036,  39,       1) /* DefaultScale */
@@ -93,7 +93,7 @@ VALUES (490036,   1, 350, 0, 0) /* Strength */
      , (490036,   6, 480, 0, 0) /* Self */;
 
 INSERT INTO `weenie_properties_attribute_2nd` (`object_Id`, `type`, `init_Level`, `level_From_C_P`, `c_P_Spent`, `current_Level`)
-VALUES (490036,   1,  1500, 0, 0, 1675) /* MaxHealth */
+VALUES (490036,   1,  9000, 0, 0, 10000) /* MaxHealth */
      , (490036,   3,  1250, 0, 0, 1600) /* MaxStamina */
      , (490036,   5,  1400, 0, 0, 1880) /* MaxMana */;
 
