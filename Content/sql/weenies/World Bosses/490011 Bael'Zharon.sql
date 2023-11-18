@@ -44,11 +44,11 @@ VALUES (490011,   1,     1.5) /* HeartbeatInterval */
      , (490011,  17,       2) /* ArmorModVsFire */
      , (490011,  18,     1.5) /* ArmorModVsAcid */
      , (490011,  19,       2) /* ArmorModVsElectric */
-     , (490011,  31,       5) /* VisualAwarenessRange */
+     , (490011,  31,       30) /* VisualAwarenessRange */
      , (490011,  34,       1) /* PowerupTime */
      , (490011,  36,       1) /* ChargeSpeed */
      , (490011,  39,     2.1) /* DefaultScale */
-     , (490011,  55,      25) /* HomeRadius */
+     , (490011,  55,      70) /* HomeRadius */
      , (490011,  64,     0.5) /* ResistSlash */
      , (490011,  65,     0.5) /* ResistPierce */
      , (490011,  66,     0.5) /* ResistBludgeon */
@@ -57,11 +57,12 @@ VALUES (490011,   1,     1.5) /* HeartbeatInterval */
      , (490011,  69,       1) /* ResistAcid */
      , (490011,  70,     0.5) /* ResistElectric */
      , (490011,  80,       3) /* AiUseMagicDelay */
-     , (490011, 104,      10) /* ObviousRadarRange */
+     , (490011, 104,      20) /* ObviousRadarRange */
      , (490011, 117,     0.5) /* FocusedProbability */
      , (490011, 122,       2) /* AiAcquireHealth */
      , (490011, 125,       1) /* ResistHealthDrain */
      , (490011, 166,       1) /* ResistNether */
+	 , (490011,  43,      20) /* GeneratorRadius */
 	 , (490011,  41,     300) /* RegenerationInterval */;
 
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)

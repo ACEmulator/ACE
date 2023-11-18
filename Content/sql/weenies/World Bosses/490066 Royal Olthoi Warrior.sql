@@ -5,7 +5,7 @@ VALUES (490066, 'ace490066-Royal Olthoi Warrior', 10, '2022-12-04 19:04:52') /* 
 
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`)
 VALUES (490066,   1,         16) /* ItemType - Creature */
-     , (490066,   2,         92) /* CreatureType - ParadoxOlthoi */
+     , (490066,   2,         1) /* CreatureType - ParadoxOlthoi */
      , (490066,   3,         39) /* PaletteTemplate - Black */
      , (490066,   6,         -1) /* ItemsCapacity */
      , (490066,   7,         -1) /* ContainersCapacity */
