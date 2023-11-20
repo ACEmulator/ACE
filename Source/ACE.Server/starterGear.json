@@ -876,7 +876,7 @@
                     "name": "Sho",
                     "gear": [
                         {
-                            "weenieId": "45537",
+                            "weenieId": "45557",
                             "name": "Training Handwraps",
                             "stacksize": "1"
                         }
@@ -898,7 +898,7 @@
                     "name": "Umbrean",
                     "gear": [
                         {
-                            "weenieId": "45537",
+                            "weenieId": "45557",
                             "name": "Training Handwraps",
                             "stacksize": "1"
                         }
@@ -953,7 +953,7 @@
                     "name": "Penumbraen",
                     "gear": [
                         {
-                            "weenieId": "45537",
+                            "weenieId": "45557",
                             "name": "Training Handwraps",
                             "stacksize": "1"
                         }
