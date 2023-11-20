@@ -900,8 +900,9 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
+            var isFirstRenameUsed = session.Player.CharacterRenameCount > 0;            
             var numPkTrophiesInInventory = session.Player.GetNumInventoryItemsOfWCID(1000002);
-            if(numPkTrophiesInInventory < 200)
+            if(isFirstRenameUsed && numPkTrophiesInInventory < 200)
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Renaming your character costs 200 PK trophies. You don't have enough PK trophies in your inventory to cover the cost.", ChatMessageType.Broadcast);
                 return;
@@ -963,30 +964,36 @@ namespace ACE.Server.Command.Handlers
                         return;
                     }
 
-                    //Recheck if the player has sufficient funds to purchase the rename
+                    //Check if the player has sufficient funds to purchase the rename
                     numPkTrophiesInInventory = session.Player.GetNumInventoryItemsOfWCID(1000002);
-                    if (numPkTrophiesInInventory < 200)
+                    if (isFirstRenameUsed && numPkTrophiesInInventory < 200)
                     {
                         CommandHandlerHelper.WriteOutputInfo(session, $"Renaming your character costs 200 PK trophies. You don't have enough PK trophies in your inventory to cover the cost.", ChatMessageType.Broadcast);
                         return;
                     }
                     else
                     {
-                        if(!session.Player.TryConsumeFromInventoryWithNetworking(1000002, 200))
+                        if (isFirstRenameUsed)
                         {
-                            CommandHandlerHelper.WriteOutputInfo(session, $"Error: failed consuming 200 PK trophies from your inventory. Please try again or contact an admin for support.", ChatMessageType.Broadcast);
+                            if (session.Player.TryConsumeFromInventoryWithNetworking(1000002, 200))
+                            {
+                                CommandHandlerHelper.WriteOutputInfo(session, $"200 PK trophies have been removed from your inventory", ChatMessageType.Broadcast);
+                            }
+                            else
+                            {
+                                CommandHandlerHelper.WriteOutputInfo(session, $"Error: failed consuming 200 PK trophies from your inventory. Please try again or contact an admin for support.", ChatMessageType.Broadcast);
 
-                            //Log this failure to the audit log
-                            PlayerManager.BroadcastToAuditChannel(session.Player, $"Error: player {session.Player.Name} used /BuyRename command, and was verified to have enough PK trophies, but failed to consume the PK trophies with TryConsumeFromInventoryWithNetworking.");                            
-                            return;
-                        }
-
-                        CommandHandlerHelper.WriteOutputInfo(session, $"200 PK trophies have been removed from your inventory", ChatMessageType.Broadcast);
+                                //Log this failure to the audit log
+                                PlayerManager.BroadcastToAuditChannel(session.Player, $"Error: player {session.Player.Name} used /BuyRename command, and was verified to have enough PK trophies, but failed to consume the PK trophies with TryConsumeFromInventoryWithNetworking.");
+                                return;
+                            }                            
+                        }                        
                     }
 
                     onlinePlayer.Character.Name = newName;
                     onlinePlayer.CharacterChangesDetected = true;
                     onlinePlayer.Name = newName;
+                    onlinePlayer.CharacterRenameCount += 1;
                     onlinePlayer.SavePlayerToDatabase();
 
                     CommandHandlerHelper.WriteOutputInfo(session, $"Player named \"{oldName}\" renamed to \"{newName}\" successfully!", ChatMessageType.Broadcast);

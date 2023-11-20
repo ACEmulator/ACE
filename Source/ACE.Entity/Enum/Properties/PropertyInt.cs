@@ -629,6 +629,10 @@ namespace ACE.Entity.Enum.Properties
         /// </summary>
         [ServerOnly]
         InventoryOrder                          = 9015,
+
+        //The number of times a character has been renamed
+        [ServerOnly]
+        CharacterRenameCount                    = 9016,
     }
 
     public static class PropertyIntExtensions

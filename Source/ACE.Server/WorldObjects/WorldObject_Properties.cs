@@ -3136,5 +3136,11 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyFloat.PkTrophyDropsToday);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.PkTrophyDropsToday); else SetProperty(PropertyFloat.PkTrophyDropsToday, value.Value); }
         }
+
+        public int CharacterRenameCount
+        {
+            get => GetProperty(PropertyInt.CharacterRenameCount) ?? 0;
+            set { if (value < 1) RemoveProperty(PropertyInt.CharacterRenameCount); else SetProperty(PropertyInt.CharacterRenameCount, value); }
+        }
     }
 }
