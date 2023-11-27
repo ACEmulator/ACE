@@ -21,10 +21,8 @@ init:
     REM appveyor UpdateBuild -Version "%REVISED_VERSION%"
 
     REM set APPVEYOR_BUILD_VERSION=%REVISED_VERSION%
-
-    Invoke-WebRequest -Uri 'https://dot.net/v1/dotnet-install.ps1' -UseBasicParsing -OutFile "$env:temp\dotnet-install.ps1"
-    & $env:temp\dotnet-install.ps1 -Architecture x64 -Version '6.0.100-rc.2.21505.57' -InstallDir "$env:ProgramFiles\dotnet"
 - ps: Start-Service MySQL80
+- ps: Invoke-WebRequest -Uri 'https://dot.net/v1/dotnet-install.ps1' -UseBasicParsing -OutFile "$env:temp\dotnet-install.ps1" & $env:temp\dotnet-install.ps1 -Architecture x64 -Version '8.0.100' -InstallDir "$env:ProgramFiles\dotnet"
 dotnet_csproj:
   patch: true
   file: '**\*.csproj'
