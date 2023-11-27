@@ -22,6 +22,8 @@ init:
 
     REM set APPVEYOR_BUILD_VERSION=%REVISED_VERSION%
 - ps: Start-Service MySQL80
+      Invoke-WebRequest -Uri 'https://dot.net/v1/dotnet-install.ps1' -UseBasicParsing -OutFile "$env:temp\dotnet-install.ps1"
+      & $env:temp\dotnet-install.ps1 -Architecture x64 -Version '6.0.100-rc.2.21505.57' -InstallDir "$env:ProgramFiles\dotnet"
 dotnet_csproj:
   patch: true
   file: '**\*.csproj'
@@ -44,7 +46,7 @@ environment:
     secure: huM6kANmgP1OdlmHulXVZA==
   access_token:
     secure: lGLpqex+Weod6ZiPw34RwTv999QvoSZ+imTcmYhiJWQL6XkfkVUYcqOO6pJDuAYt
-services: 
+services:
   - mysql
 before_build:
 - cmd: AppVeyor\AppVeyorBeforeCompile.bat
