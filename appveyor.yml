@@ -22,8 +22,7 @@ init:
 
     REM set APPVEYOR_BUILD_VERSION=%REVISED_VERSION%
 - ps: Start-Service MySQL80
-- ps: Invoke-WebRequest -Uri 'https://dot.net/v1/dotnet-install.ps1' -UseBasicParsing -OutFile "$env:temp\dotnet-install.ps1"
-      $env:temp\dotnet-install.ps1 -Architecture x64 -Version '8.0.100' -InstallDir "$env:ProgramFiles\dotnet"
+- ps: AppVeyor\AppVeyorInit.ps1
 dotnet_csproj:
   patch: true
   file: '**\*.csproj'
