@@ -22,7 +22,7 @@ init:
 
     REM set APPVEYOR_BUILD_VERSION=%REVISED_VERSION%
 - ps: Start-Service MySQL80
-- ps: AppVeyor\AppVeyorInit.ps1
+- ps: ./AppVeyor\AppVeyorInit.ps1
 dotnet_csproj:
   patch: true
   file: '**\*.csproj'
