@@ -22,7 +22,6 @@ init:
 
     REM set APPVEYOR_BUILD_VERSION=%REVISED_VERSION%
 - ps: Start-Service MySQL80
-- ps: ./AppVeyor\AppVeyorInit.ps1
 dotnet_csproj:
   patch: true
   file: '**\*.csproj'
@@ -47,6 +46,8 @@ environment:
     secure: lGLpqex+Weod6ZiPw34RwTv999QvoSZ+imTcmYhiJWQL6XkfkVUYcqOO6pJDuAYt
 services:
   - mysql
+install:
+  - ps: AppVeyor\AppVeyorInstall.ps1
 before_build:
 - cmd: AppVeyor\AppVeyorBeforeCompile.bat
 build:
