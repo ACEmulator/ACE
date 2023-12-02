@@ -543,7 +543,7 @@ namespace ACE.Server.WorldObjects
                         }
                         else
                         {
-                            this.SetProperty(PropertyFloat.WeaponMagicDefense, 0.01);
+                            this.SetProperty(PropertyFloat.WeaponMagicDefense, 1.01);
                         }
                         
                         currRollResultMsg = "Added +1 Magic Defense";
