@@ -138,8 +138,30 @@ namespace ACE.Server.WorldObjects
             if(WeenieClassId == 490070)
             {
                 player.EarnXP(1000000000, XpType.Kill, ShareType.None, false);
+                player.TryConsumeFromInventoryWithNetworking(this, 1);
                 return;
             }
+
+            //Custom XP Bottle
+            if (WeenieClassId == 490071)
+            {
+                if(!ItemTotalXp.HasValue || ItemTotalXp < 1)
+                {
+                    player.SendTransientError($"Your XP bottle is empty");
+                    return;
+                }
+
+                //XP bottle is capped at 10 bil xp
+                if(ItemTotalXp > 10000000000)
+                {
+                    ItemTotalXp = 10000000000;
+                }
+
+                player.GrantXP(ItemTotalXp.Value, XpType.Kill, ShareType.None, false);
+                player.TryConsumeFromInventoryWithNetworking(this, 1);
+                return;
+            }
+            
 
             // trying to use a dispel potion while pk timer is active
             // send error message and cancel - do not consume item
