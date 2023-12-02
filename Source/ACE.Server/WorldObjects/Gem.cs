@@ -134,6 +134,13 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            //Custom XP gems
+            if(WeenieClassId == 490070)
+            {
+                player.EarnXP(1000000000, XpType.Kill, ShareType.None, false);
+                return;
+            }
+
             // trying to use a dispel potion while pk timer is active
             // send error message and cancel - do not consume item
             if (SpellDID != null)
