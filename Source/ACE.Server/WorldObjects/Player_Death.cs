@@ -733,9 +733,12 @@ namespace ACE.Server.WorldObjects
                             pkTrophy.SetStackSize(1);
                             dropItems.Add(pkTrophy);
 
-                            var dbKey = WorldObjectFactory.CreateNewWorldObject(480608);
-                            dbKey.SetStackSize(1);
-                            dropItems.Add(dbKey);
+                            if (TownControlLandblocks.IsTownControlRewardLandblock(this.Location.Landblock))
+                            {
+                                var dbKey = WorldObjectFactory.CreateNewWorldObject(480608);
+                                dbKey.SetStackSize(1);
+                                dropItems.Add(dbKey);
+                            }
                         }
                     }
                 }
