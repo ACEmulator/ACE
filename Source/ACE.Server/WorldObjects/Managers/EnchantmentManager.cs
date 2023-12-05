@@ -1393,26 +1393,26 @@ namespace ACE.Server.WorldObjects.Managers
                 }
 
                 //Add an additional modifier for hybrid void characters in pvp
-                if (sourcePlayer != null && targetPlayer != null)
+                if (sourcePlayer != null && targetPlayer != null && damageType == DamageType.Nether)
                 {
                     try
                     {                        
                         var isHybrid = false;
                         foreach (var playerSkill in sourcePlayer.Skills)
                         {
-                            if(playerSkill.Key == Skill.FinesseWeapons ||
+                            if (playerSkill.Key == Skill.FinesseWeapons ||
                                 playerSkill.Key == Skill.HeavyWeapons ||
                                 playerSkill.Key == Skill.LightWeapons ||
                                 playerSkill.Key == Skill.WarMagic ||
                                 playerSkill.Key == Skill.MissileWeapons ||
                                 playerSkill.Key == Skill.TwoHandedCombat)
                             {
-                                if(playerSkill.Value.AdvancementClass == SkillAdvancementClass.Trained || playerSkill.Value.AdvancementClass == SkillAdvancementClass.Specialized)
+                                if (playerSkill.Value.AdvancementClass == SkillAdvancementClass.Trained || playerSkill.Value.AdvancementClass == SkillAdvancementClass.Specialized)
                                 {
                                     isHybrid = true;
                                     break;
                                 }
-                            }                            
+                            }
                         }
 
                         if (isHybrid)
