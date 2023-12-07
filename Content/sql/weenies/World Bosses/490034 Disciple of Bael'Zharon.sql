@@ -13,6 +13,7 @@ VALUES (490034,   1,         16) /* ItemType - Creature */
      , (490034,  25,        300) /* Level */
      , (490034,  68,          5) /* TargetingTactic - Random, LastDamager */
      , (490034,  81,          5) /* MaxGeneratedObjects */
+	 , (490034,  72,         52) /* FriendType - Virindi */
      , (490034,  82,          0) /* InitGeneratedObjects */
      , (490034,  93,       1032) /* PhysicsState - ReportCollisions, Gravity */
      , (490034, 103,          2) /* GeneratorDestructionType - Destroy */

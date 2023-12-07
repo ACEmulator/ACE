@@ -13,6 +13,7 @@ VALUES (490035,   1,         16) /* ItemType - Creature */
      , (490035,  16,          1) /* ItemUseable - No */
      , (490035,  25,        240) /* Level */
      , (490035,  27,          0) /* ArmorType - None */
+	 , (490035,  72,         52) /* FriendType - Virindi */
      , (490035,  68,          9) /* TargetingTactic - Random, TopDamager */
      , (490035,  93,    4195336) /* PhysicsState - ReportCollisions, Gravity, EdgeSlide */
      , (490035, 101,        183) /* AiAllowedCombatStyle - Unarmed, OneHanded, OneHandedAndShield, Bow, Crossbow, ThrownWeapon */

@@ -23,7 +23,7 @@ VALUES (490028,  39,    0.75) /* DefaultScale */;
 
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)
 VALUES (490028,   1, 'Martine''s Tattered Cloak') /* Name */
-     , (490028,  15, 'Remember, no Virindi is immune to destruction.') /* ShortDesc */
+     , (490028,  15, 'A fragment of Martine''s Cloak.') /* ShortDesc */
      , (490028,  33, 'MartinesTatteredCloak') /* Quest */;
 
 INSERT INTO `weenie_properties_d_i_d` (`object_Id`, `type`, `value`)

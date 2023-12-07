@@ -10,6 +10,7 @@ VALUES (490063,   1,         16) /* ItemType - Creature */
      , (490063,   6,         -1) /* ItemsCapacity */
      , (490063,   7,         -1) /* ContainersCapacity */
      , (490063,  16,          1) /* ItemUseable - No */
+     , (490063,  72,         65) /* FriendType - Virindi */
      , (490063,  25,        300) /* Level */
      , (490063,  93,       1032) /* PhysicsState - ReportCollisions, Gravity */
      , (490063, 133,          2) /* ShowableOnRadar - ShowMovement */

@@ -13,6 +13,7 @@ VALUES (490036,   1,         16) /* ItemType - Creature */
      , (490036,  16,          1) /* ItemUseable - No */
      , (490036,  25,        240) /* Level */
      , (490036,  68,          3) /* TargetingTactic - Random, Focused */
+	 , (490036,  72,         52) /* FriendType - Virindi */
      , (490036,  93,    4195336) /* PhysicsState - ReportCollisions, Gravity, EdgeSlide */
      , (490036, 101,        183) /* AiAllowedCombatStyle - Unarmed, OneHanded, OneHandedAndShield, Bow, Crossbow, ThrownWeapon */
      , (490036, 113,          2) /* Gender - Female */

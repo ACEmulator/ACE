@@ -12,8 +12,9 @@ VALUES (490010,   1,         16) /* ItemType - Creature */
      , (490010,  16,          1) /* ItemUseable - No */
      , (490010,  25,        899) /* Level */
 	 , (490010, 103,          3) /* GeneratorDestructionType - Destroy */
-	 , (490010,  81,          60) /* MaxGeneratedObjects */
-     , (490010,  82,          60) /* InitGeneratedObjects */
+	 , (490010,  72,         92) /* FriendType - Virindi */
+	 , (490010,  81,          50) /* MaxGeneratedObjects */
+     , (490010,  82,          50) /* InitGeneratedObjects */
      , (490010,  40,          1) /* CombatMode - NonCombat */
      , (490010,  68,         13) /* TargetingTactic - Random, LastDamager, TopDamager */
      , (490010,  93,       1032) /* PhysicsState - ReportCollisions, Gravity */
@@ -27,6 +28,7 @@ VALUES (490010,   1, True ) /* Stuck */
      , (490010,  11, False) /* IgnoreCollisions */
      , (490010,  12, True ) /* ReportCollisions */
      , (490010,  13, False) /* Ethereal */
+	 , (490010,  29, True ) /* NoCorpse */
      , (490010,  52, False) /* AiImmobile */
 	 , (490010,  65, True ) /* IgnoreMagicResist */
      , (490010,  66, True ) /* IgnoreMagicArmor */;
@@ -74,8 +76,7 @@ VALUES (490010,   1, 0x0200170D) /* Setup */
      , (490010,   7, 0x100006DA) /* ClothingBase */
      , (490010,   8, 0x060010E7) /* Icon */
      , (490010,  22, 0x34000093) /* PhysicsEffectTable */
-     , (490010,  30,         86) /* PhysicsScript - BreatheAcid */
-     , (490010,  35,         2888) /* DeathTreasureType - Loot Tier: 6 */;
+     , (490010,  30,         86) /* PhysicsScript - BreatheAcid */;
 
 INSERT INTO `weenie_properties_attribute` (`object_Id`, `type`, `init_Level`, `level_From_C_P`, `c_P_Spent`)
 VALUES (490010,   1, 800, 0, 0) /* Strength */
@@ -175,15 +176,7 @@ VALUES (@parent_id,  0,  19 /* CastSpellInstant */, 0.25, 1, NULL, NULL, NULL, N
      , (@parent_id,  3,  17 /* LocalBroadcast */, 0, 1, NULL, 'Olthoi King shifts his protection to shield Magic.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 INSERT INTO `weenie_properties_create_list` (`object_Id`, `destination_Type`, `weenie_Class_Id`, `stack_Size`, `palette`, `shade`, `try_To_Bond`)
-VALUES (490010, 9, 490030,  0, 0, 1, False) /* Create Shard of the Curator of Torment's Mask (52008) for ContainTreasure */
-     , (490010, 9, 490030,  0, 0, 1, False) /* Create Shard of the Curator of Torment's Mask (52008) for ContainTreasure */
-     , (490010, 9, 490030,  0, 0, 1, False) /* Create Shard of the Curator of Torment's Mask (52008) for ContainTreasure */
-     ,(490010, 9, 490030,  0, 0, 1, False) /* Create Shard of the Curator of Torment's Mask (52008) for ContainTreasure */
-     , (490010, 9, 490030,  0, 0, 1, False) /* Create Shard of the Curator of Torment's Mask (52008) for ContainTreasure */
-     , (490010, 9, 490030,  0, 0, 1, False) /* Create Shard of the Curator of Torment's Mask (52008) for ContainTreasure */
-	 ,(490010, 9, 490030,  0, 0, 1, False) /* Create Shard of the Curator of Torment's Mask (52008) for ContainTreasure */
-     , (490010, 9, 490030,  0, 0, 1, False) /* Create Shard of the Curator of Torment's Mask (52008) for ContainTreasure */
-     , (490010, 9, 490030,  0, 0, 1, False) /* Create Shard of the Curator of Torment's Mask (52008) for ContainTreasure */;
+VALUES (490010, 9, 490074,  0, 0, 1, False) /* Create Splinter of Anger Gen (72104) for ContainTreasure */;
 	 
 INSERT INTO `weenie_properties_generator` (`object_Id`, `probability`, `weenie_Class_Id`, `delay`, `init_Create`, `max_Create`, `when_Create`, `where_Create`, `stack_Size`, `palette_Id`, `shade`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`)
 VALUES (490010, -1, 490065, 1, 10, 10, 1, 2, -1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0) /* Generate Follower of Deewain (43784) (x1 up to max of 1) - Regenerate upon Destruction - Location to (re)Generate: Scatter */

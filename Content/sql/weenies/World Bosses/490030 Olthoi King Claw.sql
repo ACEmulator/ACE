@@ -7,7 +7,6 @@ INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`)
 VALUES (490030,   1,        128) /* ItemType - Misc */
      , (490030,   5,         10) /* EncumbranceVal */
      , (490030,   8,         10) /* Mass */
-     , (490030,   9,          0) /* ValidLocations - None */
      , (490030,  16,          1) /* ItemUseable - No */
      , (490030,  19,          0) /* Value */
      , (490030,  33,         -1) /* Bonded - Bonded */

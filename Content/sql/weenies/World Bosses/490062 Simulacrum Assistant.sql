@@ -10,6 +10,7 @@ VALUES (490062,   1,         16) /* ItemType - Creature */
      , (490062,   7,         -1) /* ContainersCapacity */
      , (490062,  16,          1) /* ItemUseable - No */
      , (490062,  25,        265) /* Level */
+	 , (490062,  72,         92) /* FriendType - Virindi */
      , (490062,  68,         13) /* TargetingTactic - Random, LastDamager, TopDamager */
      , (490062,  93,    4195336) /* PhysicsState - ReportCollisions, Gravity, EdgeSlide */
      , (490062, 113,          1) /* Gender - Male */

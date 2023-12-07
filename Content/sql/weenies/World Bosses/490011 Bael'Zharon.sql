@@ -5,7 +5,7 @@ VALUES (490011, 'worldbossbz', 10, '2005-02-09 10:00:00') /* Creature */;
 
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`)
 VALUES (490011,   1,         16) /* ItemType - Creature */
-     , (490011,   2,         52) /* CreatureType - Hopeslayer */
+     , (490011,   2,         1) /* CreatureType - Hopeslayer */
      , (490011,   3,          9) /* PaletteTemplate - Grey */
      , (490011,   6,         -1) /* ItemsCapacity */
      , (490011,   7,         -1) /* ContainersCapacity */
@@ -15,6 +15,7 @@ VALUES (490011,   1,         16) /* ItemType - Creature */
 	 , (490011,  81,          50) /* MaxGeneratedObjects */
      , (490011,  82,          50) /* InitGeneratedObjects */
      , (490011,  40,          1) /* CombatMode - NonCombat */
+	 , (490011,  72,         31) /* FriendType - Virindi */
      , (490011,  68,         13) /* TargetingTactic - Random, LastDamager, TopDamager */
      , (490011,  93,       4195336) /* PhysicsState - ReportCollisions, Gravity */
      , (490011, 101,        183) /* AiAllowedCombatStyle - Unarmed, OneHanded, OneHandedAndShield, Bow, Crossbow, ThrownWeapon */
@@ -26,6 +27,7 @@ VALUES (490011,   1, True ) /* Stuck */
      , (490011,   6, True ) /* AiUsesMana */
      , (490011,  12, True ) /* ReportCollisions */
      , (490011,  13, True ) /* Ethreal */
+	 , (490011,  29, True ) /* NoCorpse */
      , (490011,  14, True ) /* GravityStatus */
      , (490011,  19, True ) /* Attackable */
      , (490011,  42, True ) /* AllowEdgeSlide */;
@@ -47,7 +49,7 @@ VALUES (490011,   1,     1.5) /* HeartbeatInterval */
      , (490011,  31,       30) /* VisualAwarenessRange */
      , (490011,  34,       1) /* PowerupTime */
      , (490011,  36,       1) /* ChargeSpeed */
-     , (490011,  39,     2.1) /* DefaultScale */
+     , (490011,  39,     2.5) /* DefaultScale */
      , (490011,  55,      70) /* HomeRadius */
      , (490011,  64,     0.5) /* ResistSlash */
      , (490011,  65,     0.5) /* ResistPierce */
@@ -76,8 +78,7 @@ VALUES (490011,   1, 0x0200099E) /* Setup */
      , (490011,   6, 0x04001071) /* PaletteBase */
      , (490011,   7, 0x1000027A) /* ClothingBase */
      , (490011,   8, 0x060016C2) /* Icon */
-     , (490011,  22, 0x34000028) /* PhysicsEffectTable */
-	 , (490011,  35,         2888) /* DeathTreasureType - Loot Tier: 6 */;
+     , (490011,  22, 0x34000028) /* PhysicsEffectTable */;
 
 INSERT INTO `weenie_properties_attribute` (`object_Id`, `type`, `init_Level`, `level_From_C_P`, `c_P_Spent`)
 VALUES (490011,   1, 1300, 0, 0) /* Strength */
@@ -246,15 +247,7 @@ INSERT INTO `weenie_properties_emote_action` (`emote_Id`, `order`, `type`, `dela
 VALUES (@parent_id,  0,  10 /* Tell */, 0, 1, NULL, 'Do not feel insufficient. Your understanding of the power fields on this planet are superficial at best. We can teach you so much.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 INSERT INTO `weenie_properties_create_list` (`object_Id`, `destination_Type`, `weenie_Class_Id`, `stack_Size`, `palette`, `shade`, `try_To_Bond`)
-VALUES (490011, 9, 490029,  0, 0, 1, False) /* Create Shard of the Curator of Torment's Mask (52008) for ContainTreasure */
-     , (490011, 9, 490029,  0, 0, 1, False) /* Create Shard of the Curator of Torment's Mask (52008) for ContainTreasure */
-     , (490011, 9, 490029,  0, 0, 1, False) /* Create Shard of the Curator of Torment's Mask (52008) for ContainTreasure */
-     ,(490011, 9, 490029,  0, 0, 1, False) /* Create Shard of the Curator of Torment's Mask (52008) for ContainTreasure */
-     , (490011, 9, 490029,  0, 0, 1, False) /* Create Shard of the Curator of Torment's Mask (52008) for ContainTreasure */
-     , (490011, 9, 490029,  0, 0, 1, False) /* Create Shard of the Curator of Torment's Mask (52008) for ContainTreasure */
-	 ,(490011, 9, 490029,  0, 0, 1, False) /* Create Shard of the Curator of Torment's Mask (52008) for ContainTreasure */
-     , (490011, 9, 490029,  0, 0, 1, False) /* Create Shard of the Curator of Torment's Mask (52008) for ContainTreasure */
-     , (490011, 9, 490029,  0, 0, 1, False) /* Create Shard of the Curator of Torment's Mask (52008) for ContainTreasure */;
+VALUES (490011, 9, 490073,  0, 0, 1, False) /* Create Splinter of Anger Gen (72104) for ContainTreasure */;
 	 
 INSERT INTO `weenie_properties_generator` (`object_Id`, `probability`, `weenie_Class_Id`, `delay`, `init_Create`, `max_Create`, `when_Create`, `where_Create`, `stack_Size`, `palette_Id`, `shade`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`)
 VALUES (490011, -1, 490034, 1, 4, 4, 1, 2, -1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0) /* Generate Follower of Deewain (43784) (x1 up to max of 1) - Regenerate upon Destruction - Location to (re)Generate: Scatter */
