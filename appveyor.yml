@@ -46,8 +46,8 @@ environment:
     secure: lGLpqex+Weod6ZiPw34RwTv999QvoSZ+imTcmYhiJWQL6XkfkVUYcqOO6pJDuAYt
 services:
   - mysql
-install:
-  - ps: AppVeyor\AppVeyorInstall.ps1
+#install:
+#  - ps: AppVeyor\AppVeyorInstall.ps1
 before_build:
 - cmd: AppVeyor\AppVeyorBeforeCompile.bat
 build:
