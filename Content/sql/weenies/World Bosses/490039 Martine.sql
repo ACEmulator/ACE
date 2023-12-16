@@ -29,10 +29,12 @@ VALUES (490039,   1, True ) /* Stuck */
      , (490039,  12, True ) /* ReportCollisions */
 	 , (490039,  29, True ) /* NoCorpse */
      , (490039,  13, False) /* Ethereal */
-     , (490039,  52, False) /* AiImmobile */;
+     , (490039,  52, False) /* AiImmobile */
+	 , (490039,  65, True ) /* IgnoreMagicResist */
+     , (490039,  66, True ) /* IgnoreMagicArmor */;
 
 INSERT INTO `weenie_properties_float` (`object_Id`, `type`, `value`)
-VALUES (490039,   1,       5) /* HeartbeatInterval */
+VALUES (490039,   1,       1.5) /* HeartbeatInterval */
      , (490039,   2,       0) /* HeartbeatTimestamp */
      , (490039,   3,      50) /* HealthRate */
      , (490039,   4,     100) /* StaminaRate */
@@ -64,7 +66,7 @@ VALUES (490039,   1,       5) /* HeartbeatInterval */
      , (490039,  80,       3) /* AiUseMagicDelay */
      , (490039, 104,      35) /* ObviousRadarRange */
      , (490039, 122,       2) /* AiAcquireHealth */
-	 , (490010, 166,       1) /* ResistNether */
+	 , (490039, 166,       1) /* ResistNether */
      , (490039, 125,       0) /* ResistHealthDrain */
      , (490039, 127,       2) /* AiCounteractEnchantment */
 	 , (490039,  43,      20) /* GeneratorRadius */
@@ -121,7 +123,7 @@ VALUES (490039,  0,  4,  0,    0,  900, 800, 800, 800, 800, 800, 800, 800,    0,
 
 INSERT INTO `weenie_properties_spell_book` (`object_Id`, `spell`, `probability`)
 VALUES (490039,  4426,   2.20)  /* Incantation of Lightning Arc */
-     , (490039,  4096	,   2.1)  /* Flame Chain */
+     , (490039,  4096,   2.1)  /* Flame Chain */
 	 , (490039,  4481,   2.10)  /* Incantation of Fire Vulnerability Other */
 	 , (490039,  4483,   2.10)  /* Incantation of Lightning Vulnerability Other */;
 	  
