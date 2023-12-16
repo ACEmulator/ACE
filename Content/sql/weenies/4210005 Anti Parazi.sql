@@ -370,7 +370,7 @@ INSERT INTO `weenie_properties_emote_action` (`emote_Id`, `order`, `type`, `dela
 VALUES (@parent_id,  0,   3 /* Give */, 1, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0 /* Undef */, 490025 /* Gem of Greater Luminance */, 1, 0 /* Undef */, 0, False, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 INSERT INTO `weenie_properties_emote` (`object_Id`, `category`, `probability`, `weenie_Class_Id`, `style`, `substyle`, `quest`, `vendor_Type`, `min_Health`, `max_Health`)
-VALUES (4210005, 32 /* GotoSet */,   0.9722, NULL, NULL, NULL, 'WorldBoss_random_reward', NULL, NULL, NULL);
+VALUES (4210005, 32 /* GotoSet */,   0.95, NULL, NULL, NULL, 'WorldBoss_random_reward', NULL, NULL, NULL);
 
 SET @parent_id = LAST_INSERT_ID();
 

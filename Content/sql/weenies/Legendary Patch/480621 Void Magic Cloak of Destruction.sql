@@ -11,8 +11,6 @@ VALUES (480621,   1,          4) /* ItemType - Clothing */
      , (480621,   9,  134217728) /* ValidLocations - Cloak */
      , (480621,  16,          1) /* ItemUseable - No */
      , (480621,  18,          1) /* UiEffects - Magical */
-	 , (480621,  33,          1) /* Bonded - Normal */
-     , (480621, 114,          1) /* Attuned - Attuned */
      , (480621,  19,     5) /* Value */
      , (480621,  28,          0) /* ArmorLevel */
      , (480621,  36,       9999) /* ResistMagic */

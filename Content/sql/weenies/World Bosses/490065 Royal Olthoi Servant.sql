@@ -58,7 +58,7 @@ VALUES (490065,   1,       5) /* HeartbeatInterval */
      , (490065, 151,       0.5) /* IgnoreShield */;
 
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)
-VALUES (490065,   1, 'Olthoi Hive Warrior') /* Name */;
+VALUES (490065,   1, 'Royal Olthoi Servant') /* Name */;
 
 INSERT INTO `weenie_properties_d_i_d` (`object_Id`, `type`, `value`)
 VALUES (490065,   1, 0x02000FB3) /* Setup */
