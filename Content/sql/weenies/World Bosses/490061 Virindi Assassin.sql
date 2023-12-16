@@ -43,7 +43,7 @@ VALUES (490061,   1,       5) /* HeartbeatInterval */
      , (490061,  19,       1) /* ArmorModVsElectric */
      , (490061,  31,      40) /* VisualAwarenessRange */
 	 , (490061,  39,     1.4) /* DefaultScale */
-	 , (490061,  55,      70) /* HomeRadius */
+	 , (490061,  55,      110) /* HomeRadius */
      , (490061,  34,       1) /* PowerupTime */
      , (490061,  36,       1) /* ChargeSpeed */
      , (490061,  64,     0.7) /* ResistSlash */

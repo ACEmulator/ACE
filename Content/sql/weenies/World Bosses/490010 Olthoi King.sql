@@ -20,7 +20,8 @@ VALUES (490010,   1,         16) /* ItemType - Creature */
      , (490010,  93,       1032) /* PhysicsState - ReportCollisions, Gravity */
      , (490010, 101,        183) /* AiAllowedCombatStyle - Unarmed, OneHanded, OneHandedAndShield, Bow, Crossbow, ThrownWeapon */
      , (490010, 133,          2) /* ShowableOnRadar - ShowMovement */
-     , (490010, 146,      400000000) /* XpOverride */;
+     , (490010, 146,      400000000) /* XpOverride */
+	 , (490010, 386,         10) /* Overpower */;
 
 INSERT INTO `weenie_properties_bool` (`object_Id`, `type`, `value`)
 VALUES (490010,   1, True ) /* Stuck */
@@ -50,7 +51,7 @@ VALUES (490010,   1,       5) /* HeartbeatInterval */
      , (490010,  34,       1) /* PowerupTime */
 	 , (490010,  39,       2) /* DefaultScale */
      , (490010,  36,       1) /* ChargeSpeed */
-	 , (490010,  55,      70) /* HomeRadius */
+	 , (490010,  55,      110) /* HomeRadius */
      , (490010,  64,    0.15) /* ResistSlash */
      , (490010,  65,    0.75) /* ResistPierce */
      , (490010,  66,    0.85) /* ResistBludgeon */
@@ -90,7 +91,7 @@ VALUES (490010,   1, 700, 0, 0) /* Strength */
      , (490010,   6, 700, 0, 0) /* Self */;
 
 INSERT INTO `weenie_properties_attribute_2nd` (`object_Id`, `type`, `init_Level`, `level_From_C_P`, `c_P_Spent`, `current_Level`)
-VALUES (490010,   1, 199600, 0, 0, 500000) /* MaxHealth */
+VALUES (490010,   1, 499600, 0, 0, 500000) /* MaxHealth */
      , (490010,   3, 89200, 0, 0, 90000) /* MaxStamina */
      , (490010,   5, 199200, 0, 0, 200000) /* MaxMana */;
 
@@ -108,12 +109,12 @@ VALUES (490010,  6, 0, 2, 0, 100, 0, 0) /* MeleeDefense        Trained */
      , (490010, 46, 0, 2, 0, 900, 0, 0) /* FinesseWeapons      Trained */;
 
 INSERT INTO `weenie_properties_body_part` (`object_Id`, `key`, `d_Type`, `d_Val`, `d_Var`, `base_Armor`, `armor_Vs_Slash`, `armor_Vs_Pierce`, `armor_Vs_Bludgeon`, `armor_Vs_Cold`, `armor_Vs_Fire`, `armor_Vs_Acid`, `armor_Vs_Electric`, `armor_Vs_Nether`, `b_h`, `h_l_f`, `m_l_f`, `l_l_f`, `h_r_f`, `m_r_f`, `l_r_f`, `h_l_b`, `m_l_b`, `l_l_b`, `h_r_b`, `m_r_b`, `l_r_b`)
-VALUES (490010,  0,  2, 85, 0.75,  700,  805,  770,  770,  875,  875,  875,  875,    0, 1,  0.1,    0,    0,  0.1,    0,    0,  0.1,    0,    0,  0.1,    0,    0) /* Head */
+VALUES (490010,  0,  2, 110, 0.75,  700,  805,  770,  770,  875,  875,  875,  875,    0, 1,  0.1,    0,    0,  0.1,    0,    0,  0.1,    0,    0,  0.1,    0,    0) /* Head */
      , (490010, 16,  4,  0,    0,  700,  805,  770,  770,  875,  875,  875,  875,    0, 2, 0.45,  0.4, 0.45, 0.45,  0.4, 0.45, 0.45,  0.4, 0.45, 0.45,  0.4, 0.45) /* Torso */
-     , (490010, 18,  1, 85,  0.5,  700,  805,  770,  770,  875,  875,  875,  875,    0, 2,    0,  0.2,  0.1,    0,  0.2,  0.1,    0,  0.2,  0.1,    0,  0.2,  0.1) /* Arm */
+     , (490010, 18,  1, 110,  0.5,  700,  805,  770,  770,  875,  875,  875,  875,    0, 2,    0,  0.2,  0.1,    0,  0.2,  0.1,    0,  0.2,  0.1,    0,  0.2,  0.1) /* Arm */
      , (490010, 19,  1,  0,    0,  700,  805,  770,  770,  875,  875,  875,  875,    0, 3,    0,  0.2, 0.45,    0,  0.2, 0.45,    0,  0.2, 0.45,    0,  0.2, 0.45) /* Leg */
-     , (490010, 20,  1, 85, 0.75,  700,  805,  770,  770,  875,  875,  875,  875,    0, 2, 0.45,  0.2,    0, 0.45,  0.2,    0, 0.45,  0.2,    0, 0.45,  0.2,    0) /* Claw */
-     , (490010, 22, 32, 85,  0.5,  700,  805,  770,  770,  875,  875,  875,  875,    0, 0, 0.45,  0.2,    0, 0.45,  0.2,    0, 0.45,  0.2,    0, 0.45,  0.2,    0) /* Breath */;
+     , (490010, 20,  1, 110, 0.75,  700,  805,  770,  770,  875,  875,  875,  875,    0, 2, 0.45,  0.2,    0, 0.45,  0.2,    0, 0.45,  0.2,    0, 0.45,  0.2,    0) /* Claw */
+     , (490010, 22, 32, 110,  0.5,  700,  805,  770,  770,  875,  875,  875,  875,    0, 0, 0.45,  0.2,    0, 0.45,  0.2,    0, 0.45,  0.2,    0, 0.45,  0.2,    0) /* Breath */;
 
 INSERT INTO `weenie_properties_spell_book` (`object_Id`, `spell`, `probability`)
 VALUES (490010,  3877,   2.05)  /* Corrosive Strike */
