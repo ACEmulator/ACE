@@ -37,6 +37,7 @@ VALUES (490062,   1,       5) /* HeartbeatInterval */
      , (490062,  31,      22) /* VisualAwarenessRange */
      , (490062,  41,      30) /* RegenerationInterval */
      , (490062,  43,       4) /* GeneratorRadius */
+	 , (490062,  55,      70) /* HomeRadius */
      , (490062,  64,       1) /* ResistSlash */
      , (490062,  65,       1) /* ResistPierce */
      , (490062,  66,       1) /* ResistBludgeon */
