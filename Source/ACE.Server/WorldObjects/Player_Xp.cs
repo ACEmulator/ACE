@@ -115,47 +115,52 @@ namespace ACE.Server.WorldObjects
             // the remainder gets earned as normal XP
             try
             {
-                var xpBottlesInInventory = GetInventoryItemsOfWCID(490071);
-                if (xpBottlesInInventory.Count > 0)
-                {
-                    long xpAppliedToBottles = 0;
-                    long xpToApplyToBottles = (int)Math.Round(amount * 0.1f);
-                    foreach (var bottle in xpBottlesInInventory)
+                if (xpType != XpType.Allegiance &&
+                    xpType != XpType.Fellowship &&
+                    xpType != XpType.Quest)
+                { 
+                    var xpBottlesInInventory = GetInventoryItemsOfWCID(490071);
+                    if (xpBottlesInInventory.Count > 0)
                     {
-                        if (!bottle.ItemTotalXp.HasValue)
+                        long xpAppliedToBottles = 0;
+                        long xpToApplyToBottles = (int)Math.Round(amount * 0.1f);
+                        foreach (var bottle in xpBottlesInInventory)
                         {
-                            bottle.ItemTotalXp = 0;
+                            if (!bottle.ItemTotalXp.HasValue)
+                            {
+                                bottle.ItemTotalXp = 0;
+                            }
+
+                            if (xpAppliedToBottles >= xpToApplyToBottles)
+                            {
+                                break;
+                            }
+
+                            //if xp bottle is full, skip it
+                            if (bottle.ItemTotalXp.HasValue && bottle.ItemTotalXp >= 10000000000)
+                            {
+                                continue;
+                            }
+
+                            //if xp bottle has enough space to store everything
+                            if (10000000000 - bottle.ItemTotalXp.Value >= xpToApplyToBottles - xpAppliedToBottles)
+                            {
+                                long xpToApplyToThisBottle = xpToApplyToBottles - xpAppliedToBottles;
+                                bottle.ItemTotalXp += xpToApplyToThisBottle;
+                                xpAppliedToBottles += xpToApplyToThisBottle;
+                                break;
+                            }
+                            else //if xp bottle doesn't have enough space to store the xp amount, store just enough in the bottle to cap it out, then move to the next bottle in the list
+                            {
+                                long xpToApplyToThisBottle = 10000000000 - bottle.ItemTotalXp.Value;
+                                bottle.ItemTotalXp += xpToApplyToThisBottle;
+                                xpAppliedToBottles += xpToApplyToThisBottle;
+                                continue;
+                            }
                         }
 
-                        if (xpAppliedToBottles >= xpToApplyToBottles)
-                        {
-                            break;
-                        }
-
-                        //if xp bottle is full, skip it
-                        if (bottle.ItemTotalXp.HasValue && bottle.ItemTotalXp >= 10000000000)
-                        {
-                            continue;
-                        }
-
-                        //if xp bottle has enough space to store everything
-                        if (10000000000 - bottle.ItemTotalXp.Value >= xpToApplyToBottles - xpAppliedToBottles)
-                        {
-                            long xpToApplyToThisBottle = xpToApplyToBottles - xpAppliedToBottles;
-                            bottle.ItemTotalXp += xpToApplyToThisBottle;
-                            xpAppliedToBottles += xpToApplyToThisBottle;
-                            break;
-                        }
-                        else //if xp bottle doesn't have enough space to store the xp amount, store just enough in the bottle to cap it out, then move to the next bottle in the list
-                        {
-                            long xpToApplyToThisBottle = 10000000000 - bottle.ItemTotalXp.Value;
-                            bottle.ItemTotalXp += xpToApplyToThisBottle;
-                            xpAppliedToBottles += xpToApplyToThisBottle;
-                            continue;
-                        }
+                        amount = amount - xpAppliedToBottles;
                     }
-
-                    amount = amount - xpAppliedToBottles;
                 }
             }
             catch(Exception ex)
