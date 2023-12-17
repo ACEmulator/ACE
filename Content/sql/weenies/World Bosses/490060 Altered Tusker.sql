@@ -12,7 +12,7 @@ VALUES (490060,   1,         16) /* ItemType - Creature */
      , (490060,  16,          1) /* ItemUseable - No */
      , (490060,  25,        500) /* Level */
      , (490060,  27,          0) /* ArmorType - None */
-	 , (490010,  72,         19) /* FriendType - Virindi */
+	 , (490060,  72,         19) /* FriendType - Virindi */
      , (490060,  40,          2) /* CombatMode - Melee */
      , (490060,  68,          9) /* TargetingTactic - Random, TopDamager */
      , (490060,  93,       1032) /* PhysicsState - ReportCollisions, Gravity */

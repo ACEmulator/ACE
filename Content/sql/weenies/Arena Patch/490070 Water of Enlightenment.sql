@@ -31,6 +31,7 @@ VALUES (490070,   1, False) /* Stuck */
 
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)
 VALUES (490070,   1, 'Water of Enlightenment') /* Name */
+     , (490070,  20, 'Water of Enlightenment') /* PluralName */
      , (490070,  16, 'This water appears to have a unique glow and was drawn from the Font of Enlightenment. It appears to have been instilled with experience. Drinking this water will grant the Player 1 Billion experience. This potion has been enhanced and appears to work for Enlightened characters. The experience gained will be decreased based on the enlightenment level of the Player.') /* LongDesc */;
 
 INSERT INTO `weenie_properties_d_i_d` (`object_Id`, `type`, `value`)

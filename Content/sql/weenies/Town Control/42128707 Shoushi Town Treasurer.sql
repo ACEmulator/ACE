@@ -193,7 +193,7 @@ VALUES (42128707, 2, 22017,  0, 21, 0.9, False) /* Create Koji's Fiend (22017) f
 	, (42128707, 4, 490018,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
 	, (42128707, 4, 490019,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
 	, (42128707, 4, 490024,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
-	/* , (42128707, 4, 490026,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
+	 , (42128707, 4, 490026,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
     , (42128707, 4, 490031,  0, 0, 0, False) /* Create Asteliary Orb (450754) for Shop */
 	, (42128707, 4, 450609,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */
 	, (42128707, 4, 480004,  0, 0, 0, False) /* Create Serial Killer's Satchel (524470) for Shop */

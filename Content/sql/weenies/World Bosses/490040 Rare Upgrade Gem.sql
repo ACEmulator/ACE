@@ -27,7 +27,7 @@ VALUES (490040,   1, False) /* Stuck */
 
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)
 VALUES (490040,   1, 'Potion of Polishing') /* Name */
-     , (490040,  14, 'Applying this potion to Rare Armor, Weapons or Jewelry will upgrade the current Epic spells to Legendary spells.') /* Use */;
+     , (490040,  14, 'Applying this potion to Rare Armor or Jewelry will upgrade the current Epic spells to Legendary spells.') /* Use */;
 
 INSERT INTO `weenie_properties_d_i_d` (`object_Id`, `type`, `value`)
 VALUES (490040,   1, 0x020000AB) /* Setup */
