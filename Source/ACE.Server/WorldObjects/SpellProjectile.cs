@@ -15,6 +15,7 @@ using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects.Entity;
+using log4net;
 
 namespace ACE.Server.WorldObjects
 {
@@ -679,6 +680,35 @@ namespace ACE.Server.WorldObjects
                     }
 
                     finalDamage = finalDamage * dmgMod;
+                }
+            }
+
+            //For town control, reduce the dmg on the boss based on distance of attacker
+            if (target.IsTownControlConflictBoss && sourcePlayer != null)
+            {
+                var distance = target.Location.DistanceTo(sourcePlayer.Location);
+                if(distance > 25)
+                {
+                    var distanceMod = 0.75f;
+
+                    if (distance > 50)
+                    {
+                        distanceMod = 0.01f;
+                    }
+                    else if (distance > 40)
+                    {
+                        distanceMod = 0.1f;
+                    }
+                    else if (distance > 35)
+                    {
+                        distanceMod = 0.25f;
+                    }
+                    else if (distance > 30)
+                    {
+                        distanceMod = 0.50f;
+                    }
+
+                    finalDamage = finalDamage * distanceMod;
                 }
             }
 

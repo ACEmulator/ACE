@@ -15,6 +15,7 @@ using ACE.Server.Entity.TownControl;
 using ACE.Database;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using Org.BouncyCastle.Asn1.X509;
 
 namespace ACE.Server.Entity
 {
@@ -685,6 +686,35 @@ namespace ACE.Server.Entity
                     {
                         log.Error($"Failed applying server configured pvp mods. Ex: {ex}");
                     }
+                }
+            }
+
+            //For town control, reduce the dmg on the boss based on distance of attacker
+            if (defender.IsTownControlConflictBoss)
+            {
+                var distance = defender.Location.DistanceTo(attacker.Location);
+                if (distance > 25)
+                {
+                    var distanceMod = 0.75f;
+
+                    if (distance > 50)
+                    {
+                        distanceMod = 0.01f;
+                    }
+                    else if (distance > 40)
+                    {
+                        distanceMod = 0.1f;
+                    }
+                    else if (distance > 35)
+                    {
+                        distanceMod = 0.25f;
+                    }
+                    else if (distance > 30)
+                    {
+                        distanceMod = 0.50f;
+                    }
+
+                    Damage = Damage * distanceMod;
                 }
             }
 
