@@ -130,7 +130,7 @@ namespace ACE.Database
         }
 
         [Flags]
-        enum PopulatedCollectionFlags
+        public enum PopulatedCollectionFlags
         {
             BiotaPropertiesAnimPart             = 0x1,
             BiotaPropertiesAttribute            = 0x2,
@@ -159,7 +159,7 @@ namespace ACE.Database
             BiotaPropertiesAllegiance           = 0x1000000,
         }
 
-        protected static void SetBiotaPopulatedCollections(Biota biota)
+        public static void SetBiotaPopulatedCollections(Biota biota)
         {
             PopulatedCollectionFlags populatedCollectionFlags = 0;
 
