@@ -758,6 +758,7 @@ namespace ACE.Server.Managers
                 ("pvp_dmg_mod_tw_phantom", new Property<double>(1.0, "Scales the amount of damage for TW Phantom.")),
                 ("pvp_cs_critrate_mod", new Property<double>(1.0, "Scales the crit rate for CS")),
                 ("pvp_void_hybrid_mod", new Property<double>(1.0, "Scales the amount of DOT damage when a player is a hybrid void.")),
+                ("pvp_dmg_mod_void_dot_rating_reduction", new Property<double>(1.0, "Scales the amount of rating reduction received from a void DOT that's cast by a PK on another player.")),
                 //("pvp_dmg_mod_ratings_bonus", new Property<double>(1.0, "Scales the bonus received from dmg related ratings during pvp")),
                 //("pvp_dmg_mod_ratings_cap", new Property<double>(100.0, "Caps the ratings amount that can be applied for any given rating type during pvp")),
                 ("cloak_max_proc_rate", new Property<double>(25.0, "Cap cloak proc chance to this percentage (100.0 will effectively use the standard ACE proc rate).")),

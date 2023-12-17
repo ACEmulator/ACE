@@ -288,6 +288,16 @@ namespace ACE.Server.WorldObjects.Managers
                 entry.SpellSetId = (EquipmentSet)caster.EquipmentSetId;
             }
 
+            if (caster != null &&
+                caster.PlayerKillerStatus == PlayerKillerStatus.PK &&
+                spell.IsHarmful &&
+                !spell.IsSelfTargeted &&
+                this.Player != null &&
+                this.Player.PlayerKillerStatus == PlayerKillerStatus.PK)
+            {
+                entry.IsPvP = true;
+            }
+
             return entry;
         }
 
@@ -1163,9 +1173,18 @@ namespace ACE.Server.WorldObjects.Managers
                 // normally we could just use netherDot.StatModValue here,
                 // but in case WorldObject has a non-default HeartbeatInterval,
                 // we want this value to still be based on the damage per default heartbeat interval
-                totalBaseDamage += GetDamagePerTick(netherDot, 5.0);
+                var baseDmgForThisDot = GetDamagePerTick(netherDot, 5.0);
+
+                if(netherDot.IsPvP)
+                {
+                    var pvpDotRatingMod = PropertyManager.GetDouble("pvp_dmg_mod_void_dot_rating_reduction").Item;
+                    baseDmgForThisDot = baseDmgForThisDot * (float)pvpDotRatingMod;
+                }
+
+                totalBaseDamage += baseDmgForThisDot;
             }
             var rating = (int)Math.Round(totalBaseDamage / 8.0f);   // thanks to Xenocide for this formula!
+
             //Console.WriteLine($"{WorldObject.Name}.NetherDotDamageRating: {rating}");
             return rating;
         }

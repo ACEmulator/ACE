@@ -22,5 +22,7 @@ namespace ACE.Entity.Models
         public uint StatModKey { get; set; }
         public float StatModValue { get; set; }
         public EquipmentSet SpellSetId { get; set; }
+
+        public bool IsPvP { get; set; }
     }
 }

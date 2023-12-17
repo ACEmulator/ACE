@@ -258,7 +258,8 @@ namespace ACE.Server.WorldObjects
                 enlightenmentBonus = player.EnlightenmentCustomLevel >= 5 ? 1 : 0;
             }
 
-            return damageResistRating + equipment + enchantments - netherDotDamageRating + augBonus + lumAugBonus + specBonus + enlightenmentBonus;
+            var result = damageResistRating + equipment + enchantments - netherDotDamageRating + augBonus + lumAugBonus + specBonus + enlightenmentBonus;
+            return result < 0 ? 0 : result;
         }
 
         public float GetDamageResistRatingMod(CombatType? combatType = null, bool directDamage = true)
