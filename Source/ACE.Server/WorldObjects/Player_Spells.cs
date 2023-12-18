@@ -382,6 +382,7 @@ namespace ACE.Server.WorldObjects
             "DirtyFightingMastery",
             "RecklessnessMastery",
             "SneakAttackMastery",
+            "ShieldMastery",
             "@Impenetrability",
             "@PiercingBane",
             "@BludgeonBane",
