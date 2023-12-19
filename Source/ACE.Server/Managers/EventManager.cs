@@ -32,6 +32,14 @@ namespace ACE.Server.Managers
 
                 if (evnt.State == (int)GameEventState.On)
                     StartEvent(evnt.Name, null, null);
+
+                EventManager.StopEvent("DCPActive", null, null);
+                EventManager.StartEvent("DCAActive", null, null);
+                EventManager.StartEvent("DCALum1Active", null, null);
+                EventManager.StartEvent("DCALum2Active", null, null);
+                EventManager.StartEvent("DCALum3Active", null, null);
+                EventManager.StartEvent("DCALum4Active", null, null);
+                EventManager.StartEvent("DCALum5Active", null, null);
             }
 
             log.DebugFormat("EventManager Initalized.");
