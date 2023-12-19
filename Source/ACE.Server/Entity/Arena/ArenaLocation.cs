@@ -754,18 +754,18 @@ namespace ACE.Server.Entity
                                 //Give % xp to next level
                                 if (player.Level > 0 && player.Level < 50)
                                 {
-                                    //25% xp to next level, min of 100k, max of 50 mil
-                                    player.GrantLevelProportionalXp(0.25, 100000, 50000000, true);
+                                    //25% xp to next level, min of 100k
+                                    player.GrantLevelProportionalXp(0.25, 100000, long.MaxValue, true);
                                 }
                                 else if (player.Level >= 50 && player.Level < 150)
                                 {
-                                    //15% xp to next level, min of 1 mil, max of 50 mil
-                                    player.GrantLevelProportionalXp(0.15, 1000000, 50000000, true);
+                                    //15% xp to next level, min of 1 mil
+                                    player.GrantLevelProportionalXp(0.15, 1000000, long.MaxValue, true);
                                 }
                                 else if (player.Level >= 150)
                                 {
-                                    //10% xp to next level, min of 1 mil, max of 50 mil
-                                    player.GrantLevelProportionalXp(0.1, 1000000, 50000000, true);
+                                    //10% xp to next level, min of 1 mil
+                                    player.GrantLevelProportionalXp(0.1, 1000000, long.MaxValue, true);
                                 }
 
                                 //Give 8k lum
@@ -815,15 +815,15 @@ namespace ACE.Server.Entity
                                 //Give % xp to next level
                                 if (player.Level > 0 && player.Level < 50)
                                 {
-                                    player.GrantLevelProportionalXp(1, 1000000, 500000000, true);
+                                    player.GrantLevelProportionalXp(1, 1000000, long.MaxValue, true);
                                 }
                                 else if (player.Level >= 50 && player.Level < 150)
                                 {
-                                    player.GrantLevelProportionalXp(0.5, 1000000, 50000000, true);
+                                    player.GrantLevelProportionalXp(0.75, 1000000, long.MaxValue, true);
                                 }
                                 else if (player.Level >= 150)
                                 {
-                                    player.GrantLevelProportionalXp(0.25, 1000000, 50000000, true);
+                                    player.GrantLevelProportionalXp(0.5, 1000000, long.MaxValue, true);
                                 }
 
                                 //Give 20k lum
@@ -925,7 +925,7 @@ namespace ACE.Server.Entity
                             case "2v2":
 
                                 //Give 2.5% xp to next level
-                                player.GrantLevelProportionalXp(0.025, 250000, 25000000, true);
+                                player.GrantLevelProportionalXp(0.025, 250000, long.MaxValue, true);
 
                                 //Give 3k lum
                                 if (player.MaximumLuminance != null)
@@ -967,15 +967,15 @@ namespace ACE.Server.Entity
                                     //Give % xp to next level
                                     if (player.Level > 0 && player.Level < 50)
                                     {
-                                        player.GrantLevelProportionalXp(0.75, 1000000, 500000000, true);
+                                        player.GrantLevelProportionalXp(0.75, 1000000, long.MaxValue, true);
                                     }
                                     else if (player.Level >= 50 && player.Level < 150)
                                     {
-                                        player.GrantLevelProportionalXp(0.25, 1000000, 50000000, true);
+                                        player.GrantLevelProportionalXp(0.25, 1000000, long.MaxValue, true);
                                     }
                                     else if (player.Level >= 150)
                                     {
-                                        player.GrantLevelProportionalXp(0.15, 1000000, 50000000, true);
+                                        player.GrantLevelProportionalXp(0.15, 1000000, long.MaxValue, true);
                                     }
 
                                     //Give 8k lum
@@ -1022,15 +1022,15 @@ namespace ACE.Server.Entity
                                     //Give % xp to next level
                                     if (player.Level > 0 && player.Level < 50)
                                     {
-                                        player.GrantLevelProportionalXp(0.25, 1000000, 50000000, true);
+                                        player.GrantLevelProportionalXp(0.25, 1000000, long.MaxValue, true);
                                     }
                                     else if (player.Level >= 50 && player.Level < 150)
                                     {
-                                        player.GrantLevelProportionalXp(0.15, 1000000, 50000000, true);
+                                        player.GrantLevelProportionalXp(0.15, 1000000, long.MaxValue, true);
                                     }
                                     else if (player.Level >= 150)
                                     {
-                                        player.GrantLevelProportionalXp(0.05, 1000000, 50000000, true);
+                                        player.GrantLevelProportionalXp(0.05, 1000000, long.MaxValue, true);
                                     }
 
                                     //Give 5k lum
@@ -1077,15 +1077,15 @@ namespace ACE.Server.Entity
                                     //Give % xp to next level
                                     if (player.Level > 0 && player.Level < 50)
                                     {
-                                        player.GrantLevelProportionalXp(0.1, 1000000, 50000000, true);
+                                        player.GrantLevelProportionalXp(0.1, 1000000, long.MaxValue, true);
                                     }
                                     else if (player.Level >= 50 && player.Level < 150)
                                     {
-                                        player.GrantLevelProportionalXp(0.05, 1000000, 50000000, true);
+                                        player.GrantLevelProportionalXp(0.05, 1000000, long.MaxValue, true);
                                     }
                                     else if (player.Level >= 150)
                                     {
-                                        player.GrantLevelProportionalXp(0.025, 1000000, 50000000, true);
+                                        player.GrantLevelProportionalXp(0.025, 1000000, long.MaxValue, true);
                                     }
 
                                     //Give 3k lum
@@ -1299,7 +1299,6 @@ namespace ACE.Server.Entity
                     arenaPlayer.TotalDmgDealt,
                     arenaPlayer.TotalDmgReceived);
 
-
                 var player = PlayerManager.GetOnlinePlayer(arenaPlayer.CharacterId);
                 if (player != null)
                 {
@@ -1312,15 +1311,15 @@ namespace ACE.Server.Entity
                         //Give % xp to next level
                         if (player.Level > 0 && player.Level < 50)
                         {
-                            player.GrantLevelProportionalXp(0.035, 1, 20000000, true);
+                            player.GrantLevelProportionalXp(0.035, 1, long.MaxValue, true);
                         }
                         else if (player.Level >= 50 && player.Level < 150)
                         {
-                            player.GrantLevelProportionalXp(0.025, 1, 20000000, true);
+                            player.GrantLevelProportionalXp(0.025, 1, long.MaxValue, true);
                         }
                         else if (player.Level >= 150)
                         {
-                            player.GrantLevelProportionalXp(0.01, 1, 20000000, true);
+                            player.GrantLevelProportionalXp(0.01, 1, long.MaxValue, true);
                         }
 
                         //25% chance to give 1 Darkbeat's Lost Storage Keys
