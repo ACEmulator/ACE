@@ -782,6 +782,7 @@ namespace ACE.Server.Managers
                 ("arenas_blacklist", new Property<string>("", "A comma separated list of CharacterID values that cannot participate in Arenas")),
                 ("arena_globals_webhook", new Property<string>("", "Webhook to be send Arena global messages.")),
                 ("rare_audit_webhook", new Property<string>("", "Webhook to be send rare audit messages.")),
+                ("world_boss_webhook", new Property<string>("", "Webhook to be send world boss messages.")),
                 ("globalchatgag_ip_list", new Property<string>("", "List of IPs that are global chat gagged"))
                 );
     }
