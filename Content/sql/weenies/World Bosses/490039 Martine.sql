@@ -101,10 +101,10 @@ VALUES (490039,   1,  499750, 0, 0, 500000) /* MaxHealth */
      , (490039,   5,     0, 0, 0, 10000) /* MaxMana */;
 
 INSERT INTO `weenie_properties_skill` (`object_Id`, `type`, `level_From_P_P`, `s_a_c`, `p_p`, `init_Level`, `resistance_At_Last_Check`, `last_Used_Time`)
-VALUES (490039,  6, 0, 3, 0,   400, 0, 608.0722585280382) /* MeleeDefense        Specialized */
+VALUES (490039,  6, 0, 3, 0,   200, 0, 608.0722585280382) /* MeleeDefense        Specialized */
      , (490039,  7, 0, 3, 0, 200, 0, 608.0722585280382) /* MissileDefense      Specialized */
      , (490039, 13, 0, 3, 0, 900, 0, 608.0722585280382) /* Heavy Weapon      Specialized */
-     , (490039, 15, 0, 3, 0,  450, 0, 608.0722585280382) /* MagicDefense        Specialized */
+     , (490039, 15, 0, 3, 0,  200, 0, 608.0722585280382) /* MagicDefense        Specialized */
      , (490039, 20, 0, 3, 0, 100, 0, 608.0722585280382) /* Deception           Specialized */
      , (490039, 24, 0, 3, 0, 200, 0, 608.0722585280382) /* Run                 Specialized */
      , (490039, 31, 0, 3, 0, 900, 0, 608.0722585280382) /* CreatureEnchantment Specialized */
