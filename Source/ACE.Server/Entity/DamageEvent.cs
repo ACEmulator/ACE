@@ -693,26 +693,11 @@ namespace ACE.Server.Entity
             if (defender.IsTownControlConflictBoss)
             {
                 var distance = defender.Location.DistanceTo(attacker.Location);
-                if (distance > 25)
+                if (distance > 15)
                 {
-                    var distanceMod = 0.75f;
+                    var distanceMod = 0.2f * (20 - distance);
 
-                    if (distance > 50)
-                    {
-                        distanceMod = 0.01f;
-                    }
-                    else if (distance > 40)
-                    {
-                        distanceMod = 0.1f;
-                    }
-                    else if (distance > 35)
-                    {
-                        distanceMod = 0.25f;
-                    }
-                    else if (distance > 30)
-                    {
-                        distanceMod = 0.50f;
-                    }
+                    distanceMod += distanceMod < 0 ? 0 : distanceMod;
 
                     Damage = Damage * distanceMod;
                 }
