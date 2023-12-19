@@ -106,7 +106,11 @@ namespace ACE.Server.Managers
             //Send global to webhook
             try
             {
-                _ = TurbineChatHandler.SendWebhookedChat("World Boss", boss.SpawnMsg, null, PropertyManager.GetString("world_boss_webhook").Item);
+                var webhookUrl = PropertyManager.GetString("world_boss_webhook").Item;
+                if (!string.IsNullOrEmpty(webhookUrl))
+                {
+                    _ = TurbineChatHandler.SendWebhookedChat("World Boss", boss.SpawnMsg, webhookUrl, "Global");
+                }
             }
             catch (Exception ex)
             {
