@@ -557,6 +557,16 @@ namespace ACE.Server.Command.Handlers
                 parameters[0] = "help";
             }
 
+            if (session.Player.LastArenaCommandTimestamp.HasValue && Time.GetDateTimeFromTimestamp(session.Player.LastArenaCommandTimestamp.Value) > DateTime.Now.AddSeconds(-3))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "To prevent abuse, you can only issue one arena command every 3 seconds. Please try again.");
+                return;
+            }
+            else
+            {
+                session.Player.LastArenaCommandTimestamp = Time.GetUnixTime(DateTime.Now);
+            }
+
             var actionType = parameters[0];
 
             switch (actionType?.ToLower())
@@ -806,9 +816,7 @@ namespace ACE.Server.Command.Handlers
 
             if(session.Player.IsArenaObserver ||
                 session.Player.IsPendingArenaObserver ||
-                (!session.Player.IsPlussed &&
-                  session.Player.CloakStatus != CloakStatus.Off &&
-                  session.Player.CloakStatus != CloakStatus.Player))
+                session.Player.CloakStatus == CloakStatus.On)
                 return $"You cannot join an arena queue while you're watching an arena event. Use /arena cancel to stop watching the current event before you queue.";
 
             if (!session.Player.IsPK)

@@ -188,13 +188,31 @@ namespace ACE.Server.Entity
                                 CreateTeamFellowships();
                             }
 
+                            //Make sure there's no way someone can remain as an observer while entering a match
+                            foreach (var player in playerList)
+                            {
+                                if (player.IsArenaObserver || player.IsPendingArenaObserver || player.CloakStatus == CloakStatus.On)
+                                {
+                                    player.RecallsDisabled = false;
+                                    player.IsFrozen = false;
+                                    player.Attackable = true;
+                                    if (player.GagDuration <= 0)
+                                    {
+                                        player.IsGagged = false;
+                                    }
+                                    player.DeCloak();
+                                    player.IsPendingArenaObserver = false;
+                                    player.IsArenaObserver = false;
+                                }
+                            }
+
                             //Teleport into the arena
                             for (int i = 0; i < playerList.Count; i++)
                             {
                                 var j = i < positions.Count ? i : positions.Count - 1;
                                 log.Info($"ArenaLocation.Tick() - {ArenaName} status = 2 - teleporting {playerList[i].Name} to position {positions[j].ToLOCString}");
                                 playerList[i].Teleport(positions[j]);
-                            }
+                            }                            
 
                             ActiveEvent.CountdownStartDateTime = DateTime.Now;
                             ActiveEvent.Status = ActiveEvent.Status == -1 ? -1 : 3;
@@ -318,6 +336,22 @@ namespace ACE.Server.Entity
                         //            break;
                         //    }
                         //}
+
+                        //Check if we somehow ended up with any observers in the match that aren't invisible, and if so, kick them out
+                        if (ActiveEvent.Observers != null)
+                        {
+                            foreach (var observer in ActiveEvent.Observers)
+                            {
+                                var player = PlayerManager.GetOnlinePlayer(observer);
+                                if (player != null)
+                                {
+                                    if (!player.IsArenaObserver || player.CloakStatus != CloakStatus.On)
+                                    {
+                                        ArenaManager.ExitArenaObserverMode(player);
+                                    }
+                                }
+                            }
+                        }
 
                         //Check if the time limit has been exceeded
                         if (!ActiveEvent.IsOvertime && ActiveEvent.TimeRemaining <= TimeSpan.Zero)

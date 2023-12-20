@@ -1543,6 +1543,13 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.HasArenaRareDmgReductionBuff); else SetProperty(PropertyBool.HasArenaRareDmgReductionBuff, value); }
         }
 
+        //Don't let players spam arena commands
+        public double? LastArenaCommandTimestamp
+        {
+            get => GetProperty(PropertyFloat.LastArenaCommandTimestamp) ?? 0;
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.LastArenaCommandTimestamp); else SetProperty(PropertyFloat.LastArenaCommandTimestamp, value.Value); }
+        }
+
 
         /* Chug Timer */
         public double? LastChugTimestamp
