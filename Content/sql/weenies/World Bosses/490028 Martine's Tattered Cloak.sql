@@ -19,7 +19,7 @@ VALUES (490028,  22, True ) /* Inscribable */
      , (490028,  23, True ) /* DestroyOnSell */;
 
 INSERT INTO `weenie_properties_float` (`object_Id`, `type`, `value`)
-VALUES (490028,  39,    0.75) /* DefaultScale */;
+VALUES (490028,  39,    0.33) /* DefaultScale */;
 
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)
 VALUES (490028,   1, 'Martine''s Tattered Cloak') /* Name */
@@ -27,10 +27,10 @@ VALUES (490028,   1, 'Martine''s Tattered Cloak') /* Name */
      , (490028,  33, 'MartinesTatteredCloak') /* Quest */;
 
 INSERT INTO `weenie_properties_d_i_d` (`object_Id`, `type`, `value`)
-VALUES (490028,   1, 0x02000181) /* Setup */
+VALUES (490028,   1, 0x02000E74) /* Setup */
      , (490028,   3, 0x20000014) /* SoundTable */
      , (490028,   6, 0x04000BEF) /* PaletteBase */
      , (490028,   7, 0x10000178) /* ClothingBase */
      , (490028,   8, 0x06001F94) /* Icon */
 	 , (490028,  52, 0x06005B0C) /* IconUnderlay */
-     , (490028,  22, 0x3400002B) /* PhysicsEffectTable */;
+     , (490028,  22, 0x34000074) /* PhysicsEffectTable */;

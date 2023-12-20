@@ -15,6 +15,9 @@ VALUES (490030,   1,        128) /* ItemType - Misc */
 INSERT INTO `weenie_properties_bool` (`object_Id`, `type`, `value`)
 VALUES (490030,  22, True ) /* Inscribable */
      , (490030,  23, True ) /* DestroyOnSell */;
+	 
+INSERT INTO `weenie_properties_float` (`object_Id`, `type`, `value`)
+VALUES (490030,  39,     0.33) /* DefaultScale */;
 
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)
 VALUES (490030,   1, 'Olthoi King Claw') /* Name */
@@ -22,8 +25,8 @@ VALUES (490030,   1, 'Olthoi King Claw') /* Name */
      , (490030,  33, 'OlthoiKingClaw') /* Quest */;
 
 INSERT INTO `weenie_properties_d_i_d` (`object_Id`, `type`, `value`)
-VALUES (490030,   1, 0x02000871) /* Setup */
+VALUES (490030,   1, 0x02000E74) /* Setup */
      , (490030,   3, 0x20000014) /* SoundTable */
      , (490030,   8, 0x06002AF4) /* Icon */
      , (490030,  52, 0x06005B0C) /* IconUnderlay */
-     , (490030,  22, 0x3400002B) /* PhysicsEffectTable */;
+     , (490030,  22, 0x34000074) /* PhysicsEffectTable */;
