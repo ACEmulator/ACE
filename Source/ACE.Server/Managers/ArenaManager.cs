@@ -251,8 +251,8 @@ namespace ACE.Server.Managers
                 .Where(x =>
                         firstArenaPlayer.EventType.Equals(x.EventType) &&
                         x.CharacterId != firstArenaPlayer.CharacterId &&
-                        x.CharacterLevel <= firstArenaPlayer.CharacterLevel + 50 &&
-                        x.CharacterLevel >= firstArenaPlayer.CharacterLevel - 50 &&
+                        x.CharacterLevel <= firstArenaPlayer.CharacterLevel + 100 &&
+                        x.CharacterLevel >= firstArenaPlayer.CharacterLevel - 100 &&
                         (PropertyManager.GetBool("arena_allow_same_ip_match").Item || !firstArenaPlayer.PlayerIP.Equals(x.PlayerIP)))?
                 .OrderBy(x => x.CreateDateTime);
 
