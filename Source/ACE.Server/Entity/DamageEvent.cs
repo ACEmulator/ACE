@@ -696,8 +696,8 @@ namespace ACE.Server.Entity
                 if (distance > 15)
                 {
                     var distanceMod = 0.2f * (20 - distance);
-
-                    distanceMod += distanceMod < 0 ? 0 : distanceMod;
+                    if (distanceMod < 0)
+                        distanceMod = 0;
 
                     Damage = Damage * distanceMod;
                 }
