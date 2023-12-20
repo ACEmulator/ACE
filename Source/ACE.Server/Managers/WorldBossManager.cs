@@ -76,7 +76,7 @@ namespace ACE.Server.Managers
         private static DateTime RollNextSpawnTime()
         {
             //return DateTime.Now.AddMinutes(2);
-            var hr = ThreadSafeRandom.Next(16, 25);
+            var hr = ThreadSafeRandom.Next(12, 25);
             var min = ThreadSafeRandom.Next(0, 59);
             return DateTime.Today.AddHours(hr).AddMinutes(min);
         }
