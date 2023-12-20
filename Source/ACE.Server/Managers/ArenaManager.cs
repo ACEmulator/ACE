@@ -834,12 +834,11 @@ namespace ACE.Server.Managers
                     player.IsGagged = false;
                 }
                 player.DeCloak();
+                player.IsPendingArenaObserver = false;
+                player.IsArenaObserver = false;
             });
             
-            actionChain.EnqueueChain();
-
-            player.IsPendingArenaObserver = false;
-            player.IsArenaObserver = false;
+            actionChain.EnqueueChain();            
         }
 
         public static void DispelArenaRares(Player player)

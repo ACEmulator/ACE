@@ -804,7 +804,11 @@ namespace ACE.Server.Command.Handlers
                 return $"You must be at least level {minLevel} to join an arena match";
             }
 
-            if(session.Player.IsArenaObserver || session.Player.IsPendingArenaObserver)
+            if(session.Player.IsArenaObserver ||
+                session.Player.IsPendingArenaObserver ||
+                (!session.Player.IsPlussed &&
+                  session.Player.CloakStatus != CloakStatus.Off &&
+                  session.Player.CloakStatus != CloakStatus.Player))
                 return $"You cannot join an arena queue while you're watching an arena event. Use /arena cancel to stop watching the current event before you queue.";
 
             if (!session.Player.IsPK)
