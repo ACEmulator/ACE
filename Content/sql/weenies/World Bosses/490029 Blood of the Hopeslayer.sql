@@ -19,7 +19,7 @@ VALUES (490029,  22, True ) /* Inscribable */
      , (490029,  23, True ) /* DestroyOnSell */;
 
 INSERT INTO `weenie_properties_float` (`object_Id`, `type`, `value`)
-VALUES (490029,  39,     0.7) /* DefaultScale */;
+VALUES (490029,  39,     0.33) /* DefaultScale */;
 
 INSERT INTO `weenie_properties_string` (`object_Id`, `type`, `value`)
 VALUES (490029,   1, 'Blood of the Hopeslayer') /* Name */
@@ -27,10 +27,10 @@ VALUES (490029,   1, 'Blood of the Hopeslayer') /* Name */
      , (490029,  33, 'BloodofBZ') /* Quest */;
 
 INSERT INTO `weenie_properties_d_i_d` (`object_Id`, `type`, `value`)
-VALUES (490029,   1, 0x020000AB) /* Setup */
+VALUES (490029,   1, 0x02000E74) /* Setup */
      , (490029,   3, 0x20000014) /* SoundTable */
      , (490029,   6, 0x04000BEF) /* PaletteBase */
      , (490029,   7, 0x10000168) /* ClothingBase */
      , (490029,   8, 0x06001F5E) /* Icon */
 	 , (490029,  52, 0x06005B0C) /* IconUnderlay */
-     , (490029,  22, 0x3400002B) /* PhysicsEffectTable */;
+     , (490029,  22, 0x34000074) /* PhysicsEffectTable */;
