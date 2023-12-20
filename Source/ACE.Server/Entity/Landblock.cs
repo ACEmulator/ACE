@@ -289,9 +289,9 @@ namespace ACE.Server.Entity
                 {
                     var area = ZergControlLandblocks.GetLandblockZergControlArea(this.Id.Landblock);
 
-                    Dictionary<uint, List<IPlayer>> clansInZergControlArea = new Dictionary<uint, List<IPlayer>>();
-                    List<IPlayer> playersInZergControlArea = new List<IPlayer>();
-                    List<IPlayer> playersNotWhitelisted = new List<IPlayer>();
+                    Dictionary<uint, List<Player>> clansInZergControlArea = new Dictionary<uint, List<Player>>();
+                    List<Player> playersInZergControlArea = new List<Player>();
+                    List<Player> playersNotWhitelisted = new List<Player>();
 
                     foreach (var block in area.AreaLandblockIds)
                     {
@@ -308,7 +308,7 @@ namespace ACE.Server.Entity
                                 }
                                 else
                                 {
-                                    var playerList = new List<IPlayer>();
+                                    var playerList = new List<Player>();
                                     playerList.Add(landblockPlayer);
                                     clansInZergControlArea.Add(lbPlayerAlleg.MonarchId.Value, playerList);
                                 }
@@ -330,16 +330,15 @@ namespace ACE.Server.Entity
                         if (clanPlayers.Count > area.MaxPlayersPerAllegiance)
                         {
                             var overageCount = clanPlayers.Count - (int)area.MaxPlayersPerAllegiance;
-                            var playersToKick = clanPlayers.TakeLast(overageCount);
+                            var playersToKick = clanPlayers.OrderBy(x => x.LastTeleportTime).Take(overageCount);
 
                             foreach (var playerToKick in playersToKick)
                             {
                                 try
                                 {
                                     //Teleport to LS
-                                    var currPlayer = (Player)playerToKick;
-                                    currPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat("You have violated the max number of members allowed inside of a zerg restricted area.  Fuck you.", ChatMessageType.Broadcast));
-                                    currPlayer.Teleport(currPlayer.Sanctuary);
+                                    playerToKick.Session.Network.EnqueueSend(new GameMessageSystemChat("You have violated the max number of members allowed inside of a zerg restricted area.  Fuck you.", ChatMessageType.Broadcast));
+                                    playerToKick.Teleport(playerToKick.Sanctuary);
                                 }
                                 catch (Exception ex)
                                 {

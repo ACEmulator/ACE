@@ -335,23 +335,7 @@ namespace ACE.Server.Entity
                         //            this.ActiveEvent.StartDateTime = this.ActiveEvent.StartDateTime.Value.AddMinutes(-25);
                         //            break;
                         //    }
-                        //}
-
-                        //Check if we somehow ended up with any observers in the match that aren't invisible, and if so, kick them out
-                        if (ActiveEvent.Observers != null)
-                        {
-                            foreach (var observer in ActiveEvent.Observers)
-                            {
-                                var player = PlayerManager.GetOnlinePlayer(observer);
-                                if (player != null)
-                                {
-                                    if (!player.IsArenaObserver || player.CloakStatus != CloakStatus.On)
-                                    {
-                                        ArenaManager.ExitArenaObserverMode(player);
-                                    }
-                                }
-                            }
-                        }
+                        //}                        
 
                         //Check if the time limit has been exceeded
                         if (!ActiveEvent.IsOvertime && ActiveEvent.TimeRemaining <= TimeSpan.Zero)
