@@ -2,9 +2,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
-
-using Newtonsoft.Json;
 
 using ACE.Database.Models.World;
 
@@ -18,7 +17,7 @@ namespace ACE.Adapter.GDLE
             {
                 var fileText = File.ReadAllText(file);
 
-                result = JsonConvert.DeserializeObject<Models.Landblock>(fileText);
+                result = JsonSerializer.Deserialize<Models.Landblock>(fileText);
 
                 return true;
             }
@@ -60,7 +59,7 @@ namespace ACE.Adapter.GDLE
             {
                 var fileText = File.ReadAllText(file);
 
-                result = JsonConvert.DeserializeObject<Models.WorldSpawns>(fileText);
+                result = JsonSerializer.Deserialize<Models.WorldSpawns>(fileText);
 
                 return true;
             }
@@ -114,7 +113,7 @@ namespace ACE.Adapter.GDLE
 
                 foreach (var weenie in landblock.value.weenies)
                 {
-                    var newGuid = (0x70000000 | ((weenie.pos.objcell_id & 0xFFFF0000) >> 4) | currentOffset);
+                    var newGuid = (0x70000000 | ((weenie.pos.LandCellId & 0xFFFF0000) >> 4) | currentOffset);
                     currentOffset++;
 
                     if (!idChanges[landblock.key].ContainsKey(weenie.id))
@@ -189,7 +188,7 @@ namespace ACE.Adapter.GDLE
             {
                 var fileText = File.ReadAllText(file);
 
-                var gdleModel = JsonConvert.DeserializeObject<Models.WorldSpawns>(fileText);
+                var gdleModel = JsonSerializer.Deserialize<Models.WorldSpawns>(fileText);
 
 
                 if (gdleModel.Landblocks == null)
@@ -219,7 +218,7 @@ namespace ACE.Adapter.GDLE
             {
                 var fileText = File.ReadAllText(file);
 
-                results = JsonConvert.DeserializeObject<List<Models.Event>>(fileText);
+                results = JsonSerializer.Deserialize<List<Models.Event>>(fileText);
 
                 return true;
             }
@@ -236,7 +235,7 @@ namespace ACE.Adapter.GDLE
             {
                 var fileText = File.ReadAllText(file);
 
-                var gdleModel = JsonConvert.DeserializeObject<List<Models.Event>>(fileText);
+                var gdleModel = JsonSerializer.Deserialize<List<Models.Event>>(fileText);
 
                 results = new List<Event>();
 
@@ -262,7 +261,7 @@ namespace ACE.Adapter.GDLE
             {
                 var fileText = File.ReadAllText(file);
 
-                result = JsonConvert.DeserializeObject<Models.Quest>(fileText);
+                result = JsonSerializer.Deserialize<Models.Quest>(fileText);
 
                 return true;
             }
@@ -279,7 +278,7 @@ namespace ACE.Adapter.GDLE
             {
                 var fileText = File.ReadAllText(file);
 
-                results = JsonConvert.DeserializeObject<List<Models.Quest>>(fileText);
+                results = JsonSerializer.Deserialize<List<Models.Quest>>(fileText);
 
                 return true;
             }
@@ -296,7 +295,7 @@ namespace ACE.Adapter.GDLE
             {
                 var fileText = File.ReadAllText(file);
 
-                var gdleModel = JsonConvert.DeserializeObject<List<Models.Quest>>(fileText);
+                var gdleModel = JsonSerializer.Deserialize<List<Models.Quest>>(fileText);
 
                 results = new List<Quest>();
 
@@ -323,7 +322,7 @@ namespace ACE.Adapter.GDLE
             {
                 var fileText = File.ReadAllText(file);
 
-                result = JsonConvert.DeserializeObject<Models.Spells>(fileText);
+                result = JsonSerializer.Deserialize<Models.Spells>(fileText);
 
                 return true;
             }
@@ -340,7 +339,7 @@ namespace ACE.Adapter.GDLE
             {
                 var fileText = File.ReadAllText(file);
 
-                var gdleModel = JsonConvert.DeserializeObject<Models.Spells>(fileText);
+                var gdleModel = JsonSerializer.Deserialize<Models.Spells>(fileText);
 
                 results = new List<Spell>();
 
@@ -366,7 +365,7 @@ namespace ACE.Adapter.GDLE
             {
                 var fileText = File.ReadAllText(file);
 
-                result = JsonConvert.DeserializeObject<Models.Recipe>(fileText);
+                result = JsonSerializer.Deserialize<Models.Recipe>(fileText);
 
                 return true;
             }
@@ -383,7 +382,7 @@ namespace ACE.Adapter.GDLE
             {
                 var fileText = File.ReadAllText(file);
 
-                result = JsonConvert.DeserializeObject<Models.RecipeCombined>(fileText);
+                result = JsonSerializer.Deserialize<Models.RecipeCombined>(fileText);
 
                 return true;
             }
@@ -469,7 +468,7 @@ namespace ACE.Adapter.GDLE
             {
                 var fileText = File.ReadAllText(file);
 
-                var gdleModel = JsonConvert.DeserializeObject<List<Models.Recipe>>(fileText);
+                var gdleModel = JsonSerializer.Deserialize<List<Models.Recipe>>(fileText);
 
                 results = new List<Recipe>();
 
@@ -495,7 +494,7 @@ namespace ACE.Adapter.GDLE
             {
                 var fileText = File.ReadAllText(file);
 
-                results = JsonConvert.DeserializeObject<List<Models.RecipePrecursor>>(fileText);
+                results = JsonSerializer.Deserialize<List<Models.RecipePrecursor>>(fileText);
 
                 return true;
             }
@@ -512,7 +511,7 @@ namespace ACE.Adapter.GDLE
             {
                 var fileText = File.ReadAllText(file);
 
-                var gdleModel = JsonConvert.DeserializeObject<List<Models.RecipePrecursor>>(fileText);
+                var gdleModel = JsonSerializer.Deserialize<List<Models.RecipePrecursor>>(fileText);
 
                 results = new List<CookBook>();
 
@@ -538,7 +537,7 @@ namespace ACE.Adapter.GDLE
             {
                 var fileText = File.ReadAllText(file);
 
-                result = JsonConvert.DeserializeObject<Models.Region>(fileText);
+                result = JsonSerializer.Deserialize<Models.Region>(fileText);
 
                 return true;
             }
@@ -555,7 +554,7 @@ namespace ACE.Adapter.GDLE
             {
                 var fileText = File.ReadAllText(file);
 
-                results = JsonConvert.DeserializeObject<List<Models.TerrainData>>(fileText);
+                results = JsonSerializer.Deserialize<List<Models.TerrainData>>(fileText);
 
                 return true;
             }
@@ -572,7 +571,7 @@ namespace ACE.Adapter.GDLE
             {
                 var fileText = File.ReadAllText(file);
 
-                results = JsonConvert.DeserializeObject<List<Models.WieldedTreasureTable>>(fileText);
+                results = JsonSerializer.Deserialize<List<Models.WieldedTreasureTable>>(fileText);
 
                 return true;
             }
@@ -589,7 +588,7 @@ namespace ACE.Adapter.GDLE
             {
                 var fileText = File.ReadAllText(file);
 
-                var gdleModel = JsonConvert.DeserializeObject<List<Models.WieldedTreasureTable>>(fileText);
+                var gdleModel = JsonSerializer.Deserialize<List<Models.WieldedTreasureTable>>(fileText);
 
                 results = new List<TreasureWielded>();
 

@@ -1,15 +1,15 @@
 
-using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace ACE.Adapter.GDLE.Models
 {
     public class TerrainData
     {
-        [JsonProperty("key")]
+        [JsonPropertyName("key")]
         public uint Key { get; set; }
 
-        [JsonProperty("value")]
+        [JsonPropertyName("value")]
         public List<ushort> Value { get; set; }
     }
 }

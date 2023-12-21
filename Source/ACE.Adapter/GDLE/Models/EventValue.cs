@@ -1,17 +1,17 @@
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace ACE.Adapter.GDLE.Models
 {
     public class EventValue
     {
-        [JsonProperty("startTime")]
+        [JsonPropertyName("startTime")]
         public int StartTime { get; set; }
 
-        [JsonProperty("endTime")]
+        [JsonPropertyName("endTime")]
         public int EndTime { get; set; }
 
-        [JsonProperty("eventState")]
+        [JsonPropertyName("eventState")]
         public int EventState { get; set; }
     }
 }

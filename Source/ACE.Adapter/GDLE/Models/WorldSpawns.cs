@@ -1,15 +1,14 @@
 using System.Collections.Generic;
-
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace ACE.Adapter.GDLE.Models
 {
     public class WorldSpawns
     {
-        [JsonProperty("_version")]
+        [JsonPropertyName("_version")]
         public string Version { get; set; }
 
-        [JsonProperty("landblocks")]
+        [JsonPropertyName("landblocks")]
         public List<Landblock> Landblocks { get; set; }
     }
 }

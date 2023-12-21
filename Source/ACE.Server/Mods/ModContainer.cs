@@ -1,10 +1,11 @@
 using log4net;
-using McMaster.NETCore.Plugins;
-using System;
 
+using McMaster.NETCore.Plugins;
+
+using System;
 using System.IO;
 using System.Reflection;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace ACE.Server.Mods
 {
@@ -203,7 +204,7 @@ namespace ACE.Server.Mods
 
         public void SaveMetadata()
         {
-            var json = JsonConvert.SerializeObject(Meta, Formatting.Indented);
+            var json = JsonSerializer.Serialize(Meta, new JsonSerializerOptions { WriteIndented = true });
             var info = new FileInfo(MetadataPath);
 
             if (!info.RetryWrite(json))

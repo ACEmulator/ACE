@@ -1,87 +1,86 @@
 using System.Collections.Generic;
-
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace ACE.Adapter.GDLE.Models
 {
     public class Recipe
     {
-        [JsonProperty("RecipeID")]
+        [JsonPropertyName("RecipeID")]
         public uint RecipeId { get; set; }
 
-        [JsonProperty("Skill")]
+        [JsonPropertyName("Skill")]
         public uint Skill { get; set; }
 
-        [JsonProperty("SkillCheckFormulaType")]
+        [JsonPropertyName("SkillCheckFormulaType")]
         public int SkillCheckFormulaType { get; set; }
 
-        [JsonProperty("DataID")]
+        [JsonPropertyName("DataID")]
         public uint DataId { get; set; }
 
-        [JsonProperty("Difficulty")]
+        [JsonPropertyName("Difficulty")]
         public uint Difficulty { get; set; }
 
-        [JsonProperty("SuccessWcid")]
+        [JsonPropertyName("SuccessWcid")]
         public uint SuccessWcid { get; set; }
 
-        [JsonProperty("SuccessAmount")]
+        [JsonPropertyName("SuccessAmount")]
         public uint SuccessAmount { get; set; }
 
-        [JsonProperty("SuccessMessage")]
+        [JsonPropertyName("SuccessMessage")]
         public string SuccessMessage { get; set; }
 
-        [JsonProperty("SuccessConsumeTargetAmount")]
+        [JsonPropertyName("SuccessConsumeTargetAmount")]
         public uint SuccessConsumeTargetAmount { get; set; }
 
-        [JsonProperty("SuccessConsumeTargetChance")]
+        [JsonPropertyName("SuccessConsumeTargetChance")]
         public double SuccessConsumeTargetChance { get; set; }
 
-        [JsonProperty("SuccessConsumeTargetMessage")]
+        [JsonPropertyName("SuccessConsumeTargetMessage")]
         public string SuccessConsumeTargetMessage { get; set; }
 
-        [JsonProperty("SuccessConsumeToolAmount")]
+        [JsonPropertyName("SuccessConsumeToolAmount")]
         public uint SuccessConsumeToolAmount { get; set; }
 
-        [JsonProperty("SuccessConsumeToolChance")]
+        [JsonPropertyName("SuccessConsumeToolChance")]
         public double SuccessConsumeToolChance { get; set; }
 
-        [JsonProperty("SuccessConsumeToolMessage")]
+        [JsonPropertyName("SuccessConsumeToolMessage")]
         public string SuccessConsumeToolMessage { get; set; }
 
-        [JsonProperty("FailWcid")]
+        [JsonPropertyName("FailWcid")]
         public uint FailWcid { get; set; }
 
-        [JsonProperty("FailAmount")]
+        [JsonPropertyName("FailAmount")]
         public uint FailAmount { get; set; }
 
-        [JsonProperty("FailMessage")]
+        [JsonPropertyName("FailMessage")]
         public string FailMessage { get; set; }
 
-        [JsonProperty("FailureConsumeTargetAmount")]
+        [JsonPropertyName("FailureConsumeTargetAmount")]
         public uint FailureConsumeTargetAmount { get; set; }
 
-        [JsonProperty("FailureConsumeTargetChance")]
+        [JsonPropertyName("FailureConsumeTargetChance")]
         public double FailureConsumeTargetChance { get; set; }
 
-        [JsonProperty("FailureConsumeTargetMessage")]
+        [JsonPropertyName("FailureConsumeTargetMessage")]
         public string FailureConsumeTargetMessage { get; set; }
 
-        [JsonProperty("FailureConsumeToolAmount")]
+        [JsonPropertyName("FailureConsumeToolAmount")]
         public uint FailureConsumeToolAmount { get; set; }
 
-        [JsonProperty("FailureConsumeToolChance")]
+        [JsonPropertyName("FailureConsumeToolChance")]
         public double FailureConsumeToolChance { get; set; }
 
-        [JsonProperty("FailureConsumeToolMessage")]
+        [JsonPropertyName("FailureConsumeToolMessage")]
         public string FailureConsumeToolMessage { get; set; }
 
-        [JsonProperty("Unknown")]
+        [JsonPropertyName("Unknown")]
         public int Unknown { get; set; }
 
-        [JsonProperty("Mods")]
+        [JsonPropertyName("Mods")]
         public List<Mod> Mods { get; set; }
 
-        [JsonProperty("Requirements")]
+        [JsonPropertyName("Requirements")]
         public List<RecipeRequirements> Requirements { get; set; }
     }
 }
