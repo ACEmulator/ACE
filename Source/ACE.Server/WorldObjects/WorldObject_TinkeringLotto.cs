@@ -193,7 +193,7 @@ namespace ACE.Server.WorldObjects
             {
                 //Add +1% dmg bonus
                 this.ElementalDamageMod = (this.ElementalDamageMod ?? 0.0f) + 0.01f;
-                resultMsg = "Improved Elemental Damage Bonus by 1% vs Monsters and 0.25% against Players";
+                resultMsg = "Improved Elemental Damage Bonus by 1% vs Monsters and 0.5% against Players";
                 HandleTinkerLottoLog("CasterDmgBonus1%");
             }
 
@@ -369,7 +369,7 @@ namespace ACE.Server.WorldObjects
                 {
                     //Add +5% elemental dmg bonus
                     this.ElementalDamageMod = (this.ElementalDamageMod ?? 0.0f) + 0.05f;
-                    resultMsg = "Improved Elemental Damage Bonus by 5% vs Monsters and 1.25% against Players";
+                    resultMsg = "Improved Elemental Damage Bonus by 5% vs Monsters and 2.5% against Players";
                     HandleTinkerLottoLog("CasterDmgBonus5%");
                 }
             }
