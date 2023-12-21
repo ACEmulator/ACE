@@ -227,7 +227,7 @@ namespace ACE.Server.Tests.Physics
             var checkPos = new Sphere();
 
             var transitionState = sphere.StepSphereDown(transition, checkPos, ref disp, sphere.Radius * 2.0f);
-            Assert.AreEqual(transitionState, TransitionState.Adjusted);
+            Assert.AreEqual(transitionState, TransitionState.Collided);
         }
 
         [TestMethod]
