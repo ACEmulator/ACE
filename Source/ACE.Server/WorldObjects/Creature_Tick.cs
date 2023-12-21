@@ -246,6 +246,24 @@ namespace ACE.Server.WorldObjects
                         msg = $"A brave adventurer has enjoined {this.Name} in battle! All those who seek glory and fortune must head to {coordsDisplay}. But beware; while some may choose to assist in defeating {this.Name}, others will choose a darker path of greed and spilt blood in pursuit of self enrichment.";
                     }
                     PlayerManager.BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+
+                    if(this.WorldBoss_LastPeriodicGlobal < DateTime.Now.AddMinutes(-10))
+                    {
+                        //Send global to webhook
+                        try
+                        {
+                            var webhookUrl = PropertyManager.GetString("world_boss_webhook").Item;
+                            if (!string.IsNullOrEmpty(webhookUrl))
+                            {
+                                _ = TurbineChatHandler.SendWebhookedChat("World Boss", msg, webhookUrl, "Global");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            log.ErrorFormat("Failed sending World Boss Death global message to webhook. Ex:{0}", ex);
+                        }
+                    }
+
                     this.WorldBoss_LastPeriodicGlobal = DateTime.Now;
                 }
             }

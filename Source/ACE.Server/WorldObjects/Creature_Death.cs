@@ -1261,7 +1261,11 @@ namespace ACE.Server.WorldObjects
                 //Send global to webhook
                 try
                 {
-                    _ = TurbineChatHandler.SendWebhookedChat("World Boss", globalMsg, null, "");
+                    var webhookUrl = PropertyManager.GetString("world_boss_webhook").Item;
+                    if (!string.IsNullOrEmpty(webhookUrl))
+                    {
+                        _ = TurbineChatHandler.SendWebhookedChat("World Boss", globalMsg, webhookUrl, "Global");
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -1272,13 +1276,13 @@ namespace ACE.Server.WorldObjects
                 var landblockPlayers = this.CurrentLandblock.GetCurrentLandblockPlayers();
                 foreach (var player in landblockPlayers)
                 {
-                    var tcTrophy = WorldObjectFactory.CreateNewWorldObject(1000002); //PK Trophy
-                    tcTrophy.SetStackSize(5);
+                    var pkTrophy = WorldObjectFactory.CreateNewWorldObject(1000002); //PK Trophy
+                    pkTrophy.SetStackSize(5);
 
-                    var invCreateResult = player.TryCreateInInventoryWithNetworking(tcTrophy);
+                    var invCreateResult = player.TryCreateInInventoryWithNetworking(pkTrophy);
                     if (invCreateResult)
                     {
-                        player.Session.Network.EnqueueSend(new GameMessageCreateObject(tcTrophy));
+                        player.Session.Network.EnqueueSend(new GameMessageCreateObject(pkTrophy));
                         var msg = new GameMessageSystemChat($"You have received 5 PK Trophies for participating in the death of the mighty {deadBoss.Name}.", ChatMessageType.Broadcast);
                         player.Session.Network.EnqueueSend(msg);
                     }
