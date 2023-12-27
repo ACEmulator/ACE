@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 
 using ACE.Common;
@@ -37,7 +38,7 @@ namespace ACE.Server
                 }
 
                 var fileText = File.ReadAllText(configFile);
-                config = JsonSerializer.Deserialize<MasterConfiguration>(fileText);
+                config = JsonSerializer.Deserialize<MasterConfiguration>(fileText, new JsonSerializerOptions { ReadCommentHandling = JsonCommentHandling.Skip, NumberHandling = JsonNumberHandling.AllowReadingFromString });
             }
 
             Console.WriteLine("Performing setup for ACEmulator...");
