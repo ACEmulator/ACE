@@ -1,11 +1,11 @@
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace ACE.Adapter.GDLE.Models
 {
     public class Spells
     {
-        [JsonProperty("table")]
+        [JsonPropertyName("table")]
         public SpellTable Table { get; set; }
     }
 }

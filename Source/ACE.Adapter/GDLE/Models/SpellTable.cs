@@ -1,12 +1,11 @@
 using System.Collections.Generic;
-
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace ACE.Adapter.GDLE.Models
 {
     public class SpellTable
     {
-        [JsonProperty("spellBaseHash")]
+        [JsonPropertyName("spellBaseHash")]
         public List<SpellBaseHash> SpellBaseHash { get; set; }
     }
 }
