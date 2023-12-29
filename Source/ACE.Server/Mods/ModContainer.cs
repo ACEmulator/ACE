@@ -1,10 +1,11 @@
 using log4net;
-using McMaster.NETCore.Plugins;
-using System;
 
+using McMaster.NETCore.Plugins;
+
+using System;
 using System.IO;
 using System.Reflection;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace ACE.Server.Mods
 {
@@ -16,7 +17,7 @@ namespace ACE.Server.Mods
         public ModMetadata Meta { get; set; }
         public ModStatus Status = ModStatus.Unloaded;
 
-        public Assembly ModAssembly { get; set; }   
+        public Assembly ModAssembly { get; set; }
         public Type ModType { get; set; }
         public IHarmonyMod Instance { get; set; }
 
@@ -36,7 +37,6 @@ namespace ACE.Server.Mods
             ModAssembly.ManifestModule.ScopeName.Replace(".dll", "." + ModMetadata.TYPENAME);
 
         public PluginLoader Loader { get; private set; }
-        //private FileSystemWatcher _dllWatcher;
         private DateTime _lastChange = DateTime.Now;
 
         /// <summary>
@@ -50,31 +50,16 @@ namespace ACE.Server.Mods
                 return;
             }
 
-            //Watching for changes in the dll might be needed if it has unreleased resources?
-            //https://github.com/natemcmaster/DotNetCorePlugins/issues/86
-            //_dllWatcher = new FileSystemWatcher()
-            //{
-            //    Path = FolderPath,
-            //    //Filter = DllPath,
-            //    Filter = $"{FolderName}.dll",
-            //    EnableRaisingEvents = true,
-            //    NotifyFilter = NotifyFilters.LastWrite  //?
-            //};
-            //_dllWatcher.Changed += ModDll_Changed;
-            //_dllWatcher.Created += ModDll_Created;
-            //_dllWatcher.Renamed += ModDll_Renamed;
-            //_dllWatcher.Deleted += ModDll_Changed;
-            //_dllWatcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName;
-
             Loader = PluginLoader.CreateFromAssemblyFile(
                 assemblyFile: DllPath,
                 isUnloadable: true,
-                sharedTypes: new Type[] {  },
+                sharedTypes: new Type[] { },
                 configure: config =>
                 {
                     config.EnableHotReload = Meta.HotReload;
-                    config.IsLazyLoaded = false;     //?
-                }                
+                    config.IsLazyLoaded = false;
+                    config.PreferSharedTypes = true;
+                }
             );
             Loader.Reloaded += Reload;
 
@@ -219,7 +204,7 @@ namespace ACE.Server.Mods
 
         public void SaveMetadata()
         {
-            var json = JsonConvert.SerializeObject(Meta, Formatting.Indented);
+            var json = JsonSerializer.Serialize(Meta, new JsonSerializerOptions { WriteIndented = true });
             var info = new FileInfo(MetadataPath);
 
             if (!info.RetryWrite(json))

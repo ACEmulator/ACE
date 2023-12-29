@@ -13,8 +13,8 @@ using ACE.Database;
 using ACE.DatLoader;
 using ACE.Server.Command;
 using ACE.Server.Managers;
-using ACE.Server.Network.Managers;
 using ACE.Server.Mods;
+using ACE.Server.Network.Managers;
 
 namespace ACE.Server
 {

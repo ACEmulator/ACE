@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 using Lifestoned.DataModel.Gdle;
 using Lifestoned.DataModel.Shared;
@@ -19,7 +18,7 @@ namespace ACE.Adapter.GDLE.Models
 
         public bool IsDone { get; set; }
 
-        public Metadata(Weenie weenie)
+        public Metadata(LSDWeenie weenie)
         {
             LastModified = weenie.LastModified;
             ModifiedBy = weenie.ModifiedBy;

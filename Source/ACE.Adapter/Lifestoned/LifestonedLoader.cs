@@ -3,8 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 using ACE.Adapter.GDLE.Models;
 using ACE.Database.Models.World;
@@ -13,13 +13,13 @@ namespace ACE.Adapter.Lifestoned
 {
     public static class LifestonedLoader
     {
-        public static bool TryLoadWeenie(string file, out global::Lifestoned.DataModel.Gdle.Weenie result)
+        public static bool TryLoadWeenie(string file, out LSDWeenie result)
         {
             try
             {
                 var fileText = File.ReadAllText(file);
 
-                result = JsonConvert.DeserializeObject<global::Lifestoned.DataModel.Gdle.Weenie>(fileText);
+                result = JsonSerializer.Deserialize<LSDWeenie>(fileText);
 
                 return true;
             }
@@ -30,11 +30,11 @@ namespace ACE.Adapter.Lifestoned
             }
         }
 
-        public static bool TryLoadWeenies(string folder, out List<global::Lifestoned.DataModel.Gdle.Weenie> results)
+        public static bool TryLoadWeenies(string folder, out List<LSDWeenie> results)
         {
             try
             {
-                results = new List<global::Lifestoned.DataModel.Gdle.Weenie>();
+                results = new List<LSDWeenie>();
 
                 var files = Directory.GetFiles(folder, "*.json", SearchOption.AllDirectories).OrderByDescending(f => new FileInfo(f).CreationTime).ToList();
 
@@ -53,13 +53,13 @@ namespace ACE.Adapter.Lifestoned
             }
         }
 
-        public static bool TryLoadWeeniesInParallel(string folder, out List<global::Lifestoned.DataModel.Gdle.Weenie> results)
+        public static bool TryLoadWeeniesInParallel(string folder, out List<LSDWeenie> results)
         {
             try
             {
                 var files = Directory.GetFiles(folder, "*.json", SearchOption.AllDirectories);
 
-                var weenies = new ConcurrentBag<global::Lifestoned.DataModel.Gdle.Weenie>();
+                var weenies = new ConcurrentBag<LSDWeenie>();
 
                 Parallel.ForEach(files, file =>
                 {
@@ -67,7 +67,7 @@ namespace ACE.Adapter.Lifestoned
                         weenies.Add(result);
                 });
 
-                results = new List<global::Lifestoned.DataModel.Gdle.Weenie>(weenies);
+                results = new List<LSDWeenie>(weenies);
 
                 return true;
             }
@@ -85,7 +85,7 @@ namespace ACE.Adapter.Lifestoned
             {
                 var fileText = File.ReadAllText(file);
 
-                var lifestonedModel = JsonConvert.DeserializeObject<global::Lifestoned.DataModel.Gdle.Weenie>(fileText);
+                var lifestonedModel = JsonSerializer.Deserialize<LSDWeenie>(fileText);
 
                 return LifestonedConverter.TryConvert(lifestonedModel, out result, correctForEnumShift);
             }
@@ -144,7 +144,7 @@ namespace ACE.Adapter.Lifestoned
             }
         }
 
-        public static bool AppendMetadata(string json_filename, global::Lifestoned.DataModel.Gdle.Weenie weenie)
+        public static bool AppendMetadata(string json_filename, LSDWeenie weenie)
         {
             // read existing json weenie
             var success = TryLoadWeenie(json_filename, out var json_weenie);

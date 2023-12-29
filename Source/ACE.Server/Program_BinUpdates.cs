@@ -1,14 +1,5 @@
 using System;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Net;
-using System.Threading;
-using System.Collections.Generic;
-
-using ACE.Common;
-
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace ACE.Server
 {
@@ -27,9 +18,9 @@ namespace ACE.Server
                 using var client = new WebClient();
                 var html = client.GetStringFromURL(url).Result;
 
-                dynamic json = JsonConvert.DeserializeObject(html);
+                var json = JsonSerializer.Deserialize<JsonElement>(html);
 
-                string tag = json.tag_name;
+                string tag = json.GetProperty("tag_name").GetString();
                
                 //Split the tag from "v{version}.{build}" into discrete components  - "tag_name": "v1.39.4192"
                 Version v = new Version(tag.Remove(0, 1));
@@ -40,7 +31,7 @@ namespace ACE.Server
                 if (versionStatus > 0)
                 {
                     log.Warn("There is a newer version of ACE available!");
-                    log.Warn($"Please visit {json.html_url} for more information.");
+                    log.Warn($"Please visit {json.GetProperty("html_url").GetString()} for more information.");
 
                     // the Console.Title.Get() only works on Windows...
                     #pragma warning disable CA1416 // Validate platform compatibility

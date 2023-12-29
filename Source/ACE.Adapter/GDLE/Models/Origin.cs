@@ -1,9 +1,16 @@
+using System.Text.Json.Serialization;
+
 namespace ACE.Adapter.GDLE.Models
 {
     public class Origin
     {
-        public float x { get; set; }
-        public float y { get; set; }
-        public float z { get; set; }
+        [JsonPropertyName("x")]
+        public float X { get; set; }
+
+        [JsonPropertyName("y")]
+        public float Y { get; set; }
+
+        [JsonPropertyName("z")]
+        public float Z { get; set; }
     }
 }

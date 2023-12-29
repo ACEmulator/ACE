@@ -17,9 +17,17 @@ namespace ACE.Database.SQLFormatters.Shard
         /// </summary>
         public string GetDefaultFileName(Biota input)
         {
-            var result = input.Id.ToString("X8");
-
             var name = input.GetProperty(PropertyString.Name);
+
+            return GetDefaultFileName(input.Id, name);
+        }
+
+        /// <summary>
+        /// Default is formed from: id.ToString("X8") + " " + name
+        /// </summary>
+        public static string GetDefaultFileName(uint id, string name)
+        {
+            var result = id.ToString("X8");
 
             if (!String.IsNullOrWhiteSpace(name))
                 result += " " + name;
@@ -153,17 +161,17 @@ namespace ACE.Database.SQLFormatters.Shard
             if (input.BiotaPropertiesPalette != null && input.BiotaPropertiesPalette.Count > 0)
             {
                 writer.WriteLine();
-                CreateSQLINSERTStatement(input.Id, input.BiotaPropertiesPalette.OrderBy(r => r.SubPaletteId).ToList(), writer);
+                CreateSQLINSERTStatement(input.Id, input.BiotaPropertiesPalette.OrderBy(r => r.Order).ThenBy(r => r.SubPaletteId).ToList(), writer);
             }
             if (input.BiotaPropertiesTextureMap != null && input.BiotaPropertiesTextureMap.Count > 0)
             {
                 writer.WriteLine();
-                CreateSQLINSERTStatement(input.Id, input.BiotaPropertiesTextureMap.OrderBy(r => r.Index).ToList(), writer);
+                CreateSQLINSERTStatement(input.Id, input.BiotaPropertiesTextureMap.OrderBy(r => r.Order).ThenBy(r => r.Index).ToList(), writer);
             }
             if (input.BiotaPropertiesAnimPart != null && input.BiotaPropertiesAnimPart.Count > 0)
             {
                 writer.WriteLine();
-                CreateSQLINSERTStatement(input.Id, input.BiotaPropertiesAnimPart.OrderBy(r => r.Index).ToList(), writer);
+                CreateSQLINSERTStatement(input.Id, input.BiotaPropertiesAnimPart.OrderBy(r => r.Order).ThenBy(r => r.Index).ToList(), writer);
             }
 
             if (input.BiotaPropertiesEnchantmentRegistry != null && input.BiotaPropertiesEnchantmentRegistry.Count > 0)
@@ -644,9 +652,9 @@ namespace ACE.Database.SQLFormatters.Shard
 
         public void CreateSQLINSERTStatement(uint id, IList<BiotaPropertiesPalette> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `biota_properties_palette` (`object_Id`, `sub_Palette_Id`, `offset`, `length`)");
+            writer.WriteLine("INSERT INTO `biota_properties_palette` (`object_Id`, `sub_Palette_Id`, `offset`, `length`, `order`)");
 
-            var lineGenerator = new Func<int, string>(i => $"{id}, {input[i].SubPaletteId}, {input[i].Offset}, {input[i].Length})");
+            var lineGenerator = new Func<int, string>(i => $"{id}, {input[i].SubPaletteId}, {input[i].Offset}, {input[i].Length}, {input[i].Order})");
 
             ValuesWriter(input.Count, lineGenerator, writer);
         }

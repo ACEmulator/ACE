@@ -1,11 +1,12 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 using ACE.Server.Entity;
 
 using log4net;
-using Newtonsoft.Json;
 
 namespace ACE.Server.Factories
 {
@@ -35,7 +36,7 @@ namespace ACE.Server.Factories
             {
                 var starterGearText = File.ReadAllText(starterGearFile);
 
-                config = JsonConvert.DeserializeObject<StarterGearConfiguration>(starterGearText);
+                config = JsonSerializer.Deserialize<StarterGearConfiguration>(starterGearText, new JsonSerializerOptions { ReadCommentHandling = JsonCommentHandling.Skip, NumberHandling = JsonNumberHandling.AllowReadingFromString });
 
                 return config;
             }
