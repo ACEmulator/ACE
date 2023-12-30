@@ -607,7 +607,10 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
-        private Dictionary<HeritageGroup, Dictionary<Gender, List<uint>>> ValidHeritageSetups = new()
+        /// <summary>
+        /// Valid Setups defined in acclient that are not defined in the dat files.
+        /// </summary>
+        private static readonly Dictionary<HeritageGroup, Dictionary<Gender, List<uint>>> ValidHeritageSetups = new()
         {
             { HeritageGroup.Shadowbound, new () {
                 { ACE.Entity.Enum.Gender.Male, new() {
