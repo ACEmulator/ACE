@@ -104,6 +104,8 @@ namespace ACE.Server.Entity
                     Integrate(player, source, target);
                 else if (IsDeintegrator(source.WeenieClassId))
                     Deintegrate(player, source, target);
+                else
+                    player.SendUseDoneEvent(WeenieError.CraftGeneralErrorNoUiMsg);
             });
 
             //player.EnqueueMotion(actionChain, MotionCommand.Ready);
