@@ -167,6 +167,8 @@ namespace ACE.Server.WorldObjects
 
             IsOlthoiPlayer = HeritageGroup == HeritageGroup.Olthoi || HeritageGroup == HeritageGroup.OlthoiAcid;
 
+            IsGearKnightPlayer = PropertyManager.GetBool("gearknight_core_plating").Item && HeritageGroup == HeritageGroup.Gearknight;
+
             ContainerCapacity = (byte)(7 + AugmentationExtraPackSlot);
 
             if (Session != null && AdvocateQuest && IsAdvocate) // Advocate permissions are per character regardless of override
