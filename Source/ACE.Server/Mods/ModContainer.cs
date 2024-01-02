@@ -1,3 +1,5 @@
+using ACE.Common;
+
 using log4net;
 
 using McMaster.NETCore.Plugins;
@@ -204,7 +206,7 @@ namespace ACE.Server.Mods
 
         public void SaveMetadata()
         {
-            var json = JsonSerializer.Serialize(Meta, new JsonSerializerOptions { WriteIndented = true });
+            var json = JsonSerializer.Serialize(Meta, ConfigManager.SerializerOptions);
             var info = new FileInfo(MetadataPath);
 
             if (!info.RetryWrite(json))
