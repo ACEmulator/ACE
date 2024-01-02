@@ -61,7 +61,7 @@ namespace ACE.Common
 
                 var fileText = File.ReadAllText(pathToUse);
 
-                Config = JsonSerializer.Deserialize<MasterConfiguration>(fileText, new JsonSerializerOptions { ReadCommentHandling = JsonCommentHandling.Skip, NumberHandling = JsonNumberHandling.AllowReadingFromString });
+                Config = JsonSerializer.Deserialize<MasterConfiguration>(fileText, SerializerOptions);
             }
             catch (Exception exception)
             {
@@ -72,5 +72,13 @@ namespace ACE.Common
                 throw;
             }
         }
+
+        public static JsonSerializerOptions SerializerOptions = new JsonSerializerOptions
+        {
+            AllowTrailingCommas = true,            
+            NumberHandling = JsonNumberHandling.AllowReadingFromString,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            WriteIndented = true
+        };
     }
 }

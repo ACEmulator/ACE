@@ -2,8 +2,8 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
+using ACE.Common;
 using ACE.Server.Entity;
 
 using log4net;
@@ -36,7 +36,7 @@ namespace ACE.Server.Factories
             {
                 var starterGearText = File.ReadAllText(starterGearFile);
 
-                config = JsonSerializer.Deserialize<StarterGearConfiguration>(starterGearText, new JsonSerializerOptions { ReadCommentHandling = JsonCommentHandling.Skip, NumberHandling = JsonNumberHandling.AllowReadingFromString });
+                config = JsonSerializer.Deserialize<StarterGearConfiguration>(starterGearText, ConfigManager.SerializerOptions);
 
                 return config;
             }
