@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BCrypt.Net-Core" Version="1.6.0" />
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="System.Text.Json" Version="6.0.9" />
     <PackageReference Include="TimeZoneConverter" Version="6.1.0" />
   </ItemGroup>
