@@ -99,7 +99,7 @@ namespace ACE.Server.Entity
                 }
             }
 
-            if (FellowshipMembers.Count == MaxFellows)
+            if (FellowshipMembers.Count >= MaxFellows)
             {
                 inviter.Session.Network.EnqueueSend(new GameEventWeenieError(inviter.Session, WeenieError.YourFellowshipIsFull));
                 return;
