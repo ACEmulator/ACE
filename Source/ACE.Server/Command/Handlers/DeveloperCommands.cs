@@ -408,6 +408,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("barbershop", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, "Displays the barber ui")]
         public static void BarberShop(Session session, params string[] parameters)
         {
+            session.Player.BarberActive = true;
             session.Network.EnqueueSend(new GameEventStartBarber(session));
             PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} has invoked a BarberShop session.");
         }

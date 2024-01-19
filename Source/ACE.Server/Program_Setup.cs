@@ -37,7 +37,7 @@ namespace ACE.Server
                 }
 
                 var fileText = File.ReadAllText(configFile);
-                config = JsonSerializer.Deserialize<MasterConfiguration>(fileText);
+                config = JsonSerializer.Deserialize<MasterConfiguration>(fileText, ConfigManager.SerializerOptions);
             }
 
             Console.WriteLine("Performing setup for ACEmulator...");
@@ -259,7 +259,7 @@ namespace ACE.Server
 
             Console.WriteLine("commiting configuration to disk...");
 
-            var jsonString = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
+            var jsonString = JsonSerializer.Serialize(config, ConfigManager.SerializerOptions);
             File.WriteAllText(configFile, jsonString);
 
 
