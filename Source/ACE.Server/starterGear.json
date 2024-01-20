@@ -138,6 +138,16 @@
                             "weenieId": "43018",
                             "name": "Letter From Home",
                             "stacksize": "1"
+                        },
+                        {
+                            "weenieId": "42979",
+                            "name": "Core Plating Integrator",
+                            "stacksize": "1"
+                        },
+                        {
+                            "weenieId": "43022",
+                            "name": "Core Plating Deintegrator",
+                            "stacksize": "1"
                         }
                     ]
                 },

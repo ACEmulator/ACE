@@ -42,6 +42,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (CorePlating.IsCorePlatingDevice(this))
+            {
+                CorePlating.UseObjectOnTarget(player, this, target);
+                return;
+            }
+
             // fallback on recipe manager
             base.HandleActionUseOnTarget(player, target);
         }
