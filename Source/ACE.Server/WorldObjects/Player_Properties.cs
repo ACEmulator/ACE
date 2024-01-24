@@ -74,7 +74,15 @@ namespace ACE.Server.WorldObjects
             get => (Character != null && Character.IsPlussed) || (Session != null && ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && Session.AccessLevel > AccessLevel.Advocate);
         }
 
+        /// <summary>
+        /// Flag indicates if player is an Olthoi Player
+        /// </summary>
         public bool IsOlthoiPlayer { get; set; }
+
+        /// <summary>
+        /// Flag indicates if player is a Gear Knight and Core Plating server option (gearknight_core_plating) is enforced
+        /// </summary>
+        public bool IsGearKnightPlayer { get; set; }
 
 
         public string GodState

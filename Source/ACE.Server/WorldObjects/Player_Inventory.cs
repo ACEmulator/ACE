@@ -2061,6 +2061,12 @@ namespace ACE.Server.WorldObjects
                 if (heritageSpecificArmor == null || (HeritageGroup)heritageSpecificArmor != HeritageGroup)
                     return WeenieError.HeritageRequiresSpecificArmor;
             }
+            else if (IsGearKnightPlayer)
+            {
+                if (((item.ValidLocations & (EquipMask.Clothing | EquipMask.Armor)) != 0)
+                    && (heritageSpecificArmor == null || (HeritageGroup)heritageSpecificArmor != HeritageGroup))
+                    return WeenieError.HeritageRequiresSpecificArmor;
+            }    
             else
             {
                 if (heritageSpecificArmor != null && (HeritageGroup)heritageSpecificArmor != HeritageGroup)
