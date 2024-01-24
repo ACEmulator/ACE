@@ -79,7 +79,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // adminui
-        [CommandHandler("adminui", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("adminui", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
         public static void HandleAdminui(Session session, params string[] parameters)
         {
             // usage: @adminui
@@ -138,7 +138,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // draw
-        [CommandHandler("draw", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("draw", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
         public static void HandleDraw(Session session, params string[] parameters)
         {
             // @draw - Draws undrawable things.
@@ -252,7 +252,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // freeze
-        [CommandHandler("freeze", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("freeze", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
         public static void HandleFreeze(Session session, params string[] parameters)
         {
             // @freeze - Freezes the selected target for 10 minutes or until unfrozen.
@@ -261,7 +261,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // unfreeze
-        [CommandHandler("unfreeze", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("unfreeze", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
         public static void HandleUnFreeze(Session session, params string[] parameters)
         {
             // @unfreeze - Unfreezes the selected target.
@@ -1106,7 +1106,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // unlock {-all | IID}
-        [CommandHandler("unlock", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("unlock", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 1)]
         public static void HandleUnlock(Session session, params string[] parameters)
         {
             // usage: @unlock {-all | IID}
@@ -1117,7 +1117,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // gamecast <message>
-        [CommandHandler("gamecast", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 1,
+        [CommandHandler("gamecast", AccessLevel.Envoy, CommandHandlerFlag.None, 1,
             "Sends a world-wide broadcast.",
             "<message>\n" +
             "This command sends a world-wide broadcast to everyone in the game. Text is prefixed with 'Broadcast from (admin-name)> '.\n" +
@@ -2819,7 +2819,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // event
-        [CommandHandler("event", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2,
+        [CommandHandler("event", AccessLevel.Developer, CommandHandlerFlag.None, 2,
             "Maniuplates the state of an event",
             "[ start | stop | disable | enable | clear | status ] (name)\n"
             + "@event clear < name > - clears event with name <name> or all events if you put in 'all' (All clears registered generators, <name> does not)\n"
@@ -3482,7 +3482,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // gamecastlocalemote <message>
-        [CommandHandler("gamecastlocalemote", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, 1,
+        [CommandHandler("gamecastlocalemote", AccessLevel.Advocate, CommandHandlerFlag.None, 1,
             "Sends text to all players within chat range, formatted exactly as entered.",
             "<message>\n" +
             "Sends text to all players within chat range, formatted exactly as entered, with no prefix of any kind.\n" +

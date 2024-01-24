@@ -511,7 +511,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // deaf < on / off >
-        [CommandHandler("deaf", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 1)]
+        [CommandHandler("deaf", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1)]
         public static void HandleDeaf(Session session, params string[] parameters)
         {
             // @deaf - Block @tells except for the player you are currently helping.

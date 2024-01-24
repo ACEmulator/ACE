@@ -198,15 +198,26 @@ namespace ACE.Server.Command.Handlers
                 $"{aceParams[1].AsPosition.PositionY}, {aceParams[1].AsPosition.PositionZ} | Facing: {aceParams[1].AsPosition.RotationX}, {aceParams[1].AsPosition.RotationY}, " +
                 $"{ aceParams[1].AsPosition.RotationZ}, {aceParams[1].AsPosition.RotationW}]", ChatMessageType.Broadcast);
 
-            aceParams[0].AsPlayer.Teleport(aceParams[1].AsPosition);
+            switch(parameters?.Length)
+            {
+                case 1:
+                    aceParams[0].AsPlayer.Teleport(aceParams[1].AsPosition);
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used /tele and teleported to {parameters[0]}.");
+                    break;
 
-            if(parameters?.Length == 1)
-            {
-                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used /tele and teleported to {parameters[0]}.");
-            }
-            else
-            {
-                PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used /tele and has teleported {parameters[0]} to {parameters[1]}.");
+                case 2:
+                    if (aceParams[0].AsPlayer.YouAreJailed == true) // added by Linae as a check against our custom /jail command.
+                    {
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"Player {parameters[0]} is in jail and can not be teleported out.  You must use /pardon.", ChatMessageType.Broadcast));
+                        break;
+                    }
+                    aceParams[0].AsPlayer.Teleport(aceParams[1].AsPosition);
+                    PlayerManager.BroadcastToAuditChannel(session.Player, $"{session.Player.Name} used /tele and has teleported {parameters[0]} to {parameters[1]}.");
+                    break;
+
+                default:
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Something went wrong. Check your parameters.", ChatMessageType.Broadcast));
+                    break;
             }
         }
     }
