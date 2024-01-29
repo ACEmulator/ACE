@@ -29,6 +29,6 @@ services:
       - ./Logs:/ace/Logs
     ports:
       - "9000-9001:9000-9001/udp"
+    stdin_open: true
     #restart: unless-stopped
     restart: on-failure
-
