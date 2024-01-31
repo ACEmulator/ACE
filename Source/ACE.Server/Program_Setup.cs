@@ -49,9 +49,10 @@ namespace ACE.Server
             Console.WriteLine();
 
             var variable = string.Empty;
+            var nonInteractiveSetup = Convert.ToBoolean(Environment.GetEnvironmentVariable("ACE_NONINTERACTIVE_SETUP"));
 
             Console.Write($"Enter the name for your World (default: \"{config.Server.WorldName}\"): ");
-            if (!IsRunningInContainer)
+            if (!nonInteractiveSetup)
                 variable = Console.ReadLine();
             else
             {
@@ -68,7 +69,7 @@ namespace ACE.Server
             Console.WriteLine();
             Console.WriteLine();
             Console.Write($"Enter the Host address for your World (default: \"{config.Server.Network.Host}\"): ");
-            if (!IsRunningInContainer)
+            if (!nonInteractiveSetup)
                 variable = Console.ReadLine();
             else
             {
@@ -80,7 +81,7 @@ namespace ACE.Server
             Console.WriteLine();
 
             Console.Write($"Enter the Port for your World (default: \"{config.Server.Network.Port}\"): ");
-            if (!IsRunningInContainer)
+            if (!nonInteractiveSetup)
                 variable = Console.ReadLine();
             else
             {
@@ -95,7 +96,7 @@ namespace ACE.Server
             Console.WriteLine();
 
             Console.Write($"Enter the directory location for your DAT files (default: \"{config.Server.DatFilesDirectory}\"): ");
-            if (!IsRunningInContainer)
+            if (!nonInteractiveSetup)
                 variable = Console.ReadLine();
             else
             {
@@ -123,7 +124,7 @@ namespace ACE.Server
             Console.WriteLine();
 
             Console.Write($"Enter the database name for your authentication database (default: \"{config.MySql.Authentication.Database}\"): ");
-            if (!IsRunningInContainer)
+            if (!nonInteractiveSetup)
                 variable = Console.ReadLine();
             else
             {
@@ -135,7 +136,7 @@ namespace ACE.Server
             Console.WriteLine();
 
             Console.Write($"Enter the database name for your shard database (default: \"{config.MySql.Shard.Database}\"): ");
-            if (!IsRunningInContainer)
+            if (!nonInteractiveSetup)
                 variable = Console.ReadLine();
             else
             {
@@ -147,7 +148,7 @@ namespace ACE.Server
             Console.WriteLine();
 
             Console.Write($"Enter the database name for your world database (default: \"{config.MySql.World.Database}\"): ");
-            if (!IsRunningInContainer)
+            if (!nonInteractiveSetup)
                 variable = Console.ReadLine();
             else
             {
@@ -161,7 +162,7 @@ namespace ACE.Server
             Console.WriteLine();
             Console.WriteLine();
             Console.Write("Typically, all three databases will be on the same SQL server, is this how you want to proceed? (Y/n) ");
-            if (!IsRunningInContainer)
+            if (!nonInteractiveSetup)
                 variable = Console.ReadLine();
             else
             {
@@ -193,7 +194,7 @@ namespace ACE.Server
             else
             {
                 Console.Write($"Enter the Host address for your authentication database (default: \"{config.MySql.Authentication.Host}\"): ");
-                if (!IsRunningInContainer)
+                if (!nonInteractiveSetup)
                     variable = Console.ReadLine();
                 else
                 {
@@ -205,7 +206,7 @@ namespace ACE.Server
                 Console.WriteLine();
 
                 Console.Write($"Enter the Port for your authentication database (default: \"{config.MySql.Authentication.Port}\"): ");
-                if (!IsRunningInContainer)
+                if (!nonInteractiveSetup)
                     variable = Console.ReadLine();
                 else
                 {
@@ -229,7 +230,7 @@ namespace ACE.Server
                 Console.WriteLine();
 
                 Console.Write($"Enter the Port for your shard database (default: \"{config.MySql.Shard.Port}\"): ");
-                if (!IsRunningInContainer)
+                if (!nonInteractiveSetup)
                     variable = Console.ReadLine();
                 else
                 {
@@ -241,7 +242,7 @@ namespace ACE.Server
                 Console.WriteLine();
 
                 Console.Write($"Enter the Host address for your world database (default: \"{config.MySql.World.Host}\"): ");
-                if (!IsRunningInContainer)
+                if (!nonInteractiveSetup)
                     variable = Console.ReadLine();
                 else
                 {
@@ -253,7 +254,7 @@ namespace ACE.Server
                 Console.WriteLine();
 
                 Console.Write($"Enter the Port for your world database (default: \"{config.MySql.World.Port}\"): ");
-                if (!IsRunningInContainer)
+                if (!nonInteractiveSetup)
                     variable = Console.ReadLine();
                 else
                 {
@@ -268,7 +269,7 @@ namespace ACE.Server
             Console.WriteLine();
             Console.WriteLine();
             Console.Write("Typically, all three databases will be on the using the same SQL server credentials, is this how you want to proceed? (Y/n) ");
-            if (!IsRunningInContainer)
+            if (!nonInteractiveSetup)
                 variable = Console.ReadLine();
             else
             {
@@ -278,7 +279,7 @@ namespace ACE.Server
             if (!variable.Equals("n", StringComparison.OrdinalIgnoreCase) && !variable.Equals("no", StringComparison.OrdinalIgnoreCase))
             {
                 Console.Write($"Enter the username for your SQL server (default: \"{config.MySql.World.Username}\"): ");
-                if (!IsRunningInContainer)
+                if (!nonInteractiveSetup)
                     variable = Console.ReadLine();
                 else
                 {
@@ -294,7 +295,7 @@ namespace ACE.Server
                 Console.WriteLine();
 
                 Console.Write($"Enter the password for your SQL server (default: \"{config.MySql.World.Password}\"): ");
-                if (!IsRunningInContainer)
+                if (!nonInteractiveSetup)
                     variable = Console.ReadLine();
                 else
                 {
@@ -357,11 +358,11 @@ namespace ACE.Server
             Console.WriteLine();
             Console.WriteLine();
             Console.Write("Do you want to ACEmulator to attempt to initialize your SQL databases? This will erase any existing ACEmulator specific databases that may already exist on the server (Y/n): ");
-            if (!IsRunningInContainer)
+            if (!nonInteractiveSetup)
                 variable = Console.ReadLine();
             var sqlConnectInfo = $"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password};{config.MySql.World.ConnectionOptions}";
             var sqlConnect = new MySqlConnector.MySqlConnection(sqlConnectInfo);
-            if (IsRunningInContainer)
+            if (nonInteractiveSetup)
             {
                 variable = Convert.ToBoolean(Environment.GetEnvironmentVariable("ACE_SQL_INITIALIZE_DATABASES")) ? "y" : "n";
                 Console.WriteLine($"{variable}");
@@ -393,8 +394,9 @@ namespace ACE.Server
 
                 if (IsRunningInContainer)
                 {
+                    // if using our supplied docker compose file which includes mysql server, mysql is initialized with a test database called ace%, we will delete this database if it exists
                     Console.Write("Clearing out temporary ace% database .... ");
-                    var sqlDBFile = "DROP DATABASE `ace%`;";
+                    var sqlDBFile = "DROP DATABASE IF EXISTS `ace%`;";
                     var script = new MySqlConnector.MySqlCommand(sqlDBFile, sqlConnect);
 
                     Console.Write($"Importing into SQL server at {config.MySql.World.Host}:{config.MySql.World.Port} .... ");
@@ -459,7 +461,7 @@ namespace ACE.Server
             Console.WriteLine();
             Console.WriteLine();
             Console.Write("Do you want to download the latest world database and import it? (Y/n): ");
-            if (!IsRunningInContainer)
+            if (!nonInteractiveSetup)
                 variable = Console.ReadLine();
             else
             {
