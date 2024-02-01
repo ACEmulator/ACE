@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Numerics;
+using System.Runtime;
+using System.Threading.Tasks;
 
 using log4net;
 
@@ -2212,6 +2213,10 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("forcegc", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Forces .NET Garbage Collection")]
         public static void HandleForceGC(Session session, params string[] parameters)
         {
+            // https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/fundamentals
+            // https://learn.microsoft.com/en-us/dotnet/api/system.runtime.gcsettings.largeobjectheapcompactionmode
+            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+
             GC.Collect();
 
             CommandHandlerHelper.WriteOutputInfo(session, ".NET Garbage Collection forced");
