@@ -925,7 +925,8 @@ namespace ACE.Server.WorldObjects
                     percent = damage / target.Health.MaxValue;
                 }
 
-                if(pkBattle)
+                //Apply dmg cap, except on Tugak
+                if(pkBattle && Spell.Id != 3818)
                 {
                     var damageCap = PropertyManager.GetLong("pvp_damage_cap").Item;
                     if (damage > damageCap)
