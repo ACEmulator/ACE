@@ -291,10 +291,22 @@ namespace ACE.Server
             ace_AllegianceManager_PlayersMappedInMemory.Set(AllegianceManager.Players.Count);
 
             ace_HouseManager_TotalOwnedHousing.Set(HouseManager.TotalOwnedHousing);
-            ace_HouseManager_TotalOwnedApartments.Set(HouseManager.TotalOwnedHousingByType[ACE.Entity.Enum.HouseType.Apartment]);
-            ace_HouseManager_TotalOwnedCottages.Set(HouseManager.TotalOwnedHousingByType[ACE.Entity.Enum.HouseType.Cottage]);
-            ace_HouseManager_TotalOwnedVillas.Set(HouseManager.TotalOwnedHousingByType[ACE.Entity.Enum.HouseType.Villa]);
-            ace_HouseManager_TotalOwnedMansions.Set(HouseManager.TotalOwnedHousingByType[ACE.Entity.Enum.HouseType.Mansion]);
+            if (HouseManager.TotalOwnedHousingByType.TryGetValue(ACE.Entity.Enum.HouseType.Apartment, out var totalOwnedApartments))
+                ace_HouseManager_TotalOwnedApartments.Set(totalOwnedApartments);
+            else
+                ace_HouseManager_TotalOwnedApartments.Set(0);
+            if (HouseManager.TotalOwnedHousingByType.TryGetValue(ACE.Entity.Enum.HouseType.Cottage, out var totalOwnedCottages))
+                ace_HouseManager_TotalOwnedCottages.Set(totalOwnedCottages);
+            else
+                ace_HouseManager_TotalOwnedCottages.Set(0);
+            if (HouseManager.TotalOwnedHousingByType.TryGetValue(ACE.Entity.Enum.HouseType.Villa, out var totalOwnedVillas))
+                ace_HouseManager_TotalOwnedVillas.Set(totalOwnedVillas);
+            else
+                ace_HouseManager_TotalOwnedVillas.Set(0);
+            if (HouseManager.TotalOwnedHousingByType.TryGetValue(ACE.Entity.Enum.HouseType.Mansion, out var totalOwnedMansions))
+                ace_HouseManager_TotalOwnedMansions.Set(totalOwnedMansions);
+            else
+                ace_HouseManager_TotalOwnedMansions.Set(0);
         }
     }
 }
