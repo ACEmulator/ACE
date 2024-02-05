@@ -265,12 +265,6 @@ namespace ACE.Server.WorldObjects
 
         public Pet CurrentActivePet { get; set; }
 
-        public void StartBarber()
-        {
-            BarberActive = true;
-            Session.Network.EnqueueSend(new GameEventStartBarber(Session));
-        }
-
         public void ApplyConsumable(MotionCommand useMotion, Action action, float animMod = 1.0f)
         {
             if (PropertyManager.GetBool("allow_fast_chug").Item && FastTick)

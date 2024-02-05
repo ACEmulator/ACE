@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
-using Newtonsoft.Json;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 using ACE.Adapter.Enum;
+using ACE.Adapter.GDLE.Models;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -16,7 +18,7 @@ namespace ACE.Adapter.Lifestoned
         /// <summary>
         /// Converts LSD weenie to ACE weenie
         /// </summary>
-        public static bool TryConvert(global::Lifestoned.DataModel.Gdle.Weenie input, out Weenie result, bool correctForEnumShift = false)
+        public static bool TryConvert(LSDWeenie input, out Weenie result, bool correctForEnumShift = false)
         {
             if (input.WeenieId == 0)
             {
@@ -485,7 +487,7 @@ namespace ACE.Adapter.Lifestoned
         /// <summary>
         /// Converts ACE weenie to LSD weenie
         /// </summary>
-        public static bool TryConvert(Weenie input, out global::Lifestoned.DataModel.Gdle.Weenie result, bool correctForEnumShift = false)
+        public static bool TryConvert(Weenie input, out LSDWeenie result, bool correctForEnumShift = false)
         {
             if (input.ClassId == 0)
             {
@@ -495,7 +497,7 @@ namespace ACE.Adapter.Lifestoned
 
             try
             {
-                result = new global::Lifestoned.DataModel.Gdle.Weenie();
+                result = new LSDWeenie();
 
                 result.WeenieId = input.ClassId;
 
@@ -515,19 +517,19 @@ namespace ACE.Adapter.Lifestoned
 
                 if (input.WeeniePropertiesBook != null)
                 {
-                    result.Book = new global::Lifestoned.DataModel.Gdle.Book();
+                    result.Book = new Book();
                     result.Book.MaxNumberPages = input.WeeniePropertiesBook.MaxNumPages;
                     result.Book.MaxCharactersPerPage = input.WeeniePropertiesBook.MaxNumCharsPerPage;
 
                     if (input.WeeniePropertiesBookPageData != null && input.WeeniePropertiesBookPageData.Count > 0)
                     {
-                        result.Book.Pages = new List<global::Lifestoned.DataModel.Gdle.Page>();
+                        result.Book.Pages = new List<Page>();
 
                         //uint pageId = 0;
 
                         foreach (var value in input.WeeniePropertiesBookPageData.OrderBy(p => p.PageId))
                         {
-                            result.Book.Pages.Add(new global::Lifestoned.DataModel.Gdle.Page
+                            result.Book.Pages.Add(new Page
                             {
                                  //= pageId,
 
@@ -552,44 +554,44 @@ namespace ACE.Adapter.Lifestoned
                 if (input.WeeniePropertiesAttribute != null && input.WeeniePropertiesAttribute.Count > 0)
                 {
                     if (result.Attributes == null)
-                        result.Attributes = new global::Lifestoned.DataModel.Gdle.AttributeSet();
+                        result.Attributes = new AttributeSet();
 
-                    result.Attributes.Strength = new global::Lifestoned.DataModel.Gdle.Attribute
+                    result.Attributes.Strength = new GDLE.Models.Attribute
                     {
                         Ranks = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Strength).InitLevel,
                         LevelFromCp = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Strength).LevelFromCP,
                         XpSpent = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Strength).CPSpent
                     };
 
-                    result.Attributes.Endurance = new global::Lifestoned.DataModel.Gdle.Attribute
+                    result.Attributes.Endurance = new GDLE.Models.Attribute
                     {
                         Ranks = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Endurance).InitLevel,
                         LevelFromCp = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Endurance).LevelFromCP,
                         XpSpent = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Endurance).CPSpent
                     };
 
-                    result.Attributes.Quickness = new global::Lifestoned.DataModel.Gdle.Attribute
+                    result.Attributes.Quickness = new GDLE.Models.Attribute
                     {
                         Ranks = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Quickness).InitLevel,
                         LevelFromCp = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Quickness).LevelFromCP,
                         XpSpent = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Quickness).CPSpent
                     };
 
-                    result.Attributes.Coordination = new global::Lifestoned.DataModel.Gdle.Attribute
+                    result.Attributes.Coordination = new GDLE.Models.Attribute
                     {
                         Ranks = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Coordination).InitLevel,
                         LevelFromCp = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Coordination).LevelFromCP,
                         XpSpent = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Coordination).CPSpent
                     };
 
-                    result.Attributes.Focus = new global::Lifestoned.DataModel.Gdle.Attribute
+                    result.Attributes.Focus = new GDLE.Models.Attribute
                     {
                         Ranks = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Focus).InitLevel,
                         LevelFromCp = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Focus).LevelFromCP,
                         XpSpent = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Focus).CPSpent
                     };
 
-                    result.Attributes.Self = new global::Lifestoned.DataModel.Gdle.Attribute
+                    result.Attributes.Self = new GDLE.Models.Attribute
                     {
                         Ranks = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Self).InitLevel,
                         LevelFromCp = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Self).LevelFromCP,
@@ -600,9 +602,9 @@ namespace ACE.Adapter.Lifestoned
                 if (input.WeeniePropertiesAttribute2nd != null && input.WeeniePropertiesAttribute2nd.Count > 0)
                 {
                     if (result.Attributes == null)
-                        result.Attributes = new global::Lifestoned.DataModel.Gdle.AttributeSet();
+                        result.Attributes = new AttributeSet();
 
-                    result.Attributes.Health = new global::Lifestoned.DataModel.Gdle.Vital
+                    result.Attributes.Health = new GDLE.Models.Vital
                     {
                         Ranks = input.WeeniePropertiesAttribute2nd.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute2nd.MaxHealth).InitLevel,
                         LevelFromCp = input.WeeniePropertiesAttribute2nd.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute2nd.MaxHealth).LevelFromCP,
@@ -610,7 +612,7 @@ namespace ACE.Adapter.Lifestoned
                         Current = input.WeeniePropertiesAttribute2nd.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute2nd.MaxHealth).CurrentLevel
                     };
 
-                    result.Attributes.Stamina = new global::Lifestoned.DataModel.Gdle.Vital
+                    result.Attributes.Stamina = new GDLE.Models.Vital
                     {
                         Ranks = input.WeeniePropertiesAttribute2nd.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute2nd.MaxStamina).InitLevel,
                         LevelFromCp = input.WeeniePropertiesAttribute2nd.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute2nd.MaxStamina).LevelFromCP,
@@ -618,7 +620,7 @@ namespace ACE.Adapter.Lifestoned
                         Current = input.WeeniePropertiesAttribute2nd.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute2nd.MaxStamina).CurrentLevel
                     };
 
-                    result.Attributes.Mana = new global::Lifestoned.DataModel.Gdle.Vital
+                    result.Attributes.Mana = new GDLE.Models.Vital
                     {
                         Ranks = input.WeeniePropertiesAttribute2nd.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute2nd.MaxMana).InitLevel,
                         LevelFromCp = input.WeeniePropertiesAttribute2nd.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute2nd.MaxMana).LevelFromCP,
@@ -629,21 +631,21 @@ namespace ACE.Adapter.Lifestoned
 
                 if (input.WeeniePropertiesBodyPart != null && input.WeeniePropertiesBodyPart.Count > 0)
                 {
-                    result.Body = new global::Lifestoned.DataModel.Gdle.Body();
-                    result.Body.BodyParts = new List<global::Lifestoned.DataModel.Gdle.BodyPartListing>();
+                    result.Body = new Body();
+                    result.Body.BodyParts = new List<BodyPartListing>();
 
                     foreach (var value in input.WeeniePropertiesBodyPart)
                     {
-                        result.Body.BodyParts.Add(new global::Lifestoned.DataModel.Gdle.BodyPartListing
+                        result.Body.BodyParts.Add(new BodyPartListing
                         {
                             Key = value.Key,
                             BodyPartType = (global::Lifestoned.DataModel.Shared.BodyPartType)value.Key,
-                            BodyPart = new global::Lifestoned.DataModel.Gdle.BodyPart
+                            BodyPart = new BodyPart
                             {
                                 DType = value.DType,
                                 DVal = value.DVal,
                                 DVar = value.DVar,
-                                ArmorValues = new global::Lifestoned.DataModel.Gdle.ArmorValues
+                                ArmorValues = new ArmorValues
                                 {
                                     BaseArmor = value.BaseArmor,
                                     ArmorVsSlash = value.ArmorVsSlash,
@@ -656,7 +658,7 @@ namespace ACE.Adapter.Lifestoned
                                     ArmorVsNether = value.ArmorVsNether
                                 },
                                 BH = value.BH,
-                                SD = new global::Lifestoned.DataModel.Gdle.Zones
+                                SD = new Zones
                                 {
                                     HLF = value.HLF,
                                     MLF = value.MLF,
@@ -681,21 +683,21 @@ namespace ACE.Adapter.Lifestoned
 
                 if (input.WeeniePropertiesBool != null && input.WeeniePropertiesBool.Count > 0)
                 {
-                    result.BoolStats = new List<global::Lifestoned.DataModel.Gdle.BoolStat>();
+                    result.BoolStats = new List<BoolStat>();
 
                     foreach (var value in input.WeeniePropertiesBool)
                     {
                         if (result.BoolStats.FirstOrDefault(x => x.Key == value.Type) == null)
-                            result.BoolStats.Add(new global::Lifestoned.DataModel.Gdle.BoolStat { Key = value.Type, Value = Convert.ToInt32(value.Value) });
+                            result.BoolStats.Add(new BoolStat { Key = value.Type, Value = Convert.ToInt32(value.Value) });
                     }
                 }
 
                 if (input.WeeniePropertiesCreateList != null && input.WeeniePropertiesCreateList.Count > 0)
                 {
-                    result.CreateList = new List<global::Lifestoned.DataModel.Gdle.CreateItem>();
+                    result.CreateList = new List<CreateItem>();
 
                     foreach (var value in input.WeeniePropertiesCreateList)
-                        result.CreateList.Add(new global::Lifestoned.DataModel.Gdle.CreateItem
+                        result.CreateList.Add(new CreateItem
                         {
                             WeenieClassId = value.WeenieClassId,
                             Palette = (uint)value.Palette,
@@ -708,28 +710,28 @@ namespace ACE.Adapter.Lifestoned
 
                 if (input.WeeniePropertiesDID != null && input.WeeniePropertiesDID.Count > 0)
                 {
-                    result.DidStats = new List<global::Lifestoned.DataModel.Gdle.DidStat>();
+                    result.DidStats = new List<DidStat>();
 
                     foreach (var value in input.WeeniePropertiesDID)
                     {
-                        result.DidStats.Add(new global::Lifestoned.DataModel.Gdle.DidStat { Key = value.Type, Value = value.Value });
+                        result.DidStats.Add(new DidStat { Key = value.Type, Value = value.Value });
                     }
                 }
 
                 if (input.WeeniePropertiesEmote != null && input.WeeniePropertiesEmote.Count > 0)
                 {
-                    result.EmoteTable = new List<global::Lifestoned.DataModel.Gdle.EmoteCategoryListing>();
+                    result.EmoteTable = new List<EmoteCategoryListing>();
 
                     var eorder = 0;
                     foreach (var emote in input.WeeniePropertiesEmote)
                     {
-                        var ec = new global::Lifestoned.DataModel.Gdle.EmoteCategoryListing
+                        var ec = new EmoteCategoryListing
                         {
                             EmoteCategoryId = (int)emote.Category,
-                            Emotes = new List<global::Lifestoned.DataModel.Gdle.Emote>(),
+                            Emotes = new List<Emote>(),
                         };
 
-                        var em = new global::Lifestoned.DataModel.Gdle.Emote
+                        var em = new Emote
                         {
                             SortOrder = eorder,
                             Category = emote.Category,
@@ -742,13 +744,13 @@ namespace ACE.Adapter.Lifestoned
                             Style = emote.Style,
                             SubStyle = emote.Substyle,
                             VendorType = (uint?)emote.VendorType,
-                            Actions = new List<global::Lifestoned.DataModel.Gdle.EmoteAction>()
+                            Actions = new List<EmoteAction>()
                         };
 
                         var aorder = 0;
                         foreach (var action in emote.WeeniePropertiesEmoteAction.OrderBy(e => e.Order))
                         {
-                            var ea = new global::Lifestoned.DataModel.Gdle.EmoteAction
+                            var ea = new EmoteAction
                             {
                                 SortOrder = aorder,
                                 Amount = (uint?)action.Amount,
@@ -758,15 +760,15 @@ namespace ACE.Adapter.Lifestoned
                                 Extent = action.Extent,
                                 FMax = (float?)action.MaxDbl,
                                 FMin = (float?)action.MinDbl,
-                                //Frame = new global::Lifestoned.DataModel.Gdle.Frame
+                                //Frame = new Frame
                                 //{
-                                //    Position = new global::Lifestoned.DataModel.Gdle.XYZ
+                                //    Position = new XYZ
                                 //    {
                                 //        X = action.OriginX ?? 0,
                                 //        Y = action.OriginY ?? 0,
                                 //        Z = action.OriginZ ?? 0
                                 //    },
-                                //    Rotations = new global::Lifestoned.DataModel.Gdle.Quaternion
+                                //    Rotations = new Quaternion
                                 //    {
                                 //        W = action.AnglesW ?? 0,
                                 //        X = action.AnglesX ?? 0,
@@ -775,7 +777,7 @@ namespace ACE.Adapter.Lifestoned
                                 //    }
                                 //},
                                 HeroXp64 = (ulong?)action.HeroXP64,
-                                //Item = new global::Lifestoned.DataModel.Gdle.CreateItem
+                                //Item = new CreateItem
                                 //{
                                 //    Destination = (uint?)action.DestinationType,
                                 //    Palette = (uint?)action.Palette,
@@ -790,18 +792,18 @@ namespace ACE.Adapter.Lifestoned
                                 Minimum64 = action.Min64,
                                 Message = action.Message,
                                 Motion = (uint?)action.Motion,
-                                //MPosition = new global::Lifestoned.DataModel.Gdle.Position
+                                //MPosition = new Position
                                 //{
                                 //    LandCellId = action.ObjCellId ?? 0,
-                                //    Frame = new global::Lifestoned.DataModel.Gdle.Frame
+                                //    Frame = new Frame
                                 //    {
-                                //        Position = new global::Lifestoned.DataModel.Gdle.XYZ
+                                //        Position = new XYZ
                                 //        {
                                 //            X = action.OriginX ?? 0,
                                 //            Y = action.OriginY ?? 0,
                                 //            Z = action.OriginZ ?? 0
                                 //        },
-                                //        Rotations = new global::Lifestoned.DataModel.Gdle.Quaternion
+                                //        Rotations = new Quaternion
                                 //        {
                                 //            W = action.AnglesW ?? 0,
                                 //            X = action.AnglesX ?? 0,
@@ -823,18 +825,18 @@ namespace ACE.Adapter.Lifestoned
 
                             if (action.ObjCellId.HasValue)
                             {
-                                ea.MPosition = new global::Lifestoned.DataModel.Gdle.Position
+                                ea.MPosition = new Position
                                 {
                                     LandCellId = action.ObjCellId ?? 0,
-                                    Frame = new global::Lifestoned.DataModel.Gdle.Frame
+                                    Frame = new Frame
                                     {
-                                        Position = new global::Lifestoned.DataModel.Gdle.XYZ
+                                        Position = new XYZ
                                         {
                                             X = action.OriginX ?? 0,
                                             Y = action.OriginY ?? 0,
                                             Z = action.OriginZ ?? 0
                                         },
-                                        Rotations = new global::Lifestoned.DataModel.Gdle.Quaternion
+                                        Rotations = new Quaternion
                                         {
                                             W = action.AnglesW ?? 0,
                                             X = action.AnglesX ?? 0,
@@ -846,15 +848,15 @@ namespace ACE.Adapter.Lifestoned
                             }
                             else if (action.OriginX.HasValue || action.OriginY.HasValue || action.OriginZ.HasValue || action.AnglesW.HasValue || action.AnglesX.HasValue || action.AnglesY.HasValue || action.AnglesZ.HasValue)
                             {
-                                ea.Frame = new global::Lifestoned.DataModel.Gdle.Frame
+                                ea.Frame = new Frame
                                 {
-                                    Position = new global::Lifestoned.DataModel.Gdle.XYZ
+                                    Position = new XYZ
                                     {
                                         X = action.OriginX ?? 0,
                                         Y = action.OriginY ?? 0,
                                         Z = action.OriginZ ?? 0
                                     },
-                                    Rotations = new global::Lifestoned.DataModel.Gdle.Quaternion
+                                    Rotations = new Quaternion
                                     {
                                         W = action.AnglesW ?? 0,
                                         X = action.AnglesX ?? 0,
@@ -866,7 +868,7 @@ namespace ACE.Adapter.Lifestoned
 
                             if (action.DestinationType.HasValue)
                             {
-                                ea.Item = new global::Lifestoned.DataModel.Gdle.CreateItem
+                                ea.Item = new CreateItem
                                 {
                                     Destination = (uint?)action.DestinationType,
                                     Palette = (uint?)action.Palette,
@@ -902,17 +904,17 @@ namespace ACE.Adapter.Lifestoned
                     foreach (var value in input.WeeniePropertiesFloat)
                     {
                         if (result.FloatStats.FirstOrDefault(x => x.Key == value.Type) == null)
-                            result.FloatStats.Add(new global::Lifestoned.DataModel.Gdle.FloatStat { Key = value.Type, Value = (float)value.Value });
+                            result.FloatStats.Add(new FloatStat { Key = value.Type, Value = (float)value.Value });
                     }
                 }
 
                 if (input.WeeniePropertiesGenerator != null && input.WeeniePropertiesGenerator.Count > 0)
                 {
-                    result.GeneratorTable = new List<global::Lifestoned.DataModel.Gdle.GeneratorTable>();
+                    result.GeneratorTable = new List<GeneratorTable>();
                     uint slot = 0;
                     foreach (var value in input.WeeniePropertiesGenerator)
                     {
-                        result.GeneratorTable.Add(new global::Lifestoned.DataModel.Gdle.GeneratorTable
+                        result.GeneratorTable.Add(new GeneratorTable
                         {
                             Slot = slot,
                             Probability = value.Probability,
@@ -931,15 +933,15 @@ namespace ACE.Adapter.Lifestoned
                             Shade = value.Shade ?? 0,
 
                             ObjectCell = value.ObjCellId ?? 0,
-                            Frame = new global::Lifestoned.DataModel.Gdle.Frame
+                            Frame = new Frame
                             {
-                                Position = new global::Lifestoned.DataModel.Gdle.XYZ
+                                Position = new XYZ
                                 {
                                     X = value.OriginX ?? 0,
                                     Y = value.OriginY ?? 0,
                                     Z = value.OriginZ ?? 0
                                 },
-                                Rotations = new global::Lifestoned.DataModel.Gdle.Quaternion
+                                Rotations = new Quaternion
                                 {
                                     W = value.AnglesW ?? 0,
                                     X = value.AnglesX ?? 0,
@@ -954,34 +956,34 @@ namespace ACE.Adapter.Lifestoned
 
                 if (input.WeeniePropertiesIID != null && input.WeeniePropertiesIID.Count > 0)
                 {
-                    result.IidStats = new List<global::Lifestoned.DataModel.Gdle.IidStat>();
+                    result.IidStats = new List<IidStat>();
 
                     foreach (var value in input.WeeniePropertiesIID)
                     {
                         if (result.IidStats.FirstOrDefault(x => x.Key == value.Type) == null)
-                            result.IidStats.Add(new global::Lifestoned.DataModel.Gdle.IidStat { Key = value.Type, Value = (int)value.Value });
+                            result.IidStats.Add(new IidStat { Key = value.Type, Value = (int)value.Value });
                     }
                 }
 
                 if (input.WeeniePropertiesInt != null && input.WeeniePropertiesInt.Count > 0)
                 {
-                    result.IntStats = new List<global::Lifestoned.DataModel.Gdle.IntStat>();
+                    result.IntStats = new List<IntStat>();
 
                     foreach (var value in input.WeeniePropertiesInt)
                     {
                         if (result.IntStats.FirstOrDefault(x => x.Key == value.Type) == null)
-                            result.IntStats.Add(new global::Lifestoned.DataModel.Gdle.IntStat { Key = value.Type, Value = value.Value });
+                            result.IntStats.Add(new IntStat { Key = value.Type, Value = value.Value });
                     }
                 }
 
                 if (input.WeeniePropertiesInt64 != null && input.WeeniePropertiesInt64.Count > 0)
                 {
-                    result.Int64Stats = new List<global::Lifestoned.DataModel.Gdle.Int64Stat>();
+                    result.Int64Stats = new List<Int64Stat>();
 
                     foreach (var value in input.WeeniePropertiesInt64)
                     {
                         if (result.Int64Stats.FirstOrDefault(x => x.Key == value.Type) == null)
-                            result.Int64Stats.Add(new global::Lifestoned.DataModel.Gdle.Int64Stat { Key = value.Type, Value = value.Value });
+                            result.Int64Stats.Add(new Int64Stat { Key = value.Type, Value = value.Value });
                     }
                 }
 
@@ -989,26 +991,26 @@ namespace ACE.Adapter.Lifestoned
 
                 if (input.WeeniePropertiesPosition != null && input.WeeniePropertiesPosition.Count > 0)
                 {
-                    result.Positions = new List<global::Lifestoned.DataModel.Gdle.PositionListing>();
+                    result.Positions = new List<PositionListing>();
 
                     foreach (var value in input.WeeniePropertiesPosition)
                     {
                         if (result.Positions.FirstOrDefault(x => x.PositionType == value.PositionType) == null)
-                            result.Positions.Add(new global::Lifestoned.DataModel.Gdle.PositionListing
+                            result.Positions.Add(new PositionListing
                             {
                                 PositionType = value.PositionType,
-                                Position = new global::Lifestoned.DataModel.Gdle.Position
+                                Position = new Position
                                 {
                                     LandCellId = value.ObjCellId,
-                                    Frame = new global::Lifestoned.DataModel.Gdle.Frame
+                                    Frame = new Frame
                                     {
-                                        Position = new global::Lifestoned.DataModel.Gdle.XYZ
+                                        Position = new XYZ
                                         {
                                             X = value.OriginX,
                                             Y = value.OriginY,
                                             Z = value.OriginZ,
                                         },
-                                        Rotations = new global::Lifestoned.DataModel.Gdle.Quaternion
+                                        Rotations = new Quaternion
                                         {
                                             W = value.AnglesW,
                                             X = value.AnglesX,
@@ -1023,15 +1025,15 @@ namespace ACE.Adapter.Lifestoned
 
                 if (input.WeeniePropertiesSkill != null && input.WeeniePropertiesSkill.Count > 0)
                 {
-                    result.Skills = new List<global::Lifestoned.DataModel.Gdle.SkillListing>();
+                    result.Skills = new List<SkillListing>();
 
                     foreach (var value in input.WeeniePropertiesSkill)
                     {
                         if (result.Skills.FirstOrDefault(x => x.SkillId == value.Type) == null)
-                            result.Skills.Add(new global::Lifestoned.DataModel.Gdle.SkillListing
+                            result.Skills.Add(new SkillListing
                             {
                                 SkillId = value.Type,
-                                Skill = new global::Lifestoned.DataModel.Gdle.Skill
+                                Skill = new GDLE.Models.Skill
                                 {
                                     LevelFromPp = value.LevelFromPP,
                                     TrainedLevel = (int)value.SAC,
@@ -1046,15 +1048,15 @@ namespace ACE.Adapter.Lifestoned
 
                 if (input.WeeniePropertiesSpellBook != null && input.WeeniePropertiesSpellBook.Count > 0)
                 {
-                    result.Spells = new List<global::Lifestoned.DataModel.Gdle.SpellbookEntry>();
+                    result.Spells = new List<SpellbookEntry>();
 
                     foreach (var value in input.WeeniePropertiesSpellBook)
                     {
                         if (result.Spells.FirstOrDefault(x => x.SpellId == value.Spell) == null)
-                            result.Spells.Add(new global::Lifestoned.DataModel.Gdle.SpellbookEntry
+                            result.Spells.Add(new SpellbookEntry
                             {
                                 SpellId = value.Spell,
-                                Stats = new global::Lifestoned.DataModel.Gdle.SpellCastingStats
+                                Stats = new SpellCastingStats
                                 {
                                     CastingChance = value.Probability
                                 }
@@ -1064,19 +1066,19 @@ namespace ACE.Adapter.Lifestoned
 
                 if (input.WeeniePropertiesString != null && input.WeeniePropertiesString.Count > 0)
                 {
-                    result.StringStats = new List<global::Lifestoned.DataModel.Gdle.StringStat>();
+                    result.StringStats = new List<StringStat>();
 
                     foreach (var value in input.WeeniePropertiesString)
                     {
                         if (result.StringStats.FirstOrDefault(x => x.Key == value.Type) == null)
-                            result.StringStats.Add(new global::Lifestoned.DataModel.Gdle.StringStat { Key = value.Type, Value = value.Value });
+                            result.StringStats.Add(new StringStat { Key = value.Type, Value = value.Value });
                     }
                 }
 
                 // WeeniePropertiesTextureMap
 
-                result.Changelog = new List<global::Lifestoned.DataModel.Shared.ChangelogEntry>();
-                result.Changelog.Add(new global::Lifestoned.DataModel.Shared.ChangelogEntry
+                result.Changelog = new List<ChangelogEntry>();
+                result.Changelog.Add(new ChangelogEntry
                 {
                     Author = "ACE.Adapter",
                     Comment = "Weenie exported from ACEmulator world database using ACE.Adapter",
@@ -1102,7 +1104,7 @@ namespace ACE.Adapter.Lifestoned
                 {
                     if (TryConvert(weenie, out var result))
                     {
-                        results.Add(JsonConvert.SerializeObject(result));
+                        results.Add(JsonSerializer.Serialize(result, SerializerSettings));
                     }
                 }
 
@@ -1115,18 +1117,16 @@ namespace ACE.Adapter.Lifestoned
             }
         }
 
-        public static JsonSerializerSettings SerializerSettings = new JsonSerializerSettings();
+        public static JsonSerializerOptions SerializerSettings = new JsonSerializerOptions();
 
         static LifestonedConverter()
         {
-            //SerializerSettings.Converters.Add(new JavaScriptDateTimeConverter());
-            SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-            SerializerSettings.DateFormatHandling = DateFormatHandling.IsoDateFormat;
-
-            SerializerSettings.Formatting = Formatting.Indented;
+            SerializerSettings.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+            SerializerSettings.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+            SerializerSettings.WriteIndented = true;
         }
 
-        public static bool TryConvertACEWeenieToLSDJSON(Weenie weenie, out string result, out global::Lifestoned.DataModel.Gdle.Weenie lsdWeenie)
+        public static bool TryConvertACEWeenieToLSDJSON(Weenie weenie, out string result, out LSDWeenie lsdWeenie)
         {
             try
             {
@@ -1134,7 +1134,7 @@ namespace ACE.Adapter.Lifestoned
                 {
                     try
                     {
-                        result = JsonConvert.SerializeObject(lsdWeenie, SerializerSettings);
+                        result = JsonSerializer.Serialize(lsdWeenie, SerializerSettings);
                     }
                     catch
                     {

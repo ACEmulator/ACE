@@ -17,10 +17,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\ACE.Database\ACE.Database.csproj" />
       <ProjectReference Include="..\ACE.Entity\ACE.Entity.csproj" />
     </ItemGroup>
@@ -36,6 +32,10 @@
         <Pack>True</Pack>
         <PackagePath></PackagePath>
       </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="System.Text.Json" Version="6.0.9" />
     </ItemGroup>
 
 </Project>
