@@ -68,22 +68,22 @@ namespace ACE.Adapter.GDLE
 
                 // fix this ***, write it properly.
                 var pos = new Models.Position();
-                pos.objcell_id = lbi.ObjCellId;
+                pos.LandCellId = lbi.ObjCellId;
 
                 var frame = new Models.Frame();
 
-                frame.origin = new Models.Origin();
-                frame.origin.x = lbi.OriginX;
-                frame.origin.y = lbi.OriginY;
-                frame.origin.z = lbi.OriginZ;
+                frame.Position = new Models.XYZ();
+                frame.Position.X = lbi.OriginX;
+                frame.Position.Y = lbi.OriginY;
+                frame.Position.Z = lbi.OriginZ;
 
-                frame.angles = new Models.Angles();
-                frame.angles.w = lbi.AnglesW;
-                frame.angles.x = lbi.AnglesX;
-                frame.angles.y = lbi.AnglesY;
-                frame.angles.z = lbi.AnglesZ;
+                frame.Rotations = new Models.Quaternion();
+                frame.Rotations.W = lbi.AnglesW;
+                frame.Rotations.X = lbi.AnglesX;
+                frame.Rotations.Y = lbi.AnglesY;
+                frame.Rotations.Z = lbi.AnglesZ;
 
-                pos.frame = frame;
+                pos.Frame = frame;
                 weenie.pos = pos;
 
                 result.value.weenies.Add(weenie);
@@ -139,14 +139,14 @@ namespace ACE.Adapter.GDLE
                     //result.Landblock = input.key; ACE uses a virtual column here of (result.ObjCellId >> 16)
                     result.WeenieClassId = value.wcid;
 
-                    result.ObjCellId = value.pos.objcell_id;
-                    result.OriginX = value.pos.frame.origin.x;
-                    result.OriginY = value.pos.frame.origin.y;
-                    result.OriginZ = value.pos.frame.origin.z;
-                    result.AnglesW = value.pos.frame.angles.w;
-                    result.AnglesX = value.pos.frame.angles.x;
-                    result.AnglesY = value.pos.frame.angles.y;
-                    result.AnglesZ = value.pos.frame.angles.z;
+                    result.ObjCellId = value.pos.LandCellId;
+                    result.OriginX = value.pos.Frame.Position.X;
+                    result.OriginY = value.pos.Frame.Position.Y;
+                    result.OriginZ = value.pos.Frame.Position.Z;
+                    result.AnglesW = value.pos.Frame.Rotations.W;
+                    result.AnglesX = value.pos.Frame.Rotations.X;
+                    result.AnglesY = value.pos.Frame.Rotations.Y;
+                    result.AnglesZ = value.pos.Frame.Rotations.Z;
 
                     results.Add(result);
                 }
@@ -352,16 +352,16 @@ namespace ACE.Adapter.GDLE
                 // PortalSending, FellowPortalSending
                 if (input.MetaSpell.Spell.Position != null)
                 {
-                    result.PositionObjCellId = input.MetaSpell.Spell.Position.objcell_id;
+                    result.PositionObjCellId = input.MetaSpell.Spell.Position.LandCellId;
 
-                    result.PositionOriginX = input.MetaSpell.Spell.Position.frame.origin.x;
-                    result.PositionOriginY = input.MetaSpell.Spell.Position.frame.origin.y;
-                    result.PositionOriginZ = input.MetaSpell.Spell.Position.frame.origin.z;
+                    result.PositionOriginX = input.MetaSpell.Spell.Position.Frame.Position.X;
+                    result.PositionOriginY = input.MetaSpell.Spell.Position.Frame.Position.Y;
+                    result.PositionOriginZ = input.MetaSpell.Spell.Position.Frame.Position.Z;
 
-                    result.PositionAnglesW = input.MetaSpell.Spell.Position.frame.angles.w;
-                    result.PositionAnglesX = input.MetaSpell.Spell.Position.frame.angles.x;
-                    result.PositionAnglesY = input.MetaSpell.Spell.Position.frame.angles.y;
-                    result.PositionAnglesZ = input.MetaSpell.Spell.Position.frame.angles.z;
+                    result.PositionAnglesW = input.MetaSpell.Spell.Position.Frame.Rotations.W;
+                    result.PositionAnglesX = input.MetaSpell.Spell.Position.Frame.Rotations.X;
+                    result.PositionAnglesY = input.MetaSpell.Spell.Position.Frame.Rotations.Y;
+                    result.PositionAnglesZ = input.MetaSpell.Spell.Position.Frame.Rotations.Z;
                 }
 
                 // Dispel, FellowDispel

@@ -126,7 +126,7 @@ namespace ACE.Server.WorldObjects.Entity
 
         public uint GetMaxValue(bool enchanted)
         {
-            var attr = AttributeFormula.GetFormula(creature, Vital, true);
+            var attr = AttributeFormula.GetFormula(creature, Vital, enchanted);
 
             uint total = StartingValue + Ranks + attr;
 

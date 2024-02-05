@@ -1,14 +1,14 @@
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace ACE.Adapter.GDLE.Models
 {
     public class MetaSpell
     {
-        [JsonProperty("sp_type")]
+        [JsonPropertyName("sp_type")]
         public int Type { get; set; }
 
-        [JsonProperty("spell")]
+        [JsonPropertyName("spell")]
         public Spell Spell { get; set; }
     }
 }

@@ -1,21 +1,21 @@
 
-using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace ACE.Adapter.GDLE.Models
 {
     public class Region
     {
-        [JsonProperty("encounterMap")]
+        [JsonPropertyName("encounterMap")]
         public List<uint> EncounterMap { get; set; }
 
-        [JsonProperty("encounters")]
+        [JsonPropertyName("encounters")]
         public Encounter[] Encounters { get; set; }
 
-        [JsonProperty("tableCount")]
+        [JsonPropertyName("tableCount")]
         public int TableCount { get; set; }
 
-        [JsonProperty("tableSize")]
+        [JsonPropertyName("tableSize")]
         public int TableSize { get; set; }
     }
 }

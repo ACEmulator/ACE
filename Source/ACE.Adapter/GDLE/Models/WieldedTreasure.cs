@@ -1,59 +1,59 @@
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace ACE.Adapter.GDLE.Models
 {
     public class WieldedTreasure
     {
-        [JsonProperty("continuesPreviousSet")]
+        [JsonPropertyName("continuesPreviousSet")]
         public bool ContinuesPreviousSet { get; set; }
 
-        [JsonProperty("setStart")]
+        [JsonPropertyName("setStart")]
         public bool SetStart { get; set; }
 
-        [JsonProperty("hasSubSet")]
+        [JsonPropertyName("hasSubSet")]
         public bool HasSubSet { get; set; }
 
-        [JsonProperty("probability")]
+        [JsonPropertyName("probability")]
         public float Probability { get; set; }
 
-        [JsonProperty("stackSize")]
+        [JsonPropertyName("stackSize")]
         public int StackSize { get; set; }
 
-        [JsonProperty("stackSizeVariance")]
+        [JsonPropertyName("stackSizeVariance")]
         public float StackSizeVariance { get; set; }
 
-        [JsonProperty("paletteId")]
+        [JsonPropertyName("paletteId")]
         public uint PaletteId { get; set; }
 
-        [JsonProperty("shade")]
+        [JsonPropertyName("shade")]
         public float Shade { get; set; }
 
-        [JsonProperty("unknown1")]
+        [JsonPropertyName("unknown1")]
         public uint Unknown1 { get; set; }
 
-        [JsonProperty("unknown3")]
+        [JsonPropertyName("unknown3")]
         public uint Unknown3 { get; set; }
 
-        [JsonProperty("unknown4")]
+        [JsonPropertyName("unknown4")]
         public uint Unknown4 { get; set; }
 
-        [JsonProperty("unknown5")]
+        [JsonPropertyName("unknown5")]
         public uint Unknown5 { get; set; }
 
-        [JsonProperty("unknown9")]
+        [JsonPropertyName("unknown9")]
         public uint Unknown9 { get; set; }
 
-        [JsonProperty("unknown10")]
+        [JsonPropertyName("unknown10")]
         public uint Unknown10 { get; set; }
 
-        [JsonProperty("unknown11")]
+        [JsonPropertyName("unknown11")]
         public uint Unknown11 { get; set; }
 
-        [JsonProperty("unknown12")]
+        [JsonPropertyName("unknown12")]
         public uint Unknown12 { get; set; }
 
-        [JsonProperty("weenieClassId")]
+        [JsonPropertyName("weenieClassId")]
         public uint WeenieClassId { get; set; }
     }
 }

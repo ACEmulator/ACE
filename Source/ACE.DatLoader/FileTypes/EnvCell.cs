@@ -9,7 +9,7 @@ namespace ACE.DatLoader.FileTypes
 {
     /// <summary>
     /// This reads an "indoor" cell from the client_cell.dat. This is mostly dungeons, but can also be a building interior.
-    /// An EnvCell is designated by starting 0x0100 (whereas all landcells are in the 0x0001 - 0x003E range.
+    /// An EnvCell is designated by starting 0x0100 (whereas all landcells are in the 0x0001 - 0x0040 range.
     /// <para />
     /// The fileId is the full int32/dword landblock value as reported by the @loc command (e.g. 0x12345678)
     /// </summary>

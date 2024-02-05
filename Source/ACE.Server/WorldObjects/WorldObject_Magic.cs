@@ -283,7 +283,7 @@ namespace ACE.Server.WorldObjects
                     if (itemCaster != null && (equip || itemCaster is Gem || itemCaster is Food))
                         CreateEnchantment(targetCreature ?? target, itemCaster, itemCaster, spell, equip);
                     else
-                        CreateEnchantment(targetCreature ?? target, this, this, spell, equip);
+                        CreateEnchantment(targetCreature ?? target, this, weapon, spell, equip, isWeaponSpell: isWeaponSpell);
 
                     break;
 
@@ -370,7 +370,7 @@ namespace ACE.Server.WorldObjects
         /// Handles casting SpellType.Enchantment / FellowEnchantment spells
         /// this is also called if SpellType.EnchantmentProjectile successfully hits
         /// </summary>
-        public void CreateEnchantment(WorldObject target, WorldObject caster, WorldObject weapon, Spell spell, bool equip = false, bool fromProc = false)
+        public void CreateEnchantment(WorldObject target, WorldObject caster, WorldObject weapon, Spell spell, bool equip = false, bool fromProc = false, bool isWeaponSpell = false)
         {
             // weird itemCaster -> caster collapsing going on here -- fixme
 
@@ -403,7 +403,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // create enchantment
-            var addResult = target.EnchantmentManager.Add(spell, caster, weapon, equip);
+            var addResult = target.EnchantmentManager.Add(spell, caster, weapon, equip, isWeaponSpell);
 
             // build message
             var suffix = "";

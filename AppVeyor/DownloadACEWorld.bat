@@ -25,7 +25,7 @@ REM echo %sqlfile%
 
 appveyor DownloadFile %downloadfile%
 7z x %zipfile%
-"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < %sqlfile%
+"C:\Program Files\MySql\MySQL Server 8.0\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < %sqlfile%
 
 del %zipfile%
 del %sqlfile%

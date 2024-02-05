@@ -1,20 +1,19 @@
-
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace ACE.Adapter.GDLE.Models
 {
     public class CreateOffset
     {
-        [JsonProperty("x")]
+        [JsonPropertyName("x")]
         public double X { get; set; }
 
-        [JsonProperty("y")]
+        [JsonPropertyName("y")]
         public double Y { get; set; }
 
-        [JsonProperty("z")]
+        [JsonPropertyName("z")]
         public double Z { get; set; }
 
-        [JsonProperty("w", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("w")]
         public double? W { get; set; }
     }
 }

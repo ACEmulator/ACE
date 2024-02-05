@@ -210,7 +210,7 @@ namespace ACE.Server.WorldObjects
         {
             base.Close(player);
 
-            if (VictimId == null)
+            /*if (VictimId == null)
                 return;
 
             var victimGuid = new ObjectGuid(VictimId.Value);
@@ -228,7 +228,9 @@ namespace ACE.Server.WorldObjects
                 // player corpses -- after corpse owner or killer loots, becomes open to anyone?
                 if (player != null && (player.Guid == killerGuid || player.Guid == victimGuid))
                     IsLooted = true;
-            }
+            }*/
+
+            IsLooted = true;
         }
 
         public bool CorpseGeneratedRare
