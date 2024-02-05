@@ -9,7 +9,7 @@ namespace ACE.Common
     {
         /// <summary>
         /// Purge characters that have been deleted longer than PurgeDeletedCharactersDays
-        /// These characters, and their associated biotas, will be deleted permanantly!
+        /// These characters, and their associated biotas, will be deleted permanently!
         /// </summary>
         public bool PurgeDeletedCharacters { get; set; } = false;
 
@@ -27,7 +27,7 @@ namespace ACE.Common
 
         /// <summary>
         /// Purge biota that have been deleted longer than PurgeReleasedBiotasDays
-        /// These biota will be deleted permanantly!
+        /// These biota will be deleted permanently!
         /// </summary>
         public bool PurgeReleasedBiotas { get; set; } = false;
 
