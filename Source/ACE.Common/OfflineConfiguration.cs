@@ -8,7 +8,7 @@ namespace ACE.Common
     public class OfflineConfiguration
     {
         /// <summary>
-        /// Purge characters that have been deleted longer than PruneDeletedCharactersDays
+        /// Purge characters that have been deleted longer than PurgeDeletedCharactersDays
         /// These characters, and their associated biotas, will be deleted permanantly!
         /// </summary>
         public bool PurgeDeletedCharacters { get; set; } = false;
@@ -25,12 +25,15 @@ namespace ACE.Common
         /// </summary>
         public bool PurgeOrphanedBiotas { get; set; } = false;
 
-        [System.ComponentModel.DefaultValue(false)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public bool PurgeReleasedBiotas { get; set; }
+        /// <summary>
+        /// Purge biota that have been deleted longer than PurgeReleasedBiotasDays
+        /// These biota will be deleted permanantly!
+        /// </summary>
+        public bool PurgeReleasedBiotas { get; set; } = false;
 
-        [System.ComponentModel.DefaultValue(30)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        /// <summary>
+        /// Number of days a biota must have been deleted for before eligible for purging
+        /// </summary>
         public int PurgeReleasedBiotasDays { get; set; } = 30;
 
         /// <summary>
