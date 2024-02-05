@@ -126,11 +126,11 @@ namespace ACE.Database
         }
 
 
-        public void SaveBiotasInParallel(IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback)
+        public void SaveBiotasInParallel(IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback, bool doNotAddToCache = false)
         {
             _queue.Add(new Task(() =>
             {
-                var result = BaseDatabase.SaveBiotasInParallel(biotas);
+                var result = BaseDatabase.SaveBiotasInParallel(biotas, doNotAddToCache);
                 callback?.Invoke(result);
             }));
         }

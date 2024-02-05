@@ -40,7 +40,7 @@ ENTRYPOINT ["dotnet", "ACE.Server.dll"]
 
 # ports and volumes
 EXPOSE 9000-9001/udp
-VOLUME /ace/Config /ace/Content /ace/Dats /ace/Logs
+VOLUME /ace/Config /ace/Content /ace/Dats /ace/Logs /ace/Mods
 
 # health check
 HEALTHCHECK --start-period=5m --interval=1m --timeout=3s \
