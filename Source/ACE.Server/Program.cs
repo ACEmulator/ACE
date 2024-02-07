@@ -228,8 +228,13 @@ namespace ACE.Server
                 Environment.Exit(0);
             }
 
-            log.Info("Initializing Metrics...");
-            InitMetrics();
+            if (ConfigManager.Config.Metrics.EnableMetricsServer)
+            {
+                log.Info("Initializing Metrics Server...");
+                InitMetrics();
+            }
+            else
+                log.Info("Metrics Server Disabled...");
 
             log.Info("Initializing ServerManager...");
             ServerManager.Initialize();

@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
-
+using ACE.Common;
 using ACE.Database;
 using ACE.Entity;
 using ACE.Server.Managers;
@@ -127,7 +127,10 @@ namespace ACE.Server
             // https://github.com/prometheus-net/prometheus-net
             Metrics.DefaultRegistry.AddBeforeCollectCallback(MetricsAddBeforeCollectCallback);
 
-            metricServer = new MetricServer(hostname: "127.0.0.1", port: 9200); // todo make this configurable
+            metricServer = new MetricServer(hostname: ConfigManager.Config.Metrics.Host,
+                                            port: ConfigManager.Config.Metrics.Port,
+                                            url: ConfigManager.Config.Metrics.Host,
+                                            useHttps: ConfigManager.Config.Metrics.UseHTTPs);
             metricServer.Start();
 
             // https://github.com/djluck/prometheus-net.DotNetRuntime
