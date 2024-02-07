@@ -343,9 +343,6 @@ namespace ACE.Server
             {
                 WorldManager.Open(null);
             }
-
-            //log.Info("Initializing Metrics...");
-            //InitMetrics();
         }
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
