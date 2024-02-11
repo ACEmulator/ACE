@@ -134,6 +134,30 @@ namespace ACE.Server.Network
         }
 
         /// <summary>
+        /// Enequeues a GameMessage for sending to this client.
+        /// This may be called from many threads.
+        /// </summary>
+        /// <param name="messages">One or more GameMessages to send</param>
+        public void EnqueueSend(IEnumerable<GameMessage> messages)
+        {
+            if (isReleased) // Session has been removed
+                return;
+
+            foreach (var message in messages)
+            {
+                var grp = message.Group;
+                var currentBundleLock = currentBundleLocks[(int)grp];
+                lock (currentBundleLock)
+                {
+                    var currentBundle = currentBundles[(int)grp];
+                    currentBundle.EncryptedChecksum = true;
+                    packetLog.DebugFormat("[{0}] Enqueuing Message {1}", session.LoggingIdentifier, message.Opcode);
+                    currentBundle.Enqueue(message);
+                }
+            }
+        }
+
+        /// <summary>
         /// Enqueues a ServerPacket for sending to this client.
         /// Currently this is only used publicly once during login.  If that changes it's thread safety should be re
         /// </summary>
