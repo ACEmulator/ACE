@@ -239,7 +239,7 @@
     <PackageReference Include="Log4Net.Async.Standard" Version="3.1.0" />
     <PackageReference Include="McMaster.NETCore.Plugins" Version="1.4.0" />
     <PackageReference Include="MySqlConnector" Version="2.3.5" />
-    <PackageReference Include="prometheus-net" Version="8.2.1" />
+    <PackageReference Include="prometheus-net" Version="7.0.0" />
     <PackageReference Include="prometheus-net.DotNetRuntime" Version="4.4.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" />
   </ItemGroup>
