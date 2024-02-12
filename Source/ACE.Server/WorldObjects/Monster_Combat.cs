@@ -424,8 +424,27 @@ namespace ACE.Server.WorldObjects
             {
                 var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
 
-                bpTable = new BodyPartTable(weenie);
-                BPTableCache[wcid] = bpTable;
+                /* bpTable = new BodyPartTable(weenie);
+                BPTableCache[wcid] = bpTable; */
+
+                if (weenie == null)
+                {
+                    // should never happen?
+                    log.Error($"Monster_Combat.GetBodyParts({wcid}) - unknown wcid");
+                    return null;
+                }
+
+                try
+                {
+                    bpTable = new BodyPartTable(weenie);
+                }
+                catch (Exception e)
+                {
+                    log.Error(e);
+                    log.Error($"Monster_Combat.GetBodyParts({wcid}) - bad data for wcid {wcid}");
+                    return null;
+                }
+		        BPTableCache[wcid] = bpTable;
             }
             return bpTable;
         }
