@@ -305,6 +305,7 @@ namespace ACE.Server.WorldObjects
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
             {
+                /* OLD METHOD
                 var movementData = new MovementData(this, CurrentMotionState).Serialize();
 
                 writer.Write((uint)movementData.Length);
@@ -312,6 +313,27 @@ namespace ACE.Server.WorldObjects
                 if (movementData.Length > 0)
                 {
                     writer.Write(movementData);
+                    writer.Write(Convert.ToUInt32(CurrentMotionState.IsAutonomous));
+                }
+                */
+
+                var movementData = new MovementData(this, CurrentMotionState);
+
+                // We'll come back to here to write the length
+                var preWritePosition = writer.BaseStream.Position;
+                writer.Write((uint)0);
+
+                writer.Write(movementData, false);
+
+                var postWritePosition = writer.BaseStream.Position;
+
+                if (preWritePosition + 4 != postWritePosition)
+                {
+                    // Go back and write the length
+                    writer.BaseStream.Position = preWritePosition;
+                    writer.Write((uint)(postWritePosition - preWritePosition - 4));
+
+                    writer.BaseStream.Position = postWritePosition;
                     writer.Write(Convert.ToUInt32(CurrentMotionState.IsAutonomous));
                 }
             }
