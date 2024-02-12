@@ -1991,6 +1991,9 @@ namespace ACE.Server.WorldObjects.Managers
 
         public void OnDeath(DamageHistoryInfo lastDamagerInfo)
         {
+            if (GetEmoteSet(EmoteCategory.Death) == null)
+                return;
+            
             IsBusy = false;
 
             var lastDamager = lastDamagerInfo?.TryGetPetOwnerOrAttacker();
