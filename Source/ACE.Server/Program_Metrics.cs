@@ -129,7 +129,7 @@ namespace ACE.Server
 
             metricServer = new MetricServer(hostname: ConfigManager.Config.Metrics.Host,
                                             port: ConfigManager.Config.Metrics.Port,
-                                            url: ConfigManager.Config.Metrics.Host,
+                                            url: ConfigManager.Config.Metrics.Url,
                                             useHttps: ConfigManager.Config.Metrics.UseHTTPs);
             metricServer.Start();
 
