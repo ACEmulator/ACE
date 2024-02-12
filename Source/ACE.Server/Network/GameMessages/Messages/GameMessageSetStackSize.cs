@@ -7,7 +7,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessageSetStackSize : GameMessage
     {
         public GameMessageSetStackSize(WorldObject worldObject)
-            : base(GameMessageOpcode.SetStackSize, GameMessageGroup.UIQueue)
+            : base(GameMessageOpcode.SetStackSize, GameMessageGroup.UIQueue, 17)
         {
             Writer.Write(worldObject.Sequences.GetNextSequence(SequenceType.UpdatePropertyInt, PropertyInt.StackSize));
             Writer.WriteGuid(worldObject.Guid);

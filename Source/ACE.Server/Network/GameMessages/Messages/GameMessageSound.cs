@@ -6,7 +6,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessageSound : GameMessage
     {
         public GameMessageSound(ObjectGuid guid, Sound soundId, float volume = 1.0f)
-            : base(GameMessageOpcode.Sound, GameMessageGroup.SmartboxQueue)
+            : base(GameMessageOpcode.Sound, GameMessageGroup.SmartboxQueue, 16)
         {
             Writer.WriteGuid(guid);
             Writer.Write((uint)soundId);
