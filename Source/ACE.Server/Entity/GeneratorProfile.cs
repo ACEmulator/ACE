@@ -176,7 +176,7 @@ namespace ACE.Server.Entity
             {
                 /*if (MaxObjectsSpawned)
                 {
-                    log.Debug($"{_generator.Name}.Enqueue({numObjects}): max objects reached");
+                    log.DebugFormat($"{_generator.Name}.Enqueue({numObjects}): max objects reached");
                     break;
                 }*/
                 SpawnQueue.Add(GetSpawnTime());
@@ -275,7 +275,7 @@ namespace ACE.Server.Entity
 
             foreach (var obj in objects)
             {
-                //log.Debug($"{_generator.Name}.Spawn({obj.Name})");
+                //log.DebugFormat($"{_generator.Name}.Spawn({obj.Name})");
 
                 obj.Generator = Generator;
                 obj.GeneratorId = Generator.Guid.Full;
@@ -305,7 +305,7 @@ namespace ACE.Server.Entity
                 // This object still may be returned in the spawned collection if FirstSpawn is true. This is to prevent retry spam.
                 if (!success)
                 {
-                    log.Debug($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} {Generator.Name}.Spawn(): failed to spawn {obj.Name} (0x{obj.Guid}:{obj.WeenieClassId}) from profile {LinkId} at {RegenLocationType}{(obj.Location != null ? $"\n Gen LOC: {Generator.Location?.ToLOCString()}\n Obj LOC: {obj.Location.ToLOCString()}" : "")}");
+                    log.DebugFormat($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} {Generator.Name}.Spawn(): failed to spawn {obj.Name} (0x{obj.Guid}:{obj.WeenieClassId}) from profile {LinkId} at {RegenLocationType}{(obj.Location != null ? $"\n Gen LOC: {Generator.Location?.ToLOCString()}\n Obj LOC: {obj.Location.ToLOCString()}" : "")}");
                     obj.Destroy();
                 }
             }
@@ -417,7 +417,7 @@ namespace ACE.Server.Entity
         public bool Spawn_Default(WorldObject obj)
         {
             // default location handler?
-            //log.Debug($"{_generator.Name}.Spawn_Default({obj.Name}): default handler for RegenLocationType {RegenLocationType}");
+            //log.DebugFormat($"{_generator.Name}.Spawn_Default({obj.Name}): default handler for RegenLocationType {RegenLocationType}");
 
             obj.Location = new ACE.Entity.Position(Generator.Location);
 
@@ -428,7 +428,7 @@ namespace ACE.Server.Entity
         {
             if (obj.Location == null || obj.Location.Landblock != Generator.Location.Landblock)
             {
-                //log.Debug($"{_generator.Name}.VerifyLandblock({obj.Name}) - spawn location is invalid landblock");
+                //log.DebugFormat($"{_generator.Name}.VerifyLandblock({obj.Name}) - spawn location is invalid landblock");
                 return false;
             }
             return true;
@@ -438,7 +438,7 @@ namespace ACE.Server.Entity
         {
             if (!obj.Location.Indoors && !obj.Location.IsWalkable() && !VerifyWalkableSlopeExcludedLandblocks.Contains(obj.Location.LandblockId.Landblock))
             {
-                //log.Debug($"{_generator.Name}.VerifyWalkableSlope({obj.Name}) - spawn location is unwalkable slope");
+                //log.DebugFormat($"{_generator.Name}.VerifyWalkableSlope({obj.Name}) - spawn location is unwalkable slope");
                 return false;
             }
             return true;
@@ -469,7 +469,7 @@ namespace ACE.Server.Entity
             if (deathTreasure != null)
             {
                 // TODO: get randomly generated death treasure from LootGenerationFactory
-                //log.Debug($"{_generator.Name}.TreasureGenerator(): found death treasure {Biota.WeenieClassId}");
+                //log.DebugFormat($"{_generator.Name}.TreasureGenerator(): found death treasure {Biota.WeenieClassId}");
                 return LootGenerationFactory.CreateRandomLootObjects(deathTreasure);
             }
             else
@@ -478,7 +478,7 @@ namespace ACE.Server.Entity
                 if (wieldedTreasure != null)
                 {
                     // TODO: get randomly generated wielded treasure from LootGenerationFactory
-                    //log.Debug($"{_generator.Name}.TreasureGenerator(): found wielded treasure {Biota.WeenieClassId}");
+                    //log.DebugFormat($"{_generator.Name}.TreasureGenerator(): found wielded treasure {Biota.WeenieClassId}");
 
                     // roll into the wielded treasure table
                     //var table = new TreasureWieldedTable(wieldedTreasure);
@@ -524,7 +524,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public void NotifyGenerator(ObjectGuid target, RegenerationType eventType)
         {
-            //log.Debug($"{_generator.Name}.NotifyGenerator({target:X8}, {eventType})");
+            //log.DebugFormat($"{_generator.Name}.NotifyGenerator({target:X8}, {eventType})");
 
             Spawned.TryGetValue(target.Full, out var woi);
 

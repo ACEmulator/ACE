@@ -94,7 +94,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            log.Debug($"[ALLEGIANCE] {Name} ({Level}) swearing allegiance to {patron.Name} ({patron.Level})");
+            log.DebugFormat($"[ALLEGIANCE] {Name} ({Level}) swearing allegiance to {patron.Name} ({patron.Level})");
 
             PatronId = targetGuid;
 
@@ -175,7 +175,7 @@ namespace ACE.Server.WorldObjects
 
             if (target == null) return;
 
-            log.Debug($"[ALLEGIANCE] {Name} breaking allegiance to {target.Name}");
+            log.DebugFormat($"[ALLEGIANCE] {Name} breaking allegiance to {target.Name}");
 
             // target can be either patron or vassal
             var isPatron = PatronId == target.Guid.Full;
@@ -1394,7 +1394,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionBreakAllegianceBoot(string playerName, bool accountBoot)
         {
-            log.Debug($"[ALLEGIANCE] {Name}.HandleActionBreakAllegianceBoot({playerName}, {accountBoot})");
+            log.DebugFormat($"[ALLEGIANCE] {Name}.HandleActionBreakAllegianceBoot({playerName}, {accountBoot})");
 
             // TODO: handle account boot
 

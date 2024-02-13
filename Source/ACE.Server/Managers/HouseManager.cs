@@ -409,7 +409,7 @@ namespace ACE.Server.Managers
                 slumlord.SaveBiotaToDatabase();
             }
 
-            log.Debug($"[HOUSE] HouseManager.HandleRentPaid({playerHouse.PlayerName}): rent payment successful!");
+            log.DebugFormat($"[HOUSE] HouseManager.HandleRentPaid({playerHouse.PlayerName}): rent payment successful!");
 
             // re-add item to queue
             AddRentQueue(player, playerHouse.House);
@@ -554,7 +554,7 @@ namespace ACE.Server.Managers
                 if (rentItem.Paid < rentItem.Num)
                 {
                     if (log.IsDebugEnabled)
-                        log.Debug($"[HOUSE] {playerHouse.PlayerName}.IsRentPaid() - required {rentItem.Num:N0}x {(rentItem.Num > 1 ? $"{rentItem.PluralName}" : $"{rentItem.Name}")} ({rentItem.WeenieID}), found {rentItem.Paid:N0}");
+                        log.DebugFormat($"[HOUSE] {playerHouse.PlayerName}.IsRentPaid() - required {rentItem.Num:N0}x {(rentItem.Num > 1 ? $"{rentItem.PluralName}" : $"{rentItem.Name}")} ({rentItem.WeenieID}), found {rentItem.Paid:N0}");
                     return false;
                 }
             }

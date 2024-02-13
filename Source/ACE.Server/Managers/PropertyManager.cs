@@ -381,7 +381,7 @@ namespace ACE.Server.Managers
             // next, we need to fetch all of the variables from the DB and compare them quickly.
             LoadPropertiesFromDB();
 
-            log.Debug($"PropertyManager DoWork took {(DateTime.UtcNow - startTime).TotalMilliseconds:N0} ms");
+            log.DebugFormat($"PropertyManager DoWork took {(DateTime.UtcNow - startTime).TotalMilliseconds:N0} ms");
         }
         public static string ListProperties()
         {

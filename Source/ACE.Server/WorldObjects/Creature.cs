@@ -33,7 +33,7 @@ namespace ACE.Server.WorldObjects
                 if (_questManager == null)
                 {
                     /*if (!(this is Player))
-                        log.Debug($"Initializing non-player QuestManager for {Name} (0x{Guid})");*/
+                        log.DebugFormat($"Initializing non-player QuestManager for {Name} (0x{Guid})");*/
 
                     _questManager = new QuestManager(this);
                 }
@@ -165,7 +165,7 @@ namespace ACE.Server.WorldObjects
             {
 #if DEBUG
                 //if (!(NpcLooksLikeObject ?? false))
-                    //log.Debug($"Creature.GenerateNewFace: {Name} (0x{Guid}) - wcid {WeenieClassId} - Heritage: {Heritage} | HeritageGroupName: {HeritageGroupName} | Gender: {Gender} | Sex: {Sex} - Data missing or unparsable, Cannot randomize face.");
+                    //log.DebugFormat($"Creature.GenerateNewFace: {Name} (0x{Guid}) - wcid {WeenieClassId} - Heritage: {Heritage} | HeritageGroupName: {HeritageGroupName} | Gender: {Gender} | Sex: {Sex} - Data missing or unparsable, Cannot randomize face.");
 #endif
                 return;
             }
@@ -173,7 +173,7 @@ namespace ACE.Server.WorldObjects
             if (!cg.HeritageGroups.TryGetValue((uint)Heritage, out var heritageGroup) || !heritageGroup.Genders.TryGetValue((int)Gender, out var sex))
             {
 #if DEBUG
-                log.Debug($"Creature.GenerateNewFace: {Name} (0x{Guid}) - wcid {WeenieClassId} - Heritage: {Heritage} | HeritageGroupName: {HeritageGroupName} | Gender: {Gender} | Sex: {Sex} - Data invalid, Cannot randomize face.");
+                log.DebugFormat($"Creature.GenerateNewFace: {Name} (0x{Guid}) - wcid {WeenieClassId} - Heritage: {Heritage} | HeritageGroupName: {HeritageGroupName} | Gender: {Gender} | Sex: {Sex} - Data invalid, Cannot randomize face.");
 #endif
                 return;
             }
