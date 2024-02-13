@@ -617,7 +617,7 @@ namespace ACE.Server.WorldObjects
 
             corpse.EnterWorld();
 
-            if (player != null)
+            if (player != null && log.IsDebugEnabled)
             {
                 if (corpse.PhysicsObj == null || corpse.PhysicsObj.Position == null)
                     log.DebugFormat("[CORPSE] {0}'s corpse (0x{1}) failed to spawn! Tried at {2}", Name, corpse.Guid, player.Location.ToLOCString());
@@ -730,10 +730,10 @@ namespace ACE.Server.WorldObjects
             var legendaryCantrips = wo.LegendaryCantrips;
 
             if (epicCantrips.Count > 0 && log.IsDebugEnabled)
-                log.DebugFormat($"[LOOT][EPIC] {Name} ({Guid}) generated item with {epicCantrips.Count} epic{(epicCantrips.Count > 1 ? "s" : "")} - {wo.Name} ({wo.Guid}) - {GetSpellList(epicCantrips)} - killed by {killer?.Name} ({killer?.Guid})");
+                log.Debug($"[LOOT][EPIC] {Name} ({Guid}) generated item with {epicCantrips.Count} epic{(epicCantrips.Count > 1 ? "s" : "")} - {wo.Name} ({wo.Guid}) - {GetSpellList(epicCantrips)} - killed by {killer?.Name} ({killer?.Guid})");
 
             if (legendaryCantrips.Count > 0 && log.IsDebugEnabled)
-                log.DebugFormat($"[LOOT][LEGENDARY] {Name} ({Guid}) generated item with {legendaryCantrips.Count} legendar{(legendaryCantrips.Count > 1 ? "ies" : "y")} - {wo.Name} ({wo.Guid}) - {GetSpellList(legendaryCantrips)} - killed by {killer?.Name} ({killer?.Guid})");
+                log.Debug($"[LOOT][LEGENDARY] {Name} ({Guid}) generated item with {legendaryCantrips.Count} legendar{(legendaryCantrips.Count > 1 ? "ies" : "y")} - {wo.Name} ({wo.Guid}) - {GetSpellList(legendaryCantrips)} - killed by {killer?.Name} ({killer?.Guid})");
         }
 
         public static string GetSpellList(Dictionary<int, float> spellTable)

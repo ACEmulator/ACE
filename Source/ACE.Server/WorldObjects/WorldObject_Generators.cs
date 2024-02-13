@@ -323,7 +323,7 @@ namespace ACE.Server.WorldObjects
                 if (CurrentCreate >= MaxCreate)
                 {
                     //if (CurrentCreate > InitCreate)
-                    //log.DebugFormat($"{WeenieClassId} - 0x{Guid}:{Name}.StopConditionsInit(): CurrentCreate({CurrentCreate}) > InitCreate({InitCreate})");
+                    //log.DebugFormat("{0} - 0x{1}:{2}.StopConditionsInit(): CurrentCreate({3}) > InitCreate({4})", WeenieClassId, Guid, Name, CurrentCreate, InitCreate);
 
                     return true;
                 }

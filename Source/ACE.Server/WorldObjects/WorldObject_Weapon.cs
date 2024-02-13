@@ -521,7 +521,7 @@ namespace ACE.Server.WorldObjects
                 case DamageType.Nether:
                     return ImbuedEffectType.NetherRending;
                 default:
-                    //log.DebugFormat($"GetRendDamageType({damageType}) unexpected damage type");
+                    //log.DebugFormat("GetRendDamageType({0}) unexpected damage type", damageType);
                     return ImbuedEffectType.Undef;
             }
         }
