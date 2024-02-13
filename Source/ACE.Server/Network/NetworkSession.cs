@@ -19,6 +19,7 @@ using ACE.Server.Network.Managers;
 using ACE.Server.Network.Packets;
 
 using log4net;
+using log4net.Util;
 
 namespace ACE.Server.Network
 {
@@ -436,7 +437,7 @@ namespace ACE.Server.Network
             // In our current implimenation we handle all roles in this one server.
             if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
             {
-                packetLog.Debug($"[{session.LoggingIdentifier}] LoginRequest");
+                packetLog.DebugFormat("[{0}] LoginRequest", session.LoggingIdentifier);
                 AuthenticationHandler.HandleLoginRequest(packet, session);
                 return;
             }
@@ -732,7 +733,7 @@ namespace ACE.Server.Network
 
                 packet.CreateReadyToSendPacket(buffer, out var size);
 
-                packetLog.Debug(packet.ToString());
+                packetLog.DebugFormat("{0}", packet);
 
                 if (packetLog.IsDebugEnabled)
                 {
@@ -740,7 +741,7 @@ namespace ACE.Server.Network
                     var sb = new StringBuilder();
                     sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", size, listenerEndpoint.Address, listenerEndpoint.Port, endPoint.Address, endPoint.Port, session.Network.ClientId));
                     sb.AppendLine(buffer.BuildPacketString(0, size));
-                    packetLog.Debug(sb.ToString());
+                    packetLog.DebugFormat("{0}", sb);
                 }
 
                 try

@@ -139,7 +139,7 @@ namespace ACE.Database
             }
             catch (Exception ex)
             {
-                log.Error($"[DATABASE][PURGE] PurgeCharacter 0x{characterId:X8} failed with exception: {ex}");
+                log.ErrorFormat("[DATABASE][PURGE] PurgeCharacter 0x{0:X8} failed with exception: {1}", characterId, ex);
             }
         }
 
@@ -254,7 +254,7 @@ namespace ACE.Database
             }
             catch (Exception ex)
             {
-                log.Error($"[DATABASE][PURGE] PurgePlayer 0x{playerId:X8} failed with exception: {ex}");
+                log.ErrorFormat("[DATABASE][PURGE] PurgePlayer 0x{0:X8} failed with exception: {1}", playerId, ex);
             }
         }
 
@@ -312,7 +312,7 @@ namespace ACE.Database
                 }
                 catch (Exception ex)
                 {
-                    log.Error($"[DATABASE][PURGE] PurgeBiota 0x{id:X8} failed with exception: {ex}");
+                    log.ErrorFormat("[DATABASE][PURGE] PurgeBiota 0x{0:X8} failed with exception: {1}", id, ex);
                 }
 
                 return true;
@@ -1001,7 +1001,7 @@ namespace ACE.Database
                     }
                     catch (Exception ex)
                     {
-                        log.Fatal($"Unable to restore order column in biota_properties_palette table in shard database due to following error: {ex.GetFullMessage()}");
+                        log.FatalFormat("Unable to restore order column in biota_properties_palette table in shard database due to following error: {0}", ex.GetFullMessage());
                         Environment.Exit(1);
                         return;
                     }

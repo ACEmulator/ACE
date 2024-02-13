@@ -244,7 +244,7 @@ namespace ACE.Server.Entity
 
             player.SendUseDoneEvent();
 
-            log.Debug($"[CRAFTING] {player.Name} revealed a {color} {randSigil} with a surge of {surgeSpell} on {target.Name}:0x{target.Guid}");
+            log.DebugFormat("[CRAFTING] {0} revealed a {1} {2} with a surge of {3} on {4}:0x{5}", player.Name, color, randSigil, surgeSpell, target.Name, target.Guid);
         }
 
         public static Dictionary<Sigil, EquipmentSet> SigilToEquipmentSet = new Dictionary<Sigil, EquipmentSet>()

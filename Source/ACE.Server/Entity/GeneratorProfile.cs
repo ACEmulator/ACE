@@ -486,7 +486,7 @@ namespace ACE.Server.Entity
                 }
                 else
                 {
-                    log.Debug($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} {Generator.Name}.TreasureGenerator(): couldn't find death treasure or wielded treasure for ID {Biota.WeenieClassId}");
+                    log.DebugFormat("[GENERATOR] 0x{0}:{1} {2}.TreasureGenerator(): couldn't find death treasure or wielded treasure for ID {3}", Generator.Guid, Generator.WeenieClassId, Generator.Name, Biota.WeenieClassId);
                     return null;
                 }
             }
@@ -500,7 +500,7 @@ namespace ACE.Server.Entity
             var container = Generator as Container;
             if (container == null)
             {
-                log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} {Generator.Name}.RemoveTreasure(): container not found");
+                log.WarnFormat("[GENERATOR] 0x{0}:{1} {2}.RemoveTreasure(): container not found", Generator.Guid, Generator.WeenieClassId, Generator.Name);
                 return;
             }
             foreach (var spawned in Spawned.Keys)
@@ -508,7 +508,7 @@ namespace ACE.Server.Entity
                 var inventoryObjGuid = new ObjectGuid(spawned);
                 if (!container.Inventory.TryGetValue(inventoryObjGuid, out var inventoryObj))
                 {
-                    log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} {Generator.Name}.RemoveTreasure(): couldn't find {inventoryObjGuid}");
+                    log.WarnFormat("[GENERATOR] 0x{0}:{1} {2}.RemoveTreasure(): couldn't find {3}", Generator.Guid, Generator.WeenieClassId, Generator.Name, inventoryObjGuid);
                     continue;
                 }
                 container.TryRemoveFromInventory(inventoryObjGuid);

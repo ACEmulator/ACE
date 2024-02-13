@@ -138,7 +138,7 @@ namespace ACE.Server.Mods
             if (!File.Exists(metadataPath))
             {
                 //Log missing metadata
-                log.Warn($"Metadata not found at: {metadataPath}");
+                log.WarnFormat("Metadata not found at: {0}", metadataPath);
                 return false;
             }
 

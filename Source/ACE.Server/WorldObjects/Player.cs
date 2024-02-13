@@ -647,7 +647,7 @@ namespace ACE.Server.WorldObjects
             SavePlayerToDatabase();
             PlayerManager.SwitchPlayerFromOnlineToOffline(this);
 
-            log.Debug($"[LOGOUT] Account {Account.AccountName} exited the world with character {Name} (0x{Guid}) at {DateTime.Now}.");
+            log.DebugFormat("[LOGOUT] Account {0} exited the world with character {1} (0x{2}) at {3}.", Account.AccountName, Name, Guid, DateTime.Now);
         }
 
         public void HandleMRT()
