@@ -409,7 +409,7 @@ namespace ACE.Server.Managers
                 slumlord.SaveBiotaToDatabase();
             }
 
-            log.DebugFormat($"[HOUSE] HouseManager.HandleRentPaid({playerHouse.PlayerName}): rent payment successful!");
+            log.DebugFormat("[HOUSE] HouseManager.HandleRentPaid({0}): rent payment successful!", playerHouse.PlayerName);
 
             // re-add item to queue
             AddRentQueue(player, playerHouse.House);

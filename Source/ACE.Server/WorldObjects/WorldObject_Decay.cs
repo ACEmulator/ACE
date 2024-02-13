@@ -76,7 +76,7 @@ namespace ACE.Server.WorldObjects
                 {
                     TimeToRot = Corpse.EmptyDecayTime;
                     if (Level.HasValue && PropertyManager.GetBool("corpse_decay_tick_logging").Item)
-                        log.DebugFormat($"[CORPSE] {corpse.Name} (0x{corpse.Guid}).Decay({elapsed}): InventoryLoaded = {corpse.InventoryLoaded} | Inventory.Count = {corpse.Inventory.Count} | previous TimeToRot: {previousTTR} | current TimeToRot: {TimeToRot}");
+                        log.DebugFormat("[CORPSE] {0} (0x{1}).Decay({2}): InventoryLoaded = {3} | Inventory.Count = {4} | previous TimeToRot: {5} | current TimeToRot: {6}", corpse.Name, corpse.Guid, elapsed, corpse.InventoryLoaded, corpse.Inventory.Count, previousTTR, TimeToRot);
                     return;
                 }
             }
@@ -86,7 +86,7 @@ namespace ACE.Server.WorldObjects
                 TimeToRot -= elapsed.TotalSeconds;
 
                 if (this is Corpse && Level.HasValue && PropertyManager.GetBool("corpse_decay_tick_logging").Item)
-                    log.DebugFormat($"[CORPSE] {corpse.Name} (0x{corpse.Guid}).Decay({elapsed}): previous TimeToRot: {previousTTR} | current TimeToRot: {TimeToRot}");
+                    log.DebugFormat("[CORPSE] {0} (0x{1}).Decay({2}): previous TimeToRot: {3} | current TimeToRot: {4}", corpse.Name, corpse.Guid, elapsed, previousTTR, TimeToRot);
 
                 // Is there still time left?
                 if (TimeToRot > 0)
@@ -95,7 +95,7 @@ namespace ACE.Server.WorldObjects
                 TimeToRot = -2; // We force it to -2 to make sure it doesn't end up at 0 or -1. 0 indicates instant rot. -1 indicates no rot. 0 and -1 can be found in weenie defaults
 
                 if (this is Corpse && Level.HasValue && PropertyManager.GetBool("corpse_decay_tick_logging").Item)
-                    log.DebugFormat($"[CORPSE] {corpse.Name} (0x{corpse.Guid}).Decay({elapsed}): previous TimeToRot: {previousTTR} | current TimeToRot: {TimeToRot}");
+                    log.DebugFormat("[CORPSE] {0} (0x{1}).Decay({2}): previous TimeToRot: {3} | current TimeToRot: {4}", corpse.Name, corpse.Guid, elapsed, previousTTR, TimeToRot);
             }
 
             if (this is Container container && container.IsOpen)
@@ -131,7 +131,8 @@ namespace ACE.Server.WorldObjects
                 if (pukedItems.EndsWith(", "))
                     pukedItems = pukedItems.Substring(0, pukedItems.Length - 2);
 
-                log.DebugFormat($"[CORPSE] {corpse.Name} (0x{corpse.Guid}) at {corpse.Location.ToLOCString()} has decayed{((pukedItems == "") ? "" : $" and placed the following items on the landblock: {pukedItems}")}.");
+                if(log.IsDebugEnabled)
+                    log.DebugFormat($"[CORPSE] {corpse.Name} (0x{corpse.Guid}) at {corpse.Location.ToLOCString()} has decayed{((pukedItems == "") ? "" : $" and placed the following items on the landblock: {pukedItems}")}.");
             }
 
             if (corpse != null)
