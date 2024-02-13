@@ -281,9 +281,9 @@ namespace ACE.Server.Managers
             {
                 CurrentlyTickingLandblockGroupsMultiThreaded = true;
 
-                var partitoner = Partitioner.Create(landblockGroups, EnumerablePartitionerOptions.NoBuffering);
+                var partitioner = Partitioner.Create(landblockGroups, EnumerablePartitionerOptions.NoBuffering);
 
-                Parallel.ForEach(partitoner, ConfigManager.Config.Server.Threading.LandblockManagerParallelOptions, landblockGroup =>
+                Parallel.ForEach(partitioner, ConfigManager.Config.Server.Threading.LandblockManagerParallelOptions, landblockGroup =>
                 {
                     CurrentMultiThreadedTickingLandblockGroup.Value = landblockGroup;
 
@@ -324,9 +324,9 @@ namespace ACE.Server.Managers
             {
                 CurrentlyTickingLandblockGroupsMultiThreaded = true;
 
-                var partitoner = Partitioner.Create(landblockGroups, EnumerablePartitionerOptions.NoBuffering);
+                var partitioner = Partitioner.Create(landblockGroups, EnumerablePartitionerOptions.NoBuffering);
 
-                Parallel.ForEach(partitoner, ConfigManager.Config.Server.Threading.LandblockManagerParallelOptions, landblockGroup =>
+                Parallel.ForEach(partitioner, ConfigManager.Config.Server.Threading.LandblockManagerParallelOptions, landblockGroup =>
                 {
                     CurrentMultiThreadedTickingLandblockGroup.Value = landblockGroup;
 
