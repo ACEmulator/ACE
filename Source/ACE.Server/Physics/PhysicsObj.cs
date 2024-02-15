@@ -1322,7 +1322,7 @@ namespace ACE.Server.Physics
 
                 // ideally CellArray.LoadCells = false would be passed to find_cell_list to prevent it from even attempting to load an unloaded neighboring landblock
 
-                log.DebugFormat("{0} ({1:X8}) AddPhysicsObj() - {2)} resulted in {3}, discarding", Name, ID, pos.ShortLoc(), transition.SpherePath.CurPos.ShortLoc());
+                log.DebugFormat("{0} ({1:X8}) AddPhysicsObj() - {2}) resulted in {3}, discarding", Name, ID, pos.ShortLoc(), transition.SpherePath.CurPos.ShortLoc());
                 return SetPositionError.NoValidPosition;
             }
 
