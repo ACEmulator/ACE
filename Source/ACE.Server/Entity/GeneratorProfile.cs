@@ -5,6 +5,7 @@ using System.Numerics;
 
 using log4net;
 
+using ACE.Common;
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -121,6 +122,11 @@ namespace ACE.Server.Entity
         public DateTime MostRecentSpawnTime { get; set; } = DateTime.MinValue;
 
         /// <summary>
+        /// DateTime for when the profile is considered stale
+        /// </summary>
+        public DateTime StaleTime { get; set; } = DateTime.MinValue;
+
+        /// <summary>
         /// DateTime for when the profile is available as a possible spawn choice
         /// </summary>
         public DateTime NextAvailable { get; set; } = DateTime.UtcNow;
@@ -136,9 +142,9 @@ namespace ACE.Server.Entity
         public bool IsMaxed => MaxCreate != -1 && CurrentCreate >= MaxCreate;
 
         /// <summary>
-        /// Returns TRUE if this profile has any Creatures with IsAwake being true
+        /// Returns TRUE if this profile has any Creatures with IsAwake being true or any Containers with IsOpen being true
         /// </summary>
-        public bool HasAwakeCreatures
+        public bool HasAwakeCreaturesOrOpenContainers
         {
             get
             {
@@ -150,31 +156,10 @@ namespace ACE.Server.Entity
                         if (wo is Creature creature && creature.IsAwake)
                             return true;
 
-                        if (wo.IsGenerator && wo.GeneratorProfiles.Any(p => p.HasAwakeCreatures))
-                            return true;
-                    }
-                }
-
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Returns TRUE if this profile has any Containers with IsOpen being true
-        /// </summary>
-        public bool HasOpenContainers
-        {
-            get
-            {
-                foreach (var spawn in Spawned.Values)
-                {
-                    var wo = spawn.TryGetWorldObject();
-                    if (wo != null)
-                    {
                         if (wo is Container container && container.IsOpen)
                             return true;
 
-                        if (wo.IsGenerator && wo.GeneratorProfiles.Any(p => p.HasOpenContainers))
+                        if (wo.IsGenerator && wo.GeneratorProfiles.Any(p => p.HasAwakeCreaturesOrOpenContainers))
                             return true;
                     }
                 }
@@ -270,6 +255,9 @@ namespace ACE.Server.Entity
                         }
 
                         MostRecentSpawnTime = DateTime.UtcNow;
+
+                        var variance = ThreadSafeRandom.Next(0, Delay);
+                        StaleTime = DateTime.UtcNow.AddSeconds(Delay * MaxCreate + variance);
                     }
                 }
                 else
@@ -675,6 +663,7 @@ namespace ACE.Server.Entity
             SpawnQueue.Clear();
 
             MostRecentSpawnTime = DateTime.MinValue;
+            StaleTime = DateTime.MinValue;
             NextAvailable = DateTime.UtcNow;
 
             GeneratedTreasureItem = false;

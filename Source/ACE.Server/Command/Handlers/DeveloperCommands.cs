@@ -2787,8 +2787,8 @@ namespace ACE.Server.Command.Handlers
                         msg += $"MostRecentSpawnTime: {profile.MostRecentSpawnTime.ToLocalTime()}\n";
                         if (wo.IsEncounter)
                         {                            
-                            msg += $"Timeout: {profile.MostRecentSpawnTime.AddSeconds(profile.Delay * profile.MaxCreate).ToLocalTime()}\n";
-                            msg += $"HasAwakeCreatures: {profile.HasAwakeCreatures} | HasOpenContainers: {profile.HasOpenContainers}\n";
+                            msg += $"StaleTime: {profile.StaleTime.ToLocalTime()}\n";
+                            msg += $"HasAwakeCreaturesOrOpenContainers: {profile.HasAwakeCreaturesOrOpenContainers}\n";
                         }
                         msg += $"--====--\n";
                         if (profile.Spawned.Count > 0)

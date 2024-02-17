@@ -720,49 +720,10 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsEncounter) return;
 
-            ////var orderedProfiles = GeneratorProfiles.Where(p => p.Spawned.Any()).OrderBy(p => p.MostRecentSpawnTime);
-            //var orderedProfiles = GeneratorProfiles.Where(p => p.IsMaxed).OrderBy(p => p.MostRecentSpawnTime);
-
-            //var oldestProfile = orderedProfiles.FirstOrDefault();
-
-            //if (oldestProfile != null)
-            //{
-            //    var timeout = oldestProfile.MostRecentSpawnTime.AddMinutes(5);
-            //    //var timeout = oldestProfile.MostRecentSpawnTime.AddSeconds(oldestProfile.Delay * oldestProfile.MaxCreate);
-
-            //    //if (DateTime.UtcNow > timeout)
-            //    //{
-            //    //    oldestProfile.DestroyAll();
-            //    //}
-
-            //    if (DateTime.UtcNow > timeout)
-            //    {
-            //        //var rng = ThreadSafeRandom.Next(0.0f, GetTotalProbability());
-            //        //var rng = ThreadSafeRandom.Next(0.0f, GetMaxProbability());
-            //        var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-
-            //        //var oldestProfileIdx = GeneratorProfiles.IndexOf(oldestProfile);
-            //        //var probability = GetAdjustedProbability(oldestProfileIdx);
-            //        var probability = 0.10f;
-
-            //        if (rng < probability)
-            //            oldestProfile.Reset();
-            //    }
-            //}
-
-            //var orderedIdleStaleProfiles = GeneratorProfiles.Where(p => p.IsMaxed && !p.HasAwakeCreatures && (DateTime.UtcNow > p.MostRecentSpawnTime.AddSeconds(p.Delay * p.MaxCreate)))
-            //                        .OrderBy(p => p.MostRecentSpawnTime);
-
-            var idleStaleProfiles = GeneratorProfiles.Where(p => p.IsMaxed && !p.HasAwakeCreatures && !p.HasOpenContainers && (DateTime.UtcNow > p.MostRecentSpawnTime.AddSeconds(p.Delay * p.MaxCreate)));
+            var idleStaleProfiles = GeneratorProfiles.Where(p => p.IsMaxed && (DateTime.UtcNow > p.StaleTime) && !p.HasAwakeCreaturesOrOpenContainers);
 
             foreach (var profile in idleStaleProfiles)
-            {
-                var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-                var probability = 0.10f;
-
-                if (rng < probability)
-                    profile.Reset();
-            }
+                profile.Reset();
         }
     }
 }
