@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 using log4net;
@@ -115,6 +116,11 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
+        /// DateTime for when the profile last spawned something
+        /// </summary>
+        public DateTime MostRecentSpawnTime { get; set; } = DateTime.MinValue;
+
+        /// <summary>
         /// DateTime for when the profile is available as a possible spawn choice
         /// </summary>
         public DateTime NextAvailable { get; set; } = DateTime.UtcNow;
@@ -128,6 +134,30 @@ namespace ACE.Server.Entity
         /// Returns TRUE if this profile MaxCreate is not infinite (-1) and CurrentCreate does not currently meet or exceed MaxCreate
         /// </summary>
         public bool IsMaxed => MaxCreate != -1 && CurrentCreate >= MaxCreate;
+
+        /// <summary>
+        /// Returns TRUE if this profile has any Creatures with IsAwake being true
+        /// </summary>
+        public bool HasAwakeCreatures
+        {
+            get
+            {
+                foreach (var spawn in Spawned.Values)
+                {
+                    var wo = spawn.TryGetWorldObject();
+                    if (wo != null)
+                    {
+                        if (wo is Creature creature && creature.IsAwake)
+                            return true;
+
+                        if (wo.IsGenerator && wo.GeneratorProfiles.Any(p => p.HasAwakeCreatures))
+                            return true;
+                    }
+                }
+
+                return false;
+            }
+        }
 
         /// <summary>
         /// The generator world object for this profile
@@ -214,6 +244,8 @@ namespace ACE.Server.Entity
 
                             Spawned.Add(obj.Guid.Full, woi);
                         }
+
+                        MostRecentSpawnTime = DateTime.UtcNow;
                     }
                 }
                 else
@@ -618,6 +650,7 @@ namespace ACE.Server.Entity
             Spawned.Clear();
             SpawnQueue.Clear();
 
+            MostRecentSpawnTime = DateTime.MinValue;
             NextAvailable = DateTime.UtcNow;
 
             GeneratedTreasureItem = false;

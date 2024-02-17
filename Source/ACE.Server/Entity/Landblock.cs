@@ -277,6 +277,8 @@ namespace ACE.Server.Entity
 
                 if (wo == null) continue;
 
+                wo.IsEncounter = true;
+
                 actionQueue.EnqueueAction(new ActionEventDelegate(() =>
                 {
                     var xPos = Math.Clamp(encounter.CellX * 24.0f, 0.5f, 191.5f);

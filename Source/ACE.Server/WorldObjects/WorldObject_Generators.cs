@@ -25,7 +25,12 @@ namespace ACE.Server.WorldObjects
         /// (spawns other world objects)
         /// </summary>
         public bool IsGenerator { get => GeneratorProfiles != null && GeneratorProfiles.Count > 0; }
-       
+
+        /// <summary>
+        /// Is this WorldObject created from an Encounter, Set by Landblock
+        /// </summary>
+        public bool IsEncounter { get; set; }
+
         //public List<string> History = new List<string>();
 
         /// <summary>
@@ -308,7 +313,7 @@ namespace ACE.Server.WorldObjects
             if (numObjects == 0 && initCreate == 0)
                 log.Warn($"[GENERATOR] 0x{Guid}:{WeenieClassId} {Name}.GetSpawnObjectsForProfile(profile[{profile.LinkId}]): profile.InitCreate = {profile.InitCreate} | profile.MaxCreate = {profile.MaxCreate} | profile.WeenieClassId = {profile.WeenieClassId} | Profile Init invalid, cannot spawn.");
             else if (numObjects == 0)
-               log.Warn($"[GENERATOR] 0x{Guid}:{WeenieClassId} {Name}.GetSpawnObjectsForProfile(profile[{profile.LinkId}]): profile.InitCreate = {profile.InitCreate} | profile.MaxCreate = {profile.MaxCreate} | profile.WeenieClassId = {profile.WeenieClassId} | genSlotsAvailable = {genSlotsAvailable} | profileSlotsAvailable = {profileSlotsAvailable} | numObjects = {numObjects}, cannot spawn.");
+                log.Warn($"[GENERATOR] 0x{Guid}:{WeenieClassId} {Name}.GetSpawnObjectsForProfile(profile[{profile.LinkId}]): profile.InitCreate = {profile.InitCreate} | profile.MaxCreate = {profile.MaxCreate} | profile.WeenieClassId = {profile.WeenieClassId} | genSlotsAvailable = {genSlotsAvailable} | profileSlotsAvailable = {profileSlotsAvailable} | numObjects = {numObjects}, cannot spawn.");
 
             return numObjects;
         }
@@ -355,7 +360,7 @@ namespace ACE.Server.WorldObjects
                 case GeneratorTimeType.Day:
                     CheckTimeOfDayStatus();
                     break;
-            }            
+            }
         }
 
         /// <summary>
@@ -364,7 +369,7 @@ namespace ACE.Server.WorldObjects
         public void CheckTimeOfDayStatus()
         {
             var prevDisabled = GeneratorDisabled;
-           
+
             var isDay = Timers.CurrentInGameTime.IsDay;
             var isDayGenerator = GeneratorTimeType == GeneratorTimeType.Day;
 
@@ -656,6 +661,8 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.Generator_Generate({RegenerationInterval})");
 
+            CheckForStaleEncounters();
+
             if (!GeneratorDisabled)
             {
                 if (CurrentlyPoweringUp)
@@ -684,6 +691,8 @@ namespace ACE.Server.WorldObjects
 
             foreach (var profile in GeneratorProfiles)
                 profile.Spawn_HeartBeat();
+
+            //CheckForStaleEncounters();
         }
 
         public virtual void ResetGenerator()
@@ -702,6 +711,58 @@ namespace ACE.Server.WorldObjects
                     return profile.Id;
             }
             return null;
+        }
+
+        /// <summary>
+        /// If Generator has been marked an Encounter by Landblock, check for idle, stale profiles and reset them for long lived landblocks.
+        /// </summary>
+        public void CheckForStaleEncounters()
+        {
+            if (!IsEncounter) return;
+
+            ////var orderedProfiles = GeneratorProfiles.Where(p => p.Spawned.Any()).OrderBy(p => p.MostRecentSpawnTime);
+            //var orderedProfiles = GeneratorProfiles.Where(p => p.IsMaxed).OrderBy(p => p.MostRecentSpawnTime);
+
+            //var oldestProfile = orderedProfiles.FirstOrDefault();
+
+            //if (oldestProfile != null)
+            //{
+            //    var timeout = oldestProfile.MostRecentSpawnTime.AddMinutes(5);
+            //    //var timeout = oldestProfile.MostRecentSpawnTime.AddSeconds(oldestProfile.Delay * oldestProfile.MaxCreate);
+
+            //    //if (DateTime.UtcNow > timeout)
+            //    //{
+            //    //    oldestProfile.DestroyAll();
+            //    //}
+
+            //    if (DateTime.UtcNow > timeout)
+            //    {
+            //        //var rng = ThreadSafeRandom.Next(0.0f, GetTotalProbability());
+            //        //var rng = ThreadSafeRandom.Next(0.0f, GetMaxProbability());
+            //        var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+            //        //var oldestProfileIdx = GeneratorProfiles.IndexOf(oldestProfile);
+            //        //var probability = GetAdjustedProbability(oldestProfileIdx);
+            //        var probability = 0.10f;
+
+            //        if (rng < probability)
+            //            oldestProfile.Reset();
+            //    }
+            //}
+
+            //var orderedIdleStaleProfiles = GeneratorProfiles.Where(p => p.IsMaxed && !p.HasAwakeCreatures && (DateTime.UtcNow > p.MostRecentSpawnTime.AddSeconds(p.Delay * p.MaxCreate)))
+            //                        .OrderBy(p => p.MostRecentSpawnTime);
+
+            var idleStaleProfiles = GeneratorProfiles.Where(p => p.IsMaxed && !p.HasAwakeCreatures && (DateTime.UtcNow > p.MostRecentSpawnTime.AddSeconds(p.Delay * p.MaxCreate)));
+
+            foreach (var profile in idleStaleProfiles)
+            {
+                var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+                var probability = 0.10f;
+
+                if (rng < probability)
+                    profile.Reset();
+            }
         }
     }
 }

@@ -2741,6 +2741,7 @@ namespace ACE.Server.Command.Handlers
                     msg += $"Generator WCID: {wo.WeenieClassId}\n";
                     msg += $"Generator WeenieClassName: {wo.WeenieClassName}\n";
                     msg += $"Generator WeenieType: {wo.WeenieType.ToString()}\n";
+                    msg += $"Generator IsEncounter: {wo.IsEncounter}\n";
                     msg += $"Generator Status: {(wo.GeneratorDisabled ? "Disabled" : "Enabled")}\n";
                     msg += $"GeneratorType: {wo.GeneratorType.ToString()}\n";
                     msg += $"GeneratorTimeType: {wo.GeneratorTimeType.ToString()}\n";
@@ -2782,6 +2783,13 @@ namespace ACE.Server.Command.Handlers
                         msg += $"IsMaxed: {profile.IsMaxed}\n";
                         if (!profile.IsMaxed)
                             msg += $"IsAvailable: {profile.IsAvailable}{(profile.IsAvailable ? "" : $", NextAvailable: {profile.NextAvailable.ToLocalTime()}")}\n";
+                        msg += $"AdjustedProbability: {wo.GetAdjustedProbability(activeProfile)} / {wo.GetTotalProbability()}\n";                        
+                        msg += $"MostRecentSpawnTime: {profile.MostRecentSpawnTime.ToLocalTime()}\n";
+                        if (wo.IsEncounter)
+                        {                            
+                            msg += $"Timeout: {profile.MostRecentSpawnTime.AddSeconds(profile.Delay * profile.MaxCreate).ToLocalTime()}\n";
+                            msg += $"HasAwakeCreatures: {profile.HasAwakeCreatures}\n";
+                        }
                         msg += $"--====--\n";
                         if (profile.Spawned.Count > 0)
                         {
