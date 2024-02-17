@@ -160,6 +160,30 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
+        /// Returns TRUE if this profile has any Containers with IsOpen being true
+        /// </summary>
+        public bool HasOpenContainers
+        {
+            get
+            {
+                foreach (var spawn in Spawned.Values)
+                {
+                    var wo = spawn.TryGetWorldObject();
+                    if (wo != null)
+                    {
+                        if (wo is Container container && container.IsOpen)
+                            return true;
+
+                        if (wo.IsGenerator && wo.GeneratorProfiles.Any(p => p.HasOpenContainers))
+                            return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        /// <summary>
         /// The generator world object for this profile
         /// </summary>
         public WorldObject Generator;

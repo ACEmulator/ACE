@@ -753,7 +753,7 @@ namespace ACE.Server.WorldObjects
             //var orderedIdleStaleProfiles = GeneratorProfiles.Where(p => p.IsMaxed && !p.HasAwakeCreatures && (DateTime.UtcNow > p.MostRecentSpawnTime.AddSeconds(p.Delay * p.MaxCreate)))
             //                        .OrderBy(p => p.MostRecentSpawnTime);
 
-            var idleStaleProfiles = GeneratorProfiles.Where(p => p.IsMaxed && !p.HasAwakeCreatures && (DateTime.UtcNow > p.MostRecentSpawnTime.AddSeconds(p.Delay * p.MaxCreate)));
+            var idleStaleProfiles = GeneratorProfiles.Where(p => p.IsMaxed && !p.HasAwakeCreatures && !p.HasOpenContainers && (DateTime.UtcNow > p.MostRecentSpawnTime.AddSeconds(p.Delay * p.MaxCreate)));
 
             foreach (var profile in idleStaleProfiles)
             {
