@@ -141,31 +141,58 @@ namespace ACE.Server.Entity
         /// </summary>
         public bool IsMaxed => MaxCreate != -1 && CurrentCreate >= MaxCreate;
 
-        /// <summary>
-        /// Returns TRUE if this profile has any Creatures with IsAwake being true or any Containers with IsOpen being true
-        /// </summary>
-        public bool HasAwakeCreaturesOrOpenContainers
+        ///// <summary>
+        ///// Returns TRUE if this profile has any non-Creature WorldObjects, Creatures with IsAwake being false, any Containers with IsOpen being false,
+        ///// any Chests with DefaultLocked true and IsLocked being true
+        ///// </summary>
+        public bool IsAbleToBeMarkedStale(ref int hasNonWorldObjects, ref int hasAwakeCreatures, ref int hasOpenContainers, ref int hasUnlockedChests)
         {
-            get
-            {
-                foreach (var spawn in Spawned.Values)
-                {
-                    var wo = spawn.TryGetWorldObject();
-                    if (wo != null)
-                    {
-                        if (wo is Creature creature && creature.IsAwake)
-                            return true;
+            //var hasNonWorldObjects = 0;
+            //var hasAwakeCreatures = 0;
+            //var hasOpenContainers = 0;
+            //var hasUnlockedChests = 0;
 
-                        if (wo is Container container && container.IsOpen)
-                            return true;
-
-                        if (wo.IsGenerator && wo.GeneratorProfiles.Any(p => p.HasAwakeCreaturesOrOpenContainers))
-                            return true;
-                    }
-                }
-
+            if (Spawned.Count == 0)
                 return false;
+
+            foreach (var spawn in Spawned.Values)
+            {
+                var wo = spawn.TryGetWorldObject();
+                if (wo != null)
+                {
+                    if (wo is not Creature && !wo.IsGenerator)
+                        hasNonWorldObjects++;
+
+                    if (wo.IsGenerator)
+                    {
+                        //if (wo is not Creature)
+                        //    hasNonWorldObjects++;
+
+                        //if (wo is not Creature && wo is not GenericObject)
+                        //    hasNonWorldObjects++;
+
+                        //if (wo is Switch)
+                        //    hasNonWorldObjects++;
+
+                        foreach (var profile in wo.GeneratorProfiles)
+                        {
+                            if (profile.IsAbleToBeMarkedStale(ref hasNonWorldObjects, ref hasAwakeCreatures, ref hasOpenContainers, ref hasUnlockedChests))
+                                hasNonWorldObjects++;
+                        }
+                    }
+
+                    if (wo is Creature creature && creature.IsAwake)
+                        hasAwakeCreatures++;
+
+                    if (wo is Container container && container.IsOpen)
+                        hasOpenContainers++;
+
+                    if (wo is Chest chest && (chest.GetProperty(PropertyBool.DefaultLocked) ?? false) && !chest.IsLocked)
+                        hasUnlockedChests++;
+                }
             }
+
+            return hasNonWorldObjects > 0 && hasAwakeCreatures == 0 && hasOpenContainers == 0 && hasUnlockedChests == 0;
         }
 
         /// <summary>

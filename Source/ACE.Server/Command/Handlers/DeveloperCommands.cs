@@ -2786,9 +2786,15 @@ namespace ACE.Server.Command.Handlers
                         msg += $"AdjustedProbability: {wo.GetAdjustedProbability(activeProfile)} / {wo.GetTotalProbability()}\n";                        
                         msg += $"MostRecentSpawnTime: {profile.MostRecentSpawnTime.ToLocalTime()}\n";
                         if (wo.IsEncounter)
-                        {                            
-                            msg += $"StaleTime: {profile.StaleTime.ToLocalTime()}\n";
-                            msg += $"HasAwakeCreaturesOrOpenContainers: {profile.HasAwakeCreaturesOrOpenContainers}\n";
+                        {
+                            var hasNonWorldObjects = 0;
+                            var hasAwakeCreatures = 0;
+                            var hasOpenContainers = 0;
+                            var hasUnlockedChests = 0;
+                            var isAbleToBeMarkedStale = profile.IsAbleToBeMarkedStale(ref hasNonWorldObjects, ref hasAwakeCreatures, ref hasOpenContainers, ref hasUnlockedChests);
+                            msg += $"IsAbleToBeMarkedStale: {isAbleToBeMarkedStale}\n";
+                            if (isAbleToBeMarkedStale)
+                                msg += $"StaleTime: {profile.StaleTime.ToLocalTime()}\n";
                         }
                         msg += $"--====--\n";
                         if (profile.Spawned.Count > 0)

@@ -720,7 +720,12 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsEncounter) return;
 
-            var idleStaleProfiles = GeneratorProfiles.Where(p => p.IsMaxed && (DateTime.UtcNow > p.StaleTime) && !p.HasAwakeCreaturesOrOpenContainers);
+            var hasNonWorldObjects = 0;
+            var hasAwakeCreatures = 0;
+            var hasOpenContainers = 0;
+            var hasUnlockedChests = 0;
+
+            var idleStaleProfiles = GeneratorProfiles.Where(p => p.IsMaxed && (DateTime.UtcNow > p.StaleTime) && p.IsAbleToBeMarkedStale(ref hasNonWorldObjects, ref hasAwakeCreatures, ref hasOpenContainers, ref hasUnlockedChests));
 
             foreach (var profile in idleStaleProfiles)
                 profile.Reset();
