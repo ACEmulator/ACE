@@ -143,7 +143,22 @@ namespace ACE.Server.Physics
         /// <param name="radsum">The sum of the sphere and spherical point radii</param>
         /// <param name="sphereNum">Used as an offset in path.GlobalCurrCenter to determine movement</param>
         /// <returns>The TransitionState either collided or adjusted</returns>
+        [Obsolete("Use CollideWithPoint without disp")]
         public TransitionState CollideWithPoint(Transition transition, Sphere checkPos, Vector3 disp, float radsum, int sphereNum)
+        {
+            return CollideWithPoint(transition, checkPos, radsum, sphereNum);
+        }
+
+        /// <summary>
+        /// Redirects a sphere to be on collision course towards a point
+        /// </summary>
+        /// <param name="transition">The transition information for the sphere</param>
+        /// <param name="checkPos">The spherical point to redirect towards</param>
+        /// <param name="disp">Currently doesn't seem to be used?</param>
+        /// <param name="radsum">The sum of the sphere and spherical point radii</param>
+        /// <param name="sphereNum">Used as an offset in path.GlobalCurrCenter to determine movement</param>
+        /// <returns>The TransitionState either collided or adjusted</returns>
+        public TransitionState CollideWithPoint(Transition transition, Sphere checkPos, float radsum, int sphereNum)
         {
             var obj = transition.ObjectInfo;
             var path = transition.SpherePath;
@@ -200,7 +215,7 @@ namespace ACE.Server.Physics
         /// <param name="radSum">The sum of the radii between this sphere and the other sphere</param>
         /// <returns>A 0-1 interval along the movement path for the time of collision, or -1 non-collision</returns>
         /// <remarks>Verify this could be different from original AC, which seems to return a negative interval?</remarks>
-        public double FindTimeOfCollision(Vector3 movement, Vector3 spherePos, float radSum)
+        public static double FindTimeOfCollision(Vector3 movement, Vector3 spherePos, float radSum)
         {
             var distSq = movement.LengthSquared();
             if (distSq < PhysicsGlobals.EPSILON) return -1;
@@ -300,29 +315,29 @@ namespace ACE.Server.Physics
                 if (transition.ObjectInfo.State.HasFlag(ObjectInfoState.Contact) || transition.ObjectInfo.State.HasFlag(ObjectInfoState.OnWalkable))
                 {
                     if (CollidesWithSphere(disp, radsum))
-                        return StepSphereUp(transition, globSphere, disp, radsum);
+                        return StepSphereUp(transition, disp, radsum);
 
                     if (transition.SpherePath.NumSphere > 1)
                     {
                         if (CollidesWithSphere(disp_, radsum))
-                            return SlideSphere(transition, globSphere_, disp_, radsum, 1);
+                            return SlideSphere(transition, globSphere_, 1);
                     }
                     return TransitionState.OK;
                 }
                 else if (transition.ObjectInfo.State.HasFlag(ObjectInfoState.PathClipped))
                 {
                     if (CollidesWithSphere(disp, radsum))
-                        return CollideWithPoint(transition, globSphere, disp, radsum, 0);
+                        return CollideWithPoint(transition, globSphere, radsum, 0);
                 }
                 else
                 {
                     if (CollidesWithSphere(disp, radsum))
-                        return LandOnSphere(transition, globSphere, disp, radsum);
+                        return LandOnSphere(transition);
 
                     if (transition.SpherePath.NumSphere > 1)
                     {
                         if (CollidesWithSphere(disp_, radsum))
-                            return CollideWithPoint(transition, globSphere_, disp_, radsum, 1);
+                            return CollideWithPoint(transition, globSphere_, radsum, 1);
                     }
                 }
                 return TransitionState.OK;
@@ -377,7 +392,16 @@ namespace ACE.Server.Physics
         /// <summary>
         /// Handles the collision when an object lands on a sphere
         /// </summary>
+        [Obsolete("Use LandOnShere without checkPos, disp, radsum")]
         public TransitionState LandOnSphere(Transition transition, Sphere checkPos, Vector3 disp, float radsum)
+        {
+            return LandOnSphere(transition);
+        }
+
+        /// <summary>
+        /// Handles the collision when an object lands on a sphere
+        /// </summary>
+        public TransitionState LandOnSphere(Transition transition)
         {
             var path = transition.SpherePath;
 
@@ -396,7 +420,16 @@ namespace ACE.Server.Physics
         /// <summary>
         /// Attempts to slide the sphere from a collision
         /// </summary>
+        [Obsolete("Use SlideSphere without radsum")]
         public TransitionState SlideSphere(Transition transition, Vector3 disp, float radsum, int sphereNum)
+        {
+            return SlideSphere(transition, disp, sphereNum);
+        }
+
+        /// <summary>
+        /// Attempts to slide the sphere from a collision
+        /// </summary>
+        public TransitionState SlideSphere(Transition transition, Vector3 disp, int sphereNum)
         {
             var path = transition.SpherePath;
             var collisions = transition.CollisionInfo;
@@ -449,7 +482,16 @@ namespace ACE.Server.Physics
         /// <summary>
         /// Attempts to slide a sphere from a collision
         /// </summary>
+        [Obsolete("Use SlideSphere without disp and radsum")]
         public TransitionState SlideSphere(Transition transition, Sphere checkPos, Vector3 disp, float radsum, int sphereNum)
+        {
+            return SlideSphere(transition, checkPos, sphereNum);
+        }
+
+        /// <summary>
+        /// Attempts to slide a sphere from a collision
+        /// </summary>
+        public TransitionState SlideSphere(Transition transition, Sphere checkPos, int sphereNum)
         {
             var globalCenter = transition.SpherePath.GlobalCurrCenter[sphereNum].Center;
 
@@ -567,11 +609,20 @@ namespace ACE.Server.Physics
         /// <summary>
         /// Attempts to move the sphere up from a collision
         /// </summary>
+        [Obsolete("Use override without checkPos")]
         public TransitionState StepSphereUp(Transition transition, Sphere checkPos, Vector3 disp, float radsum)
+        {
+            return StepSphereUp(transition, disp, radsum);
+        }
+
+        /// <summary>
+        /// Attempts to move the sphere up from a collision
+        /// </summary>
+        public TransitionState StepSphereUp(Transition transition, Vector3 disp, float radsum)
         {
             radsum += PhysicsGlobals.EPSILON;
             if (transition.ObjectInfo.StepUpHeight < radsum - disp.Z)
-                return SlideSphere(transition, disp, radsum, 0);
+                return SlideSphere(transition, disp, 0);
             else
             {
                 var globCenter = transition.SpherePath.GlobalCurrCenter[0].Center;
@@ -632,12 +683,7 @@ namespace ACE.Server.Physics
 
         public override int GetHashCode()
         {
-            int hash = 0;
-
-            hash = (hash * 397) ^ Center.GetHashCode();
-            hash = (hash * 397) ^ Radius.GetHashCode();
-
-            return hash;
+            return HashCode.Combine(Center, Radius);
         }
     }
 }
