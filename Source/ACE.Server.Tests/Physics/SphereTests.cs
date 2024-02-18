@@ -35,15 +35,15 @@ namespace ACE.Server.Tests.Physics
             var otherSpherePosition = new Vector3(50, 50, 50);
             var radSum = 20.0f;
 
-            var time = sphere.FindTimeOfCollision(movement, otherSpherePosition, radSum);
+            var time = Sphere.FindTimeOfCollision(movement, otherSpherePosition, radSum);
             Assert.IsTrue(time - 0.38452994616207481f < PhysicsGlobals.EPSILON);
 
             otherSpherePosition = new Vector3(50, 60, 60);
-            time = sphere.FindTimeOfCollision(movement, otherSpherePosition, radSum);
+            time = Sphere.FindTimeOfCollision(movement, otherSpherePosition, radSum);
             Assert.IsTrue(time - 0.46125741132772069f < PhysicsGlobals.EPSILON);
 
             otherSpherePosition = new Vector3(30, 42, 63);
-            time = sphere.FindTimeOfCollision(movement, otherSpherePosition, radSum);
+            time = Sphere.FindTimeOfCollision(movement, otherSpherePosition, radSum);
             Assert.IsTrue(time == -1.0f);
         }
 
