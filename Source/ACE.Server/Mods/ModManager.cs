@@ -1,12 +1,15 @@
+using ACE.Common;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
+
 using log4net;
-using Newtonsoft.Json;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 
 namespace ACE.Server.Mods
 {
@@ -141,7 +144,7 @@ namespace ACE.Server.Mods
 
             try
             {
-                var metadata = JsonConvert.DeserializeObject<ModMetadata>(File.ReadAllText(metadataPath));
+                var metadata = JsonSerializer.Deserialize<ModMetadata>(File.ReadAllText(metadataPath), ConfigManager.SerializerOptions);
 
                 container = new ModContainer()
                 {

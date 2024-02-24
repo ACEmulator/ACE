@@ -30,16 +30,25 @@ namespace ACE.Server.Network
             }
         }
 
-        public ClientMessage GetMessage()
+        /// <summary>
+        /// This will return null if not enough data exists to create a valid ClientMessage (4 bytes minimum are required)
+        /// </summary>
+        public ClientMessage TryGetMessage()
         {
             fragments.Sort(delegate (ClientPacketFragment x, ClientPacketFragment y) { return x.Header.Index - y.Header.Index; });
+
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
             foreach (ClientPacketFragment fragment in fragments)
             {
                 writer.Write(fragment.Data);
             }
+
             stream.Seek(0, SeekOrigin.Begin);
+
+            if (stream.Length < 4) // ClientMessage must be a minimum of 4 bytes in length
+                return null;
+
             return new ClientMessage(stream);
         }
     }

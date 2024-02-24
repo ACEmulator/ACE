@@ -1,4 +1,3 @@
-using Newtonsoft.Json;
 
 namespace ACE.Adapter.GDLE.Models
 {
@@ -8,7 +7,6 @@ namespace ACE.Adapter.GDLE.Models
 
         public uint Target { get; set; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public uint? RecipeId { get; set; }
     }
 }

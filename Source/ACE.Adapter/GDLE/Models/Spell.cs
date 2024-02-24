@@ -1,161 +1,161 @@
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace ACE.Adapter.GDLE.Models
 {
     public class Spell
     {
-        [JsonProperty("degrade_limit", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("degrade_limit")]
         public double? DegradeLimit { get; set; }
 
-        [JsonProperty("degrade_modifier", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("degrade_modifier")]
         public uint? DegradeModifier { get; set; }
 
-        [JsonProperty("duration", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("duration")]
         public double? Duration { get; set; }
 
-        [JsonProperty("smod", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("smod")]
         public StatMod StatMod { get; set; }
 
-        [JsonProperty("spellCategory", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("spellCategory")]
         public uint? SpellCategory { get; set; }
 
-        [JsonProperty("spell_id")]
+        [JsonPropertyName("spell_id")]
         public uint SpellId { get; set; }
 
-        [JsonProperty("boost", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("boost")]
         public int? Boost { get; set; }
 
-        [JsonProperty("boostVariance", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("boostVariance")]
         public int? BoostVariance { get; set; }
 
-        [JsonProperty("dt", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("dt")]
         public int? DamageType { get; set; }
 
-        [JsonProperty("bitfield", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("bitfield")]
         public uint? Bitfield { get; set; }
 
-        [JsonProperty("dest", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("dest")]
         public int? Dest { get; set; }
 
-        [JsonProperty("lossPercent", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("lossPercent")]
         public double? LossPercent { get; set; }
 
-        [JsonProperty("maxBoostAllowed", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("maxBoostAllowed")]
         public int? MaxBoostAllowed { get; set; }
 
-        [JsonProperty("proportion", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("proportion")]
         public double? Proportion { get; set; }
 
-        [JsonProperty("sourceLoss", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("sourceLoss")]
         public int? SourceLoss { get; set; }
 
-        [JsonProperty("src", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("src")]
         public int? Source { get; set; }
 
-        [JsonProperty("transferCap", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("transferCap")]
         public int? TransferCap { get; set; }
 
-        [JsonProperty("bNonTracking", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("bNonTracking")]
         public bool? NonTracking { get; set; }
 
-        [JsonProperty("baseIntensity", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("baseIntensity")]
         public int? BaseIntensity { get; set; }
 
-        [JsonProperty("createOffset", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("createOffset")]
         public CreateOffset CreateOffset { get; set; }
 
-        [JsonProperty("critFreq", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("critFreq")]
         public uint? CritFreq { get; set; }
 
-        [JsonProperty("critMultiplier", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("critMultiplier")]
         public uint? CritMultiplier { get; set; }
 
-        [JsonProperty("defaultLaunchAngle", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("defaultLaunchAngle")]
         public uint? DefaultLaunchAngle { get; set; }
 
-        [JsonProperty("dims", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("dims")]
         public CreateOffset Dims { get; set; }
 
-        [JsonProperty("elementalModifier", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("elementalModifier")]
         public uint? ElementalModifier { get; set; }
 
-        [JsonProperty("etype", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("etype")]
         public uint? EType { get; set; }
 
-        [JsonProperty("ignoreMagicResist", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("ignoreMagicResist")]
         public int? IgnoreMagicResist { get; set; }
 
-        [JsonProperty("imbuedEffect", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("imbuedEffect")]
         public uint? ImbuedEffect { get; set; }
 
-        [JsonProperty("numProjectiles", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("numProjectiles")]
         public int? NumProjectiles { get; set; }
 
-        [JsonProperty("numProjectilesVariance", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("numProjectilesVariance")]
         public double? NumProjectilesVariance { get; set; }
 
-        [JsonProperty("padding", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("padding")]
         public CreateOffset Padding { get; set; }
 
-        [JsonProperty("peturbation", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("peturbation")]
         public CreateOffset Peturbation { get; set; }
 
-        [JsonProperty("slayerCreatureType", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("slayerCreatureType")]
         public int? SlayerCreatureType { get; set; }
 
-        [JsonProperty("slayerDamageBonus", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("slayerDamageBonus")]
         public uint? SlayerDamageBonus { get; set; }
 
-        [JsonProperty("spreadAngle", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("spreadAngle")]
         public uint? SpreadAngle { get; set; }
 
-        [JsonProperty("variance", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("variance")]
         public int? Variance { get; set; }
 
-        [JsonProperty("verticalAngle", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("verticalAngle")]
         public uint? VerticalAngle { get; set; }
 
-        [JsonProperty("wcid", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("wcid")]
         public uint? Wcid { get; set; }
 
-        [JsonProperty("index", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("index")]
         public int? Index { get; set; }
 
-        [JsonProperty("link", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("link")]
         public int? Link { get; set; }
 
-        [JsonProperty("portal_lifetime", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("portal_lifetime")]
         public uint? PortalLifetime { get; set; }
 
-        [JsonProperty("pos", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("pos")]
         public Position Position { get; set; }
 
-        [JsonProperty("align", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("align")]
         public int? Align { get; set; }
 
-        [JsonProperty("max_power", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("max_power")]
         public int? MaxPower { get; set; }
 
-        [JsonProperty("min_power", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("min_power")]
         public int? MinPower { get; set; }
 
-        [JsonProperty("number", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("number")]
         public int? Number { get; set; }
 
-        [JsonProperty("number_variance", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("number_variance")]
         public double? NumberVariance { get; set; }
 
-        [JsonProperty("power_variance", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("power_variance")]
         public uint? PowerVariance { get; set; }
 
-        [JsonProperty("school", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("school")]
         public uint? School { get; set; }
 
-        [JsonProperty("damage_ratio", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("damage_ratio")]
         public double? DamageRatio { get; set; }
 
-        [JsonProperty("drain_percentage", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonPropertyName("drain_percentage")]
         public double? DrainPercentage { get; set; }
     }
 }

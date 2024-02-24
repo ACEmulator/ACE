@@ -1,8 +1,7 @@
 using System;
 using System.IO;
-
-using Newtonsoft.Json;
-using DouglasCrockford.JsMin;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ACE.Common
 {
@@ -62,7 +61,7 @@ namespace ACE.Common
 
                 var fileText = File.ReadAllText(pathToUse);
 
-                Config = JsonConvert.DeserializeObject<MasterConfiguration>(new JsMinifier().Minify(fileText));
+                Config = JsonSerializer.Deserialize<MasterConfiguration>(fileText, SerializerOptions);
             }
             catch (Exception exception)
             {
@@ -73,5 +72,13 @@ namespace ACE.Common
                 throw;
             }
         }
+
+        public static JsonSerializerOptions SerializerOptions = new JsonSerializerOptions
+        {
+            AllowTrailingCommas = true,            
+            NumberHandling = JsonNumberHandling.AllowReadingFromString,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            WriteIndented = true
+        };
     }
 }

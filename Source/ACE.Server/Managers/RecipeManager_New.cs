@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
-
-using Newtonsoft.Json;
+using System.Text.Json;
 
 using ACE.Database;
 using ACE.Database.Models.World;
@@ -21,7 +20,7 @@ namespace ACE.Server.Managers
             // read recipeprecursors.json
             // tool -> target -> recipe
             var json = File.ReadAllText(@"json\recipeprecursors.json");
-            var precursors = JsonConvert.DeserializeObject<List<RecipePrecursor>>(json);
+            var precursors = JsonSerializer.Deserialize<List<RecipePrecursor>>(json);
             Precursors = new Dictionary<uint, Dictionary<uint, uint>>();
 
             foreach (var precursor in precursors)

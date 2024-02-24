@@ -1,7 +1,3 @@
-using System;
-
-using System.Collections.Generic;
-using Newtonsoft.Json;
 
 namespace ACE.Common
 {
@@ -15,15 +11,11 @@ namespace ACE.Common
         /// Purge characters that have been deleted longer than PruneDeletedCharactersDays
         /// These characters, and their associated biotas, will be deleted permanantly!
         /// </summary>
-        [System.ComponentModel.DefaultValue(false)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public bool PurgeDeletedCharacters { get; set; }
+        public bool PurgeDeletedCharacters { get; set; } = false;
 
         /// <summary>
         /// Number of days a character must have been deleted for before eligible for purging
         /// </summary>
-        [System.ComponentModel.DefaultValue(30)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public int PurgeDeletedCharactersDays { get; set; } = 30;
 
         /// <summary>
@@ -31,53 +23,39 @@ namespace ACE.Common
         /// These may have been items that were never deleted properly, items that were given to the town crier before delete was implemented, etc...
         /// This can be time consuming so it's not something you would have set to true for every server startup. You might run this once every few months
         /// </summary>
-        [System.ComponentModel.DefaultValue(false)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public bool PurgeOrphanedBiotas { get; set; }
+        public bool PurgeOrphanedBiotas { get; set; } = false;
 
         /// <summary>
         /// Prune deleted characters from all friend lists
         /// </summary>
-        [System.ComponentModel.DefaultValue(true)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public bool PruneDeletedCharactersFromFriendLists { get; set; }
+        public bool PruneDeletedCharactersFromFriendLists { get; set; } = true;
 
         /// <summary>
         /// Prune deleted objects from all shortcut bars
         /// </summary>
-        [System.ComponentModel.DefaultValue(false)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public bool PruneDeletedObjectsFromShortcutBars { get; set; }
+        public bool PruneDeletedObjectsFromShortcutBars { get; set; } = false;
 
         /// <summary>
         /// Prune deleted characters from all squelch lists, excluding those used to squelch entire accounts
         /// </summary>
-        [System.ComponentModel.DefaultValue(false)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public bool PruneDeletedCharactersFromSquelchLists { get; set; }
+        public bool PruneDeletedCharactersFromSquelchLists { get; set; } = false;
 
         /// <summary>
         /// Automatically check for and update to latest available world database
         /// </summary>
-        [System.ComponentModel.DefaultValue(false)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public bool AutoUpdateWorldDatabase { get; set; }
+        public bool AutoUpdateWorldDatabase { get; set; } = false;
 
         /// <summary>
         /// Automatically check for updated server binaries
         /// </summary>
-        [System.ComponentModel.DefaultValue(true)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public bool AutoServerUpdateCheck { get; set; }
+        public bool AutoServerUpdateCheck { get; set; } = true;
 
         /// <summary>
         /// After updating to latest world database, automatically import further customizations
         /// AutoUpdateWorldDatabase must be true for this option to be used
         /// SQL files will be executed given the sort order of the full paths of the files
         /// </summary>
-        [System.ComponentModel.DefaultValue(false)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public bool AutoApplyWorldCustomizations { get; set; }
+        public bool AutoApplyWorldCustomizations { get; set; } = false;
 
         /// <summary>
         /// When AutoApplyWorldCustomizations is set to true, the auto apply process will search for
@@ -85,23 +63,17 @@ namespace ACE.Common
         /// This process will still use ./Content by default, or the the config_properties_string
         /// value for 'content_folder' if it exists
         /// </summary>
-        [System.ComponentModel.DefaultValue(new string[] { })]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public string[] WorldCustomizationAddedPaths { get; set; }
+        public string[] WorldCustomizationAddedPaths { get; set; } = { };
 
         /// <summary>
         /// When retrieving a file list of .sql files in the AutoApplyWorldCustomizations process
         /// this will cause the file search to retrieve all files recursively from each directory
         /// </summary>
-        [System.ComponentModel.DefaultValue(false)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public bool RecurseWorldCustomizationPaths { get; set; }
+        public bool RecurseWorldCustomizationPaths { get; set; } = false;
 
         /// <summary>
         /// Automatically apply new updates to databases upon startup if they haven't yet been applied
         /// </summary>
-        [System.ComponentModel.DefaultValue(false)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public bool AutoApplyDatabaseUpdates { get; set; }
+        public bool AutoApplyDatabaseUpdates { get; set; } = false;
     }
 }

@@ -1,8 +1,13 @@
+using System.Text.Json.Serialization;
+
 namespace ACE.Adapter.GDLE.Models
 {
     public class Position
     {
-        public Frame frame { get; set; }
-        public uint objcell_id { get; set; }
+        [JsonPropertyName("frame")]
+        public Frame Frame { get; set; }
+
+        [JsonPropertyName("objcell_id")]
+        public uint LandCellId { get; set; }
     }
 }

@@ -27,8 +27,9 @@ services:
       - ./Content:/ace/Content
       - ./Dats:/ace/Dats
       - ./Logs:/ace/Logs
+      - ./Mods:/ace/Mods
     ports:
       - "9000-9001:9000-9001/udp"
+    stdin_open: true
     #restart: unless-stopped
     restart: on-failure
-

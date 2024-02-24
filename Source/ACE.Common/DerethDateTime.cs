@@ -1,7 +1,5 @@
 using System;
 
-using TimeZoneConverter;
-
 namespace ACE.Common
 {
     /// <summary>
@@ -32,7 +30,7 @@ namespace ACE.Common
         private static DateTime dayOne_RealWorld        = new DateTime(1999, 4, 2, 00, 00, 00);
 
         private static DateTime retailDayOne_RealWorld  = new DateTime(1999, 11, 2, 00, 00, 00);
-        private static DateTime retailDayLast_RealWorld = new DateTime(2017, 1, 31, 12, 00, 00);
+        private static DateTime retailDayLast_RealWorld = new DateTime(2017, 1, 31, 12, 00, 00); // Eastern Standard Time
 
         /// <summary>
         /// <para>A <see cref="DerethDateTime"/> instance set to the Derethian Date, Portal Year and Time when the worlds first opened.</para>
@@ -1061,6 +1059,6 @@ namespace ACE.Common
         /// <summary>
         /// Converts the <see cref="DateTime.UtcNow"/> object to a new <see cref="DerethDateTime"/> object set to EMU Standard Sync Time.
         /// </summary>
-        public static DerethDateTime UtcNowToEMUTime => new DerethDateTime((DateTime.UtcNow - TimeZoneInfo.ConvertTimeToUtc(retailDayLast_RealWorld, TZConvert.GetTimeZoneInfo("Eastern Standard Time"))).TotalSeconds);
+        public static DerethDateTime UtcNowToEMUTime => new DerethDateTime((DateTime.UtcNow.AddHours(-5) - retailDayLast_RealWorld).TotalSeconds); // -5 is Eastern Standard Time UTC Offset
     }
 }

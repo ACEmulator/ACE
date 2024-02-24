@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace ACE.Server.Entity
 {
@@ -9,10 +9,10 @@ namespace ACE.Server.Entity
             StackSize = 1;
         }
 
-        [JsonProperty("weenieId")]
+        [JsonPropertyName("weenieId")]
         public uint WeenieId { get; set; }
 
-        [JsonProperty("stacksize")]
+        [JsonPropertyName("stacksize")]
         public ushort StackSize { get; set; }
     }
 }
