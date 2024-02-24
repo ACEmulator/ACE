@@ -1,4 +1,4 @@
-version: 1.54.{build}
+version: 1.58.{build}
 pull_requests:
   do_not_increment_build_number: true
 skip_tags: true
@@ -21,6 +21,7 @@ init:
     REM appveyor UpdateBuild -Version "%REVISED_VERSION%"
 
     REM set APPVEYOR_BUILD_VERSION=%REVISED_VERSION%
+- ps: Start-Service MySQL80
 dotnet_csproj:
   patch: true
   file: '**\*.csproj'
@@ -43,7 +44,8 @@ environment:
     secure: huM6kANmgP1OdlmHulXVZA==
   access_token:
     secure: lGLpqex+Weod6ZiPw34RwTv999QvoSZ+imTcmYhiJWQL6XkfkVUYcqOO6pJDuAYt
-services: mysql
+services: 
+  - mysql
 before_build:
 - cmd: AppVeyor\AppVeyorBeforeCompile.bat
 build:

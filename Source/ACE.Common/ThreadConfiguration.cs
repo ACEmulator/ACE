@@ -1,7 +1,6 @@
 using System;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-
-using Newtonsoft.Json;
 
 namespace ACE.Common
 {
@@ -11,8 +10,8 @@ namespace ACE.Common
     /// </summary>
     public class ThreadConfiguration
     {
-        private double worldThreadCountMultiplier;
-        private double databaseThreadCountMultiplier;
+        private double worldThreadCountMultiplier = 0.34;
+        private double databaseThreadCountMultiplier = 0.66;
 
         /*
          * Multiplier of 0.34:
@@ -30,8 +29,6 @@ namespace ACE.Common
          * 12 vCPU = 4 thread world, 8 thread database
          */
 
-        [System.ComponentModel.DefaultValue(0.34)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public double WorldThreadCountMultiplier
         {
             get => worldThreadCountMultiplier;
@@ -46,8 +43,6 @@ namespace ACE.Common
             }
         }
 
-        [System.ComponentModel.DefaultValue(0)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public double DatabaseThreadCountMultiplier
         {
             get => databaseThreadCountMultiplier;
@@ -70,13 +65,9 @@ namespace ACE.Common
             }
         }
 
-        [System.ComponentModel.DefaultValue(false)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public bool MultiThreadedLandblockGroupPhysicsTicking { get; set; }
+        public bool MultiThreadedLandblockGroupPhysicsTicking { get; set; } = false;
 
-        [System.ComponentModel.DefaultValue(false)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public bool MultiThreadedLandblockGroupTicking { get; set; }
+        public bool MultiThreadedLandblockGroupTicking { get; set; } = false;
 
 
         // World Thread Management

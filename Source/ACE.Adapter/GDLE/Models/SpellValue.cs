@@ -1,78 +1,77 @@
 using System.Collections.Generic;
-
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace ACE.Adapter.GDLE.Models
 {
     public class SpellValue
     {
-        [JsonProperty("base_mana")]
+        [JsonPropertyName("base_mana")]
         public uint BaseMana { get; set; }
 
-        [JsonProperty("base_range_constant")]
+        [JsonPropertyName("base_range_constant")]
         public double BaseRangeConstant { get; set; }
 
-        [JsonProperty("base_range_mod")]
+        [JsonPropertyName("base_range_mod")]
         public double BaseRangeMod { get; set; }
 
-        [JsonProperty("bitfield")]
+        [JsonPropertyName("bitfield")]
         public uint Bitfield { get; set; }
 
-        [JsonProperty("caster_effect")]
+        [JsonPropertyName("caster_effect")]
         public uint CasterEffect { get; set; }
 
-        [JsonProperty("category")]
+        [JsonPropertyName("category")]
         public uint Category { get; set; }
 
-        [JsonProperty("component_loss")]
+        [JsonPropertyName("component_loss")]
         public double ComponentLoss { get; set; }
 
-        [JsonProperty("desc")]
+        [JsonPropertyName("desc")]
         public string Desc { get; set; }
 
-        [JsonProperty("display_order")]
+        [JsonPropertyName("display_order")]
         public uint DisplayOrder { get; set; }
 
-        [JsonProperty("fizzle_effect")]
+        [JsonPropertyName("fizzle_effect")]
         public uint FizzleEffect { get; set; }
 
-        [JsonProperty("formula")]
+        [JsonPropertyName("formula")]
         public List<int> Formula { get; set; }
 
-        [JsonProperty("formula_version")]
+        [JsonPropertyName("formula_version")]
         public uint FormulaVersion { get; set; }
 
-        [JsonProperty("iconID")]
+        [JsonPropertyName("iconID")]
         public uint IconId { get; set; }
 
-        [JsonProperty("mana_mod")]
+        [JsonPropertyName("mana_mod")]
         public uint ManaMod { get; set; }
 
-        [JsonProperty("meta_spell")]
+        [JsonPropertyName("meta_spell")]
         public MetaSpell MetaSpell { get; set; }
 
-        [JsonProperty("name")]
+        [JsonPropertyName("name")]
         public string Name { get; set; }
 
-        [JsonProperty("non_component_target_type")]
+        [JsonPropertyName("non_component_target_type")]
         public uint NonComponentTargetType { get; set; }
 
-        [JsonProperty("power")]
+        [JsonPropertyName("power")]
         public uint Power { get; set; }
 
-        [JsonProperty("recovery_amount")]
+        [JsonPropertyName("recovery_amount")]
         public uint RecoveryAmount { get; set; }
 
-        [JsonProperty("recovery_interval")]
+        [JsonPropertyName("recovery_interval")]
         public uint RecoveryInterval { get; set; }
 
-        [JsonProperty("school")]
+        [JsonPropertyName("school")]
         public int School { get; set; }
 
-        [JsonProperty("spell_economy_mod")]
+        [JsonPropertyName("spell_economy_mod")]
         public uint SpellEconomyMod { get; set; }
 
-        [JsonProperty("target_effect")]
+        [JsonPropertyName("target_effect")]
         public uint TargetEffect { get; set; }
     }
 }

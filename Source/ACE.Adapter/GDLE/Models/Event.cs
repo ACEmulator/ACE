@@ -1,14 +1,14 @@
 
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace ACE.Adapter.GDLE.Models
 {
     public class Event
     {
-        [JsonProperty("key")]
+        [JsonPropertyName("key")]
         public string Key { get; set; }
 
-        [JsonProperty("value")]
+        [JsonPropertyName("value")]
         public EventValue Value { get; set; }
     }
 }

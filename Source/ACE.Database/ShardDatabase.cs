@@ -130,7 +130,7 @@ namespace ACE.Database
         }
 
         [Flags]
-        enum PopulatedCollectionFlags
+        public enum PopulatedCollectionFlags
         {
             BiotaPropertiesAnimPart             = 0x1,
             BiotaPropertiesAttribute            = 0x2,
@@ -159,7 +159,7 @@ namespace ACE.Database
             BiotaPropertiesAllegiance           = 0x1000000,
         }
 
-        protected static void SetBiotaPopulatedCollections(Biota biota)
+        public static void SetBiotaPopulatedCollections(Biota biota)
         {
             PopulatedCollectionFlags populatedCollectionFlags = 0;
 
@@ -309,11 +309,11 @@ namespace ACE.Database
             }
         }
 
-        public virtual bool SaveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)
+        public virtual bool SaveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock, bool doNotAddToCache = false)
         {
             using (var context = new ShardDbContext())
             {
-                var existingBiota = GetBiota(context, biota.Id);
+                var existingBiota = GetBiota(context, biota.Id, doNotAddToCache);
 
                 rwLock.EnterReadLock();
                 try
@@ -338,13 +338,13 @@ namespace ACE.Database
             }
         }
 
-        public bool SaveBiotasInParallel(IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> biotas)
+        public bool SaveBiotasInParallel(IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> biotas, bool doNotAddToCache = false)
         {
             var result = true;
 
             Parallel.ForEach(biotas, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, biota =>
             {
-                if (!SaveBiota(biota.biota, biota.rwLock))
+                if (!SaveBiota(biota.biota, biota.rwLock, doNotAddToCache))
                     result = false;
             });
 

@@ -138,6 +138,16 @@
                             "weenieId": "43018",
                             "name": "Letter From Home",
                             "stacksize": "1"
+                        },
+                        {
+                            "weenieId": "42979",
+                            "name": "Core Plating Integrator",
+                            "stacksize": "1"
+                        },
+                        {
+                            "weenieId": "43022",
+                            "name": "Core Plating Deintegrator",
+                            "stacksize": "1"
                         }
                     ]
                 },
@@ -876,7 +886,7 @@
                     "name": "Sho",
                     "gear": [
                         {
-                            "weenieId": "45537",
+                            "weenieId": "45557",
                             "name": "Training Handwraps",
                             "stacksize": "1"
                         }
@@ -898,7 +908,7 @@
                     "name": "Umbrean",
                     "gear": [
                         {
-                            "weenieId": "45537",
+                            "weenieId": "45557",
                             "name": "Training Handwraps",
                             "stacksize": "1"
                         }
@@ -953,7 +963,7 @@
                     "name": "Penumbraen",
                     "gear": [
                         {
-                            "weenieId": "45537",
+                            "weenieId": "45557",
                             "name": "Training Handwraps",
                             "stacksize": "1"
                         }

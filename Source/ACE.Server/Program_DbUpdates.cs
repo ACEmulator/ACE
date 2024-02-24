@@ -1,13 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
-using System.Collections.Generic;
 
 using ACE.Common;
-
-using Newtonsoft.Json;
 
 namespace ACE.Server
 {
@@ -26,10 +25,10 @@ namespace ACE.Server
 
                 using var client = new WebClient();
                 var html = client.GetStringFromURL(url).Result;
-                dynamic json = JsonConvert.DeserializeObject(html);
-                string tag = json.tag_name;
-                string dbURL = json.assets[0].browser_download_url;
-                string dbFileName = json.assets[0].name;
+                var json = JsonSerializer.Deserialize<JsonElement>(html);
+                string tag = json.GetProperty("tag_name").GetString();
+                string dbURL = json.GetProperty("assets")[0].GetProperty("browser_download_url").GetString();
+                string dbFileName = json.GetProperty("assets")[0].GetProperty("name").GetString();
 
                 if (currentVersion.PatchVersion != tag)
                 {
