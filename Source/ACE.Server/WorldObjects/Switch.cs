@@ -1,5 +1,6 @@
 using System;
 
+using ACE.Common;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -53,7 +54,26 @@ namespace ACE.Server.WorldObjects
                 EnqueueMotion(actionChain, useAnimation, 1, false);
             }
 
-            actionChain.AddAction(this, () => base.OnActivate(activator));
+            if (Time.GetUnixTime() < ResetTimestamp)
+            {
+                var activationFailure = GetProperty(PropertyString.ActivationFailure);
+                if (activationFailure != null && activator is Player player)
+                {
+                    actionChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameMessageSystemChat(activationFailure, ChatMessageType.Broadcast)));
+                }
+            }
+            else
+            {
+                actionChain.AddAction(this, () => base.OnActivate(activator));
+
+                actionChain.AddAction(this, () =>
+                {
+                    if (ResetInterval > 0)
+                    {
+                        ResetTimestamp = Time.GetFutureUnixTime(ResetInterval ?? 0);
+                    }
+                });
+            }
 
             actionChain.EnqueueChain();
         }

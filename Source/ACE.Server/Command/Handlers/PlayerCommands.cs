@@ -833,7 +833,7 @@ namespace ACE.Server.Command.Handlers
                 eventType,
                 monarchId.HasValue ? monarchId.Value : session.Player.Character.Id,
                 monarchName,
-                session.EndPoint?.Address?.ToString(),
+                session.EndPointC2S?.Address?.ToString(),
                 out returnMsg))
             {
                 return returnMsg;
