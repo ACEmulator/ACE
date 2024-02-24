@@ -728,7 +728,10 @@ namespace ACE.Server.WorldObjects
             var idleStaleProfiles = GeneratorProfiles.Where(p => p.IsMaxed && (DateTime.UtcNow > p.StaleTime) && p.IsAbleToBeMarkedStale(ref hasNonWorldObjects, ref hasAwakeCreatures, ref hasOpenContainers, ref hasUnlockedChests));
 
             foreach (var profile in idleStaleProfiles)
+            {
                 profile.Reset();
+                profile.NextAvailable = DateTime.UtcNow.AddSeconds(profile.Delay);
+            }
         }
     }
 }
