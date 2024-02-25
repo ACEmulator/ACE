@@ -1351,5 +1351,52 @@ namespace ACE.Server.Entity
             else
                 SendEnvironSound(environChangeType);
         }
+
+        //public void NotifyEncounterGenerators(WorldObject generator, int profileId)
+        //{
+        //    //if (string.IsNullOrWhiteSpace(message)) return;
+
+        //    //foreach (var wo in worldObjects.Values.Where(w => w.HearLocalSignals).ToList())
+        //    //{
+        //    //    if (emitter == wo) continue;
+
+        //    //    if (emitter.IsWithinUseRadiusOf(wo, wo.HearLocalSignalsRadius))
+        //    //    {
+        //    //        //Console.WriteLine($"{wo.Name}.EmoteManager.OnLocalSignal({emitter.Name}, {message})");
+        //    //        wo.EmoteManager.OnLocalSignal(emitter, message);
+        //    //    }
+        //    //}
+
+        //    var nextAvailable = DateTime.UtcNow.AddSeconds(generator.GeneratorProfiles[profileId].Delay);
+
+        //    var encounterGenerators = worldObjects.Values.Where(w => w.WeenieClassId == generator.WeenieClassId && w.Guid != generator.Guid).ToList();
+        //    foreach (var encounterGenerator in encounterGenerators)
+        //    {
+        //        encounterGenerator.GeneratorProfiles[profileId].NextAvailable = nextAvailable;
+        //    }
+        //}
+
+        //private readonly Dictionary<uint, Dictionary<int, DateTime>> EncounterSomething = new();
+
+        //public void RegisterEncounterProfileUsed(WorldObject generator, uint profileId, float delay)
+        //{
+        //    EncounterSomething.TryAdd(generator.WeenieClassId, new());
+
+        //    EncounterSomething[generator.WeenieClassId][(int)profileId] = DateTime.UtcNow.AddSeconds(delay);
+        //}
+
+        //public bool CheckEncounterProfileIsAvailable(WorldObject generator, uint profileId)
+        //{
+        //    if (!EncounterSomething.TryGetValue(generator.WeenieClassId, out var encounter))
+        //        return true;
+
+        //    if (!encounter.TryGetValue((int)profileId, out var nextAvailable))
+        //        return true;
+
+        //    if (DateTime.UtcNow > nextAvailable)
+        //        return true;
+
+        //    return false;
+        //}
     }
 }
