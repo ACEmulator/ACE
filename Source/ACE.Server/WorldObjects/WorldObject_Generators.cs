@@ -121,8 +121,9 @@ namespace ACE.Server.WorldObjects
 
             //var totalProbability = rng_selected ? GetTotalProbability() : 1.0f;
             //var rng = ThreadSafeRandom.Next(0.0f, totalProbability);
-            //var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-            var rng = ThreadSafeRandom.Next(0.0f, GetTotalProbability());
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+            //var rng = ThreadSafeRandom.Next(0.0f, GetTotalProbability());
+            //var rng = ThreadSafeRandom.Next(0.0f, GetMaxProbability());
 
             for (var i = 0; i < GeneratorProfiles.Count; i++)
             {
@@ -140,6 +141,30 @@ namespace ACE.Server.WorldObjects
                 if (!profile.IsAvailable)
                     continue;
 
+                //if (IsEncounter && CurrentLandblock != null && !CurrentLandblock.CheckEncounterProfileIsAvailable(this, profile.Id))
+                //    continue;
+                //if (IsEncounter)
+                //{
+                //    if (CurrentLandblock != null)
+                //    {
+                //        if (!CurrentLandblock.CheckEncounterProfileIsAvailable(this, profile.Id))
+                //            continue;
+
+                //        //var adjacentIsAvailable = true;
+                //        //foreach(var adjacent in CurrentLandblock.Adjacents)
+                //        //{
+                //        //    if (!adjacent.CheckEncounterProfileIsAvailable(this, profile.Id))
+                //        //    {
+                //        //        adjacentIsAvailable = false;
+                //        //        break;
+                //        //    }
+                //        //}
+
+                //        //if (!adjacentIsAvailable)
+                //        //    continue;
+                //    }
+                //}    
+
                 if (profile.RegenLocationType.HasFlag(RegenLocationType.Treasure))
                 {
                     if (profile.Biota.InitCreate > 1)
@@ -156,8 +181,8 @@ namespace ACE.Server.WorldObjects
                 }
 
                 //var probability = rng_selected ? GetAdjustedProbability(i) : profile.Biota.Probability;
-                //var probability = profile.Biota.Probability;
-                var probability = GetAdjustedProbability(i);
+                var probability = profile.Biota.Probability;
+                //var probability = GetAdjustedProbability(i);
 
                 if (rng < probability || probability == -1)
                 {
