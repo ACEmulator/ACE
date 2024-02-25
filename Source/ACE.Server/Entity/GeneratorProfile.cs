@@ -246,6 +246,16 @@ namespace ACE.Server.Entity
                     break;
                 }*/
                 SpawnQueue.Add(GetSpawnTime());
+
+                //if (Generator.IsEncounter)
+                //{
+                //    Generator.CurrentLandblock?.NotifyEncounterGenerators(Generator, (int)Id);
+                //    foreach (var landblock in Generator.CurrentLandblock?.Adjacents)
+                //        landblock.NotifyEncounterGenerators(Generator, (int)Id);
+                //}
+
+                //if (Generator.IsEncounter)
+                //    Generator.CurrentLandblock?.RegisterEncounterProfileUsed(Generator, Id, Delay);
             }
         }
 
@@ -283,8 +293,13 @@ namespace ACE.Server.Entity
 
                         MostRecentSpawnTime = DateTime.UtcNow;
 
-                        var variance = ThreadSafeRandom.Next(0, Delay);
-                        StaleTime = DateTime.UtcNow.AddSeconds(Delay * MaxCreate + variance);
+                        if (Generator.IsEncounter)
+                        {
+                            var variance = ThreadSafeRandom.Next(0, Delay);
+                            StaleTime = DateTime.UtcNow.AddSeconds(Delay * MaxCreate + variance);
+
+                            //Generator.CurrentLandblock?.NotifyEncounterGenerators(Generator, (int)Id);
+                        }
                     }
                 }
                 else
