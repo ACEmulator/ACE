@@ -215,7 +215,11 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(msgPurgeEnchantments);
             }
             else
-                Session.Network.EnqueueSend(new GameMessageSystemChat("Your augmentation prevents the tides of death from ripping away your current enchantments!", ChatMessageType.Broadcast));
+            {
+                var msgPurgeBadEnchantments = new GameEventMagicPurgeBadEnchantments(Session);
+                EnchantmentManager.RemoveAllBadEnchantments();
+                Session.Network.EnqueueSend(msgPurgeBadEnchantments, new GameMessageSystemChat("Your augmentation prevents the tides of death from ripping away your current enchantments!", ChatMessageType.Broadcast));
+            }
 
             // wait for the death animation to finish
             var dieChain = new ActionChain();

@@ -362,6 +362,19 @@ namespace ACE.Server.WorldObjects.Managers
         }
 
         /// <summary>
+        /// Removes all enchantments except for beneficial enchantments, vitae and item spells
+        /// Called on player death
+        /// </summary>
+        public virtual void RemoveAllBadEnchantments()
+        {
+            // exclude beneficial enchantments, cooldowns and enchantments from items
+            var spellsToExclude = WorldObject.Biota.PropertiesEnchantmentRegistry.Clone(WorldObject.BiotaDatabaseLock).Where(i => i.StatModType.HasFlag(EnchantmentTypeFlags.Beneficial) || i.Duration == -1 || i.SpellId > short.MaxValue).Select(i => i.SpellId);
+
+            WorldObject.Biota.PropertiesEnchantmentRegistry.RemoveAllEnchantments(spellsToExclude, WorldObject.BiotaDatabaseLock);
+            WorldObject.ChangesDetected = true;
+        }
+
+        /// <summary>
         /// Returns the vitae enchantment
         /// </summary>
         public PropertiesEnchantmentRegistry GetVitae()
