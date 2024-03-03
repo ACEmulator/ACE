@@ -247,6 +247,9 @@ namespace ACE.Server.WorldObjects.Managers
             entry.StatModKey = spell.StatModKey;
             entry.StatModValue = spell.StatModVal;
 
+            if (spell.IsBeneficial) // should "server" data be fixed or is this the better way to do this?
+                entry.StatModType |= EnchantmentTypeFlags.Beneficial;
+
             if (spell.IsDamageOverTime)
             {
                 var heartbeatInterval = WorldObject.HeartbeatInterval ?? 5.0f;
