@@ -19,6 +19,7 @@ using ACE.Server.Network.Managers;
 using ACE.Server.Network.Packets;
 
 using log4net;
+using log4net.Util;
 
 namespace ACE.Server.Network
 {
@@ -169,7 +170,8 @@ namespace ACE.Server.Network
 
             foreach (var packet in packets)
             {
-                packetLog.DebugFormat("[{0}] Enqueuing Packet {1}", session.LoggingIdentifier, packet.GetHashCode());
+                if (packetLog.IsDebugEnabled)
+                    packetLog.DebugFormat("[{0}] Enqueuing Packet {1}", session.LoggingIdentifier, packet.GetHashCode());
                 packetQueue.Enqueue(packet);
             }
         }
@@ -419,7 +421,8 @@ namespace ACE.Server.Network
             EnqueueSend(reqPacket);
 
             LastRequestForRetransmitTime = DateTime.UtcNow;
-            packetLog.DebugFormat("[{0}] Requested retransmit of {1}", session.LoggingIdentifier, needSeq.Select(k => k.ToString()).Aggregate((a, b) => a + ", " + b));
+            if (packetLog.IsDebugEnabled)
+                packetLog.DebugFormat("[{0}] Requested retransmit of {1}", session.LoggingIdentifier, needSeq.Select(k => k.ToString()).Aggregate((a, b) => a + ", " + b));
             NetworkStatistics.S2C_RequestsForRetransmit_Aggregate_Increment();
         }
 
@@ -460,7 +463,7 @@ namespace ACE.Server.Network
             // In our current implimenation we handle all roles in this one server.
             if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
             {
-                packetLog.Debug($"[{session.LoggingIdentifier}] LoginRequest");
+                packetLog.DebugFormat("[{0}] LoginRequest", session.LoggingIdentifier);
                 AuthenticationHandler.HandleLoginRequest(packet, session);
                 return;
             }
@@ -731,13 +734,15 @@ namespace ACE.Server.Network
 
         private void SendPacket(ServerPacket packet)
         {
-            packetLog.DebugFormat("[{0}] Sending packet {1}", session.LoggingIdentifier, packet.GetHashCode());
+            if (packetLog.IsDebugEnabled)
+                packetLog.DebugFormat("[{0}] Sending packet {1}", session.LoggingIdentifier, packet.GetHashCode());
             NetworkStatistics.S2C_Packets_Aggregate_Increment();
 
             if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
             {
                 uint issacXor = ConnectionData.IssacServer.Next();
-                packetLog.DebugFormat("[{0}] Setting Issac for packet {1} to {2}", session.LoggingIdentifier, packet.GetHashCode(), issacXor);
+                if (packetLog.IsDebugEnabled)
+                    packetLog.DebugFormat("[{0}] Setting Issac for packet {1} to {2}", session.LoggingIdentifier, packet.GetHashCode(), issacXor);
                 packet.IssacXor = issacXor;
             }
 
@@ -756,7 +761,7 @@ namespace ACE.Server.Network
 
                 packet.CreateReadyToSendPacket(buffer, out var size);
 
-                packetLog.Debug(packet.ToString());
+                packetLog.DebugFormat("{0}", packet);
 
                 if (packetLog.IsDebugEnabled)
                 {
@@ -764,7 +769,7 @@ namespace ACE.Server.Network
                     var sb = new StringBuilder();
                     sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", size, listenerEndpoint.Address, listenerEndpoint.Port, endPoint.Address, endPoint.Port, session.Network.ClientId));
                     sb.AppendLine(buffer.BuildPacketString(0, size));
-                    packetLog.Debug(sb.ToString());
+                    packetLog.DebugFormat("{0}", sb);
                 }
 
                 try

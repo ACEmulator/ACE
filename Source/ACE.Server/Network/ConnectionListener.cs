@@ -109,7 +109,7 @@ namespace ACE.Server.Network
                     StringBuilder sb = new StringBuilder();
                     sb.AppendLine($"Received Packet (Len: {data.Length}) [{ipEndpoint.Address}:{ipEndpoint.Port}=>{ListenerEndpoint.Address}:{ListenerEndpoint.Port}]");
                     sb.AppendLine(data.BuildPacketString());
-                    packetLog.Debug(sb.ToString());
+                    packetLog.DebugFormat("{0}", sb);
                 }
 
                 var packet = new ClientPacket();
