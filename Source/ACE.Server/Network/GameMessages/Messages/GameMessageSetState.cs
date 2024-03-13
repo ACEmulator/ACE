@@ -6,7 +6,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessageSetState : GameMessage
     {
         public GameMessageSetState(WorldObject worldObject, PhysicsState state)
-            : base(GameMessageOpcode.SetState, GameMessageGroup.SmartboxQueue)
+            : base(GameMessageOpcode.SetState, GameMessageGroup.SmartboxQueue, 16)
         {
             Writer.WriteGuid(worldObject.Guid);
             Writer.Write((uint)state);

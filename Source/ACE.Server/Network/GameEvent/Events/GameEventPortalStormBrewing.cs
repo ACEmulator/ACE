@@ -6,7 +6,7 @@ namespace ACE.Server.Network.GameEvent.Events
     public class GameEventPortalStormBrewing : GameEventMessage
     {
         public GameEventPortalStormBrewing(Session session, float extent = 0.4f)
-            : base(GameEventType.MiscPortalStormBrewing, GameMessageGroup.UIQueue, session)
+            : base(GameEventType.MiscPortalStormBrewing, GameMessageGroup.UIQueue, session, 8)
         {
             Writer.Write(extent);
         }

@@ -1322,7 +1322,7 @@ namespace ACE.Server.Physics
 
                 // ideally CellArray.LoadCells = false would be passed to find_cell_list to prevent it from even attempting to load an unloaded neighboring landblock
 
-                log.Debug($"{Name} ({ID:X8}) AddPhysicsObj() - {pos.ShortLoc()} resulted in {transition.SpherePath.CurPos.ShortLoc()}, discarding");
+                log.DebugFormat("{0} ({1:X8}) AddPhysicsObj() - {2}) resulted in {3}, discarding", Name, ID, pos.ShortLoc(), transition.SpherePath.CurPos.ShortLoc());
                 return SetPositionError.NoValidPosition;
             }
 
@@ -1436,7 +1436,7 @@ namespace ACE.Server.Physics
                         var groundZ = landblock.GetZ(newPos.Frame.Origin) + 0.05f;
 
                         if (Math.Abs(newPos.Frame.Origin.Z - groundZ) > ScatterThreshold_Z)
-                            log.Debug($"{Name} ({ID:X8}).SetScatterPositionInternal() - tried to spawn outdoor object @ {newPos} ground Z {groundZ} (diff: {newPos.Frame.Origin.Z - groundZ}), investigate ScatterThreshold_Z");
+                            log.DebugFormat("{0} ({1:X8}).SetScatterPositionInternal() - tried to spawn outdoor object @ {2} ground Z {3} (diff: {4}), investigate ScatterThreshold_Z", Name, ID, newPos, groundZ, newPos.Frame.Origin.Z - groundZ);
                         else
                             newPos.Frame.Origin.Z = groundZ;
 
@@ -1701,7 +1701,7 @@ namespace ACE.Server.Physics
                     else
                     {
                         if (IsPlayer)
-                            log.Debug($"{Name} ({ID:X8}).UpdateObjectInternal({quantum}) - failed transition from {Position} to {newPos}");
+                            log.DebugFormat("{0} ({1:X8}).UpdateObjectInternal({2}) - failed transition from {3} to {4}", Name, ID, quantum, Position, newPos);
                         else if (transit != null && transit.SpherePath.CurCell == null)
                             log.Warn($"{Name} ({ID:X8}).UpdateObjectInternal({quantum}) - avoided CurCell=null from {Position} to {newPos}");
 
@@ -1782,7 +1782,7 @@ namespace ACE.Server.Physics
                 SetPositionInternal(transit);
             }
             else
-                log.Debug($"{Name}.UpdateObjectInternalServer({quantum}) - failed transition from {Position} to {RequestPos}");
+                log.DebugFormat("{0}.UpdateObjectInternalServer({1}) - failed transition from {2} to {3}", Name, quantum, Position, RequestPos);
 
             if (DetectionManager != null) DetectionManager.CheckDetection();
 

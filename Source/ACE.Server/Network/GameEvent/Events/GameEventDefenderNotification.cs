@@ -7,7 +7,7 @@ namespace ACE.Server.Network.GameEvent.Events
     public class GameEventDefenderNotification : GameEventMessage
     {
         public GameEventDefenderNotification(Session session, string attackerName, DamageType damageType, float percent, uint damage, DamageLocation damageLocation, bool criticalHit, AttackConditions attackConditions)
-            : base(GameEventType.DefenderNotification, GameMessageGroup.UIQueue, session)
+            : base(GameEventType.DefenderNotification, GameMessageGroup.UIQueue, session, 80) // 80 is the max seen in retail pcaps
         {
             Writer.WriteString16L(attackerName);
             Writer.Write((uint)damageType);

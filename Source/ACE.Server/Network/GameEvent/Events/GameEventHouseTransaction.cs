@@ -8,7 +8,7 @@ namespace ACE.Server.Network.GameEvent.Events
     public class GameEventHouseTransaction : GameEventMessage
     {
         public GameEventHouseTransaction(Session session)
-            : base(GameEventType.HouseTransaction, GameMessageGroup.UIQueue, session)
+            : base(GameEventType.HouseTransaction, GameMessageGroup.UIQueue, session, 8)
         {
             //Console.WriteLine("Sending 0x259 - GameEventHouseTransaction");
 

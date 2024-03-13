@@ -38,7 +38,7 @@ namespace ACE.Server.Network.GameEvent.Events
         }
 
         public GameEventPlayerDescription(Session session)
-            : base(GameEventType.PlayerDescription, GameMessageGroup.UIQueue, session)
+            : base(GameEventType.PlayerDescription, GameMessageGroup.UIQueue, session, 16384) // 10,333 is the average seen in retail pcaps, 28,828 is the max seen in retail pcaps
         {
             WriteEventBody();
         }
@@ -64,7 +64,7 @@ namespace ACE.Server.Network.GameEvent.Events
             Writer.Write(0u);
             Writer.Write((uint)Session.Player.WeenieType);
 
-            var _propertiesInt = Session.Player.GetAllPropertyInt().Where(x => SendOnLoginProperties.PropertiesInt.Contains((ushort)x.Key)).ToDictionary(i => i.Key, i => i.Value);
+            var _propertiesInt = Session.Player.GetAllPropertyIntWhere(SendOnLoginProperties.PropertiesInt);
 
             if (_propertiesInt.Count != 0)
             {
@@ -81,7 +81,7 @@ namespace ACE.Server.Network.GameEvent.Events
                 }
             }
 
-            var _propertiesInt64 = Session.Player.GetAllPropertyInt64().Where(x => ClientProperties.PropertiesInt64.Contains((ushort)x.Key)).ToDictionary(i => i.Key, i => i.Value);
+            var _propertiesInt64 = Session.Player.GetAllPropertyInt64Where(ClientProperties.PropertiesInt64);
 
             if (_propertiesInt64.Count != 0)
             {
@@ -98,7 +98,7 @@ namespace ACE.Server.Network.GameEvent.Events
                 }
             }
 
-            var _propertiesBool = Session.Player.GetAllPropertyBools().Where(x => SendOnLoginProperties.PropertiesBool.Contains((ushort)x.Key)).ToDictionary(i => i.Key, i => i.Value);
+            var _propertiesBool = Session.Player.GetAllPropertyBoolsWhere(SendOnLoginProperties.PropertiesBool);
 
             if (_propertiesBool.Count != 0)
             {
@@ -115,7 +115,7 @@ namespace ACE.Server.Network.GameEvent.Events
                 }
             }
 
-            var _propertiesDouble = Session.Player.GetAllPropertyFloat().Where(x => SendOnLoginProperties.PropertiesDouble.Contains((ushort)x.Key)).ToDictionary(i => i.Key, i => i.Value);
+            var _propertiesDouble = Session.Player.GetAllPropertyFloatWhere(SendOnLoginProperties.PropertiesDouble);
 
             if (_propertiesDouble.Count != 0)
             {
@@ -132,7 +132,7 @@ namespace ACE.Server.Network.GameEvent.Events
                 }
             }
 
-            var _propertiesString = Session.Player.GetAllPropertyString().Where(x => SendOnLoginProperties.PropertiesString.Contains((ushort)x.Key)).ToDictionary(i => i.Key, i => i.Value);
+            var _propertiesString = Session.Player.GetAllPropertyStringWhere(SendOnLoginProperties.PropertiesString);
 
             if (_propertiesString.Count != 0)
             {
@@ -157,7 +157,7 @@ namespace ACE.Server.Network.GameEvent.Events
                 }
             }
 
-            var _propertiesDid = Session.Player.GetAllPropertyDataId().Where(x => SendOnLoginProperties.PropertiesDataId.Contains((ushort)x.Key)).ToDictionary(i => i.Key, i => i.Value);
+            var _propertiesDid = Session.Player.GetAllPropertyDataIdWhere(SendOnLoginProperties.PropertiesDataId);
 
             if (_propertiesDid.Count != 0)
             {
@@ -174,7 +174,7 @@ namespace ACE.Server.Network.GameEvent.Events
                 }
             }
 
-            var _propertiesIid = Session.Player.GetAllPropertyInstanceId().Where(x => SendOnLoginProperties.PropertiesInstanceId.Contains((ushort)x.Key)).ToDictionary(i => i.Key, i => i.Value);
+            var _propertiesIid = Session.Player.GetAllPropertyInstanceIdWhere(SendOnLoginProperties.PropertiesInstanceId);
 
             if (_propertiesIid.Count != 0)
             {

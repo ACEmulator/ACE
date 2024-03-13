@@ -22,6 +22,25 @@ namespace ACE.Entity.Enum
         /// <returns>string with spaces infront of capital letters</returns>
         public static string ToSentence(this HookGroupType hookGroupType)
         {
+            switch (hookGroupType)
+            {
+                case HookGroupType.Undef:
+                    return "Undef";
+                case HookGroupType.NoisemakingItems:
+                    return "Noisemaking Items";
+                case HookGroupType.TestItems:
+                    return "Test Items";
+                case HookGroupType.PortalItems:
+                    return "Portal Items";
+                case HookGroupType.WritableItems:
+                    return "Writable Items";
+                case HookGroupType.SpellCastingItems:
+                    return "Spell Casting Items";
+                case HookGroupType.SpellTeachingItems:
+                    return "Spell Teaching Items";
+            }
+
+            // TODO we really should log this as a warning to indicate that we're missing a case up above, and that the inefficient (GC unfriendly) line below will be used
             return new string(hookGroupType.ToString().ToCharArray().SelectMany((c, i) => i > 0 && char.IsUpper(c) ? new char[] { ' ', c } : new char[] { c }).ToArray());
         }
     }

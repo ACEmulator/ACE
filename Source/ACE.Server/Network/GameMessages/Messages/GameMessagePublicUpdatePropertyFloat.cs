@@ -14,7 +14,7 @@ namespace ACE.Server.Network.GameMessages.Messages
         /// <param name="property"></param>
         /// <param name="value"></param>
         public GameMessagePublicUpdatePropertyFloat(WorldObject worldObject, PropertyFloat property, double value)
-            : base(GameMessageOpcode.PublicUpdatePropertyFloat, GameMessageGroup.UIQueue)
+            : base(GameMessageOpcode.PublicUpdatePropertyFloat, GameMessageGroup.UIQueue, 21)
         {
             Writer.Write(worldObject.Sequences.GetNextSequence(SequenceType.UpdatePropertyDouble, property));
             Writer.WriteGuid(worldObject.Guid);

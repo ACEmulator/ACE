@@ -139,7 +139,7 @@ namespace ACE.Database
             }
             catch (Exception ex)
             {
-                log.Error($"[DATABASE][PURGE] PurgeCharacter 0x{characterId:X8} failed with exception: {ex}");
+                log.ErrorFormat("[DATABASE][PURGE] PurgeCharacter 0x{0:X8} failed with exception: {1}", characterId, ex);
             }
         }
 
@@ -254,7 +254,7 @@ namespace ACE.Database
             }
             catch (Exception ex)
             {
-                log.Error($"[DATABASE][PURGE] PurgePlayer 0x{playerId:X8} failed with exception: {ex}");
+                log.ErrorFormat("[DATABASE][PURGE] PurgePlayer 0x{0:X8} failed with exception: {1}", playerId, ex);
             }
         }
 
@@ -312,7 +312,7 @@ namespace ACE.Database
                 }
                 catch (Exception ex)
                 {
-                    log.Error($"[DATABASE][PURGE] PurgeBiota 0x{id:X8} failed with exception: {ex}");
+                    log.ErrorFormat("[DATABASE][PURGE] PurgeBiota 0x{0:X8} failed with exception: {1}", id, ex);
                 }
 
                 return true;
@@ -1001,7 +1001,7 @@ namespace ACE.Database
                     }
                     catch (Exception ex)
                     {
-                        log.Fatal($"Unable to restore order column in biota_properties_palette table in shard database due to following error: {ex.GetFullMessage()}");
+                        log.FatalFormat("Unable to restore order column in biota_properties_palette table in shard database due to following error: {0}", ex.GetFullMessage());
                         Environment.Exit(1);
                         return;
                     }
@@ -1040,7 +1040,7 @@ namespace ACE.Database
 
                 foreach (var invalidFriend in invalidFriends)
                 {
-                    log.Debug($"[PRUNE] Character 0x{invalidFriend.CharacterId:X8} had 0x{invalidFriend.FriendId:X8} for a friend, which is not found in database, and has been removed from their friends list.");
+                    log.DebugFormat("[PRUNE] Character 0x{0:X8} had 0x{1:X8} for a friend, which is not found in database, and has been removed from their friends list.", invalidFriend.CharacterId, invalidFriend.FriendId);
                     context.CharacterPropertiesFriendList.Remove(invalidFriend);
                     numberOfRecordsFixed++;
                 }
@@ -1076,7 +1076,7 @@ namespace ACE.Database
 
                 foreach (var invalidShortcut in invalidShortcuts)
                 {
-                    log.Debug($"[PRUNE] Character 0x{invalidShortcut.CharacterId:X8} had 0x{invalidShortcut.ShortcutObjectId:X8} as a shortcut (in position {invalidShortcut.ShortcutBarIndex}), which is not found in database, and has been removed from their shortcut bar.");
+                    log.DebugFormat("[PRUNE] Character 0x{0:X8} had 0x{1:X8} as a shortcut (in position {2}), which is not found in database, and has been removed from their shortcut bar.", invalidShortcut.CharacterId, invalidShortcut.ShortcutObjectId, invalidShortcut.ShortcutBarIndex);
                     context.CharacterPropertiesShortcutBar.Remove(invalidShortcut);
                     numberOfRecordsFixed++;
                 }
@@ -1115,7 +1115,7 @@ namespace ACE.Database
 
                 foreach (var invalidSquelchCharacter in invalidSquelchCharacters)
                 {
-                    log.Debug($"[PRUNE] Character 0x{invalidSquelchCharacter.CharacterId:X8} had 0x{invalidSquelchCharacter.SquelchCharacterId:X8} squelched, which is not found in database, and has been removed from their squelch list.");
+                    log.DebugFormat("[PRUNE] Character 0x{0:X8} had 0x{1:X8} squelched, which is not found in database, and has been removed from their squelch list.", invalidSquelchCharacter.CharacterId, invalidSquelchCharacter.SquelchCharacterId);
                     context.CharacterPropertiesSquelch.Remove(invalidSquelchCharacter);
                     numberOfRecordsFixed++;
                 }
