@@ -8,13 +8,13 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessageUpdateMotion : GameMessage
     {
         public GameMessageUpdateMotion(WorldObject wo, MovementData movementData)
-            : base(GameMessageOpcode.Motion, GameMessageGroup.SmartboxQueue)
+            : base(GameMessageOpcode.Motion, GameMessageGroup.SmartboxQueue, 88) // 88 is the max seen in retail pcaps
         {
             Send(wo, movementData);
         }
 
         public GameMessageUpdateMotion(WorldObject wo, Motion motion)
-            : base(GameMessageOpcode.Motion, GameMessageGroup.SmartboxQueue)
+            : base(GameMessageOpcode.Motion, GameMessageGroup.SmartboxQueue, 88) // 88 is the max seen in retail pcaps
         {
             Send(wo, new MovementData(wo, motion));
         }

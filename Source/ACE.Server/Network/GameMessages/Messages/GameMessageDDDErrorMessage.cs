@@ -3,7 +3,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessageDDDErrorMessage : GameMessage
     {
         public GameMessageDDDErrorMessage(uint resourceType, uint dataId, uint errorType)
-            : base(GameMessageOpcode.DDD_ErrorMessage, GameMessageGroup.DatabaseQueue)
+            : base(GameMessageOpcode.DDD_ErrorMessage, GameMessageGroup.DatabaseQueue, 16)
         {
             Writer.Write(resourceType);
             Writer.Write(dataId);

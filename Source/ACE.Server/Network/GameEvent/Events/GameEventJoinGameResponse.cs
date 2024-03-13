@@ -6,7 +6,7 @@ namespace ACE.Server.Network.GameEvent.Events
     public class GameEventJoinGameResponse : GameEventMessage
     {
         public GameEventJoinGameResponse(Session session, ObjectGuid boardGuid, ChessColor color)
-            : base(GameEventType.JoinGameResponse, GameMessageGroup.UIQueue, session)
+            : base(GameEventType.JoinGameResponse, GameMessageGroup.UIQueue, session, 12)
         {
             Writer.Write(boardGuid.Full);
             Writer.Write((int)color);     // -1 indicates failure, otherwise which team you are for this game

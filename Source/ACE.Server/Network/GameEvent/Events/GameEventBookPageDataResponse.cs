@@ -6,7 +6,7 @@ namespace ACE.Server.Network.GameEvent.Events
     public class GameEventBookPageDataResponse : GameEventMessage
     {
         public GameEventBookPageDataResponse(Session session, uint bookID, int pageIndex, PropertiesBookPageData pageData)
-            : base(GameEventType.BookPageDataResponse, GameMessageGroup.UIQueue, session)
+            : base(GameEventType.BookPageDataResponse, GameMessageGroup.UIQueue, session, 512) // 465 is the average seen in retail pcaps, 1,084 is the max seen in retail pcaps
         {
             // unused?
 

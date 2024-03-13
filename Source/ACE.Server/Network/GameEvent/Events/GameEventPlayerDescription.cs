@@ -38,7 +38,7 @@ namespace ACE.Server.Network.GameEvent.Events
         }
 
         public GameEventPlayerDescription(Session session)
-            : base(GameEventType.PlayerDescription, GameMessageGroup.UIQueue, session)
+            : base(GameEventType.PlayerDescription, GameMessageGroup.UIQueue, session, 16384) // 10,333 is the average seen in retail pcaps, 28,828 is the max seen in retail pcaps
         {
             WriteEventBody();
         }
