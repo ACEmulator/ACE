@@ -2744,6 +2744,7 @@ namespace ACE.Server.Command.Handlers
                     msg += $"Generator WCID: {wo.WeenieClassId}\n";
                     msg += $"Generator WeenieClassName: {wo.WeenieClassName}\n";
                     msg += $"Generator WeenieType: {wo.WeenieType.ToString()}\n";
+                    msg += $"Generator IsEncounter: {wo.IsEncounter}\n";
                     msg += $"Generator Status: {(wo.GeneratorDisabled ? "Disabled" : "Enabled")}\n";
                     msg += $"GeneratorType: {wo.GeneratorType.ToString()}\n";
                     msg += $"GeneratorTimeType: {wo.GeneratorTimeType.ToString()}\n";
@@ -2785,6 +2786,19 @@ namespace ACE.Server.Command.Handlers
                         msg += $"IsMaxed: {profile.IsMaxed}\n";
                         if (!profile.IsMaxed)
                             msg += $"IsAvailable: {profile.IsAvailable}{(profile.IsAvailable ? "" : $", NextAvailable: {profile.NextAvailable.ToLocalTime()}")}\n";
+                        msg += $"AdjustedProbability: {wo.GetAdjustedProbability(activeProfile)} / {wo.GetTotalProbability()}\n";                        
+                        msg += $"MostRecentSpawnTime: {profile.MostRecentSpawnTime.ToLocalTime()}\n";
+                        if (wo.IsEncounter)
+                        {
+                            var hasNonWorldObjects = 0;
+                            var hasAwakeCreatures = 0;
+                            var hasOpenContainers = 0;
+                            var hasUnlockedChests = 0;
+                            var isAbleToBeMarkedStale = profile.IsAbleToBeMarkedStale(ref hasNonWorldObjects, ref hasAwakeCreatures, ref hasOpenContainers, ref hasUnlockedChests);
+                            msg += $"IsAbleToBeMarkedStale: {isAbleToBeMarkedStale}\n";
+                            if (isAbleToBeMarkedStale)
+                                msg += $"StaleTime: {profile.StaleTime.ToLocalTime()}\n";
+                        }
                         msg += $"--====--\n";
                         if (profile.Spawned.Count > 0)
                         {

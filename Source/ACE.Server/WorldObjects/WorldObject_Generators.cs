@@ -25,7 +25,12 @@ namespace ACE.Server.WorldObjects
         /// (spawns other world objects)
         /// </summary>
         public bool IsGenerator { get => GeneratorProfiles != null && GeneratorProfiles.Count > 0; }
-       
+
+        /// <summary>
+        /// Is this WorldObject created from an Encounter, Set by Landblock
+        /// </summary>
+        public bool IsEncounter { get; set; }
+
         //public List<string> History = new List<string>();
 
         /// <summary>
@@ -116,8 +121,9 @@ namespace ACE.Server.WorldObjects
 
             //var totalProbability = rng_selected ? GetTotalProbability() : 1.0f;
             //var rng = ThreadSafeRandom.Next(0.0f, totalProbability);
-            //var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-            var rng = ThreadSafeRandom.Next(0.0f, GetTotalProbability());
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+            //var rng = ThreadSafeRandom.Next(0.0f, GetTotalProbability());
+            //var rng = ThreadSafeRandom.Next(0.0f, GetMaxProbability());
 
             for (var i = 0; i < GeneratorProfiles.Count; i++)
             {
@@ -135,6 +141,30 @@ namespace ACE.Server.WorldObjects
                 if (!profile.IsAvailable)
                     continue;
 
+                //if (IsEncounter && CurrentLandblock != null && !CurrentLandblock.CheckEncounterProfileIsAvailable(this, profile.Id))
+                //    continue;
+                //if (IsEncounter)
+                //{
+                //    if (CurrentLandblock != null)
+                //    {
+                //        if (!CurrentLandblock.CheckEncounterProfileIsAvailable(this, profile.Id))
+                //            continue;
+
+                //        //var adjacentIsAvailable = true;
+                //        //foreach(var adjacent in CurrentLandblock.Adjacents)
+                //        //{
+                //        //    if (!adjacent.CheckEncounterProfileIsAvailable(this, profile.Id))
+                //        //    {
+                //        //        adjacentIsAvailable = false;
+                //        //        break;
+                //        //    }
+                //        //}
+
+                //        //if (!adjacentIsAvailable)
+                //        //    continue;
+                //    }
+                //}    
+
                 if (profile.RegenLocationType.HasFlag(RegenLocationType.Treasure))
                 {
                     if (profile.Biota.InitCreate > 1)
@@ -151,8 +181,8 @@ namespace ACE.Server.WorldObjects
                 }
 
                 //var probability = rng_selected ? GetAdjustedProbability(i) : profile.Biota.Probability;
-                //var probability = profile.Biota.Probability;
-                var probability = GetAdjustedProbability(i);
+                var probability = profile.Biota.Probability;
+                //var probability = GetAdjustedProbability(i);
 
                 if (rng < probability || probability == -1)
                 {
@@ -308,7 +338,7 @@ namespace ACE.Server.WorldObjects
             if (numObjects == 0 && initCreate == 0)
                 log.Warn($"[GENERATOR] 0x{Guid}:{WeenieClassId} {Name}.GetSpawnObjectsForProfile(profile[{profile.LinkId}]): profile.InitCreate = {profile.InitCreate} | profile.MaxCreate = {profile.MaxCreate} | profile.WeenieClassId = {profile.WeenieClassId} | Profile Init invalid, cannot spawn.");
             else if (numObjects == 0)
-               log.Warn($"[GENERATOR] 0x{Guid}:{WeenieClassId} {Name}.GetSpawnObjectsForProfile(profile[{profile.LinkId}]): profile.InitCreate = {profile.InitCreate} | profile.MaxCreate = {profile.MaxCreate} | profile.WeenieClassId = {profile.WeenieClassId} | genSlotsAvailable = {genSlotsAvailable} | profileSlotsAvailable = {profileSlotsAvailable} | numObjects = {numObjects}, cannot spawn.");
+                log.Warn($"[GENERATOR] 0x{Guid}:{WeenieClassId} {Name}.GetSpawnObjectsForProfile(profile[{profile.LinkId}]): profile.InitCreate = {profile.InitCreate} | profile.MaxCreate = {profile.MaxCreate} | profile.WeenieClassId = {profile.WeenieClassId} | genSlotsAvailable = {genSlotsAvailable} | profileSlotsAvailable = {profileSlotsAvailable} | numObjects = {numObjects}, cannot spawn.");
 
             return numObjects;
         }
@@ -355,7 +385,7 @@ namespace ACE.Server.WorldObjects
                 case GeneratorTimeType.Day:
                     CheckTimeOfDayStatus();
                     break;
-            }            
+            }
         }
 
         /// <summary>
@@ -364,7 +394,7 @@ namespace ACE.Server.WorldObjects
         public void CheckTimeOfDayStatus()
         {
             var prevDisabled = GeneratorDisabled;
-           
+
             var isDay = Timers.CurrentInGameTime.IsDay;
             var isDayGenerator = GeneratorTimeType == GeneratorTimeType.Day;
 
@@ -656,6 +686,8 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.Generator_Generate({RegenerationInterval})");
 
+            CheckForStaleEncounters();
+
             if (!GeneratorDisabled)
             {
                 if (CurrentlyPoweringUp)
@@ -684,6 +716,8 @@ namespace ACE.Server.WorldObjects
 
             foreach (var profile in GeneratorProfiles)
                 profile.Spawn_HeartBeat();
+
+            //CheckForStaleEncounters();
         }
 
         public virtual void ResetGenerator()
@@ -702,6 +736,27 @@ namespace ACE.Server.WorldObjects
                     return profile.Id;
             }
             return null;
+        }
+
+        /// <summary>
+        /// If Generator has been marked an Encounter by Landblock, check for idle, stale profiles and reset them for long lived landblocks.
+        /// </summary>
+        public void CheckForStaleEncounters()
+        {
+            if (!IsEncounter) return;
+
+            var hasNonWorldObjects = 0;
+            var hasAwakeCreatures = 0;
+            var hasOpenContainers = 0;
+            var hasUnlockedChests = 0;
+
+            var idleStaleProfiles = GeneratorProfiles.Where(p => p.IsMaxed && (DateTime.UtcNow > p.StaleTime) && p.IsAbleToBeMarkedStale(ref hasNonWorldObjects, ref hasAwakeCreatures, ref hasOpenContainers, ref hasUnlockedChests));
+
+            foreach (var profile in idleStaleProfiles)
+            {
+                profile.Reset();
+                profile.NextAvailable = DateTime.UtcNow.AddSeconds(profile.Delay);
+            }
         }
     }
 }
