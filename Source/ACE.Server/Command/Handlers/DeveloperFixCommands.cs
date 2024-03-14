@@ -1447,9 +1447,9 @@ namespace ACE.Server.Command.Handlers
                                 wieldLevel = 180;
                         }
 
-                        ctx.Database.ExecuteSqlRaw($"insert into biota_properties_int set object_Id={objectId}, `type`={(ushort)PropertyInt.WieldRequirements}, value={(int)WieldRequirement.Level};");
-                        ctx.Database.ExecuteSqlRaw($"insert into biota_properties_int set object_Id={objectId}, `type`={(ushort)PropertyInt.WieldSkillType}, value=1;");
-                        ctx.Database.ExecuteSqlRaw($"insert into biota_properties_int set object_Id={objectId}, `type`={(ushort)PropertyInt.WieldDifficulty}, value={wieldLevel};");
+                        ctx.Database.ExecuteSqlInterpolated($"insert into biota_properties_int set object_Id={objectId}, `type`={(ushort)PropertyInt.WieldRequirements}, value={(int)WieldRequirement.Level};");
+                        ctx.Database.ExecuteSqlInterpolated($"insert into biota_properties_int set object_Id={objectId}, `type`={(ushort)PropertyInt.WieldSkillType}, value=1;");
+                        ctx.Database.ExecuteSqlInterpolated($"insert into biota_properties_int set object_Id={objectId}, `type`={(ushort)PropertyInt.WieldDifficulty}, value={wieldLevel};");
                     }
 
                     var item = clothing[objectId];
