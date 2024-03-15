@@ -95,6 +95,9 @@ namespace ACE.Server.Network.Structure
             {
                 StatModType = spell.StatModType;
                 StatModKey = spell.StatModKey;
+
+                if (spell.IsBeneficial) // should "server" data be fixed or is this the better way to do this?
+                    StatModType |= EnchantmentTypeFlags.Beneficial;
             }
         }
 

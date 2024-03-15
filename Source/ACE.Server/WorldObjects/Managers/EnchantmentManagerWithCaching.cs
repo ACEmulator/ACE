@@ -80,12 +80,23 @@ namespace ACE.Server.WorldObjects.Managers
         }
 
         /// <summary>
-        /// Removes all enchantments except for vitae
+        /// Removes all enchantments except for vitae and enchantments from items
         /// Called on player death
         /// </summary>
         public override void RemoveAllEnchantments()
         {
             base.RemoveAllEnchantments();
+
+            ClearCache();
+        }
+
+        /// <summary>
+        /// Removes all enchantments except for beneficial enchantments, vitae and enchantments from items
+        /// Called on player death
+        /// </summary>
+        public override void RemoveAllBadEnchantments()
+        {
+            base.RemoveAllBadEnchantments();
 
             ClearCache();
         }
