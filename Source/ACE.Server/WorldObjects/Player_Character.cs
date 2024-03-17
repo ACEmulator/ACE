@@ -296,9 +296,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionAddSpellFavorite(uint spellId, uint spellBarPositionId, uint spellBarId)
         {
-            Character.AddSpellToBar(spellBarId, spellBarPositionId, spellId, CharacterDatabaseLock);
-
-            CharacterChangesDetected = true;
+            if (Character.AddSpellToBar(spellBarId, spellBarPositionId, spellId, CharacterDatabaseLock))
+                CharacterChangesDetected = true;
         }
 
         /// <summary>
