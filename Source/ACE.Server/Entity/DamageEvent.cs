@@ -470,9 +470,9 @@ namespace ACE.Server.Entity
             var bodyParts = Creature.GetBodyParts(defender.WeenieClassId);
 
             if (bodyParts == null)
-	        {
-		        Evaded = true;
-		        return;
+            {
+                Evaded = true;
+                return;
             }
 
             // rng roll for body part
