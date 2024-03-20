@@ -81,7 +81,7 @@ namespace ACE.Server.Entity
                 Formula = new SpellFormula(this, _formula);
 
             if (loadDB && (_spell == null || _spellBase == null))
-                log.Debug($"Spell.Init(spellID = {spellID}, loadDB = {loadDB}) failed! {(_spell == null ? "_spell was null" : "")} {(_spellBase == null ? "_spellBase was null" : "")}");
+                log.DebugFormat("Spell.Init(spellID = {0}, loadDB = {1}) failed! {2} {3}", spellID, loadDB, (_spell == null ? "_spell was null" : ""), (_spellBase == null ? "_spellBase was null" : ""));
         }
 
         /// <summary>

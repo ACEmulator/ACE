@@ -97,6 +97,121 @@ namespace ACE.Entity.Enum
         /// <returns>string with spaces infront of capital letters</returns>
         public static string ToSentence(this Skill skill)
         {
+            switch (skill)
+            {
+                case Skill.None:
+                    return "None";
+                case Skill.Axe:
+                    return "Axe";
+                case Skill.Bow:
+                    return "Bow";
+                case Skill.Crossbow:
+                    return "Crossbow";
+                case Skill.Dagger:
+                    return "Dagger";
+                case Skill.Mace:
+                    return "Mace";
+                case Skill.MeleeDefense:
+                    return "Melee Defense";
+                case Skill.MissileDefense:
+                    return "Missile Defense";
+                case Skill.Sling:
+                    return "Sling";
+                case Skill.Spear:
+                    return "Spear";
+                case Skill.Staff:
+                    return "Staff";
+                case Skill.Sword:
+                    return "Sword";
+                case Skill.ThrownWeapon:
+                    return "Thrown Weapon";
+                case Skill.UnarmedCombat:
+                    return "Unarmed Combat";
+                case Skill.ArcaneLore:
+                    return "Arcane Lore";
+                case Skill.MagicDefense:
+                    return "Magic Defense";
+                case Skill.ManaConversion:
+                    return "Mana Conversion";
+                case Skill.Spellcraft:
+                    return "Spellcraft";
+                case Skill.ItemTinkering:
+                    return "Item Tinkering";
+                case Skill.AssessPerson:
+                    return "Assess Person";
+                case Skill.Deception:
+                    return "Deception";
+                case Skill.Healing:
+                    return "Healing";
+                case Skill.Jump:
+                    return "Jump";
+                case Skill.Lockpick:
+                    return "Lockpick";
+                case Skill.Run:
+                    return "Run";
+                case Skill.Awareness:
+                    return "Awareness";
+                case Skill.ArmsAndArmorRepair:
+                    return "Arms And Armor Repair";
+                case Skill.AssessCreature:
+                    return "Assess Creature";
+                case Skill.WeaponTinkering:
+                    return "Weapon Tinkering";
+                case Skill.ArmorTinkering:
+                    return "Armor Tinkering";
+                case Skill.MagicItemTinkering:
+                    return "Magic Item Tinkering";
+                case Skill.CreatureEnchantment:
+                    return "Creature Enchantment";
+                case Skill.ItemEnchantment:
+                    return "Item Enchantment";
+                case Skill.LifeMagic:
+                    return "Life Magic";
+                case Skill.WarMagic:
+                    return "War Magic";
+                case Skill.Leadership:
+                    return "Leadership";
+                case Skill.Loyalty:
+                    return "Loyalty";
+                case Skill.Fletching:
+                    return "Fletching";
+                case Skill.Alchemy:
+                    return "Alchemy";
+                case Skill.Cooking:
+                    return "Cooking";
+                case Skill.Salvaging:
+                    return "Salvaging";
+                case Skill.TwoHandedCombat:
+                    return "Two Handed Combat";
+                case Skill.Gearcraft:
+                    return "Gearcraft";
+                case Skill.VoidMagic:
+                    return "Void Magic";
+                case Skill.HeavyWeapons:
+                    return "Heavy Weapons";
+                case Skill.LightWeapons:
+                    return "Light Weapons";
+                case Skill.FinesseWeapons:
+                    return "Finesse Weapons";
+                case Skill.MissileWeapons:
+                    return "Missile Weapons";
+                case Skill.Shield:
+                    return "Shield";
+                case Skill.DualWield:
+                    return "Dual Wield";
+                case Skill.Recklessness:
+                    return "Recklessness";
+                case Skill.SneakAttack:
+                    return "Sneak Attack";
+                case Skill.DirtyFighting:
+                    return "Dirty Fighting";
+                case Skill.Challenge:
+                    return "Challenge";
+                case Skill.Summoning:
+                    return "Summoning";
+            }
+
+            // TODO we really should log this as a warning to indicate that we're missing a case up above, and that the inefficient (GC unfriendly) line below will be used
             return new string(skill.ToString().ToCharArray().SelectMany((c, i) => i > 0 && char.IsUpper(c) ? new char[] { ' ', c } : new char[] { c }).ToArray());
         }
     }

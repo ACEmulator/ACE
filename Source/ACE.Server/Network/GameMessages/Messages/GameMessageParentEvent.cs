@@ -7,7 +7,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessageParentEvent : GameMessage
     {
         public GameMessageParentEvent(WorldObject creature, WorldObject wieldedSelectableItem, ParentLocation? overriddenParentLocation = null, Placement? overriddenPlacement = null)
-            : base(GameMessageOpcode.ParentEvent, GameMessageGroup.SmartboxQueue)
+            : base(GameMessageOpcode.ParentEvent, GameMessageGroup.SmartboxQueue, 24)
         {
             Writer.WriteGuid(creature.Guid);
             Writer.WriteGuid(wieldedSelectableItem.Guid);

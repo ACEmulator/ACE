@@ -6,7 +6,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessagePublicUpdateVital : GameMessage
     {
         public GameMessagePublicUpdateVital(WorldObject worldObject, PropertyAttribute2nd attribute, uint ranks, uint baseValue, uint totalInvestment, uint currentValue)
-            : base(GameMessageOpcode.PublicUpdateVital, GameMessageGroup.UIQueue)
+            : base(GameMessageOpcode.PublicUpdateVital, GameMessageGroup.UIQueue, 29)
         {
             Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.UpdateAttribute2ndLevel, attribute));
             Writer.WriteGuid(worldObject.Guid);

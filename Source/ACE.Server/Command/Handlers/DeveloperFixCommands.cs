@@ -1048,7 +1048,7 @@ namespace ACE.Server.Command.Handlers
             {
                 CommandHandlerHelper.WriteOutputInfo(session, $"Finding biotas for these wcids");
 
-                var biotas = ctx.Biota.Where(i => weenieEmoteCache.ContainsKey(i.WeenieClassId)).ToList();
+                var biotas = ctx.Biota.AsEnumerable().Where(i => weenieEmoteCache.ContainsKey(i.WeenieClassId)).ToList();
 
                 var distinct = biotas.Select(i => i.WeenieClassId).Distinct();
                 var counts = new Dictionary<uint, uint>();
@@ -1396,7 +1396,7 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 // get shard spells
-                var _spells = ctx.BiotaPropertiesSpellBook.Where(i => clothing.ContainsKey(i.ObjectId)).ToList();
+                var _spells = ctx.BiotaPropertiesSpellBook.AsEnumerable().Where(i => clothing.ContainsKey(i.ObjectId)).ToList();
 
                 // filter clothing to those with epics/legendaries
                 var highTierClothing = new Dictionary<uint, int>();
@@ -1420,7 +1420,7 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 // get wield level for these items
-                var wieldLevels = ctx.BiotaPropertiesInt.Where(i => i.Type == (ushort)PropertyInt.WieldDifficulty && highTierClothing.ContainsKey(i.ObjectId)).Select(i => i.ObjectId).ToHashSet();
+                var wieldLevels = ctx.BiotaPropertiesInt.AsEnumerable().Where(i => i.Type == (ushort)PropertyInt.WieldDifficulty && highTierClothing.ContainsKey(i.ObjectId)).Select(i => i.ObjectId).ToHashSet();
 
                 foreach (var kvp in highTierClothing)
                 {

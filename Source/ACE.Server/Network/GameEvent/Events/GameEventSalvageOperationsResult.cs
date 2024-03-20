@@ -8,7 +8,7 @@ namespace ACE.Server.Network.GameEvent.Events
     public class GameEventSalvageOperationsResult : GameEventMessage
     {
         public GameEventSalvageOperationsResult(Session session, Skill skill, List<SalvageMessage> messages)
-            : base(GameEventType.SalvageOperationsResult, GameMessageGroup.UIQueue, session)
+            : base(GameEventType.SalvageOperationsResult, GameMessageGroup.UIQueue, session, 40) // 40 is the max seen in retail pcaps
         {
             Writer.Write((uint)skill);
             Writer.Write(0);    // not salvagable item guid list?

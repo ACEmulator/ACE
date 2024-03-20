@@ -304,7 +304,7 @@ namespace ACE.Server.Network
                 if (WorldManager.WorldStatus == WorldManager.WorldStatusState.Open)
                     log.Info($"Session {Network?.ClientId}\\{EndPointC2S} dropped. Account: {Account}, Player: {Player?.Name}{reas}");
                 else
-                    log.Debug($"Session {Network?.ClientId}\\{EndPointC2S} dropped. Account: {Account}, Player: {Player?.Name}{reas}");
+                    log.DebugFormat("Session {0}\\{1} dropped. Account: {2}, Player: {3}{4}", Network?.ClientId, EndPointC2S, Account, Player?.Name, reas);
             }
 
             if (Player != null)

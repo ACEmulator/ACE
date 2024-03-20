@@ -621,22 +621,22 @@ namespace ACE.Server.Managers
                                         swTrySplitEach.Stop();
 
                                         if (swTrySplitEach.Elapsed.TotalMilliseconds > 3)
-                                            log.Warn($"[LANDBLOCK GROUP] TrySplit for {landblockGroups[i]} took: {swTrySplitEach.Elapsed.TotalMilliseconds:N2} ms");
+                                            log.WarnFormat("[LANDBLOCK GROUP] TrySplit for {0} took: {1:N2} ms", landblockGroups[i], swTrySplitEach.Elapsed.TotalMilliseconds);
                                         else if (swTrySplitEach.Elapsed.TotalMilliseconds > 1)
-                                            log.Debug($"[LANDBLOCK GROUP] TrySplit for {landblockGroups[i]} took: {swTrySplitEach.Elapsed.TotalMilliseconds:N2} ms");
+                                            log.DebugFormat("[LANDBLOCK GROUP] TrySplit for {0} took: {1:N2} ms", landblockGroups[i], swTrySplitEach.Elapsed.TotalMilliseconds);
 
                                         if (splits != null)
                                         {
                                             if (splits.Count > 0)
                                             {
-                                                log.Debug($"[LANDBLOCK GROUP] TrySplit resulted in {splits.Count} split(s) and took: {swTrySplitEach.Elapsed.TotalMilliseconds:N2} ms");
-                                                log.Debug($"[LANDBLOCK GROUP] split for old: {landblockGroups[i]}");
+                                                log.DebugFormat("[LANDBLOCK GROUP] TrySplit resulted in {0} split(s) and took: {1:N2} ms", splits.Count, swTrySplitEach.Elapsed.TotalMilliseconds);
+                                                log.DebugFormat("[LANDBLOCK GROUP] split for old: {0}", landblockGroups[i]);
                                             }
 
                                             foreach (var split in splits)
                                             {
                                                 landblockGroups.Add(split);
-                                                log.Debug($"[LANDBLOCK GROUP] split and new: {split}");
+                                                log.DebugFormat("[LANDBLOCK GROUP] split and new: {0}", split);
                                             }
                                         }
                                     }

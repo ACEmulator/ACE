@@ -480,7 +480,7 @@ namespace ACE.Server.Entity
 
             if (bodyPart == CombatBodyPart.Undefined)
             {
-                log.Debug($"DamageEvent.GetBodyPart({defender?.Name} ({defender?.Guid}) ) - couldn't find body part for wcid {defender.WeenieClassId}, Quadrant {quadrant}");
+                log.DebugFormat("DamageEvent.GetBodyPart({0} ({1}) ) - couldn't find body part for wcid {2}, Quadrant {3}", defender?.Name, defender?.Guid, defender.WeenieClassId, quadrant);
                 Evaded = true;
                 return;
             }

@@ -6,7 +6,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessagePrivateUpdateSkill : GameMessage
     {
         public GameMessagePrivateUpdateSkill(WorldObject worldObject, CreatureSkill creatureSkill)
-            : base(GameMessageOpcode.PrivateUpdateSkill, GameMessageGroup.UIQueue)
+            : base(GameMessageOpcode.PrivateUpdateSkill, GameMessageGroup.UIQueue, 37)
         {
             Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.UpdateSkill, creatureSkill.Skill));
 

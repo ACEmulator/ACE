@@ -167,7 +167,7 @@ namespace ACE.Server.Entity
 
         public Landblock(LandblockId id)
         {
-            //log.Debug($"Landblock({(id.Raw | 0xFFFF):X8})");
+            //log.DebugFormat("Landblock({0:X8})", (id.Raw | 0xFFFF));
 
             Id = id;
 
@@ -866,11 +866,15 @@ namespace ACE.Server.Entity
 
                     if (wo.Generator != null)
                     {
-                        log.Debug($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] at {wo.Location.ToLOCString()} from generator {wo.Generator.WeenieClassId} - 0x{wo.Generator.Guid}:{wo.Generator.Name}");
+                        if (log.IsDebugEnabled)
+                            log.Debug($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] at {wo.Location.ToLOCString()} from generator {wo.Generator.WeenieClassId} - 0x{wo.Generator.Guid}:{wo.Generator.Name}");
                         wo.NotifyOfEvent(RegenerationType.PickUp); // Notify generator the generated object is effectively destroyed, use Pickup to catch both cases.
                     }
                     else if (wo.IsGenerator) // Some generators will fail random spawns if they're circumference spans over water or cliff edges
-                        log.Debug($"AddWorldObjectInternal: couldn't spawn generator 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] at {wo.Location.ToLOCString()}");
+                    {
+                        if (log.IsDebugEnabled)
+                            log.Debug($"AddWorldObjectInternal: couldn't spawn generator 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] at {wo.Location.ToLOCString()}");
+                    }
                     else if (wo.ProjectileTarget == null && !(wo is SpellProjectile))
                         log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] at {wo.Location.ToLOCString()}");
 
@@ -1118,7 +1122,7 @@ namespace ACE.Server.Entity
         {
             var landblockID = Id.Raw | 0xFFFF;
 
-            //log.Debug($"Landblock.Unload({landblockID:X8})");
+            //log.DebugFormat("Landblock.Unload({0:X8})", landblockID);
 
             ProcessPendingWorldObjectAdditionsAndRemovals();
 

@@ -6,7 +6,7 @@ namespace ACE.Server.Network.GameEvent.Events
     public class GameEventMagicRemoveSpell : GameEventMessage
     {
         public GameEventMagicRemoveSpell(Session session, ushort spellId, ushort layer = 0)
-            : base(GameEventType.MagicRemoveSpell, GameMessageGroup.UIQueue, session)
+            : base(GameEventType.MagicRemoveSpell, GameMessageGroup.UIQueue, session, 8)
         {
             Writer.Write(spellId);
             Writer.Write(layer);    // unused?

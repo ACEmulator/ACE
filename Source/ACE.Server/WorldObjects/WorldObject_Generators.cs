@@ -60,7 +60,7 @@ namespace ACE.Server.WorldObjects
             // defaulting to Max == Init for our purposes.
             if ((MaxGeneratedObjects <= 0 || MaxGeneratedObjects < InitGeneratedObjects) && InitGeneratedObjects > 0)
             {
-                log.Warn($"[GENERATOR] 0x{Guid.Full.ToString()} {Name}.InitializeGenerator: {WeenieClassName} ({WeenieClassId}) MaxGeneratedObjects = {MaxGeneratedObjects} | InitGeneratedObjects = {InitGeneratedObjects}. Setting MaxGeneratedObjects = InitGeneratedObjects");
+                log.Warn($"[GENERATOR] 0x{Guid.Full} {Name}.InitializeGenerator: {WeenieClassName} ({WeenieClassId}) MaxGeneratedObjects = {MaxGeneratedObjects} | InitGeneratedObjects = {InitGeneratedObjects}. Setting MaxGeneratedObjects = InitGeneratedObjects");
                 MaxGeneratedObjects = InitGeneratedObjects;
             }
 
@@ -294,7 +294,7 @@ namespace ACE.Server.WorldObjects
             else
                 numObjects = initCreate;
 
-            //Console.WriteLine($"INIT - 0x{Guid.ToString()} {Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.InitCreate = {profile.Biota.InitCreate} | profile.Biota.MaxCreate = {profile.Biota.MaxCreate} | InitCreate: {InitCreate} | MaxCreate: {MaxCreate} | initCreate: {initCreate} | maxCreate: {maxCreate} | leftObjects = {leftObjects} | numObjects: {numObjects}");            
+            //Console.WriteLine($"INIT - 0x{Guid} {Name} ({WeenieClassId}): CurrentCreate = {CurrentCreate} | profile.Biota.InitCreate = {profile.Biota.InitCreate} | profile.Biota.MaxCreate = {profile.Biota.MaxCreate} | InitCreate: {InitCreate} | MaxCreate: {MaxCreate} | initCreate: {initCreate} | maxCreate: {maxCreate} | leftObjects = {leftObjects} | numObjects: {numObjects}");            
 
             var genSlotsAvailable = MaxCreate - CurrentCreate;
             var profileSlotsAvailable = profile.MaxCreate - profile.CurrentCreate;
@@ -323,7 +323,7 @@ namespace ACE.Server.WorldObjects
                 if (CurrentCreate >= MaxCreate)
                 {
                     //if (CurrentCreate > InitCreate)
-                    //log.Debug($"{WeenieClassId} - 0x{Guid}:{Name}.StopConditionsInit(): CurrentCreate({CurrentCreate}) > InitCreate({InitCreate})");
+                    //log.DebugFormat("{0} - 0x{1}:{2}.StopConditionsInit(): CurrentCreate({3}) > InitCreate({4})", WeenieClassId, Guid, Name, CurrentCreate, InitCreate);
 
                     return true;
                 }
