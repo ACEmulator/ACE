@@ -878,6 +878,11 @@ namespace ACE.Server.Entity
                     else if (wo.ProjectileTarget == null && !(wo is SpellProjectile))
                         log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] at {wo.Location.ToLOCString()}");
 
+                    if (PropertyManager.GetBool("landblock_destroys_failed_unstuck_spawns").Item && wo is not Creature && !wo.Stuck && wo.Generator is null)
+                    {
+                        wo.Destroy();
+                    }
+
                     return false;
                 }
             }

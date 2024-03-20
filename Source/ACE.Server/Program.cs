@@ -166,6 +166,20 @@ namespace ACE.Server
                 log.Info($"Purged {charactersPurged:N0} characters, {playerBiotasPurged:N0} player biotas and {possessionsPurged:N0} possessions.");
             }
 
+            if (ConfigManager.Config.Offline.PurgeReleasedBiotas)
+            {
+                log.Info($"Purging released biotas older than {ConfigManager.Config.Offline.PurgeReleasedBiotasDays} days ({DateTime.Now.AddDays(-ConfigManager.Config.Offline.PurgeReleasedBiotasDays)})...");
+                ShardDatabaseOfflineTools.PurgeReleasedBiotasInParallel(ConfigManager.Config.Offline.PurgeReleasedBiotasDays, out var numberOfBiotasPurged);
+                log.Info($"Purged {numberOfBiotasPurged:N0} biotas.");
+            }
+
+            //if (ConfigManager.Config.Offline.PurgeBondedDestroyBiotas)
+            //{
+            //    log.Info($"Purging Bonded.Destroy biotas...");
+            //    ShardDatabaseOfflineTools.PurgeDoDBiotasInParallel(out var numberOfBiotasPurged);
+            //    log.Info($"Purged {numberOfBiotasPurged:N0} biotas.");
+            //}
+
             if (ConfigManager.Config.Offline.PurgeOrphanedBiotas)
             {
                 log.Info($"Purging orphaned biotas...");

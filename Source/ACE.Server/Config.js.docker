@@ -179,14 +179,21 @@
   // This section can trigger events that may happen before the world starts up, or after it shuts down
   // The shard should be in a disconnected state from any running ACE world
   "Offline": {
-    // Purge characters that have been deleted longer than PruneDeletedCharactersDays
-    // These characters, and their associated biotas, will be deleted permanantly!
+    // Purge characters that have been deleted longer than PurgeDeletedCharactersDays
+    // These characters, and their associated biotas, will be deleted permanently!
     "PurgeDeletedCharacters": false,
 
     // Number of days a character must have been deleted for before eligible for purging
     "PurgeDeletedCharactersDays": 30,
 
-    // This will purge biotas that are completely disconnected from the world
+    // Purge biotas that have been released longer than PurgeReleasedBiotasDays
+    // These biotas (World Objects) will be deleted permanently!
+    "PurgeReleasedBiotas": false,
+
+    // Number of days a biota must have been released for before eligible for purging
+    "PurgeReleasedBiotasDays": 30,
+
+    // This will purge biotas that are completely disconnected from the world, excluding biotas marked as released
     // These may have been items that were never deleted properly, items that were given to the town crier before delete was implemented, etc...
     // This can be time consuming so it's not something you would have set to true for every server startup. You might run this once every few months
     "PurgeOrphanedBiotas": false,
