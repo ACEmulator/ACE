@@ -62,7 +62,7 @@ namespace ACE.Server.WorldObjects
 
             var broadcastMsg = new GameMessagePlayerKilled(nearbyMsg, Guid, lastDamager?.Guid ?? ObjectGuid.Invalid);
 
-            log.Debug("[CORPSE] " + nearbyMsg);
+            log.Info("[CORPSE] " + nearbyMsg);
 
             var excludePlayers = new List<Player>();
 
@@ -612,7 +612,7 @@ namespace ACE.Server.WorldObjects
 
             msg = msg.Substring(0, msg.Length - 2);
 
-            log.Debug(msg);
+            log.Info(msg);
         }
 
         /// <summary>
