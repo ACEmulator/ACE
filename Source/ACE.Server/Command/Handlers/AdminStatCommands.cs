@@ -53,11 +53,11 @@ namespace ACE.Server.Command.Handlers
 
             sb.Append($"Host Info: {Environment.OSVersion}, vCPU: {Environment.ProcessorCount}{'\n'}");
 
-            ThreadPool.GetMinThreads(out var minWorkerThreads, out var minCompletionPortThreads);
-            ThreadPool.GetMaxThreads(out var maxWorkerThreads, out var maxCompletionPortThreads);
-            ThreadPool.GetAvailableThreads(out var availWorkerThreads, out var availCompletionPortThreads);
+            //ThreadPool.GetMinThreads(out var minWorkerThreads, out var minCompletionPortThreads);
+            //ThreadPool.GetMaxThreads(out var maxWorkerThreads, out var maxCompletionPortThreads);
+            //ThreadPool.GetAvailableThreads(out var availWorkerThreads, out var availCompletionPortThreads);
 
-            sb.Append($"ThreadPool Min: {minWorkerThreads} {minCompletionPortThreads}, Max: {maxWorkerThreads} {maxCompletionPortThreads}, Avail: {availWorkerThreads} {availCompletionPortThreads}, Current: {ThreadPool.ThreadCount}{'\n'}");
+            //sb.Append($"ThreadPool Min: {minWorkerThreads} {minCompletionPortThreads}, Max: {maxWorkerThreads} {maxCompletionPortThreads}, Avail: {availWorkerThreads} {availCompletionPortThreads}, Current: {ThreadPool.ThreadCount}{'\n'}");
 
             var runTime = DateTime.Now - proc.StartTime;
             sb.Append($"Server Runtime: {(int)runTime.TotalHours}h {runTime.Minutes}m {runTime.Seconds}s{'\n'}");
