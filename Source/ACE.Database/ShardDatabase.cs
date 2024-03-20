@@ -35,7 +35,7 @@ namespace ACE.Database
                 {
                     if (((RelationalDatabaseCreator)context.Database.GetService<IDatabaseCreator>()).Exists())
                     {
-                        log.DebugFormat("[DATABASE] Successfully connected to {0} database on {1}:{2}.", config.Database, config.Host, config.Port);
+                        log.InfoFormat("[DATABASE] Successfully connected to {0} database on {1}:{2}.", config.Database, config.Host, config.Port);
                         return true;
                     }
                 }
@@ -290,7 +290,7 @@ namespace ACE.Database
                 context.SaveChanges();
 
                 if (firstException != null)
-                    log.DebugFormat("[DATABASE] DoSaveBiota 0x{0:X8}:{1} retry succeeded after initial exception of: {2}", biota.Id, biota.GetProperty(PropertyString.Name), firstException.GetFullMessage());
+                    log.InfoFormat("[DATABASE] DoSaveBiota 0x{0:X8}:{1} retry succeeded after initial exception of: {2}", biota.Id, biota.GetProperty(PropertyString.Name), firstException.GetFullMessage());
 
                 return true;
             }
@@ -372,7 +372,7 @@ namespace ACE.Database
                     context.SaveChanges();
 
                     if (firstException != null)
-                        log.DebugFormat("[DATABASE] RemoveBiota 0x{0:X8} retry succeeded after initial exception of: {1}", id, firstException.GetFullMessage());
+                        log.InfoFormat("[DATABASE] RemoveBiota 0x{0:X8} retry succeeded after initial exception of: {1}", id, firstException.GetFullMessage());
 
                     return true;
                 }
@@ -649,8 +649,8 @@ namespace ACE.Database
                     {
                         cachedContext.SaveChanges();
 
-                        if (firstException != null && log.IsDebugEnabled)
-                            log.DebugFormat("[DATABASE] SaveCharacter-1 0x{0:X8}:{1} retry succeeded after initial exception of: {2}", character.Id, character.Name, firstException.GetFullMessage());
+                        if (firstException != null)
+                            log.InfoFormat("[DATABASE] SaveCharacter-1 0x{0:X8}:{1} retry succeeded after initial exception of: {2}", character.Id, character.Name, firstException.GetFullMessage());
 
                         return true;
                     }
@@ -690,8 +690,8 @@ namespace ACE.Database
                 {
                     context.SaveChanges();
 
-                    if (firstException != null && log.IsDebugEnabled)
-                        log.DebugFormat("[DATABASE] SaveCharacter-2 0x{0:X8}:{1} retry succeeded after initial exception of: {2}", character.Id, character.Name, firstException.GetFullMessage());
+                    if (firstException != null)
+                        log.InfoFormat("[DATABASE] SaveCharacter-2 0x{0:X8}:{1} retry succeeded after initial exception of: {2}", character.Id, character.Name, firstException.GetFullMessage());
 
                     return true;
                 }
@@ -791,8 +791,8 @@ namespace ACE.Database
                         character.Name = newName;
                         cachedContext.SaveChanges();
 
-                        if (firstException != null && log.IsDebugEnabled)
-                            log.DebugFormat("[DATABASE] RenameCharacter 0x{0:X8}:{1} retry succeeded after initial exception of: {2}", character.Id, character.Name, firstException.GetFullMessage());
+                        if (firstException != null)
+                            log.InfoFormat("[DATABASE] RenameCharacter 0x{0:X8}:{1} retry succeeded after initial exception of: {2}", character.Id, character.Name, firstException.GetFullMessage());
 
                         return true;
                     }
@@ -834,8 +834,8 @@ namespace ACE.Database
                 {
                     context.SaveChanges();
 
-                    if (firstException != null && log.IsDebugEnabled)
-                        log.DebugFormat("[DATABASE] RenameCharacter 0x{0:X8}:{1} retry succeeded after initial exception of: {2}", character.Id, character.Name, firstException.GetFullMessage());
+                    if (firstException != null)
+                        log.InfoFormat("[DATABASE] RenameCharacter 0x{0:X8}:{1} retry succeeded after initial exception of: {2}", character.Id, character.Name, firstException.GetFullMessage());
 
                     return true;
                 }
