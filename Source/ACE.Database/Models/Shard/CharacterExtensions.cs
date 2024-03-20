@@ -530,37 +530,53 @@ namespace ACE.Database.Models.Shard
         /// <summary>
         /// This will incrememt all existing spells on the same barNumber at or after indexInBar by one before adding the new spell.
         /// </summary>
-        public static void AddSpellToBar(this Character character, uint barNumber, uint indexInBar, uint spell, ReaderWriterLockSlim rwLock)
+        public static bool AddSpellToBar(this Character character, uint barNumber, uint indexInBar, uint spell, ReaderWriterLockSlim rwLock)
         {
-            rwLock.EnterWriteLock();
+            rwLock.EnterUpgradeableReadLock();
             try
             {
-                var spellCountInThisBar = character.CharacterPropertiesSpellBar.Count(x => x.SpellBarNumber == barNumber + 1);
-
-                //Console.WriteLine($"Character.AddSpellToBar.Entry: barNumber = {barNumber} ({barNumber + 1}) | indexInBar = {indexInBar} ({indexInBar + 1}) | spell = {spell} | spellCountInThisBar = {spellCountInThisBar}");
-
-                if (indexInBar > spellCountInThisBar)
-                    indexInBar = (uint)(spellCountInThisBar);
-
-                // We must increment the position of existing spells in the bar that exist on or after this position
-                foreach (var property in character.CharacterPropertiesSpellBar.OrderBy(x => x.SpellBarIndex))
+                var entity = character.CharacterPropertiesSpellBar.FirstOrDefault(x => x.SpellBarNumber == barNumber + 1 && x.SpellId == spell);
+                if (entity == null)
                 {
-                    if (property.SpellBarNumber == barNumber + 1 && property.SpellBarIndex >= indexInBar + 1)
+                    rwLock.EnterWriteLock();
+                    try
                     {
-                        property.SpellBarIndex++;
-                        //Console.WriteLine($"Character.AddSpellToBar.Adjust: SpellBarNumber = {property.SpellBarNumber} | SpellBarIndex = {property.SpellBarIndex} ({property.SpellBarIndex - 1}) | SpellId = {property.SpellId}");
+                        var spellCountInThisBar = character.CharacterPropertiesSpellBar.Count(x => x.SpellBarNumber == barNumber + 1);
+
+                        //Console.WriteLine($"Character.AddSpellToBar.Entry: barNumber = {barNumber} ({barNumber + 1}) | indexInBar = {indexInBar} ({indexInBar + 1}) | spell = {spell} | spellCountInThisBar = {spellCountInThisBar}");
+
+                        if (indexInBar > spellCountInThisBar)
+                            indexInBar = (uint)(spellCountInThisBar);
+
+                        // We must increment the position of existing spells in the bar that exist on or after this position
+                        foreach (var property in character.CharacterPropertiesSpellBar.OrderBy(x => x.SpellBarIndex))
+                        {
+                            if (property.SpellBarNumber == barNumber + 1 && property.SpellBarIndex >= indexInBar + 1)
+                            {
+                                property.SpellBarIndex++;
+                                //Console.WriteLine($"Character.AddSpellToBar.Adjust: SpellBarNumber = {property.SpellBarNumber} | SpellBarIndex = {property.SpellBarIndex} ({property.SpellBarIndex - 1}) | SpellId = {property.SpellId}");
+                            }
+                        }
+
+                        entity = new CharacterPropertiesSpellBar { CharacterId = character.Id, SpellBarNumber = barNumber + 1, SpellBarIndex = indexInBar + 1, SpellId = spell, Character = character };
+
+                        character.CharacterPropertiesSpellBar.Add(entity);
+
+                        //Console.WriteLine($"Character.AddSpellToBar.Add: barNumber = {barNumber + 1} | indexInBar = {indexInBar + 1} | spell = {spell}");
+
+                        return true;
+                    }
+                    finally
+                    {
+                        rwLock.ExitWriteLock();
                     }
                 }
 
-                var entity = new CharacterPropertiesSpellBar { CharacterId = character.Id, SpellBarNumber = barNumber + 1, SpellBarIndex = indexInBar + 1, SpellId = spell, Character = character };
-
-                character.CharacterPropertiesSpellBar.Add(entity);
-
-                //Console.WriteLine($"Character.AddSpellToBar.Add: barNumber = {barNumber + 1} | indexInBar = {indexInBar + 1} | spell = {spell}");
+                return false;
             }
             finally
             {
-                rwLock.ExitWriteLock();
+                rwLock.ExitUpgradeableReadLock();
             }
         }
 
