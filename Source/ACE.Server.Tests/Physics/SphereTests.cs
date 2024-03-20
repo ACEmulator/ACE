@@ -35,15 +35,15 @@ namespace ACE.Server.Tests.Physics
             var otherSpherePosition = new Vector3(50, 50, 50);
             var radSum = 20.0f;
 
-            var time = sphere.FindTimeOfCollision(movement, otherSpherePosition, radSum);
+            var time = Sphere.FindTimeOfCollision(movement, otherSpherePosition, radSum);
             Assert.IsTrue(time - 0.38452994616207481f < PhysicsGlobals.EPSILON);
 
             otherSpherePosition = new Vector3(50, 60, 60);
-            time = sphere.FindTimeOfCollision(movement, otherSpherePosition, radSum);
+            time = Sphere.FindTimeOfCollision(movement, otherSpherePosition, radSum);
             Assert.IsTrue(time - 0.46125741132772069f < PhysicsGlobals.EPSILON);
 
             otherSpherePosition = new Vector3(30, 42, 63);
-            time = sphere.FindTimeOfCollision(movement, otherSpherePosition, radSum);
+            time = Sphere.FindTimeOfCollision(movement, otherSpherePosition, radSum);
             Assert.IsTrue(time == -1.0f);
         }
 
@@ -89,21 +89,21 @@ namespace ACE.Server.Tests.Physics
             var radsum = 10.0f;
             var sphereNum = 0;
 
-            var transitionState = sphere.CollideWithPoint(transition, checkPos, disp, radsum, sphereNum);
+            var transitionState = sphere.CollideWithPoint(transition, checkPos, radsum, sphereNum);
             Assert.IsTrue(transitionState == TransitionState.Collided);
 
             transition.ObjectInfo.State |= ObjectInfoState.PerfectClip;
-            transitionState = sphere.CollideWithPoint(transition, checkPos, disp, radsum, sphereNum);
+            transitionState = sphere.CollideWithPoint(transition, checkPos, radsum, sphereNum);
             Assert.IsTrue(transitionState == TransitionState.Collided);
 
             // should redirect to location not currently in path
             checkPos.Center = new Vector3(30, 30, 30);
-            transitionState = sphere.CollideWithPoint(transition, checkPos, disp, radsum, sphereNum);
+            transitionState = sphere.CollideWithPoint(transition, checkPos, radsum, sphereNum);
             Assert.IsTrue(transitionState == TransitionState.Collided);
 
             // not enough distance to make it this time
             transition.SpherePath.GlobalCurrCenter[0] = new Sphere(new Vector3(1, 1, 1), 5.0f);
-            transitionState = sphere.CollideWithPoint(transition, checkPos, disp, radsum, sphereNum);
+            transitionState = sphere.CollideWithPoint(transition, checkPos, radsum, sphereNum);
             Assert.IsTrue(transitionState == TransitionState.Collided);
         }
 
@@ -189,12 +189,12 @@ namespace ACE.Server.Tests.Physics
             transition.SpherePath.GlobalCurrCenter.Add(new Sphere(new Vector3(0, 0, -1), 5.0f));
 
             // test collision
-            var transitionState = sphere.LandOnSphere(transition, new Sphere(), Vector3.Zero, sphere.Radius * 2);
+            var transitionState = sphere.LandOnSphere(transition);
             Assert.AreEqual(transitionState, TransitionState.Adjusted);
 
             // test adjusted
             transition.SpherePath.GlobalCurrCenter[0] = new Sphere(new Vector3(0, 0, 0.0001f), 5.0f);
-            transitionState = sphere.LandOnSphere(transition, new Sphere(), Vector3.Zero, sphere.Radius * 2);
+            transitionState = sphere.LandOnSphere(transition);
             Assert.AreEqual(transitionState, TransitionState.Collided);
             Assert.AreEqual(transition.SpherePath.Collide, true);
         }
@@ -209,7 +209,7 @@ namespace ACE.Server.Tests.Physics
             var disp = new Vector3(0, 0, 1);
             var checkPos = new Sphere();
 
-            var transitionState = sphere.StepSphereUp(transition, checkPos, disp, sphere.Radius * 2.0f);
+            var transitionState = sphere.StepSphereUp(transition, disp, sphere.Radius * 2.0f);
             // TODO: implement SpherePath.StepUpSlide()
         }
 

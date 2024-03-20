@@ -140,7 +140,7 @@ namespace ACE.Server.WorldObjects
                 actionChain.EnqueueChain();
             }
 
-            log.Debug($"[LOGIN] Account {Account.AccountName} entered the world with character {Name} (0x{Guid}) at {DateTime.Now}.");
+            log.DebugFormat("[LOGIN] Account {0} entered the world with character {1} (0x{2}) at {3}.", Account.AccountName, Name, Guid, DateTime.Now);
         }
 
         public void SendTurbineChatChannels(bool breakAllegiance = false)

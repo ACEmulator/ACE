@@ -1495,7 +1495,7 @@ namespace ACE.Server.WorldObjects.Managers
                     break;
 
                 default:
-                    log.Debug($"EmoteManager.Execute - Encountered Unhandled EmoteType {(EmoteType)emote.Type} for {WorldObject.Name} ({WorldObject.WeenieClassId})");
+                    log.DebugFormat("EmoteManager.Execute - Encountered Unhandled EmoteType {0} for {1} ({2})", (EmoteType)emote.Type, WorldObject.Name, WorldObject.WeenieClassId);
                     break;
             }
 

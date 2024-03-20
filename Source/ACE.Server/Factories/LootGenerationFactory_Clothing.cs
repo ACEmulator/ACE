@@ -404,7 +404,7 @@ namespace ACE.Server.Factories
 
         private static void AssignArmorLevelCompat(WorldObject wo, int tier, LootTables.ArmorType armorType)
         {
-            log.Debug($"[LOOT] Using AL Assignment Compatibility layer for item {wo.WeenieClassId} - {wo.Name}.");
+            log.DebugFormat("[LOOT] Using AL Assignment Compatibility layer for item {0} - {1}.", wo.WeenieClassId, wo.Name);
 
             var baseArmorLevel = wo.ArmorLevel ?? 0;
 

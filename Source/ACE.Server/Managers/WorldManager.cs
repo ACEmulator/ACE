@@ -64,7 +64,7 @@ namespace ACE.Server.Managers
             thread.Priority = ThreadPriority.AboveNormal;
             thread.Start();
             log.DebugFormat("ServerTime initialized to {0}", Timers.WorldStartLoreTime);
-            log.DebugFormat($"Current maximum allowed sessions: {ConfigManager.Config.Server.Network.MaximumAllowedSessions}");
+            log.DebugFormat("Current maximum allowed sessions: {0}", ConfigManager.Config.Server.Network.MaximumAllowedSessions);
 
             log.Info($"World started and is currently {WorldStatus.ToString()}{(PropertyManager.GetBool("world_closed", false).Item ? "" : " and will open automatically when server startup is complete.")}");
             if (WorldStatus == WorldStatusState.Closed)
@@ -103,7 +103,7 @@ namespace ACE.Server.Managers
             var start = DateTime.UtcNow;
             DatabaseManager.Shard.GetPossessedBiotasInParallel(character.Id, biotas =>
             {
-                log.Debug($"GetPossessedBiotasInParallel for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
+                log.DebugFormat("GetPossessedBiotasInParallel for {0} took {1:N0} ms", character.Name, (DateTime.UtcNow - start).TotalMilliseconds);
 
                 ActionQueue.EnqueueAction(new ActionEventDelegate(() => DoPlayerEnterWorld(session, character, offlinePlayer.Biota, biotas)));
             });
