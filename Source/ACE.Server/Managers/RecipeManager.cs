@@ -81,7 +81,7 @@ namespace ACE.Server.Managers
             }
 
             if (recipe.IsTinkering())
-                log.DebugFormat("[TINKERING] {0}.UseObjectOnTarget({1}, {2}) | Status: {3}confirmed", player.Name, source.NameWithMaterial, target.NameWithMaterial, (confirmed ? "" : "un"));
+                log.InfoFormat("[TINKERING] {0}.UseObjectOnTarget({1}, {2}) | Status: {3}confirmed", player.Name, source.NameWithMaterial, target.NameWithMaterial, (confirmed ? "" : "un"));
 
             var percentSuccess = GetRecipeChance(player, source, target, recipe);
 
@@ -1068,8 +1068,7 @@ namespace ACE.Server.Managers
 
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Craft));
 
-                if (log.IsDebugEnabled)
-                    log.Debug($"[CRAFTING] {player.Name} used {source.NameWithMaterial} on {target.NameWithMaterial} {(success ? "" : "un")}successfully. {(destroySource ? $"| {source.NameWithMaterial} was destroyed " : "")}{(destroyTarget ? $"| {target.NameWithMaterial} was destroyed " : "")}| {message}");
+                log.Info($"[CRAFTING] {player.Name} used {source.NameWithMaterial} on {target.NameWithMaterial} {(success ? "" : "un")}successfully. {(destroySource ? $"| {source.NameWithMaterial} was destroyed " : "")}{(destroyTarget ? $"| {target.NameWithMaterial} was destroyed " : "")}| {message}");
             }
             else
                 BroadcastTinkering(player, source, target, successChance, success);
@@ -1087,8 +1086,7 @@ namespace ACE.Server.Managers
             else
                 player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {sourceName} (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}. The target is destroyed.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
 
-            if (log.IsDebugEnabled)
-                log.Debug($"[TINKERING] {player.Name} {(success ? "successfully applies" : "fails to apply")} the {sourceName} (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}.{(!success ? " The target is destroyed." : "")} | Chance: {chance}");
+            log.Info($"[TINKERING] {player.Name} {(success ? "successfully applies" : "fails to apply")} the {sourceName} (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}.{(!success ? " The target is destroyed." : "")} | Chance: {chance}");
         }
 
         public static WorldObject CreateItem(Player player, uint wcid, uint amount)
