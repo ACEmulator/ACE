@@ -326,6 +326,9 @@ namespace ACE.Server.Managers
             WorldActive = true;
             var worldTickTimer = new Stopwatch();
 
+            var gcInterval = TimeSpan.FromHours(1);
+            var lastGC = DateTime.MinValue;
+
             while (!pendingWorldStop)
             {
                 /*
@@ -381,6 +384,15 @@ namespace ACE.Server.Managers
                 ServerPerformanceMonitor.RegisterEventEnd(ServerPerformanceMonitor.MonitorType.NetworkManager_DoSessionWork);
 
                 ServerPerformanceMonitor.Tick();
+
+                if (DateTime.UtcNow - lastGC > gcInterval)
+                {
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    GC.Collect();
+
+                    lastGC = DateTime.UtcNow;
+                }
 
                 // We only relax the CPU if our game world is able to update at the target rate.
                 // We do not sleep if our game world just updated. This is to prevent the scenario where our game world can't keep up. We don't want to add further delays.
