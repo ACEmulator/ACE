@@ -2554,6 +2554,7 @@ namespace ACE.Server.Command.Handlers
                 if (fix)
                 {
                     ctx.SaveChanges();
+                    Console.WriteLine($"Fixed {numMissingBeneficialFlag:N0} incorrect enchantments");
                 }
 
                 if (!foundIssues)
