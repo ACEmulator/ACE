@@ -57,7 +57,7 @@ namespace ACE.Server.Entity
                 {
                     return 0f;
                 }
-                return Convert.ToSingle(PropertyManager.GetDouble("cloak_min_proc_base", 0f));
+                return Convert.ToSingle(PropertyManager.GetDouble("cloak_min_proc_base", 0f).Item);
             }
         }
 
