@@ -31,9 +31,8 @@ namespace ACE.Server.Mods
             FindMods();
         }
 
-        internal static void Shutdown()
+        public static void Shutdown()
         {
-            //Todo: consider 
             DisableAllMods();
         }
         #endregion
@@ -42,7 +41,7 @@ namespace ACE.Server.Mods
         /// <summary>
         /// Finds all valid mods in the mod directory and attempts to load them.
         /// </summary>
-        public static void FindMods()
+        public static void FindMods(bool registerCommands = false)
         {
             //if (ACE.Common.ConfigManager.Config.Server.ModsDirectory is null)
             //    log.Warn($"You are missing the ModsDirectory setting in your Config.js.  Defaulting to:\r\n{ModPath}");
@@ -68,6 +67,9 @@ namespace ACE.Server.Mods
             //CheckDuplicateNames(_mods);
 
             EnableMods(Mods);
+
+            if (registerCommands == true)
+                RegisterCommands();
 
             ListMods();
         }
@@ -195,7 +197,7 @@ namespace ACE.Server.Mods
         {
             foreach (var container in Mods)
             {
-                container.Disable();
+                container?.Disable();
             }
         }
 
@@ -211,6 +213,42 @@ namespace ACE.Server.Mods
             var container = Mods.Where(x => x.Meta.Name.Contains(modName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
 
             container?.Disable();
+        }
+        #endregion
+
+        #region Command Registration
+        /// <summary>
+        /// Mods may start prior to the CommandManager, causing a conflict with logic to register a CommandCategory
+        /// If the CommandManager is unavailable the category will be added to a list maintained by the ModManager to be added the next time commands are registered
+        /// </summary>
+        private static readonly List<(ModContainer Container, string CategoryPattern)> _pendingCommandCategories = new ();
+        private static bool commandManagerAvailable = false;
+        public static void RegisterCommandCategory(ModContainer container, string categoryPattern)
+        {
+            if (commandManagerAvailable)
+                container?.RegisterCommandCategory(categoryPattern);
+            else
+                _pendingCommandCategories.Add((container, categoryPattern));
+        }
+
+        public static void RegisterCommands()
+        {
+            //The CommandManager is assumed to be available the firs time commands are registered, at the end of startup.
+            //Todo: decide on exposing this in CommandManager
+            commandManagerAvailable = true;
+
+            foreach (var mod in Mods.Where(x => x.Status == ModStatus.Active && x.Meta.RegisterCommands))
+                mod?.RegisterUncategorizedCommands();
+
+            foreach(var categoryPair in _pendingCommandCategories)
+                categoryPair.Container?.RegisterCommandCategory(categoryPair.CategoryPattern);
+
+            _pendingCommandCategories.Clear();
+        }
+        public static void UnregisterCommands()
+        {
+            foreach (var mod in Mods.Where(x => x.Status == ModStatus.Active))
+                mod?.UnregisterAllCommands();
         }
         #endregion
 

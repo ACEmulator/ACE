@@ -242,6 +242,9 @@ namespace ACE.Server
             else
                 log.Info("DAT Patching Disabled...");
 
+            log.Info("Initializing ModManager...");
+            ModManager.Initialize();
+
             log.Info("Initializing DatabaseManager...");
             DatabaseManager.Initialize();
 
@@ -328,8 +331,9 @@ namespace ACE.Server
             log.Info("Initializing CommandManager...");
             CommandManager.Initialize();
 
-            log.Info("Initializing ModManager...");
-            ModManager.Initialize();
+            //Register mod commands
+            log.Info("Registering ModManager commands...");
+            ModManager.RegisterCommands();
 
             if (!PropertyManager.GetBool("world_closed", false).Item)
             {
