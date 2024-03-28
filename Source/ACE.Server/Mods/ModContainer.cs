@@ -109,7 +109,7 @@ namespace ACE.Server.Mods
                 Status = ModStatus.Active;
 
                 if (Meta.RegisterCommands)
-                    this.RegisterCommandHandlers();
+                    this.RegisterUncategorizedCommands();
 
                 log.Info($"Enabled mod `{Meta.Name} (v{Meta.Version})`.");
             }
@@ -131,7 +131,7 @@ namespace ACE.Server.Mods
 
             log.Info($"{FolderName} shutting down @ {DateTime.Now}");
 
-            this.UnregisterCommandHandlers();
+            this.UnregisterUncategorizedCommands();
 
             try
             {
