@@ -4,10 +4,6 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>net6.0</TargetFramework>
         <Platforms>x64</Platforms>
-        <Configurations>Debug;Release</Configurations>
-        <OutputPath>C:\ACE\Server</OutputPath>
-        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     </PropertyGroup>
 
   <PropertyGroup>
