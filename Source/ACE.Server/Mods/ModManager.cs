@@ -217,33 +217,10 @@ namespace ACE.Server.Mods
         #endregion
 
         #region Command Registration
-        /// <summary>
-        /// Mods may start prior to the CommandManager, causing a conflict with logic to register a CommandCategory
-        /// If the CommandManager is unavailable the category will be added to a list maintained by the ModManager to be added the next time commands are registered
-        /// </summary>
-        private static readonly List<(ModContainer Container, string CategoryPattern)> _pendingCommandCategories = new ();
-        private static bool commandManagerAvailable = false;
-        public static void RegisterCommandCategory(ModContainer container, string categoryPattern)
-        {
-            if (commandManagerAvailable)
-                container?.RegisterCommandCategory(categoryPattern);
-            else
-                _pendingCommandCategories.Add((container, categoryPattern));
-        }
-
         public static void RegisterCommands()
         {
-            //The CommandManager is assumed to be available the firs time commands are registered, at the end of startup.
-            //Todo: decide on exposing this in CommandManager
-            commandManagerAvailable = true;
-
             foreach (var mod in Mods.Where(x => x.Status == ModStatus.Active && x.Meta.RegisterCommands))
                 mod?.RegisterUncategorizedCommands();
-
-            foreach(var categoryPair in _pendingCommandCategories)
-                categoryPair.Container?.RegisterCommandCategory(categoryPair.CategoryPattern);
-
-            _pendingCommandCategories.Clear();
         }
         public static void UnregisterCommands()
         {
