@@ -68,7 +68,7 @@ namespace ACE.Server.Mods
 
             EnableMods(Mods);
 
-            if (registerCommands == true)
+            if (registerCommands)
                 RegisterCommands();
 
             ListMods();

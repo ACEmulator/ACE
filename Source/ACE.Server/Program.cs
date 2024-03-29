@@ -153,6 +153,9 @@ namespace ACE.Server
             log.Info("Initializing ConfigManager...");
             ConfigManager.Initialize();
 
+            log.Info("Initializing ModManager...");
+            ModManager.Initialize();
+
             if (ConfigManager.Config.Server.WorldName != "ACEmulator")
             {
                 consoleTitle = $"{ConfigManager.Config.Server.WorldName} | {consoleTitle}";
@@ -241,9 +244,6 @@ namespace ACE.Server
             }
             else
                 log.Info("DAT Patching Disabled...");
-
-            log.Info("Initializing ModManager...");
-            ModManager.Initialize();
 
             log.Info("Initializing DatabaseManager...");
             DatabaseManager.Initialize();
