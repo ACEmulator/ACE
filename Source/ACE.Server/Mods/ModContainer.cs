@@ -108,6 +108,9 @@ namespace ACE.Server.Mods
                 Instance?.Initialize();
                 Status = ModStatus.Active;
 
+                if (Meta.RegisterCommands)
+                    this.RegisterUncategorizedCommands();
+
                 log.Info($"Enabled mod `{Meta.Name} (v{Meta.Version})`.");
             }
             catch (Exception ex)
