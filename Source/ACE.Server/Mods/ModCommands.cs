@@ -95,6 +95,7 @@ namespace ACE.Server.Command.Handlers
                 //Full reload
                 case ModCommand.Find:
                     ModManager.FindMods(true);
+                    ModManager.ListMods();
                     return;
 
                 //Lazy opening of mod settings

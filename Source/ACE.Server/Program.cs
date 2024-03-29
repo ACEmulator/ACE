@@ -334,6 +334,7 @@ namespace ACE.Server
             //Register mod commands
             log.Info("Registering ModManager commands...");
             ModManager.RegisterCommands();
+            ModManager.ListMods();
 
             if (!PropertyManager.GetBool("world_closed", false).Item)
             {

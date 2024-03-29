@@ -70,8 +70,6 @@ namespace ACE.Server.Mods
 
             if (registerCommands)
                 RegisterCommands();
-
-            ListMods();
         }
 
         /// <summary>
