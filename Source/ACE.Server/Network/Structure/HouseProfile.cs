@@ -58,6 +58,13 @@ namespace ACE.Server.Network.Structure
         /// </summary>
         public void SetPaidItems(SlumLord slumlord)
         {
+            if (slumlord.House?.HouseStatus == HouseStatus.InActive)
+            {
+                foreach (var item in Rent)
+                    item.Paid = item.Num;
+                return;
+            }
+
             foreach (var item in slumlord.Inventory.Values)
             {
                 var wcid = item.WeenieClassId;

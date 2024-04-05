@@ -93,7 +93,7 @@ namespace ACE.Server.WorldObjects
                     animLength = HandleSwitchToMissileCombatMode();
                     break;
                 default:
-                    log.InfoFormat($"Unknown combat mode {CombatMode} for {Name}");
+                    log.InfoFormat("Unknown combat mode {0} for {1}", CombatMode, Name);
                     break;
             }
 

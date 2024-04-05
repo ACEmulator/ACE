@@ -19,6 +19,7 @@ using ACE.Server.Network.Managers;
 using ACE.Server.Network.Packets;
 
 using log4net;
+using log4net.Util;
 
 namespace ACE.Server.Network
 {
@@ -134,6 +135,30 @@ namespace ACE.Server.Network
         }
 
         /// <summary>
+        /// Enequeues a GameMessage for sending to this client.
+        /// This may be called from many threads.
+        /// </summary>
+        /// <param name="messages">One or more GameMessages to send</param>
+        public void EnqueueSend(IEnumerable<GameMessage> messages)
+        {
+            if (isReleased) // Session has been removed
+                return;
+
+            foreach (var message in messages)
+            {
+                var grp = message.Group;
+                var currentBundleLock = currentBundleLocks[(int)grp];
+                lock (currentBundleLock)
+                {
+                    var currentBundle = currentBundles[(int)grp];
+                    currentBundle.EncryptedChecksum = true;
+                    packetLog.DebugFormat("[{0}] Enqueuing Message {1}", session.LoggingIdentifier, message.Opcode);
+                    currentBundle.Enqueue(message);
+                }
+            }
+        }
+
+        /// <summary>
         /// Enqueues a ServerPacket for sending to this client.
         /// Currently this is only used publicly once during login.  If that changes it's thread safety should be re
         /// </summary>
@@ -145,7 +170,8 @@ namespace ACE.Server.Network
 
             foreach (var packet in packets)
             {
-                packetLog.DebugFormat("[{0}] Enqueuing Packet {1}", session.LoggingIdentifier, packet.GetHashCode());
+                if (packetLog.IsDebugEnabled)
+                    packetLog.DebugFormat("[{0}] Enqueuing Packet {1}", session.LoggingIdentifier, packet.GetHashCode());
                 packetQueue.Enqueue(packet);
             }
         }
@@ -395,7 +421,8 @@ namespace ACE.Server.Network
             EnqueueSend(reqPacket);
 
             LastRequestForRetransmitTime = DateTime.UtcNow;
-            packetLog.DebugFormat("[{0}] Requested retransmit of {1}", session.LoggingIdentifier, needSeq.Select(k => k.ToString()).Aggregate((a, b) => a + ", " + b));
+            if (packetLog.IsDebugEnabled)
+                packetLog.DebugFormat("[{0}] Requested retransmit of {1}", session.LoggingIdentifier, needSeq.Select(k => k.ToString()).Aggregate((a, b) => a + ", " + b));
             NetworkStatistics.S2C_RequestsForRetransmit_Aggregate_Increment();
         }
 
@@ -436,7 +463,7 @@ namespace ACE.Server.Network
             // In our current implimenation we handle all roles in this one server.
             if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
             {
-                packetLog.Debug($"[{session.LoggingIdentifier}] LoginRequest");
+                packetLog.DebugFormat("[{0}] LoginRequest", session.LoggingIdentifier);
                 AuthenticationHandler.HandleLoginRequest(packet, session);
                 return;
             }
@@ -660,20 +687,23 @@ namespace ACE.Server.Network
                 return true;
             }
 
-            if (cachedPackets.Count > 0)
+            if (packetLog.IsDebugEnabled)
             {
-                // This is to catch a race condition between .Count and .Min() and .Max()
-                try
+                if (cachedPackets.Count > 0)
                 {
-                    log.Error($"Session {session.Network?.ClientId}\\{session.EndPointC2S} ({session.Account}:{session.Player?.Name}) retransmit requested packet {sequence} not in cache. Cache range {cachedPackets.Keys.Min()} - {cachedPackets.Keys.Max()}.");
+                    // This is to catch a race condition between .Count and .Min() and .Max()
+                    try
+                    {
+                        packetLog.DebugFormat("Session {0}\\{1} ({2}:{3}) retransmit requested packet {4} not in cache. Cache range {5} - {6}.", session.Network?.ClientId, session.EndPointC2S, session.Account, session.Player?.Name, sequence, cachedPackets.Keys.Min(), cachedPackets.Keys.Max());
+                    }
+                    catch
+                    {
+                        packetLog.DebugFormat("Session {0}\\{1} ({2}:{3}) retransmit requested packet {4} not in cache. Cache is empty. Race condition threw exception.", session.Network?.ClientId, session.EndPointC2S, session.Account, session.Player?.Name, sequence);
+                    }
                 }
-                catch
-                {
-                    log.Error($"Session {session.Network?.ClientId}\\{session.EndPointC2S} ({session.Account}:{session.Player?.Name}) retransmit requested packet {sequence} not in cache. Cache is empty. Race condition threw exception.");
-                }
+                else
+                    packetLog.DebugFormat("Session {0}\\{1} ({2}:{3}) retransmit requested packet {4} not in cache. Cache is empty.", session.Network?.ClientId, session.EndPointC2S, session.Account, session.Player?.Name, sequence);
             }
-            else
-                log.Error($"Session {session.Network?.ClientId}\\{session.EndPointC2S} ({session.Account}:{session.Player?.Name}) retransmit requested packet {sequence} not in cache. Cache is empty.");
 
             return false;
         }
@@ -707,13 +737,15 @@ namespace ACE.Server.Network
 
         private void SendPacket(ServerPacket packet)
         {
-            packetLog.DebugFormat("[{0}] Sending packet {1}", session.LoggingIdentifier, packet.GetHashCode());
+            if (packetLog.IsDebugEnabled)
+                packetLog.DebugFormat("[{0}] Sending packet {1}", session.LoggingIdentifier, packet.GetHashCode());
             NetworkStatistics.S2C_Packets_Aggregate_Increment();
 
             if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
             {
                 uint issacXor = ConnectionData.IssacServer.Next();
-                packetLog.DebugFormat("[{0}] Setting Issac for packet {1} to {2}", session.LoggingIdentifier, packet.GetHashCode(), issacXor);
+                if (packetLog.IsDebugEnabled)
+                    packetLog.DebugFormat("[{0}] Setting Issac for packet {1} to {2}", session.LoggingIdentifier, packet.GetHashCode(), issacXor);
                 packet.IssacXor = issacXor;
             }
 
@@ -732,7 +764,7 @@ namespace ACE.Server.Network
 
                 packet.CreateReadyToSendPacket(buffer, out var size);
 
-                packetLog.Debug(packet.ToString());
+                packetLog.DebugFormat("{0}", packet);
 
                 if (packetLog.IsDebugEnabled)
                 {
@@ -740,7 +772,7 @@ namespace ACE.Server.Network
                     var sb = new StringBuilder();
                     sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", size, listenerEndpoint.Address, listenerEndpoint.Port, endPoint.Address, endPoint.Port, session.Network.ClientId));
                     sb.AppendLine(buffer.BuildPacketString(0, size));
-                    packetLog.Debug(sb.ToString());
+                    packetLog.DebugFormat("{0}", sb);
                 }
 
                 try

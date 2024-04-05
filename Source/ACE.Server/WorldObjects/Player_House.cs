@@ -137,7 +137,7 @@ namespace ACE.Server.WorldObjects
                 var item_id_list = string.Join(", ", item_ids.Select(i => i.ToString("X8")));
                 var consumeItemsList = string.Join(", ", consumeItems.Select(i => $"{i.Name} ({i.Guid}) x{i.Value}"));
 
-                log.Error($"[HOUSE] {Name}.HandleActionBuyHouse({slumlord_id:X8}, {item_id_list}) - TryConsumePurchaseItems failed with {consumeItemsList}");
+                log.ErrorFormat("[HOUSE] {0}.HandleActionBuyHouse({1:X8}, {2}) - TryConsumePurchaseItems failed with {3}", Name, slumlord_id, item_id_list, consumeItemsList);
 
                 return;
             }
@@ -161,7 +161,7 @@ namespace ACE.Server.WorldObjects
             if (location == null)
             {
                 if (!HouseManager.ApartmentBlocks.TryGetValue(slumLord.Location.Landblock, out location))
-                    log.Error($"{Name}.GiveDeed() - couldn't find location {slumLord.Location.ToLOCString()}");
+                    log.ErrorFormat("{0}.GiveDeed() - couldn't find location {1}", Name, slumLord.Location.ToLOCString());
             }
 
             deed.LongDesc = $"Bought by {Name}{titleStr} on {date} at {time}\n\nPurchased at {location}";
@@ -215,7 +215,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
             else
-                log.Error($"[HOUSE] {Name}.HandleActionRentHouse({slumlord_id:X8}): couldn't find house owner {slumlord.HouseOwner}");
+                log.ErrorFormat("[HOUSE] {0}.HandleActionRentHouse({1:X8}): couldn't find house owner {2}", Name, slumlord_id, slumlord.HouseOwner);
 
 
             var logLine = $"[HOUSE] HandleActionRentHouse:" + Environment.NewLine;
@@ -309,7 +309,7 @@ namespace ACE.Server.WorldObjects
                 if (item != null)
                     inventoryItems.Add(item);
                 else
-                    log.Error($"{Name}.GetInventoryItems() - couldn't find {item_id:X8}");
+                    log.ErrorFormat("{0}.GetInventoryItems() - couldn't find {1:X8}", Name, item_id);
             }
 
             return inventoryItems;
@@ -387,7 +387,7 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            log.Debug($"[HOUSE] {Name}.TryMoveItemForRent({slumlord.Name} ({slumlord.Guid}), {((item.StackSize ?? 1) > 1 ? $"{item.StackSize}x " : "")}{item.Name} ({item.Guid})) - Successfully moved to Slumlord.");
+            log.DebugFormat("[HOUSE] {0}.TryMoveItemForRent({1} ({2}), {3}{4} ({5})) - Successfully moved to Slumlord.", Name, slumlord.Name, slumlord.Guid, ((item.StackSize ?? 1) > 1 ? $"{item.StackSize}x " : ""), item.Name, item.Guid);
             return true;
         }
 
@@ -441,7 +441,8 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            log.Debug($"[HOUSE] {Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - Created new item {((newItem.StackSize ?? 1) > 1 ? $"{newItem.StackSize}x " : "")}{newItem.Name} ({newItem.Guid}) and moved to Slumlord.");
+            if (log.IsDebugEnabled)
+                log.Debug($"[HOUSE] {Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - Created new item {((newItem.StackSize ?? 1) > 1 ? $"{newItem.StackSize}x " : "")}{newItem.Name} ({newItem.Guid}) and moved to Slumlord.");
 
             // force save of new slumlord stack
             newItem.SaveBiotaToDatabase();

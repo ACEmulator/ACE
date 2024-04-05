@@ -6,7 +6,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessagePrivateUpdateAttribute : GameMessage
     {
         public GameMessagePrivateUpdateAttribute(WorldObject worldObject, CreatureAttribute creatureAttribute)
-            : base(GameMessageOpcode.PrivateUpdateAttribute, GameMessageGroup.UIQueue)
+            : base(GameMessageOpcode.PrivateUpdateAttribute, GameMessageGroup.UIQueue, 21)
         {
             Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.UpdateAttribute, creatureAttribute.Attribute));
             Writer.Write((uint)creatureAttribute.Attribute);

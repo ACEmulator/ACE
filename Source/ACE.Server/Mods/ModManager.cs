@@ -31,9 +31,8 @@ namespace ACE.Server.Mods
             FindMods();
         }
 
-        internal static void Shutdown()
+        public static void Shutdown()
         {
-            //Todo: consider 
             DisableAllMods();
         }
         #endregion
@@ -42,7 +41,7 @@ namespace ACE.Server.Mods
         /// <summary>
         /// Finds all valid mods in the mod directory and attempts to load them.
         /// </summary>
-        public static void FindMods()
+        public static void FindMods(bool registerCommands = false)
         {
             //if (ACE.Common.ConfigManager.Config.Server.ModsDirectory is null)
             //    log.Warn($"You are missing the ModsDirectory setting in your Config.js.  Defaulting to:\r\n{ModPath}");
@@ -69,7 +68,8 @@ namespace ACE.Server.Mods
 
             EnableMods(Mods);
 
-            ListMods();
+            if (registerCommands)
+                RegisterCommands();
         }
 
         /// <summary>
@@ -138,7 +138,7 @@ namespace ACE.Server.Mods
             if (!File.Exists(metadataPath))
             {
                 //Log missing metadata
-                log.Warn($"Metadata not found at: {metadataPath}");
+                log.WarnFormat("Metadata not found at: {0}", metadataPath);
                 return false;
             }
 
@@ -195,7 +195,7 @@ namespace ACE.Server.Mods
         {
             foreach (var container in Mods)
             {
-                container.Disable();
+                container?.Disable();
             }
         }
 
@@ -211,6 +211,19 @@ namespace ACE.Server.Mods
             var container = Mods.Where(x => x.Meta.Name.Contains(modName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
 
             container?.Disable();
+        }
+        #endregion
+
+        #region Command Registration
+        public static void RegisterCommands()
+        {
+            foreach (var mod in Mods.Where(x => x.Status == ModStatus.Active && x.Meta.RegisterCommands))
+                mod?.RegisterUncategorizedCommands();
+        }
+        public static void UnregisterCommands()
+        {
+            foreach (var mod in Mods.Where(x => x.Status == ModStatus.Active))
+                mod?.UnregisterAllCommands();
         }
         #endregion
 

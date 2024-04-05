@@ -247,6 +247,9 @@ namespace ACE.Server.WorldObjects.Managers
             entry.StatModKey = spell.StatModKey;
             entry.StatModValue = spell.StatModVal;
 
+            if (spell.IsBeneficial) // should "server" data be fixed or is this the better way to do this?
+                entry.StatModType |= EnchantmentTypeFlags.Beneficial;
+
             if (spell.IsDamageOverTime)
             {
                 var heartbeatInterval = WorldObject.HeartbeatInterval ?? 5.0f;
@@ -356,6 +359,19 @@ namespace ACE.Server.WorldObjects.Managers
         {
             // exclude cooldowns and enchantments from items
             var spellsToExclude = WorldObject.Biota.PropertiesEnchantmentRegistry.Clone(WorldObject.BiotaDatabaseLock).Where(i => i.Duration == -1 || i.SpellId > short.MaxValue).Select(i => i.SpellId);
+
+            WorldObject.Biota.PropertiesEnchantmentRegistry.RemoveAllEnchantments(spellsToExclude, WorldObject.BiotaDatabaseLock);
+            WorldObject.ChangesDetected = true;
+        }
+
+        /// <summary>
+        /// Removes all enchantments except for beneficial enchantments, vitae and item spells
+        /// Called on player death
+        /// </summary>
+        public virtual void RemoveAllBadEnchantments()
+        {
+            // exclude beneficial enchantments, cooldowns and enchantments from items
+            var spellsToExclude = WorldObject.Biota.PropertiesEnchantmentRegistry.Clone(WorldObject.BiotaDatabaseLock).Where(i => i.StatModType.HasFlag(EnchantmentTypeFlags.Beneficial) || i.Duration == -1 || i.SpellId > short.MaxValue).Select(i => i.SpellId);
 
             WorldObject.Biota.PropertiesEnchantmentRegistry.RemoveAllEnchantments(spellsToExclude, WorldObject.BiotaDatabaseLock);
             WorldObject.ChangesDetected = true;

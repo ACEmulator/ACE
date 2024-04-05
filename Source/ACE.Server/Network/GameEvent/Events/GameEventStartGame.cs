@@ -9,7 +9,7 @@ namespace ACE.Server.Network.GameEvent.Events
     public class GameEventStartGame: GameEventMessage
     {
         public GameEventStartGame(Session session, ObjectGuid boardGuid, ChessColor color)
-            : base(GameEventType.StartGame, GameMessageGroup.UIQueue, session)
+            : base(GameEventType.StartGame, GameMessageGroup.UIQueue, session, 12)
         {
             Writer.Write(boardGuid.Full);
             Writer.Write((int)color);     // which team that should go first

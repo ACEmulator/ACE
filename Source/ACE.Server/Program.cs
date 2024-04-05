@@ -153,6 +153,9 @@ namespace ACE.Server
             log.Info("Initializing ConfigManager...");
             ConfigManager.Initialize();
 
+            log.Info("Initializing ModManager...");
+            ModManager.Initialize();
+
             if (ConfigManager.Config.Server.WorldName != "ACEmulator")
             {
                 consoleTitle = $"{ConfigManager.Config.Server.WorldName} | {consoleTitle}";
@@ -336,8 +339,10 @@ namespace ACE.Server
             log.Info("Initializing CommandManager...");
             CommandManager.Initialize();
 
-            log.Info("Initializing ModManager...");
-            ModManager.Initialize();
+            //Register mod commands
+            log.Info("Registering ModManager commands...");
+            ModManager.RegisterCommands();
+            ModManager.ListMods();
 
             if (!PropertyManager.GetBool("world_closed", false).Item)
             {
