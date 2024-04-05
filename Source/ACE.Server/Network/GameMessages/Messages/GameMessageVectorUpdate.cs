@@ -9,7 +9,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessageVectorUpdate : GameMessage
     {
         public GameMessageVectorUpdate(WorldObject worldObject)
-            : base(GameMessageOpcode.VectorUpdate, GameMessageGroup.SmartboxQueue)
+            : base(GameMessageOpcode.VectorUpdate, GameMessageGroup.SmartboxQueue, 36)
         {
             // object guid
             // velocity - Vector3

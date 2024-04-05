@@ -149,10 +149,10 @@ namespace ACE.Server.Managers
                 if (playerCount > 0 && DateTime.UtcNow - playerLogoffStart > TimeSpan.FromMinutes(5))
                 {
                     playerLogoffStart = DateTime.UtcNow;
-                    log.Warn($"5 minute log off failsafe reached and there are {playerCount} player{(playerCount > 1 ? "s" : "")} still online.");
+                    log.WarnFormat("5 minute log off failsafe reached and there are {0} player{1} still online.", playerCount, (playerCount > 1 ? "s" : ""));
                     foreach (var player in PlayerManager.GetAllOnline())
                     {
-                        log.Warn($"Player {player.Name} (0x{player.Guid}) appears to be stuck in world and unable to log off normally. Requesting Forced Logoff...");
+                        log.WarnFormat("Player {0} (0x{1}) appears to be stuck in world and unable to log off normally. Requesting Forced Logoff...", player.Name, player.Guid);
                         player.ForcedLogOffRequested = true;
                         player.ForceLogoff();
                     }    

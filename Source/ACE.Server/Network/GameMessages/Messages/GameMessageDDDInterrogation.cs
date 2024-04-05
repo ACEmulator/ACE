@@ -3,7 +3,7 @@ namespace ACE.Server.Network.GameMessages.Messages
     public class GameMessageDDDInterrogation : GameMessage
     {
         public GameMessageDDDInterrogation()
-            : base(GameMessageOpcode.DDD_Interrogation, GameMessageGroup.DatabaseQueue)
+            : base(GameMessageOpcode.DDD_Interrogation, GameMessageGroup.DatabaseQueue, 28)
         {
             Writer.Write(1u); // m_dwServersRegion
             Writer.Write(1u); // m_NameRuleLanguage

@@ -109,7 +109,7 @@ namespace ACE.Server.Mods
                 Status = ModStatus.Active;
 
                 if (Meta.RegisterCommands)
-                    this.RegisterCommandHandlers();
+                    this.RegisterUncategorizedCommands();
 
                 log.Info($"Enabled mod `{Meta.Name} (v{Meta.Version})`.");
             }
@@ -118,6 +118,12 @@ namespace ACE.Server.Mods
                 log.Error($"Error enabling {Meta.Name}: {ex}");
                 Status = ModStatus.Inactive;    //Todo: what status?  Something to prevent reload attempts?
             }
+        }
+
+        public void RegisterCommands()
+        {
+            if (Meta.RegisterCommands)
+                this.RegisterUncategorizedCommands();
         }
 
         //Todo: decide about removing the assembly?
@@ -131,7 +137,7 @@ namespace ACE.Server.Mods
 
             log.Info($"{FolderName} shutting down @ {DateTime.Now}");
 
-            this.UnregisterCommandHandlers();
+            this.UnregisterAllCommands();
 
             try
             {

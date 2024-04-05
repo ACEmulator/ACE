@@ -473,7 +473,7 @@ namespace ACE.Server.WorldObjects
             var rendDamageType = GetRendDamageType(damageType);
 
             if (rendDamageType == ImbuedEffectType.Undef)
-                log.Debug($"{wielder.Name}.GetRendDamageType({damageType}) unexpected damage type for {weapon.Name} ({weapon.Guid})");
+                log.DebugFormat("{0}.GetRendDamageType({1}) unexpected damage type for {2} ({3})", wielder.Name, damageType, weapon.Name, weapon.Guid);
 
             if (rendDamageType != ImbuedEffectType.Undef && weapon.HasImbuedEffect(rendDamageType) && skill != null)
             {
@@ -521,7 +521,7 @@ namespace ACE.Server.WorldObjects
                 case DamageType.Nether:
                     return ImbuedEffectType.NetherRending;
                 default:
-                    //log.Debug($"GetRendDamageType({damageType}) unexpected damage type");
+                    //log.DebugFormat("GetRendDamageType({0}) unexpected damage type", damageType);
                     return ImbuedEffectType.Undef;
             }
         }
@@ -870,7 +870,7 @@ namespace ACE.Server.WorldObjects
                     return ImbuedSkillType.Magic;
 
                 default:
-                    log.Debug($"WorldObject_Weapon.GetImbuedSkillType({skill?.Skill}): unexpected skill");
+                    log.DebugFormat("WorldObject_Weapon.GetImbuedSkillType({0}): unexpected skill", skill?.Skill);
                     return ImbuedSkillType.Undef;
             }
         }

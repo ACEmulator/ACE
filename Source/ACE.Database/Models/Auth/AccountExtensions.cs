@@ -39,7 +39,7 @@ namespace ACE.Database.Models.Auth
             }
             else // Account password is using SHA512 salt
             {
-                log.Debug($"{account.AccountName} password verified using SHA512 hash/salt, migrating to bcrypt.");
+                log.DebugFormat("{0} password verified using SHA512 hash/salt, migrating to bcrypt.", account.AccountName);
 
                 var input = GetPasswordHash(account, password);
 

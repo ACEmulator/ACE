@@ -9,7 +9,7 @@ namespace ACE.Server.Network.GameMessages.Messages
         public PositionPack PositionPack;
 
         public GameMessageUpdatePosition(WorldObject worldObject, bool adminMove = false)
-            : base(GameMessageOpcode.UpdatePosition, GameMessageGroup.SmartboxQueue)
+            : base(GameMessageOpcode.UpdatePosition, GameMessageGroup.SmartboxQueue, 68) // 68 is the max seen in retail pcaps
         {
             //Console.WriteLine($"Sending UpdatePosition for {worldObject.Name}");
 

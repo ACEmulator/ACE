@@ -104,7 +104,7 @@ namespace ACE.Server.WorldObjects
 
             if (target == null)
             {
-                //log.Debug($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {AttackHeight}, {powerLevel}) - couldn't find target guid");
+                //log.DebugFormat("{0}.HandleActionTargetedMeleeAttack({1:X8}, {2}, {3}) - couldn't find target guid", Name, targetGuid, AttackHeight, powerLevel);
                 OnAttackDone();
                 return;
             }

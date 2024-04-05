@@ -11,7 +11,7 @@ namespace ACE.Server.Network.GameEvent.Events
         /// Returns info related to a player's monarch, patron, and vassals.
         /// </summary>
         public GameEventAllegianceUpdate(Session session, Allegiance allegiance, AllegianceNode node)
-            : base(GameEventType.AllegianceUpdate, GameMessageGroup.UIQueue, session)
+            : base(GameEventType.AllegianceUpdate, GameMessageGroup.UIQueue, session, 512) // 398 is the average seen in retail pcaps, 1,040 is the max seen in retail pcaps
         {
             var startPos = Writer.BaseStream.Position;
 

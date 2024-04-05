@@ -176,7 +176,7 @@ namespace ACE.Server.Entity
             {
                 /*if (MaxObjectsSpawned)
                 {
-                    log.Debug($"{_generator.Name}.Enqueue({numObjects}): max objects reached");
+                    log.DebugFormat("{0}.Enqueue({1}): max objects reached", _generator.Name, numObjects);
                     break;
                 }*/
                 SpawnQueue.Add(GetSpawnTime());
@@ -275,7 +275,7 @@ namespace ACE.Server.Entity
 
             foreach (var obj in objects)
             {
-                //log.Debug($"{_generator.Name}.Spawn({obj.Name})");
+                //log.DebugFormat("{0}.Spawn({1})", _generator.Name, obj.Name);
 
                 obj.Generator = Generator;
                 obj.GeneratorId = Generator.Guid.Full;
@@ -305,7 +305,8 @@ namespace ACE.Server.Entity
                 // This object still may be returned in the spawned collection if FirstSpawn is true. This is to prevent retry spam.
                 if (!success)
                 {
-                    log.Debug($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} {Generator.Name}.Spawn(): failed to spawn {obj.Name} (0x{obj.Guid}:{obj.WeenieClassId}) from profile {LinkId} at {RegenLocationType}{(obj.Location != null ? $"\n Gen LOC: {Generator.Location?.ToLOCString()}\n Obj LOC: {obj.Location.ToLOCString()}" : "")}");
+                    if (log.IsDebugEnabled)
+                        log.Debug($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} {Generator.Name}.Spawn(): failed to spawn {obj.Name} (0x{obj.Guid}:{obj.WeenieClassId}) from profile {LinkId} at {RegenLocationType}{(obj.Location != null ? $"\n Gen LOC: {Generator.Location?.ToLOCString()}\n Obj LOC: {obj.Location.ToLOCString()}" : "")}");
                     obj.Destroy();
                 }
             }
@@ -417,7 +418,7 @@ namespace ACE.Server.Entity
         public bool Spawn_Default(WorldObject obj)
         {
             // default location handler?
-            //log.Debug($"{_generator.Name}.Spawn_Default({obj.Name}): default handler for RegenLocationType {RegenLocationType}");
+            //log.DebugFormat("{0}.Spawn_Default({1}): default handler for RegenLocationType {2}", _generator.Name, obj.Name, RegenLocationType);
 
             obj.Location = new ACE.Entity.Position(Generator.Location);
 
@@ -428,7 +429,7 @@ namespace ACE.Server.Entity
         {
             if (obj.Location == null || obj.Location.Landblock != Generator.Location.Landblock)
             {
-                //log.Debug($"{_generator.Name}.VerifyLandblock({obj.Name}) - spawn location is invalid landblock");
+                //log.DebugFormat("{0}.VerifyLandblock({1}) - spawn location is invalid landblock", _generator.Name, obj.Name);
                 return false;
             }
             return true;
@@ -438,7 +439,7 @@ namespace ACE.Server.Entity
         {
             if (!obj.Location.Indoors && !obj.Location.IsWalkable() && !VerifyWalkableSlopeExcludedLandblocks.Contains(obj.Location.LandblockId.Landblock))
             {
-                //log.Debug($"{_generator.Name}.VerifyWalkableSlope({obj.Name}) - spawn location is unwalkable slope");
+                //log.DebugFormat("{0}.VerifyWalkableSlope({1}) - spawn location is unwalkable slope", _generator.Name, obj.Name);
                 return false;
             }
             return true;
@@ -469,7 +470,7 @@ namespace ACE.Server.Entity
             if (deathTreasure != null)
             {
                 // TODO: get randomly generated death treasure from LootGenerationFactory
-                //log.Debug($"{_generator.Name}.TreasureGenerator(): found death treasure {Biota.WeenieClassId}");
+                //log.DebugFormat("{0}.TreasureGenerator(): found death treasure {1}", _generator.Name, Biota.WeenieClassId);
                 return LootGenerationFactory.CreateRandomLootObjects(deathTreasure);
             }
             else
@@ -478,7 +479,7 @@ namespace ACE.Server.Entity
                 if (wieldedTreasure != null)
                 {
                     // TODO: get randomly generated wielded treasure from LootGenerationFactory
-                    //log.Debug($"{_generator.Name}.TreasureGenerator(): found wielded treasure {Biota.WeenieClassId}");
+                    //log.DebugFormat("{0}.TreasureGenerator(): found wielded treasure {1}", _generator.Name, Biota.WeenieClassId);
 
                     // roll into the wielded treasure table
                     //var table = new TreasureWieldedTable(wieldedTreasure);
@@ -486,7 +487,7 @@ namespace ACE.Server.Entity
                 }
                 else
                 {
-                    log.Debug($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} {Generator.Name}.TreasureGenerator(): couldn't find death treasure or wielded treasure for ID {Biota.WeenieClassId}");
+                    log.DebugFormat("[GENERATOR] 0x{0}:{1} {2}.TreasureGenerator(): couldn't find death treasure or wielded treasure for ID {3}", Generator.Guid, Generator.WeenieClassId, Generator.Name, Biota.WeenieClassId);
                     return null;
                 }
             }
@@ -500,7 +501,7 @@ namespace ACE.Server.Entity
             var container = Generator as Container;
             if (container == null)
             {
-                log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} {Generator.Name}.RemoveTreasure(): container not found");
+                log.WarnFormat("[GENERATOR] 0x{0}:{1} {2}.RemoveTreasure(): container not found", Generator.Guid, Generator.WeenieClassId, Generator.Name);
                 return;
             }
             foreach (var spawned in Spawned.Keys)
@@ -508,7 +509,7 @@ namespace ACE.Server.Entity
                 var inventoryObjGuid = new ObjectGuid(spawned);
                 if (!container.Inventory.TryGetValue(inventoryObjGuid, out var inventoryObj))
                 {
-                    log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} {Generator.Name}.RemoveTreasure(): couldn't find {inventoryObjGuid}");
+                    log.WarnFormat("[GENERATOR] 0x{0}:{1} {2}.RemoveTreasure(): couldn't find {3}", Generator.Guid, Generator.WeenieClassId, Generator.Name, inventoryObjGuid);
                     continue;
                 }
                 container.TryRemoveFromInventory(inventoryObjGuid);
@@ -524,7 +525,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public void NotifyGenerator(ObjectGuid target, RegenerationType eventType)
         {
-            //log.Debug($"{_generator.Name}.NotifyGenerator({target:X8}, {eventType})");
+            //log.DebugFormat("{0}.NotifyGenerator({1:X8}, {2})", _generator.Name, target, eventType);
 
             Spawned.TryGetValue(target.Full, out var woi);
 
