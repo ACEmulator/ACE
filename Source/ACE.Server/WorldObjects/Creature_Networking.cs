@@ -121,7 +121,7 @@ namespace ACE.Server.WorldObjects
             var sortedArmorItems = bottom.Concat(noLayer).Concat(top).ToList();
 
             var clothesAndCloaks = EquippedObjects.Values
-                                .Where(x => (x.ItemType == ItemType.Clothing)) // FootWear & HandWear is included in the ArmorItems above
+                                .Where(x => (x.ItemType == ItemType.Clothing) && (x.CurrentWieldedLocation & (EquipMask.Armor | EquipMask.Extremity)) == 0) // Extremity, Head/Foot/Hands, is included in the ArmorItems above
                                 .OrderBy(x => x.ClothingPriority);
 
             var eo = clothesAndCloaks.Concat(sortedArmorItems).ToList();
