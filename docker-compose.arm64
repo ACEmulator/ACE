@@ -1,9 +1,10 @@
-version: '3'
+#version: '3'
 services:
 
   ace-db:
     #image: linuxserver/mariadb:latest
-    image: mysql/mysql-server:latest
+    #image: mysql/mysql-server:latest
+    image: mysql:8.0
     container_name: ace-db
     env_file:
       - docker.env
