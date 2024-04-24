@@ -23,7 +23,7 @@ RUN dotnet publish ./ACE.Server/ACE.Server.csproj -a $TARGETARCH -c release -o /
 # final stage/image
 FROM mcr.microsoft.com/dotnet/runtime:8.0-jammy
 ARG DEBIAN_FRONTEND="noninteractive"
-WORKDIR /home/app/ace
+WORKDIR /ace
 
 # install net-tools (netstat for health check) & cleanup
 RUN apt-get update && \
@@ -38,11 +38,7 @@ RUN apt-get update && \
 # add app from build
 COPY --from=build /ace .
 
-# set correct permissions for app directory and files
-RUN chown -R app:app /home/app/ace/
-
-# switch to and run app from non-root user
-USER app
+# run app
 ENTRYPOINT ["dotnet", "ACE.Server.dll"]
 
 # ports and volumes
