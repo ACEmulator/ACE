@@ -47,7 +47,7 @@ namespace ACE.Server.Entity
 
         public bool ChangesDetected { get; set; }
 
-        public readonly ReaderWriterLockSlim BiotaDatabaseLock = new ReaderWriterLockSlim();
+        public readonly Object BiotaDatabaseLock = new Object();
 
         /// <summary>
         /// This will set the LastRequestedDatabaseSave to UtcNow and ChangesDetected to false.<para />

@@ -167,7 +167,7 @@ namespace ACE.Server.WorldObjects
 
         private void DeepSave(WorldObject item)
         {
-            var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+            var biotas = new Collection<(Biota biota, Object rwLock)>();
 
             if (item.ChangesDetected)
             {

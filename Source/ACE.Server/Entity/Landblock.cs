@@ -1169,7 +1169,7 @@ namespace ACE.Server.Entity
 
         private void SaveDB()
         {
-            var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+            var biotas = new Collection<(Biota biota, Object rwLock)>();
 
             foreach (var wo in worldObjects.Values)
             {
@@ -1180,7 +1180,7 @@ namespace ACE.Server.Entity
             DatabaseManager.Shard.SaveBiotasInParallel(biotas, null);
         }
 
-        private void AddWorldObjectToBiotasSaveCollection(WorldObject wo, Collection<(Biota biota, ReaderWriterLockSlim rwLock)> biotas)
+        private void AddWorldObjectToBiotasSaveCollection(WorldObject wo, Collection<(Biota biota, Object rwLock)> biotas)
         {
             if (wo.ChangesDetected)
             {

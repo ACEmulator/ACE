@@ -2125,7 +2125,7 @@ namespace ACE.Server.Command.Handlers
                             }
 
                             var possessions = newPlayer.GetAllPossessions();
-                            var possessedBiotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+                            var possessedBiotas = new Collection<(Biota biota, Object rwLock)>();
                             foreach (var possession in possessions)
                                 possessedBiotas.Add((possession.Biota, possession.BiotaDatabaseLock));
 
@@ -3525,7 +3525,7 @@ namespace ACE.Server.Command.Handlers
                 player.GenerateNewFace();
 
                 var possessions = player.GetAllPossessions();
-                var possessedBiotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+                var possessedBiotas = new Collection<(Biota biota, Object rwLock)>();
                 foreach (var possession in possessions)
                     possessedBiotas.Add((possession.Biota, possession.BiotaDatabaseLock));
 

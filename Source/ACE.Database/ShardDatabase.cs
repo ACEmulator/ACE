@@ -309,14 +309,13 @@ namespace ACE.Database
             }
         }
 
-        public virtual bool SaveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock, bool doNotAddToCache = false)
+        public virtual bool SaveBiota(ACE.Entity.Models.Biota biota, Object rwLock, bool doNotAddToCache = false)
         {
             using (var context = new ShardDbContext())
             {
                 var existingBiota = GetBiota(context, biota.Id, doNotAddToCache);
 
-                rwLock.EnterReadLock();
-                try
+                lock (rwLock)
                 {
                     if (existingBiota == null)
                     {
@@ -329,16 +328,12 @@ namespace ACE.Database
                         ACE.Database.Adapter.BiotaUpdater.UpdateDatabaseBiota(context, biota, existingBiota);
                     }
                 }
-                finally
-                {
-                    rwLock.ExitReadLock();
-                }
 
                 return DoSaveBiota(context, existingBiota);
             }
         }
 
-        public bool SaveBiotasInParallel(IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> biotas, bool doNotAddToCache = false)
+        public bool SaveBiotasInParallel(IEnumerable<(ACE.Entity.Models.Biota biota, Object rwLock)> biotas, bool doNotAddToCache = false)
         {
             var result = true;
 
@@ -635,12 +630,11 @@ namespace ACE.Database
             return result;
         }
 
-        public bool SaveCharacter(Character character, ReaderWriterLockSlim rwLock)
+        public bool SaveCharacter(Character character, Object rwLock)
         {
             if (CharacterContexts.TryGetValue(character, out var cachedContext))
             {
-                rwLock.EnterReadLock();
-                try
+                lock (rwLock)
                 {
                     Exception firstException = null;
                     retry:
@@ -668,18 +662,13 @@ namespace ACE.Database
                         return false;
                     }
                 }
-                finally
-                {
-                    rwLock.ExitReadLock();
-                }
-            }
+             }
 
             var context = new ShardDbContext();
 
             CharacterContexts.Add(character, context);
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 context.Character.Add(character);
 
@@ -709,14 +698,10 @@ namespace ACE.Database
                     return false;
                 }
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
 
-        public bool AddCharacterInParallel(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim biotaLock, IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character, ReaderWriterLockSlim characterLock)
+        public bool AddCharacterInParallel(ACE.Entity.Models.Biota biota, Object biotaLock, IEnumerable<(ACE.Entity.Models.Biota biota, Object rwLock)> possessions, Character character, Object characterLock)
         {
             if (!SaveBiota(biota, biotaLock))
                 return false; // Biota save failed which mean Character fails.

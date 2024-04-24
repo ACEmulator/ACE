@@ -6,80 +6,59 @@ namespace ACE.Entity.Models
 {
     public static class PropertiesBookPageDataExtensions
     {
-        public static int GetPageCount(this IList<PropertiesBookPageData> value, ReaderWriterLockSlim rwLock)
+        public static int GetPageCount(this IList<PropertiesBookPageData> value, Object rwLock)
         {
             if (value == null)
                 return 0;
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 return value.Count;
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static List<PropertiesBookPageData> Clone(this IList<PropertiesBookPageData> value, ReaderWriterLockSlim rwLock)
+        public static List<PropertiesBookPageData> Clone(this IList<PropertiesBookPageData> value, Object rwLock)
         {
             if (value == null)
                 return null;
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 return new List<PropertiesBookPageData>(value);
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
 
-        public static PropertiesBookPageData GetPage(this IList<PropertiesBookPageData> value, int index, ReaderWriterLockSlim rwLock)
+        public static PropertiesBookPageData GetPage(this IList<PropertiesBookPageData> value, int index, Object rwLock)
         {
             if (value == null)
                 return null;
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 if (value.Count <= index)
                     return null;
 
                 return value[index];
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static void AddPage(this IList<PropertiesBookPageData> value, PropertiesBookPageData page, out int index, ReaderWriterLockSlim rwLock)
+        public static void AddPage(this IList<PropertiesBookPageData> value, PropertiesBookPageData page, out int index, Object rwLock)
         {
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 value.Add(page);
 
                 index = value.Count;
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
-        public static bool RemovePage(this IList<PropertiesBookPageData> value, int index, ReaderWriterLockSlim rwLock)
+        public static bool RemovePage(this IList<PropertiesBookPageData> value, int index, Object rwLock)
         {
             if (value == null)
                 return false;
 
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 if (value.Count <= index)
                     return false;
@@ -87,10 +66,6 @@ namespace ACE.Entity.Models
                 value.RemoveAt(index);
 
                 return true;
-            }
-            finally
-            {
-                rwLock.ExitWriteLock();
             }
         }
     }

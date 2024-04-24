@@ -52,7 +52,7 @@ namespace ACE.Server.WorldObjects
         /// The critical thing is that the collections are not added to or removed from while Entity Framework is iterating over them.<para />
         /// Mag-nus 2018-08-19
         /// </summary>
-        public readonly ReaderWriterLockSlim CharacterDatabaseLock = new ReaderWriterLockSlim();
+        public readonly Object CharacterDatabaseLock = new Object();
 
         private void SetPropertiesAtLogOut()
         {
@@ -82,7 +82,7 @@ namespace ACE.Server.WorldObjects
             if (CharacterChangesDetected)
                 SaveCharacterToDatabase();
 
-            var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+            var biotas = new Collection<(Biota biota, Object rwLock)>();
 
             SaveBiotaToDatabase(false);
             biotas.Add((Biota, BiotaDatabaseLock));

@@ -134,7 +134,7 @@ namespace ACE.Database
             return base.GetBiota(id, doNotAddToCache);
         }
 
-        public override bool SaveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock, bool doNotAddToCache = false)
+        public override bool SaveBiota(ACE.Entity.Models.Biota biota, Object rwLock, bool doNotAddToCache = false)
         {
             CacheObject<Biota> cachedBiota;
 
@@ -145,14 +145,9 @@ namespace ACE.Database
             {
                 cachedBiota.LastSeen = DateTime.UtcNow;
 
-                rwLock.EnterReadLock();
-                try
+                lock (rwLock)
                 {
                     ACE.Database.Adapter.BiotaUpdater.UpdateDatabaseBiota(cachedBiota.Context, biota, cachedBiota.CachedObject);
-                }
-                finally
-                {
-                    rwLock.ExitReadLock();
                 }
 
                 return DoSaveBiota(cachedBiota.Context, cachedBiota.CachedObject);
@@ -164,8 +159,7 @@ namespace ACE.Database
 
             var existingBiota = base.GetBiota(context, biota.Id, doNotAddToCache);
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 if (existingBiota == null)
                 {
@@ -177,10 +171,6 @@ namespace ACE.Database
                 {
                     ACE.Database.Adapter.BiotaUpdater.UpdateDatabaseBiota(context, biota, existingBiota);
                 }
-            }
-            finally
-            {
-                rwLock.ExitReadLock();
             }
 
             if (DoSaveBiota(context, existingBiota))

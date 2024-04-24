@@ -79,43 +79,28 @@ namespace ACE.Server.WorldObjects
 
         public void SetCharacterOptions1(int value)
         {
-            CharacterDatabaseLock.EnterWriteLock();
-            try
+            lock (CharacterDatabaseLock)
             {
                 Character.CharacterOptions1 = value;
                 CharacterChangesDetected = true;
-            }
-            finally
-            {
-                CharacterDatabaseLock.ExitWriteLock();
             }
         }
 
         public void SetCharacterOptions2(int value)
         {
-            CharacterDatabaseLock.EnterWriteLock();
-            try
+            lock (CharacterDatabaseLock)
             {
                 Character.CharacterOptions2 = value;
                 CharacterChangesDetected = true;
-            }
-            finally
-            {
-                CharacterDatabaseLock.ExitWriteLock();
             }
         }
 
         public void SetCharacterGameplayOptions(byte[] value)
         {
-            CharacterDatabaseLock.EnterWriteLock();
-            try
+            lock (CharacterDatabaseLock)
             {
                 Character.GameplayOptions = value;
                 CharacterChangesDetected = true;
-            }
-            finally
-            {
-                CharacterDatabaseLock.ExitWriteLock();
             }
         }
 

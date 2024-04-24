@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -229,7 +230,7 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "The items are being traded"));
             target.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(target.Session, "The items are being traded"));
 
-            var tradedItems = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+            var tradedItems = new Collection<(Biota biota, Object rwLock)>();
 
             var myEscrow = new List<WorldObject>();
             var targetEscrow = new List<WorldObject>();

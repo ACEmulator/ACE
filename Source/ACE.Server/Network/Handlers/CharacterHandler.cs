@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
@@ -153,7 +154,7 @@ namespace ACE.Server.Network.Handlers
                 }
 
                 var possessions = player.GetAllPossessions();
-                var possessedBiotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+                var possessedBiotas = new Collection<(Biota biota, Object rwLock)>();
                 foreach (var possession in possessions)
                     possessedBiotas.Add((possession.Biota, possession.BiotaDatabaseLock));
 

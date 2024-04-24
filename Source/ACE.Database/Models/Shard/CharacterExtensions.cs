@@ -11,62 +11,41 @@ namespace ACE.Database.Models.Shard
         // CharacterPropertiesContract
         // =====================================
 
-        public static List<CharacterPropertiesContractRegistry> GetContracts(this Character character, ReaderWriterLockSlim rwLock)
+        public static List<CharacterPropertiesContractRegistry> GetContracts(this Character character, Object rwLock)
         {
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 return character.CharacterPropertiesContractRegistry.ToList();
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static int GetContractsCount(this Character character, ReaderWriterLockSlim rwLock)
+        public static int GetContractsCount(this Character character, Object rwLock)
         {
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 return character.CharacterPropertiesContractRegistry.Count;
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static List<uint> GetContractsIds(this Character character, ReaderWriterLockSlim rwLock)
+        public static List<uint> GetContractsIds(this Character character, Object rwLock)
         {
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 return character.CharacterPropertiesContractRegistry.Select(r => r.ContractId).ToList();
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static CharacterPropertiesContractRegistry GetContract(this Character character, uint contractId, ReaderWriterLockSlim rwLock)
+        public static CharacterPropertiesContractRegistry GetContract(this Character character, uint contractId, Object rwLock)
         {
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 return character.CharacterPropertiesContractRegistry.FirstOrDefault(c => c.ContractId == contractId);
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static CharacterPropertiesContractRegistry GetOrCreateContract(this Character character, uint contractId, ReaderWriterLockSlim rwLock, out bool contractWasCreated)
+        public static CharacterPropertiesContractRegistry GetOrCreateContract(this Character character, uint contractId, Object rwLock, out bool contractWasCreated)
         {
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 var entity = character.CharacterPropertiesContractRegistry.FirstOrDefault(c => c.ContractId == contractId);
 
@@ -86,16 +65,11 @@ namespace ACE.Database.Models.Shard
 
                 return entity;
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
-        public static bool EraseContract(this Character character, uint contractId, out CharacterPropertiesContractRegistry contractErased, ReaderWriterLockSlim rwLock)
+        public static bool EraseContract(this Character character, uint contractId, out CharacterPropertiesContractRegistry contractErased, Object rwLock)
         {
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 contractErased = character.CharacterPropertiesContractRegistry.FirstOrDefault(c => c.ContractId == contractId);
 
@@ -106,24 +80,15 @@ namespace ACE.Database.Models.Shard
 
                 return true;
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
-        public static void EraseAllContracts(this Character character, out List<CharacterPropertiesContractRegistry> contractsErased, ReaderWriterLockSlim rwLock)
+        public static void EraseAllContracts(this Character character, out List<CharacterPropertiesContractRegistry> contractsErased, Object rwLock)
         {
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 contractsErased = character.CharacterPropertiesContractRegistry.ToList();
 
                 character.CharacterPropertiesContractRegistry.Clear();
-            }
-            finally
-            {
-                rwLock.ExitWriteLock();
             }
         }
 
@@ -132,36 +97,25 @@ namespace ACE.Database.Models.Shard
         // CharacterPropertiesFillCompBook
         // =====================================
 
-        public static CharacterPropertiesFillCompBook GetFillComponent(this Character character, uint wcid, ReaderWriterLockSlim rwLock)
+        public static CharacterPropertiesFillCompBook GetFillComponent(this Character character, uint wcid, Object rwLock)
         {
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 return character.CharacterPropertiesFillCompBook.FirstOrDefault(i => i.SpellComponentId == wcid);
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static List<CharacterPropertiesFillCompBook> GetFillComponents(this Character character, ReaderWriterLockSlim rwLock)
+        public static List<CharacterPropertiesFillCompBook> GetFillComponents(this Character character, Object rwLock)
         {
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 return character.CharacterPropertiesFillCompBook.ToList();
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static CharacterPropertiesFillCompBook AddFillComponent(this Character character, uint wcid, uint amount, ReaderWriterLockSlim rwLock, out bool alreadyExists)
+        public static CharacterPropertiesFillCompBook AddFillComponent(this Character character, uint wcid, uint amount, Object rwLock, out bool alreadyExists)
         {
-            rwLock.EnterUpgradeableReadLock();
-            try
+            lock (rwLock)
             {
                 var entity = character.CharacterPropertiesFillCompBook.FirstOrDefault(i => i.SpellComponentId == wcid);
                 if (entity != null)
@@ -170,50 +124,26 @@ namespace ACE.Database.Models.Shard
                     return entity;
                 }
 
-                rwLock.EnterWriteLock();
-                try
-                {
                     entity = new CharacterPropertiesFillCompBook { CharacterId = character.Id, SpellComponentId = (int)wcid, QuantityToRebuy = (int)amount };
                     character.CharacterPropertiesFillCompBook.Add(entity);
                     alreadyExists = false;
                     return entity;
-                }
-                finally
-                {
-                    rwLock.ExitWriteLock();
-                }
-            }
-            finally
-            {
-                rwLock.ExitUpgradeableReadLock();
             }
         }
 
-        public static bool TryRemoveFillComponent(this Character character, uint wcid, out CharacterPropertiesFillCompBook entity, ReaderWriterLockSlim rwLock)
+        public static bool TryRemoveFillComponent(this Character character, uint wcid, out CharacterPropertiesFillCompBook entity, Object rwLock)
         {
-            rwLock.EnterUpgradeableReadLock();
-            try
+            lock (rwLock)
             {
                 entity = character.CharacterPropertiesFillCompBook.FirstOrDefault(i => i.SpellComponentId == wcid);
                 if (entity != null)
                 {
-                    rwLock.EnterWriteLock();
-                    try
-                    {
                         character.CharacterPropertiesFillCompBook.Remove(entity);
                         entity.Character = null;
                         return true;
-                    }
-                    finally
-                    {
-                        rwLock.ExitWriteLock();
-                    }
+
                 }
                 return false;
-            }
-            finally
-            {
-                rwLock.ExitUpgradeableReadLock();
             }
         }
 
@@ -222,23 +152,17 @@ namespace ACE.Database.Models.Shard
         // CharacterPropertiesFriendList
         // =====================================
 
-        public static List<CharacterPropertiesFriendList> GetFriends(this Character character, ReaderWriterLockSlim rwLock)
+        public static List<CharacterPropertiesFriendList> GetFriends(this Character character, Object rwLock)
         {
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 return character.CharacterPropertiesFriendList.ToList();
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static bool HasAsFriend(this Character character, uint friendId, ReaderWriterLockSlim rwLock)
+        public static bool HasAsFriend(this Character character, uint friendId, Object rwLock)
         {
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 foreach (var record in character.CharacterPropertiesFriendList)
                 {
@@ -248,16 +172,11 @@ namespace ACE.Database.Models.Shard
 
                 return false;
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static CharacterPropertiesFriendList AddFriend(this Character character, uint friendId, ReaderWriterLockSlim rwLock, out bool friendAlreadyExists)
+        public static CharacterPropertiesFriendList AddFriend(this Character character, uint friendId, Object rwLock, out bool friendAlreadyExists)
         {
-            rwLock.EnterUpgradeableReadLock();
-            try
+            lock (rwLock)
             {
                 var entity = character.CharacterPropertiesFriendList.FirstOrDefault(x => x.FriendId == friendId);
                 if (entity != null)
@@ -266,59 +185,32 @@ namespace ACE.Database.Models.Shard
                     return entity;
                 }
 
-                rwLock.EnterWriteLock();
-                try
-                {
                     entity = new CharacterPropertiesFriendList { CharacterId = character.Id, FriendId = friendId, Character = character};
                     character.CharacterPropertiesFriendList.Add(entity);
                     friendAlreadyExists = false;
                     return entity;
-                }
-                finally
-                {
-                    rwLock.ExitWriteLock();
-                }
-            }
-            finally
-            {
-                rwLock.ExitUpgradeableReadLock();
             }
         }
 
-        public static bool TryRemoveFriend(this Character character, uint friendId, out CharacterPropertiesFriendList entity, ReaderWriterLockSlim rwLock)
+        public static bool TryRemoveFriend(this Character character, uint friendId, out CharacterPropertiesFriendList entity, Object rwLock)
         {
-            rwLock.EnterUpgradeableReadLock();
-            try
+            lock (rwLock)
             {
                 entity = character.CharacterPropertiesFriendList.FirstOrDefault(x => x.FriendId == friendId);
                 if (entity != null)
                 {
-                    rwLock.EnterWriteLock();
-                    try
-                    {
                         character.CharacterPropertiesFriendList.Remove(entity);
                         entity.Character = null;
                         return true;
-                    }
-                    finally
-                    {
-                        rwLock.ExitWriteLock();
-                    }
                 }
                 return false;
             }
-            finally
-            {
-                rwLock.ExitUpgradeableReadLock();
-            }
         }
 
-        public static bool ClearAllFriends(this Character character, ReaderWriterLockSlim rwLock)
+        public static bool ClearAllFriends(this Character character, Object rwLock)
         {
-            rwLock.EnterUpgradeableReadLock();
-            try
+            lock (rwLock)
             {
-                rwLock.EnterWriteLock();
                 try
                 {
                     character.CharacterPropertiesFriendList.Clear();
@@ -328,14 +220,6 @@ namespace ACE.Database.Models.Shard
                 {
                     return false;
                 }
-                finally
-                {
-                    rwLock.ExitWriteLock();
-                }
-            }
-            finally
-            {
-                rwLock.ExitUpgradeableReadLock();
             }
         }
 
@@ -344,36 +228,25 @@ namespace ACE.Database.Models.Shard
         // CharacterPropertiesQuestRegistry
         // =====================================
 
-        public static List<CharacterPropertiesQuestRegistry> GetQuests(this Character character, ReaderWriterLockSlim rwLock)
+        public static List<CharacterPropertiesQuestRegistry> GetQuests(this Character character, Object rwLock)
         {
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 return character.CharacterPropertiesQuestRegistry.ToList();
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static CharacterPropertiesQuestRegistry GetQuest(this Character character, string questName, ReaderWriterLockSlim rwLock)
+        public static CharacterPropertiesQuestRegistry GetQuest(this Character character, string questName, Object rwLock)
         {
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 return character.CharacterPropertiesQuestRegistry.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static CharacterPropertiesQuestRegistry GetOrCreateQuest(this Character character, string questName, ReaderWriterLockSlim rwLock, out bool questRegistryWasCreated)
+        public static CharacterPropertiesQuestRegistry GetOrCreateQuest(this Character character, string questName, Object rwLock, out bool questRegistryWasCreated)
         {
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 var entity = character.CharacterPropertiesQuestRegistry.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
 
@@ -393,16 +266,11 @@ namespace ACE.Database.Models.Shard
 
                 return entity;
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
-        public static bool EraseQuest(this Character character, string questName, ReaderWriterLockSlim rwLock)
+        public static bool EraseQuest(this Character character, string questName, Object rwLock)
         {
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 var entity = character.CharacterPropertiesQuestRegistry.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
 
@@ -413,24 +281,15 @@ namespace ACE.Database.Models.Shard
 
                 return true;
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
-        public static void EraseAllQuests(this Character character, out List<string> questNamesErased, ReaderWriterLockSlim rwLock)
+        public static void EraseAllQuests(this Character character, out List<string> questNamesErased, Object rwLock)
         {
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 questNamesErased = character.CharacterPropertiesQuestRegistry.Select(r => r.QuestName).ToList();
 
                 character.CharacterPropertiesQuestRegistry.Clear();
-            }
-            finally
-            {
-                rwLock.ExitWriteLock();
             }
         }
 
@@ -439,27 +298,20 @@ namespace ACE.Database.Models.Shard
         // CharacterPropertiesShortcutBar
         // =====================================
 
-        public static List<CharacterPropertiesShortcutBar> GetShortcuts(this Character character, ReaderWriterLockSlim rwLock)
+        public static List<CharacterPropertiesShortcutBar> GetShortcuts(this Character character, Object rwLock)
         {
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 return character.CharacterPropertiesShortcutBar.ToList();
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static void AddOrUpdateShortcut(this Character character, uint index, uint objectId, ReaderWriterLockSlim rwLock)
+        public static void AddOrUpdateShortcut(this Character character, uint index, uint objectId, Object rwLock)
         {
-            rwLock.EnterUpgradeableReadLock();
-            try
+            lock (rwLock)
             {
                 var entity = character.CharacterPropertiesShortcutBar.FirstOrDefault(x => x.ShortcutBarIndex == index + 1);
-                rwLock.EnterWriteLock();
-                try
+
                 {
                     if (entity == null)
                     {
@@ -469,43 +321,22 @@ namespace ACE.Database.Models.Shard
                     else
                         entity.ShortcutObjectId = objectId;
                 }
-                finally
-                {
-                    rwLock.ExitWriteLock();
-                }
-            }
-            finally
-            {
-                rwLock.ExitUpgradeableReadLock();
             }
         }
 
-        public static bool TryRemoveShortcut(this Character character, uint index, out CharacterPropertiesShortcutBar entity, ReaderWriterLockSlim rwLock)
+        public static bool TryRemoveShortcut(this Character character, uint index, out CharacterPropertiesShortcutBar entity, Object rwLock)
         {
-            rwLock.EnterUpgradeableReadLock();
-            try
+            lock (rwLock)
             {
                 entity = character.CharacterPropertiesShortcutBar.FirstOrDefault(x => x.ShortcutBarIndex == index + 1);
 
                 if (entity != null)
                 {
-                    rwLock.EnterWriteLock();
-                    try
-                    {
                         character.CharacterPropertiesShortcutBar.Remove(entity);
                         entity.Character = null;
                         return true;
-                    }
-                    finally
-                    {
-                        rwLock.ExitWriteLock();
-                    }
                 }
                 return false;
-            }
-            finally
-            {
-                rwLock.ExitUpgradeableReadLock();
             }
         }
 
@@ -514,33 +345,25 @@ namespace ACE.Database.Models.Shard
         // CharacterPropertiesSpellBar
         // =====================================
 
-        public static List<CharacterPropertiesSpellBar> GetSpellsInBar(this Character character, int barNumber, ReaderWriterLockSlim rwLock)
+        public static List<CharacterPropertiesSpellBar> GetSpellsInBar(this Character character, int barNumber, Object rwLock)
         {
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 return character.CharacterPropertiesSpellBar.Where(x => x.SpellBarNumber == barNumber + 1).OrderBy(x => x.SpellBarIndex).ToList();
-            }
-            finally
-            {
-                rwLock.ExitReadLock();
             }
         }
 
         /// <summary>
         /// This will incrememt all existing spells on the same barNumber at or after indexInBar by one before adding the new spell.
         /// </summary>
-        public static bool AddSpellToBar(this Character character, uint barNumber, uint indexInBar, uint spell, ReaderWriterLockSlim rwLock)
+        public static bool AddSpellToBar(this Character character, uint barNumber, uint indexInBar, uint spell, Object rwLock)
         {
-            rwLock.EnterUpgradeableReadLock();
-            try
+            lock (rwLock)
             {
                 var entity = character.CharacterPropertiesSpellBar.FirstOrDefault(x => x.SpellBarNumber == barNumber + 1 && x.SpellId == spell);
+
                 if (entity == null)
                 {
-                    rwLock.EnterWriteLock();
-                    try
-                    {
                         var spellCountInThisBar = character.CharacterPropertiesSpellBar.Count(x => x.SpellBarNumber == barNumber + 1);
 
                         //Console.WriteLine($"Character.AddSpellToBar.Entry: barNumber = {barNumber} ({barNumber + 1}) | indexInBar = {indexInBar} ({indexInBar + 1}) | spell = {spell} | spellCountInThisBar = {spellCountInThisBar}");
@@ -565,36 +388,24 @@ namespace ACE.Database.Models.Shard
                         //Console.WriteLine($"Character.AddSpellToBar.Add: barNumber = {barNumber + 1} | indexInBar = {indexInBar + 1} | spell = {spell}");
 
                         return true;
-                    }
-                    finally
-                    {
-                        rwLock.ExitWriteLock();
-                    }
                 }
 
                 return false;
-            }
-            finally
-            {
-                rwLock.ExitUpgradeableReadLock();
             }
         }
 
         /// <summary>
         /// This will decrement all existing spells on the same barNumber after indexInBar by one after removing the existing spell.
         /// </summary>
-        public static bool TryRemoveSpellFromBar(this Character character, uint barNumber, uint spell, out CharacterPropertiesSpellBar entity, ReaderWriterLockSlim rwLock)
+        public static bool TryRemoveSpellFromBar(this Character character, uint barNumber, uint spell, out CharacterPropertiesSpellBar entity, Object rwLock)
         {
-            rwLock.EnterUpgradeableReadLock();
-            try
+            lock (rwLock)
             {
                 //Console.WriteLine($"Character.TryRemoveSpellFromBar.Entry: barNumber = {barNumber} ({barNumber + 1}) | spell = {spell}");
                 entity = character.CharacterPropertiesSpellBar.FirstOrDefault(x => x.SpellBarNumber == barNumber + 1 && x.SpellId == spell);
+
                 if (entity != null)
                 {
-                    rwLock.EnterWriteLock();
-                    try
-                    {
                         //Console.WriteLine($"Character.TryRemoveSpellFromBar.Remove: SpellBarNumber = {entity.SpellBarNumber} | SpellBarIndex = {entity.SpellBarIndex} | SpellId = {entity.SpellId}");
                         character.CharacterPropertiesSpellBar.Remove(entity);
                         entity.Character = null;
@@ -610,17 +421,8 @@ namespace ACE.Database.Models.Shard
                         }
 
                         return true;
-                    }
-                    finally
-                    {
-                        rwLock.ExitWriteLock();
-                    }
                 }
                 return false;
-            }
-            finally
-            {
-                rwLock.ExitUpgradeableReadLock();
             }
         }
 
@@ -628,28 +430,20 @@ namespace ACE.Database.Models.Shard
         // CharacterPropertiesSquelch
         // =====================================
 
-        public static List<CharacterPropertiesSquelch> GetSquelches(this Character character, ReaderWriterLockSlim rwLock)
+        public static List<CharacterPropertiesSquelch> GetSquelches(this Character character, Object rwLock)
         {
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 return character.CharacterPropertiesSquelch.ToList();
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static void AddOrUpdateSquelch(this Character character, uint squelchCharacterId, uint squelchAccountId, uint type, ReaderWriterLockSlim rwLock)
+        public static void AddOrUpdateSquelch(this Character character, uint squelchCharacterId, uint squelchAccountId, uint type, Object rwLock)
         {
-            rwLock.EnterUpgradeableReadLock();
-            try
+            lock (rwLock)
             {
                 var entity = character.CharacterPropertiesSquelch.FirstOrDefault(x => x.SquelchCharacterId == squelchCharacterId);
-                rwLock.EnterWriteLock();
-                try
-                {
+
                     if (entity == null)
                     {
                         entity = new CharacterPropertiesSquelch { CharacterId = character.Id, SquelchCharacterId = squelchCharacterId, SquelchAccountId = squelchAccountId, Type = type, Character = character };
@@ -660,44 +454,23 @@ namespace ACE.Database.Models.Shard
                         entity.SquelchAccountId = squelchAccountId;
                         entity.Type = type;
                     }
-                }
-                finally
-                {
-                    rwLock.ExitWriteLock();
-                }
-            }
-            finally
-            {
-                rwLock.ExitUpgradeableReadLock();
             }
         }
 
-        public static bool TryRemoveSquelch(this Character character, uint squelchCharacterId, uint squelchAccountId, out CharacterPropertiesSquelch entity, ReaderWriterLockSlim rwLock)
+        public static bool TryRemoveSquelch(this Character character, uint squelchCharacterId, uint squelchAccountId, out CharacterPropertiesSquelch entity, Object rwLock)
         {
-            rwLock.EnterUpgradeableReadLock();
-            try
+            lock (rwLock)
             {
                 entity = character.CharacterPropertiesSquelch.FirstOrDefault(x => x.SquelchCharacterId == squelchCharacterId && x.SquelchAccountId == squelchAccountId);
 
                 if (entity != null)
                 {
-                    rwLock.EnterWriteLock();
-                    try
-                    {
                         character.CharacterPropertiesSquelch.Remove(entity);
                         entity.Character = null;
                         return true;
-                    }
-                    finally
-                    {
-                        rwLock.ExitWriteLock();
-                    }
+
                 }
                 return false;
-            }
-            finally
-            {
-                rwLock.ExitUpgradeableReadLock();
             }
         }
         
@@ -705,23 +478,17 @@ namespace ACE.Database.Models.Shard
         // CharacterPropertiesTitleBook
         // =====================================
 
-        public static List<CharacterPropertiesTitleBook> GetTitles(this Character character, ReaderWriterLockSlim rwLock)
+        public static List<CharacterPropertiesTitleBook> GetTitles(this Character character, Object rwLock)
         {
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 return character.CharacterPropertiesTitleBook.ToList();
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static void AddTitleToRegistry(this Character character, uint title, ReaderWriterLockSlim rwLock, out bool titleAlreadyExists, out int numCharacterTitles)
+        public static void AddTitleToRegistry(this Character character, uint title, Object rwLock, out bool titleAlreadyExists, out int numCharacterTitles)
         {
-            rwLock.EnterUpgradeableReadLock();
-            try
+            lock (rwLock)
             {
                 var entity = character.CharacterPropertiesTitleBook.FirstOrDefault(x => x.TitleId == title);
                 if (entity != null)
@@ -731,22 +498,10 @@ namespace ACE.Database.Models.Shard
                     return;
                 }
 
-                rwLock.EnterWriteLock();
-                try
-                {
                     entity = new CharacterPropertiesTitleBook { CharacterId = character.Id, TitleId = title, Character = character };
                     character.CharacterPropertiesTitleBook.Add(entity);
                     titleAlreadyExists = false;
                     numCharacterTitles = character.CharacterPropertiesTitleBook.Count;
-                }
-                finally
-                {
-                    rwLock.ExitWriteLock();
-                }
-            }
-            finally
-            {
-                rwLock.ExitUpgradeableReadLock();
             }
         }
     }

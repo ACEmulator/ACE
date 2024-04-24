@@ -15,174 +15,129 @@ namespace ACE.Entity.Models
         // Bool, DID, Float, IID, Int, Int64, String, Position
         // =====================================
 
-        public static bool? GetProperty(this Biota biota, PropertyBool property, ReaderWriterLockSlim rwLock)
+        public static bool? GetProperty(this Biota biota, PropertyBool property, Object rwLock)
         {
             if (biota.PropertiesBool == null)
                 return null;
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesBool.TryGetValue(property, out var value))
                     return value;
 
                 return null;
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static uint? GetProperty(this Biota biota, PropertyDataId property, ReaderWriterLockSlim rwLock)
+        public static uint? GetProperty(this Biota biota, PropertyDataId property, Object rwLock)
         {
             if (biota.PropertiesDID == null)
                 return null;
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesDID.TryGetValue(property, out var value))
                     return value;
 
                 return null;
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static double? GetProperty(this Biota biota, PropertyFloat property, ReaderWriterLockSlim rwLock)
+        public static double? GetProperty(this Biota biota, PropertyFloat property, Object rwLock)
         {
             if (biota.PropertiesFloat == null)
                 return null;
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesFloat.TryGetValue(property, out var value))
                     return value;
 
                 return null;
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static uint? GetProperty(this Biota biota, PropertyInstanceId property, ReaderWriterLockSlim rwLock)
+        public static uint? GetProperty(this Biota biota, PropertyInstanceId property, Object rwLock)
         {
             if (biota.PropertiesIID == null)
                 return null;
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesIID.TryGetValue(property, out var value))
                     return value;
 
                 return null;
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static int? GetProperty(this Biota biota, PropertyInt property, ReaderWriterLockSlim rwLock)
+        public static int? GetProperty(this Biota biota, PropertyInt property, Object rwLock)
         {
             if (biota.PropertiesInt == null)
                 return null;
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesInt.TryGetValue(property, out var value))
                     return value;
 
                 return null;
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static long? GetProperty(this Biota biota, PropertyInt64 property, ReaderWriterLockSlim rwLock)
+        public static long? GetProperty(this Biota biota, PropertyInt64 property, Object rwLock)
         {
             if (biota.PropertiesInt64 == null)
                 return null;
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesInt64.TryGetValue(property, out var value))
                     return value;
 
                 return null;
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static string GetProperty(this Biota biota, PropertyString property, ReaderWriterLockSlim rwLock)
+        public static string GetProperty(this Biota biota, PropertyString property, Object rwLock)
         {
             if (biota.PropertiesString == null)
                 return null;
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesString.TryGetValue(property, out var value))
                     return value;
 
                 return null;
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static PropertiesPosition GetProperty(this Biota biota, PositionType property, ReaderWriterLockSlim rwLock)
+        public static PropertiesPosition GetProperty(this Biota biota, PositionType property, Object rwLock)
         {
             if (biota.PropertiesPosition == null)
                 return null;
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesPosition.TryGetValue(property, out var value))
                     return value;
 
                 return null;
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static Position GetPosition(this Biota biota, PositionType property, ReaderWriterLockSlim rwLock)
+        public static Position GetPosition(this Biota biota, PositionType property, Object rwLock)
         {
             if (biota.PropertiesPosition == null)
                 return null;
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesPosition.TryGetValue(property, out var value))
                     return new Position(value.ObjCellId, value.PositionX, value.PositionY, value.PositionZ, value.RotationX, value.RotationY, value.RotationZ, value.RotationW, property == PositionType.RelativeDestination);
 
                 return null;
-            }
-            finally
-            {
-                rwLock.ExitReadLock();
             }
         }
 
@@ -192,10 +147,9 @@ namespace ACE.Entity.Models
         // Bool, DID, Float, IID, Int, Int64, String, Position
         // =====================================
 
-        public static void SetProperty(this Biota biota, PropertyBool property, bool value, ReaderWriterLockSlim rwLock, out bool changed)
+        public static void SetProperty(this Biota biota, PropertyBool property, bool value, Object rwLock, out bool changed)
         {
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesBool == null)
                     biota.PropertiesBool = new Dictionary<PropertyBool, bool>();
@@ -205,16 +159,11 @@ namespace ACE.Entity.Models
                 if (changed)
                     biota.PropertiesBool[property] = value;
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
-        public static void SetProperty(this Biota biota, PropertyDataId property, uint value, ReaderWriterLockSlim rwLock, out bool changed)
+        public static void SetProperty(this Biota biota, PropertyDataId property, uint value, Object rwLock, out bool changed)
         {
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesDID == null)
                     biota.PropertiesDID = new Dictionary<PropertyDataId, uint>();
@@ -224,16 +173,11 @@ namespace ACE.Entity.Models
                 if (changed)
                     biota.PropertiesDID[property] = value;
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
-        public static void SetProperty(this Biota biota, PropertyFloat property, double value, ReaderWriterLockSlim rwLock, out bool changed)
+        public static void SetProperty(this Biota biota, PropertyFloat property, double value, Object rwLock, out bool changed)
         {
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesFloat == null)
                     biota.PropertiesFloat = new Dictionary<PropertyFloat, double>();
@@ -243,16 +187,11 @@ namespace ACE.Entity.Models
                 if (changed)
                     biota.PropertiesFloat[property] = value;
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
-        public static void SetProperty(this Biota biota, PropertyInstanceId property, uint value, ReaderWriterLockSlim rwLock, out bool changed)
+        public static void SetProperty(this Biota biota, PropertyInstanceId property, uint value, Object rwLock, out bool changed)
         {
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesIID == null)
                     biota.PropertiesIID = new Dictionary<PropertyInstanceId, uint>();
@@ -262,16 +201,11 @@ namespace ACE.Entity.Models
                 if (changed)
                     biota.PropertiesIID[property] = value;
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
-        public static void SetProperty(this Biota biota, PropertyInt property, int value, ReaderWriterLockSlim rwLock, out bool changed)
+        public static void SetProperty(this Biota biota, PropertyInt property, int value, Object rwLock, out bool changed)
         {
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesInt == null)
                     biota.PropertiesInt = new Dictionary<PropertyInt, int>();
@@ -281,16 +215,11 @@ namespace ACE.Entity.Models
                 if (changed)
                     biota.PropertiesInt[property] = value;
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
-        public static void SetProperty(this Biota biota, PropertyInt64 property, long value, ReaderWriterLockSlim rwLock, out bool changed)
+        public static void SetProperty(this Biota biota, PropertyInt64 property, long value, Object rwLock, out bool changed)
         {
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesInt64 == null)
                     biota.PropertiesInt64 = new Dictionary<PropertyInt64, long>();
@@ -300,16 +229,11 @@ namespace ACE.Entity.Models
                 if (changed)
                     biota.PropertiesInt64[property] = value;
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
-        public static void SetProperty(this Biota biota, PropertyString property, string value, ReaderWriterLockSlim rwLock, out bool changed)
+        public static void SetProperty(this Biota biota, PropertyString property, string value, Object rwLock, out bool changed)
         {
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesString == null)
                     biota.PropertiesString = new Dictionary<PropertyString, string>();
@@ -319,32 +243,22 @@ namespace ACE.Entity.Models
                 if (changed)
                     biota.PropertiesString[property] = value;
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
-        public static void SetProperty(this Biota biota, PositionType property, PropertiesPosition value, ReaderWriterLockSlim rwLock)
+        public static void SetProperty(this Biota biota, PositionType property, PropertiesPosition value, Object rwLock)
         {
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesPosition == null)
                     biota.PropertiesPosition = new Dictionary<PositionType, PropertiesPosition>();
 
                 biota.PropertiesPosition[property] = value;
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
-        public static void SetPosition(this Biota biota, PositionType property, Position value, ReaderWriterLockSlim rwLock)
+        public static void SetPosition(this Biota biota, PositionType property, Position value, Object rwLock)
         {
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesPosition == null)
                     biota.PropertiesPosition = new Dictionary<PositionType, PropertiesPosition>();
@@ -352,10 +266,6 @@ namespace ACE.Entity.Models
                 var entity = new PropertiesPosition { ObjCellId = value.Cell, PositionX = value.PositionX, PositionY = value.PositionY, PositionZ = value.PositionZ, RotationW = value.RotationW, RotationX = value.RotationX, RotationY = value.RotationY, RotationZ = value.RotationZ };
 
                 biota.PropertiesPosition[property] = entity;
-            }
-            finally
-            {
-                rwLock.ExitWriteLock();
             }
         }
 
@@ -365,131 +275,91 @@ namespace ACE.Entity.Models
         // Bool, DID, Float, IID, Int, Int64, String, Position
         // =====================================
 
-        public static bool TryRemoveProperty(this Biota biota, PropertyBool property, ReaderWriterLockSlim rwLock)
+        public static bool TryRemoveProperty(this Biota biota, PropertyBool property, Object rwLock)
         {
             if (biota.PropertiesBool == null)
                 return false;
 
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 return biota.PropertiesBool.Remove(property);
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
-        public static bool TryRemoveProperty(this Biota biota, PropertyDataId property, ReaderWriterLockSlim rwLock)
+        public static bool TryRemoveProperty(this Biota biota, PropertyDataId property, Object rwLock)
         {
             if (biota.PropertiesDID == null)
                 return false;
 
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 return biota.PropertiesDID.Remove(property);
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
-        public static bool TryRemoveProperty(this Biota biota, PropertyFloat property, ReaderWriterLockSlim rwLock)
+        public static bool TryRemoveProperty(this Biota biota, PropertyFloat property, Object rwLock)
         {
             if (biota.PropertiesFloat == null)
                 return false;
 
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 return biota.PropertiesFloat.Remove(property);
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
-        public static bool TryRemoveProperty(this Biota biota, PropertyInstanceId property, ReaderWriterLockSlim rwLock)
+        public static bool TryRemoveProperty(this Biota biota, PropertyInstanceId property, Object rwLock)
         {
             if (biota.PropertiesIID == null)
                 return false;
 
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 return biota.PropertiesIID.Remove(property);
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
-        public static bool TryRemoveProperty(this Biota biota, PropertyInt property, ReaderWriterLockSlim rwLock)
+        public static bool TryRemoveProperty(this Biota biota, PropertyInt property, Object rwLock)
         {
             if (biota.PropertiesInt == null)
                 return false;
 
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 return biota.PropertiesInt.Remove(property);
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
-        public static bool TryRemoveProperty(this Biota biota, PropertyInt64 property, ReaderWriterLockSlim rwLock)
+        public static bool TryRemoveProperty(this Biota biota, PropertyInt64 property, Object rwLock)
         {
             if (biota.PropertiesInt64 == null)
                 return false;
 
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 return biota.PropertiesInt64.Remove(property);
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
-        public static bool TryRemoveProperty(this Biota biota, PropertyString property, ReaderWriterLockSlim rwLock)
+        public static bool TryRemoveProperty(this Biota biota, PropertyString property, Object rwLock)
         {
             if (biota.PropertiesString == null)
                 return false;
 
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 return biota.PropertiesString.Remove(property);
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
-        public static bool TryRemoveProperty(this Biota biota, PositionType property, ReaderWriterLockSlim rwLock)
+        public static bool TryRemoveProperty(this Biota biota, PositionType property, Object rwLock)
         {
             if (biota.PropertiesPosition == null)
                 return false;
 
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 return biota.PropertiesPosition.Remove(property);
-            }
-            finally
-            {
-                rwLock.ExitWriteLock();
             }
         }
 
@@ -498,13 +368,12 @@ namespace ACE.Entity.Models
         // BiotaPropertiesSpellBook
         // =====================================
 
-        public static Dictionary<int, float> CloneSpells(this Biota biota, ReaderWriterLockSlim rwLock)
+        public static Dictionary<int, float> CloneSpells(this Biota biota, Object rwLock)
         {
             if (biota.PropertiesSpellBook == null)
                 return new Dictionary<int, float>();
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 var results = new Dictionary<int, float>();
 
@@ -513,105 +382,77 @@ namespace ACE.Entity.Models
 
                 return results;
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static bool HasKnownSpell(this Biota biota, ReaderWriterLockSlim rwLock)
+        public static bool HasKnownSpell(this Biota biota, Object rwLock)
         {
             if (biota.PropertiesSpellBook == null)
                 return false;
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 return biota.PropertiesSpellBook.Count > 0;
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static List<int> GetKnownSpellsIds(this Biota biota, ReaderWriterLockSlim rwLock)
+        public static List<int> GetKnownSpellsIds(this Biota biota, Object rwLock)
         {
             if (biota.PropertiesSpellBook == null)
                 return new List<int>();
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesSpellBook == null)
                     return new List<int>();
 
                 return new List<int>(biota.PropertiesSpellBook.Keys);
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static List<int> GetKnownSpellsIdsWhere(this Biota biota, Func<int, bool> predicate, ReaderWriterLockSlim rwLock)
+        public static List<int> GetKnownSpellsIdsWhere(this Biota biota, Func<int, bool> predicate, Object rwLock)
         {
             if (biota.PropertiesSpellBook == null)
                 return new List<int>();
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesSpellBook == null)
                     return new List<int>();
 
                 return biota.PropertiesSpellBook.Keys.Where(predicate).ToList();
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
+
         }
 
-        public static List<float> GetKnownSpellsProbabilities(this Biota biota, ReaderWriterLockSlim rwLock)
+        public static List<float> GetKnownSpellsProbabilities(this Biota biota, Object rwLock)
         {
             if (biota.PropertiesSpellBook == null)
                 return new List<float>();
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesSpellBook == null)
                     return new List<float>();
 
                 return new List<float>(biota.PropertiesSpellBook.Values);
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
+ 
         }
 
-        public static bool SpellIsKnown(this Biota biota, int spell, ReaderWriterLockSlim rwLock)
+        public static bool SpellIsKnown(this Biota biota, int spell, Object rwLock)
         {
             if (biota.PropertiesSpellBook == null)
                 return false;
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 return biota.PropertiesSpellBook.ContainsKey(spell);
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static float GetOrAddKnownSpell(this Biota biota, int spell, ReaderWriterLockSlim rwLock, out bool spellAdded, float probability = 2.0f)
+        public static float GetOrAddKnownSpell(this Biota biota, int spell, Object rwLock, out bool spellAdded, float probability = 2.0f)
         {
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesSpellBook != null && biota.PropertiesSpellBook.TryGetValue(spell, out var value))
                 {
@@ -627,19 +468,15 @@ namespace ACE.Entity.Models
 
                 return probability;
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
+
         }
 
-        public static Dictionary<int, float> GetMatchingSpells(this Biota biota, HashSet<int> match, ReaderWriterLockSlim rwLock)
+        public static Dictionary<int, float> GetMatchingSpells(this Biota biota, HashSet<int> match, Object rwLock)
         {
             if (biota.PropertiesSpellBook == null)
                 return new Dictionary<int, float>();
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 var results = new Dictionary<int, float>();
 
@@ -651,41 +488,27 @@ namespace ACE.Entity.Models
 
                 return results;
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static bool TryRemoveKnownSpell(this Biota biota, int spell, ReaderWriterLockSlim rwLock)
+        public static bool TryRemoveKnownSpell(this Biota biota, int spell, Object rwLock)
         {
             if (biota.PropertiesSpellBook == null)
                 return false;
 
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 return biota.PropertiesSpellBook.Remove(spell);
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
-        public static void ClearSpells(this Biota biota, ReaderWriterLockSlim rwLock)
+        public static void ClearSpells(this Biota biota, Object rwLock)
         {
             if (biota.PropertiesSpellBook == null)
                 return;
 
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 biota.PropertiesSpellBook?.Clear();
-            }
-            finally
-            {
-                rwLock.ExitWriteLock();
             }
         }
 
@@ -694,13 +517,12 @@ namespace ACE.Entity.Models
         // BiotaPropertiesSkill
         // =====================================
 
-        public static PropertiesSkill GetSkill(this Biota biota, Skill skill, ReaderWriterLockSlim rwLock)
+        public static PropertiesSkill GetSkill(this Biota biota, Skill skill, Object rwLock)
         {
             if (biota.PropertiesSkill == null)
                 return null;
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesSkill == null)
                     return null;
@@ -708,16 +530,11 @@ namespace ACE.Entity.Models
                 biota.PropertiesSkill.TryGetValue(skill, out var value);
                 return value;
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static PropertiesSkill GetOrAddSkill(this Biota biota, Skill skill, ReaderWriterLockSlim rwLock, out bool skillAdded)
+        public static PropertiesSkill GetOrAddSkill(this Biota biota, Skill skill, Object rwLock, out bool skillAdded)
         {
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 if (biota.PropertiesSkill != null && biota.PropertiesSkill.TryGetValue(skill, out var value))
                 {
@@ -734,10 +551,6 @@ namespace ACE.Entity.Models
 
                 return entity;
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
 
@@ -745,42 +558,31 @@ namespace ACE.Entity.Models
         // HousePermissions
         // =====================================
 
-        public static Dictionary<uint, bool> CloneHousePermissions(this Biota biota, ReaderWriterLockSlim rwLock)
+        public static Dictionary<uint, bool> CloneHousePermissions(this Biota biota, Object rwLock)
         {
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 if (biota.HousePermissions == null)
                     return new Dictionary<uint, bool>();
 
                 return new Dictionary<uint, bool>(biota.HousePermissions);
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static bool HasHouseGuest(this Biota biota, uint guestGuid, ReaderWriterLockSlim rwLock)
+        public static bool HasHouseGuest(this Biota biota, uint guestGuid, Object rwLock)
         {
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 if (biota.HousePermissions == null)
                     return false;
 
                 return biota.HousePermissions.ContainsKey(guestGuid);
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static bool? GetHouseGuestStoragePermission(this Biota biota, uint guestGuid, ReaderWriterLockSlim rwLock)
+        public static bool? GetHouseGuestStoragePermission(this Biota biota, uint guestGuid, Object rwLock)
         {
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 if (biota.HousePermissions == null)
                     return null;
@@ -790,41 +592,27 @@ namespace ACE.Entity.Models
 
                 return value;
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static void AddOrUpdateHouseGuest(this Biota biota, uint guestGuid, bool storage, ReaderWriterLockSlim rwLock)
+        public static void AddOrUpdateHouseGuest(this Biota biota, uint guestGuid, bool storage, Object rwLock)
         {
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 if (biota.HousePermissions == null)
                     biota.HousePermissions = new Dictionary<uint, bool>();
 
                 biota.HousePermissions[guestGuid] = storage;
             }
-            finally
-            {
-                rwLock.ExitWriteLock();
-            }
         }
 
-        public static bool RemoveHouseGuest(this Biota biota, uint guestGuid, ReaderWriterLockSlim rwLock)
+        public static bool RemoveHouseGuest(this Biota biota, uint guestGuid, Object rwLock)
         {
-            rwLock.EnterWriteLock();
-            try
+            lock (rwLock)
             {
                 if (biota.HousePermissions == null)
                     return false;
 
                 return biota.HousePermissions.Remove(guestGuid);
-            }
-            finally
-            {
-                rwLock.ExitWriteLock();
             }
         }
 

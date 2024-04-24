@@ -119,7 +119,7 @@ namespace ACE.Server.Managers
         {
             lastDatabaseSave = DateTime.UtcNow;
 
-            var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+            var biotas = new Collection<(Biota biota, Object rwLock)>();
 
             playersLock.EnterReadLock();
             try

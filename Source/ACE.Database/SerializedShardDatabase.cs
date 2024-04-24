@@ -116,7 +116,7 @@ namespace ACE.Database
         }
 
 
-        public void SaveBiota(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock, Action<bool> callback)
+        public void SaveBiota(ACE.Entity.Models.Biota biota, Object rwLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
@@ -126,7 +126,7 @@ namespace ACE.Database
         }
 
 
-        public void SaveBiotasInParallel(IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback, bool doNotAddToCache = false)
+        public void SaveBiotasInParallel(IEnumerable<(ACE.Entity.Models.Biota biota, Object rwLock)> biotas, Action<bool> callback, bool doNotAddToCache = false)
         {
             _queue.Add(new Task(() =>
             {
@@ -220,7 +220,7 @@ namespace ACE.Database
             }));
         }
 
-        public void SaveCharacter(Character character, ReaderWriterLockSlim rwLock, Action<bool> callback)
+        public void SaveCharacter(Character character, Object rwLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
@@ -245,7 +245,7 @@ namespace ACE.Database
         }
 
 
-        public void AddCharacterInParallel(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim biotaLock, IEnumerable<(ACE.Entity.Models.Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character, ReaderWriterLockSlim characterLock, Action<bool> callback)
+        public void AddCharacterInParallel(ACE.Entity.Models.Biota biota, Object biotaLock, IEnumerable<(ACE.Entity.Models.Biota biota, Object rwLock)> possessions, Character character, Object characterLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {

@@ -309,18 +309,13 @@ namespace ACE.Server.WorldObjects
         {
             var results = new Dictionary<PropertyBool, bool>();
 
-            BiotaDatabaseLock.EnterReadLock();
-            try
+            lock (BiotaDatabaseLock)
             {
                 if (Biota.PropertiesBool != null)
                 {
                     foreach (var kvp in Biota.PropertiesBool)
                         results[kvp.Key] = kvp.Value;
                 }
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
             }
 
             if (ephemeralPropertyBools != null)
@@ -341,18 +336,13 @@ namespace ACE.Server.WorldObjects
         {
             var results = new Dictionary<PropertyDataId, uint>();
 
-            BiotaDatabaseLock.EnterReadLock();
-            try
+            lock (BiotaDatabaseLock)
             {
                 if (Biota.PropertiesDID != null)
                 {
                     foreach (var kvp in Biota.PropertiesDID)
                         results[kvp.Key] = kvp.Value;
                 }
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
             }
 
             if (ephemeralPropertyDataIds != null)
@@ -373,18 +363,13 @@ namespace ACE.Server.WorldObjects
         {
             var results = new Dictionary<PropertyFloat, double>();
 
-            BiotaDatabaseLock.EnterReadLock();
-            try
+            lock (BiotaDatabaseLock)
             {
                 if (Biota.PropertiesFloat != null)
                 {
                     foreach (var kvp in Biota.PropertiesFloat)
                         results[kvp.Key] = kvp.Value;
                 }
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
             }
 
             if (ephemeralPropertyFloats != null)
@@ -405,18 +390,13 @@ namespace ACE.Server.WorldObjects
         {
             var results = new Dictionary<PropertyInstanceId, uint>();
 
-            BiotaDatabaseLock.EnterReadLock();
-            try
+            lock (BiotaDatabaseLock)
             {
                 if (Biota.PropertiesIID != null)
                 {
                     foreach (var kvp in Biota.PropertiesIID)
                         results[kvp.Key] = kvp.Value;
                 }
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
             }
 
             if (ephemeralPropertyInstanceIds != null)
@@ -437,18 +417,13 @@ namespace ACE.Server.WorldObjects
         {
             var results = new Dictionary<PropertyInt, int>();
 
-            BiotaDatabaseLock.EnterReadLock();
-            try
+            lock (BiotaDatabaseLock)
             {
                 if (Biota.PropertiesInt != null)
                 {
                     foreach (var kvp in Biota.PropertiesInt)
                         results[kvp.Key] = kvp.Value;
                 }
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
             }
 
             if (ephemeralPropertyInts != null)
@@ -469,18 +444,13 @@ namespace ACE.Server.WorldObjects
         {
             var results = new Dictionary<PropertyInt64, long>();
 
-            BiotaDatabaseLock.EnterReadLock();
-            try
+            lock (BiotaDatabaseLock)
             {
                 if (Biota.PropertiesInt64 != null)
                 {
                     foreach (var kvp in Biota.PropertiesInt64)
                         results[kvp.Key] = kvp.Value;
                 }
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
             }
 
             if (ephemeralPropertyInt64s != null)
@@ -501,18 +471,13 @@ namespace ACE.Server.WorldObjects
         {
             var results = new Dictionary<PropertyString, string>();
 
-            BiotaDatabaseLock.EnterReadLock();
-            try
+            lock (BiotaDatabaseLock)
             {
                 if (Biota.PropertiesString != null)
                 {
                     foreach (var kvp in Biota.PropertiesString)
                         results[kvp.Key] = kvp.Value;
                 }
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
             }
 
             if (ephemeralPropertyStrings != null)
@@ -535,18 +500,13 @@ namespace ACE.Server.WorldObjects
         {
             var results = new Dictionary<PropertyBool, bool>();
 
-            BiotaDatabaseLock.EnterReadLock();
-            try
+            lock (BiotaDatabaseLock)
             {
                 if (Biota.PropertiesBool != null)
                 {
                     foreach (var kvp in Biota.PropertiesBool.Where(r => keys.Contains((ushort)r.Key)))
                         results[kvp.Key] = kvp.Value;
                 }
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
             }
 
             if (ephemeralPropertyBools != null)
@@ -567,18 +527,13 @@ namespace ACE.Server.WorldObjects
         {
             var results = new Dictionary<PropertyDataId, uint>();
 
-            BiotaDatabaseLock.EnterReadLock();
-            try
+            lock (BiotaDatabaseLock)
             {
                 if (Biota.PropertiesDID != null)
                 {
                     foreach (var kvp in Biota.PropertiesDID.Where(r => keys.Contains((ushort)r.Key)))
                         results[kvp.Key] = kvp.Value;
                 }
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
             }
 
             if (ephemeralPropertyDataIds != null)
@@ -599,18 +554,13 @@ namespace ACE.Server.WorldObjects
         {
             var results = new Dictionary<PropertyFloat, double>();
 
-            BiotaDatabaseLock.EnterReadLock();
-            try
+            lock (BiotaDatabaseLock)
             {
                 if (Biota.PropertiesFloat != null)
                 {
                     foreach (var kvp in Biota.PropertiesFloat.Where(r => keys.Contains((ushort)r.Key)))
                         results[kvp.Key] = kvp.Value;
                 }
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
             }
 
             if (ephemeralPropertyFloats != null)
@@ -631,18 +581,13 @@ namespace ACE.Server.WorldObjects
         {
             var results = new Dictionary<PropertyInstanceId, uint>();
 
-            BiotaDatabaseLock.EnterReadLock();
-            try
+            lock (BiotaDatabaseLock)
             {
                 if (Biota.PropertiesIID != null)
                 {
                     foreach (var kvp in Biota.PropertiesIID.Where(r => keys.Contains((ushort)r.Key)))
                         results[kvp.Key] = kvp.Value;
                 }
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
             }
 
             if (ephemeralPropertyInstanceIds != null)
@@ -663,18 +608,13 @@ namespace ACE.Server.WorldObjects
         {
             var results = new Dictionary<PropertyInt, int>();
 
-            BiotaDatabaseLock.EnterReadLock();
-            try
+            lock (BiotaDatabaseLock)
             {
                 if (Biota.PropertiesInt != null)
                 {
                     foreach (var kvp in Biota.PropertiesInt.Where(r => keys.Contains((ushort)r.Key)))
                         results[kvp.Key] = kvp.Value;
                 }
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
             }
 
             if (ephemeralPropertyInts != null)
@@ -695,18 +635,13 @@ namespace ACE.Server.WorldObjects
         {
             var results = new Dictionary<PropertyInt64, long>();
 
-            BiotaDatabaseLock.EnterReadLock();
-            try
+            lock (BiotaDatabaseLock)
             {
                 if (Biota.PropertiesInt64 != null)
                 {
                     foreach (var kvp in Biota.PropertiesInt64.Where(r => keys.Contains((ushort)r.Key)))
                         results[kvp.Key] = kvp.Value;
                 }
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
             }
 
             if (ephemeralPropertyInt64s != null)
@@ -727,18 +662,13 @@ namespace ACE.Server.WorldObjects
         {
             var results = new Dictionary<PropertyString, string>();
 
-            BiotaDatabaseLock.EnterReadLock();
-            try
+            lock (BiotaDatabaseLock)
             {
                 if (Biota.PropertiesString != null)
                 {
                     foreach (var kvp in Biota.PropertiesString.Where(r => keys.Contains((ushort)r.Key)))
                         results[kvp.Key] = kvp.Value;
                 }
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
             }
 
             if (ephemeralPropertyStrings != null)
@@ -832,15 +762,10 @@ namespace ACE.Server.WorldObjects
         {
             var results = new Dictionary<PositionType, Position>();
 
-            BiotaDatabaseLock.EnterReadLock();
-            try
+            lock (BiotaDatabaseLock)
             {
                 foreach (var kvp in Biota.PropertiesPosition)
                     results[kvp.Key] = new Position(kvp.Value.ObjCellId, kvp.Value.PositionX, kvp.Value.PositionY, kvp.Value.PositionZ, kvp.Value.RotationX, kvp.Value.RotationY, kvp.Value.RotationZ, kvp.Value.RotationW);
-            }
-            finally
-            {
-                BiotaDatabaseLock.ExitReadLock();
             }
 
             foreach (var property in ephemeralPositions)

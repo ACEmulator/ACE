@@ -6,52 +6,37 @@ namespace ACE.Entity.Models
 {
     public static class PropertiesPaletteExtensions
     {
-        public static int GetCount(this IList<PropertiesPalette> value, ReaderWriterLockSlim rwLock)
+        public static int GetCount(this IList<PropertiesPalette> value, Object rwLock)
         {
             if (value == null)
                 return 0;
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 return value.Count;
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static List<PropertiesPalette> Clone(this IList<PropertiesPalette> value, ReaderWriterLockSlim rwLock)
+        public static List<PropertiesPalette> Clone(this IList<PropertiesPalette> value, Object rwLock)
         {
             if (value == null)
                 return null;
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 return new List<PropertiesPalette>(value);
             }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
         }
 
-        public static void CopyTo(this IList<PropertiesPalette> value, ICollection<PropertiesPalette> destination, ReaderWriterLockSlim rwLock)
+        public static void CopyTo(this IList<PropertiesPalette> value, ICollection<PropertiesPalette> destination, Object rwLock)
         {
             if (value == null)
                 return;
 
-            rwLock.EnterReadLock();
-            try
+            lock (rwLock)
             {
                 foreach (var entry in value)
                     destination.Add(entry);
-            }
-            finally
-            {
-                rwLock.ExitReadLock();
             }
         }
     }
