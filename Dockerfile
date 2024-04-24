@@ -37,7 +37,11 @@ RUN apt-get update && \
 
 # add app from build
 COPY --from=build /ace .
+
+# set correct permissions for app directory and files
 RUN chown -R app:app /home/app/ace/
+
+# switch to and run app from non-root user
 USER app
 ENTRYPOINT ["dotnet", "ACE.Server.dll"]
 
