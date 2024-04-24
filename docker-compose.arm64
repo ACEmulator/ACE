@@ -24,6 +24,7 @@ services:
       context: .
       dockerfile: Dockerfile.arm64
     image: acemulator/ace:latest-arm64
+    depends_on:
       ace-db:
         condition: service_healthy
     container_name: ace-server
