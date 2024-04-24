@@ -26,10 +26,10 @@ ARG DEBIAN_FRONTEND="noninteractive"
 WORKDIR /ace
 
 # install net-tools (netstat for health check) & cleanup
-RUN apt update && \
-    apt install --no-install-recommends -y \
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y \
     net-tools && \
-    apt clean && \
+    apt-get clean && \
     rm -rf \
     /tmp/* \
     /var/lib/apt/lists/* \
