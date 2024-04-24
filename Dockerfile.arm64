@@ -1,3 +1,5 @@
+# This Dockerfile, specific to arm64 should be no longer needed. Leaving in place for legacy purposes for now.
+
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS build
 WORKDIR /Source
 
