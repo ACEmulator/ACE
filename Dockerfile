@@ -18,7 +18,7 @@ RUN dotnet restore -a $TARGETARCH
 
 # copy and publish app and libraries
 COPY . ../.
-RUN dotnet publish ./ACE.Server/ACE.Server.csproj -a $TARGETARCH -c release -o /ace -a $TARGETARCH --no-restore
+RUN dotnet publish ./ACE.Server/ACE.Server.csproj -a $TARGETARCH -c release -o /ace --no-restore
 
 # final stage/image
 FROM mcr.microsoft.com/dotnet/runtime:8.0-jammy
