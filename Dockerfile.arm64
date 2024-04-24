@@ -20,15 +20,15 @@ COPY . ../.
 RUN dotnet publish ./ACE.Server/ACE.Server.csproj -c release -o /ace -r linux-arm64 --self-contained false --no-restore
 
 # final stage/image
-FROM mcr.microsoft.com/dotnet/runtime:8.0-jammy-chiseled
+FROM mcr.microsoft.com/dotnet/runtime:8.0-jammy
 ARG DEBIAN_FRONTEND="noninteractive"
 WORKDIR /ace
 
 # install net-tools (netstat for health check) & cleanup
-RUN apt-get update && \
-    apt-get install --no-install-recommends -y \
+RUN apt update && \
+    apt install --no-install-recommends -y \
     net-tools && \
-    apt-get clean && \
+    apt clean && \
     rm -rf \
     /tmp/* \
     /var/lib/apt/lists/* \
