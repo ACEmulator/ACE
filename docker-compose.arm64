@@ -1,3 +1,5 @@
+# This docker-compose file, specific to arm64, should be no longer needed. Leaving in place for legacy purposes.
+
 #version: '3'
 services:
 
@@ -23,7 +25,8 @@ services:
       dockerfile: Dockerfile.arm64
     image: acemulator/ace:latest-arm64
     depends_on:
-      - ace-db
+      ace-db:
+        condition: service_healthy
     container_name: ace-server
     env_file:
       - docker.env
