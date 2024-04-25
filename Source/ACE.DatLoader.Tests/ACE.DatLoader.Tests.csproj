@@ -13,7 +13,7 @@
 
     <Description>Asheron's Call server emulator</Description>
 
-    <Copyright>© 2017-2022 ACEmulator Team and Contributors</Copyright>
+    <Copyright>© 2017-2024 ACEmulator Team and Contributors</Copyright>
 
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
 
@@ -28,8 +28,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
-    <PackageReference Include="MSTest.TestAdapter" Version="3.2.2" />
-    <PackageReference Include="MSTest.TestFramework" Version="3.2.2" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.3.1" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.3.1" />
   </ItemGroup>
 
   <ItemGroup>

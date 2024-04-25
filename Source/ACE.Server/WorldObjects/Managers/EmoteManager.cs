@@ -84,7 +84,7 @@ namespace ACE.Server.WorldObjects.Managers
                     {
                         // ActOnUse delay?
                         var activationTarget = WorldObject.CurrentLandblock?.GetObject(WorldObject.ActivationTarget);
-                        activationTarget?.OnActivate(WorldObject);
+                        activationTarget?.OnActivate(player ?? WorldObject);
                     }
                     else if (WorldObject.GeneratorId.HasValue && WorldObject.GeneratorId > 0) // Fallback to linked generator
                     {

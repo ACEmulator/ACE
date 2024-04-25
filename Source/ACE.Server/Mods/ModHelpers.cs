@@ -1,7 +1,10 @@
 using ACE.Server.Command;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace ACE.Server.Mods
@@ -9,14 +12,57 @@ namespace ACE.Server.Mods
     public static class ModHelpers
     {
         /// <summary>
-        /// Adds all commands with a CommandHandlerAttribute in an assembly to server commands
+        /// Adds all commands with a CommandHandlerAttribute to server commands
         /// </summary>
-        public static void RegisterCommandHandlers(this ModContainer container, bool overrides = true)
+        public static void RegisterAllCommands(this ModContainer container, bool overrides = true)
         {
             if (container?.ModAssembly is null)
                 return;
 
-            foreach (var type in container.ModAssembly.GetTypes())
+            var types = container.ModAssembly.GetTypes().ToList();
+            RegisterCommands(container, types, overrides);
+        }
+        /// <summary>
+        /// Adds all commands with a CommandHandlerAttribute and not in a CommandCategory to server commands
+        /// </summary>
+        public static void RegisterUncategorizedCommands(this ModContainer container, bool overrides = true)
+        {
+            if (container?.ModAssembly is null)
+                return;
+
+            var types = container.ModAssembly.GetTypes().Where(t => !Attribute.IsDefined(t, typeof(CommandCategoryAttribute))).ToList();
+            RegisterCommands(container, types, overrides);
+        }
+        /// <summary>
+        /// Adds all commands with a CommandHandlerAttribute matching a pattern to server commands
+        /// </summary>
+        public static void RegisterCommandCategory(this ModContainer container, string categoryPattern, bool overrides = true)
+        {
+            if (container?.ModAssembly is null)
+                return;
+
+            try
+            {
+                Regex pattern = new(categoryPattern, RegexOptions.IgnoreCase);
+                List<Type> types = new();
+                foreach(var type in container.ModAssembly.GetTypes())
+                {
+                    var attr = type.GetCustomAttribute<CommandCategoryAttribute>();
+                    var cat = attr?.Category ?? "";
+                    if (pattern.IsMatch(cat))
+                        types.Add(type);
+                }
+
+                RegisterCommands(container, types, overrides);
+            }
+            catch (Exception ex) { ModManager.Log(ex.Message, ModManager.LogLevel.Error); }
+        }
+        /// <summary>
+        /// Adds all commands in a set of Types with a CommandHandlerAttribute to server commands
+        /// </summary>
+        public static void RegisterCommands(this ModContainer container, List<Type> types, bool overrides = true)
+        {
+            foreach (var type in types)
             {
                 foreach (var method in type.GetMethods())
                 {
@@ -36,15 +82,54 @@ namespace ACE.Server.Mods
                 }
             }
         }
+
         /// <summary>
-        /// Removes all commands with a CommandHandlerAttribute in an assembly to server commands
+        /// Removes all commands with a CommandHandlerAttribute to server commands
         /// </summary>
-        public static void UnregisterCommandHandlers(this ModContainer container)
+        public static void UnregisterAllCommands(this ModContainer container, bool overrides = true)
         {
             if (container?.ModAssembly is null)
                 return;
 
-            foreach (var type in container.ModAssembly.GetTypes())
+            var types = container.ModAssembly.GetTypes().ToList();
+            UnregisterCommands(container, types, overrides);
+        }
+        /// <summary>
+        /// Removes all commands with a CommandHandlerAttribute and not in a CommandCategory to server commands
+        /// </summary>
+        public static void UnregisterUncategorizedCommands(this ModContainer container, bool overrides = true)
+        {
+            if (container?.ModAssembly is null)
+                return;
+
+            var types = container.ModAssembly.GetTypes().Where(t => !Attribute.IsDefined(t, typeof(CommandCategoryAttribute))).ToList();
+            UnregisterCommands(container, types, overrides);
+        }
+        /// <summary>
+        /// Removes  all commands with a CommandHandlerAttribute matching a pattern to server commands
+        /// </summary>
+        public static void UnregisterCommandCategory(this ModContainer container, string categoryPattern, bool overrides = true)
+        {
+            if (container?.ModAssembly is null)
+                return;
+
+            try
+            {
+                Regex pattern = new(categoryPattern, RegexOptions.IgnoreCase);
+                var types = container.ModAssembly.GetTypes().Where(t => pattern.IsMatch(t.GetCustomAttribute<CommandCategoryAttribute>()?.Category)).ToList();
+                UnregisterCommands(container, types, overrides);
+            }
+            catch (Exception ex) { ModManager.Log(ex.Message, ModManager.LogLevel.Error); }
+        }
+        /// <summary>
+        /// Removes all commands in a set of Types with a CommandHandlerAttribute to server commands
+        /// </summary>
+        public static void UnregisterCommands(this ModContainer container, List<Type> types, bool overrides = true)
+        {
+            if (container?.ModAssembly is null)
+                return;
+
+            foreach (var type in types)
             {
                 foreach (var method in type.GetMethods())
                 {
