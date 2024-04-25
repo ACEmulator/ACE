@@ -141,9 +141,9 @@ namespace ACE.Server.Command.Handlers
         {
             if (parameters != null && (parameters.Length == 1 || parameters.Length == 2))
             {
-                if (parameters[0].ToLower() == "start")
+                if (parameters.Length >= 1 && parameters[0].ToLower() == "start")
                 {
-                    if (parameters[1].ToLower() == "cumulative")
+                    if (parameters.Length >= 2 && parameters[1].ToLower() == "cumulative")
                     {
                         ServerPerformanceMonitor.StartCumulative();
                         CommandHandlerHelper.WriteOutputInfo(session, "Cumulative Server Performance Monitor started");
@@ -157,9 +157,9 @@ namespace ACE.Server.Command.Handlers
                     }
                 }
 
-                if (parameters[0].ToLower() == "stop")
+                if (parameters.Length >= 1 && parameters[0].ToLower() == "stop")
                 {
-                    if (parameters[1].ToLower() == "cumulative")
+                    if (parameters.Length >= 2 && parameters[1].ToLower() == "cumulative")
                     {
                         ServerPerformanceMonitor.StopCumulative();
                         CommandHandlerHelper.WriteOutputInfo(session, "Cumulative Server Performance Monitor stopped");
@@ -173,7 +173,7 @@ namespace ACE.Server.Command.Handlers
                     }
                 }
 
-                if (parameters[0].ToLower() == "reset")
+                if (parameters.Length >= 1 && parameters[0].ToLower() == "reset")
                 {
                     ServerPerformanceMonitor.Reset();
                     CommandHandlerHelper.WriteOutputInfo(session, "Server Performance Monitor reset");
