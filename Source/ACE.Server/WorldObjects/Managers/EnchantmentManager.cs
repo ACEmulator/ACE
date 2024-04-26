@@ -1328,7 +1328,7 @@ namespace ACE.Server.WorldObjects.Managers
                 var damager = WorldObject.CurrentLandblock?.GetObject(enchantment.CasterObjectId);
                 if (damager == null)
                 {
-                    Console.WriteLine($"{WorldObject.Name}.ApplyDamageTick() - couldn't find damager {enchantment.CasterObjectId:X8}");
+                    //Console.WriteLine($"{WorldObject.Name}.ApplyDamageTick() - couldn't find damager {enchantment.CasterObjectId:X8}");
                     continue;
                 }
 
