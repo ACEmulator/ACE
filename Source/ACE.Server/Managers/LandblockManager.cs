@@ -243,6 +243,7 @@ namespace ACE.Server.Managers
             public int NumberOfParalellHits;
             public int NumberOfLandblocksInThisThread;
             public TimeSpan TotalTickDuration;
+            public TimeSpan LongestTickedLandblockGroup;
         }
         public static ThreadLocal<ThreadTickInformation> TickPhysicsInformation = new ThreadLocal<ThreadTickInformation>(true);
         public static ThreadLocal<ThreadTickInformation> TickMultiThreadedWorkInformation = new ThreadLocal<ThreadTickInformation>(true);
@@ -314,6 +315,7 @@ namespace ACE.Server.Managers
 
                     sw.Stop();
                     value.TotalTickDuration += sw.Elapsed;
+                    if (sw.Elapsed > value.LongestTickedLandblockGroup) value.LongestTickedLandblockGroup = sw.Elapsed;
 
                     CurrentMultiThreadedTickingLandblockGroup.Value = null;
                 });
@@ -369,6 +371,7 @@ namespace ACE.Server.Managers
 
                     sw.Stop();
                     value.TotalTickDuration += sw.Elapsed;
+                    if (sw.Elapsed > value.LongestTickedLandblockGroup) value.LongestTickedLandblockGroup = sw.Elapsed;
 
                     CurrentMultiThreadedTickingLandblockGroup.Value = null;
                 });
