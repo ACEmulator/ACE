@@ -1,8 +1,8 @@
-version: '3'
+#version: '3'
 services:
 
   ace-db:
-    image: mysql:latest
+    image: mysql:8.0
     container_name: ace-db
     env_file:
       - docker.env
@@ -18,7 +18,8 @@ services:
     build: .
     image: acemulator/ace:latest
     depends_on:
-      - ace-db
+      ace-db:
+        condition: service_healthy
     container_name: ace-server
     env_file:
       - docker.env
