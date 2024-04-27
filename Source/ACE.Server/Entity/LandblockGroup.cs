@@ -56,6 +56,18 @@ namespace ACE.Server.Entity
         private int width;
         private int height;
 
+        /// <summary>
+        /// This is the total time it took for this LandBlockGroup to process under LandblockManager.TickPhysics for the last tick event.
+        /// This is used to help partition LandblockGroups for efficient multi-threaded distributed work.
+        /// </summary>
+        public TimeSpan LastTickPhysicsDuration = TimeSpan.Zero;
+
+        /// <summary>
+        /// This is the total time it took for this LandBlockGroup to process under LandblockManager.TickMultiThreadedWork for the last tick event.
+        /// This is used to help partition LandblockGroups for efficient multi-threaded distributed work.
+        /// </summary>
+        public TimeSpan LastTickMultiThreadedWorkDuration = TimeSpan.Zero;
+
         public LandblockGroup()
         {
         }

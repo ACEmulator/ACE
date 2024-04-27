@@ -47,13 +47,13 @@ namespace ACE.Server.Command.Handlers
             sb.Append($"TickPhysicsInformation.Values.Count: {LandblockManager.TickPhysicsInformation.Values.Count}{'\n'}");
             foreach (var value in LandblockManager.TickPhysicsInformation.Values)
             {
-                sb.Append($"NumberOfParalellHits: {value.NumberOfParalellHits.ToString().PadLeft(3)}, NumberOfLandblocksInThisThread: {value.NumberOfLandblocksInThisThread.ToString().PadLeft(3)}, TotalTickDuration: {value.TotalTickDuration.TotalMilliseconds:N2} ms, LongestTickedLandblockGroup: {value.LongestTickedLandblockGroup.TotalMilliseconds:N2} ms{'\n'}");
+                sb.Append($"NumberOfParalellHits: {value.NumberOfParalellHits.ToString().PadLeft(3)}, NumberOfLandblocksInThisThread: {value.NumberOfLandblocksInThisThread.ToString().PadLeft(3)}, TotalTickDuration: {value.TotalTickDuration.TotalMilliseconds.ToString("N1").PadLeft(4)} ms, LongestTickedLandblockGroup: {value.LongestTickedLandblockGroup.TotalMilliseconds.ToString("N1").PadLeft(4)} ms{'\n'}");
             }
 
             sb.Append($"TickMultiThreadedWorkInformation.Values.Count: {LandblockManager.TickMultiThreadedWorkInformation.Values.Count}{'\n'}");
             foreach (var value in LandblockManager.TickMultiThreadedWorkInformation.Values)
             {
-                sb.Append($"NumberOfParalellHits: {value.NumberOfParalellHits.ToString().PadLeft(3)}, NumberOfLandblocksInThisThread: {value.NumberOfLandblocksInThisThread.ToString().PadLeft(3)}, TotalTickDuration: {value.TotalTickDuration.TotalMilliseconds:N2} ms, LongestTickedLandblockGroup: {value.LongestTickedLandblockGroup.TotalMilliseconds:N2} ms{'\n'}");
+                sb.Append($"NumberOfParalellHits: {value.NumberOfParalellHits.ToString().PadLeft(3)}, NumberOfLandblocksInThisThread: {value.NumberOfLandblocksInThisThread.ToString().PadLeft(3)}, TotalTickDuration: {value.TotalTickDuration.TotalMilliseconds.ToString("N1").PadLeft(4)} ms, LongestTickedLandblockGroup: {value.LongestTickedLandblockGroup.TotalMilliseconds.ToString("N1").PadLeft(4)} ms{'\n'}");
             }
 
             CommandHandlerHelper.WriteOutputInfo(session, $"{sb}");
