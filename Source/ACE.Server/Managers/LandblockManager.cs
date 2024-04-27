@@ -295,7 +295,7 @@ namespace ACE.Server.Managers
             {
                 CurrentlyTickingLandblockGroupsMultiThreaded = true;
 
-                var partitioner = Partitioner.Create(landblockGroups.OrderByDescending(r => r.LastTickPhysicsDuration), EnumerablePartitionerOptions.NoBuffering);
+                var partitioner = Partitioner.Create(landblockGroups.OrderByDescending(r => r.TickPhysicsTracker.Elapsed));//, EnumerablePartitionerOptions.NoBuffering);
 
                 //Parallel.ForEach(landblockGroups, ConfigManager.Config.Server.Threading.LandblockManagerParallelOptions, landblockGroup =>
                 Parallel.ForEach(partitioner, ConfigManager.Config.Server.Threading.LandblockManagerParallelOptions, landblockGroup =>
@@ -320,7 +320,7 @@ namespace ACE.Server.Managers
                     value.TotalTickDuration += sw.Elapsed;
                     if (sw.Elapsed > value.LongestTickedLandblockGroup) value.LongestTickedLandblockGroup = sw.Elapsed;
 
-                    landblockGroup.LastTickPhysicsDuration = sw.Elapsed;
+                    landblockGroup.TickPhysicsTracker.Add(sw.Elapsed);
 
                     CurrentMultiThreadedTickingLandblockGroup.Value = null;
                 });
@@ -356,7 +356,7 @@ namespace ACE.Server.Managers
             {
                 CurrentlyTickingLandblockGroupsMultiThreaded = true;
 
-                var partitioner = Partitioner.Create(landblockGroups.OrderByDescending(r => r.LastTickMultiThreadedWorkDuration), EnumerablePartitionerOptions.NoBuffering);
+                var partitioner = Partitioner.Create(landblockGroups.OrderByDescending(r => r.TickMultiThreadedWorkTracker.Elapsed));//, EnumerablePartitionerOptions.NoBuffering);
 
                 //Parallel.ForEach(landblockGroups, ConfigManager.Config.Server.Threading.LandblockManagerParallelOptions, landblockGroup =>
                 Parallel.ForEach(partitioner, ConfigManager.Config.Server.Threading.LandblockManagerParallelOptions, landblockGroup =>
@@ -381,7 +381,7 @@ namespace ACE.Server.Managers
                     value.TotalTickDuration += sw.Elapsed;
                     if (sw.Elapsed > value.LongestTickedLandblockGroup) value.LongestTickedLandblockGroup = sw.Elapsed;
 
-                    landblockGroup.LastTickMultiThreadedWorkDuration = sw.Elapsed;
+                    landblockGroup.TickMultiThreadedWorkTracker.Add(sw.Elapsed);
 
                     CurrentMultiThreadedTickingLandblockGroup.Value = null;
                 });
