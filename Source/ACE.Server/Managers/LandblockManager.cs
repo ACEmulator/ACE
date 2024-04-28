@@ -51,6 +51,12 @@ namespace ACE.Server.Managers
             }
         }
 
+        public static List<LandblockGroup> GetLoadedLandblockGroups()
+        {
+            lock (landblockMutex)
+                return landblockGroups.ToList();
+        }
+
         /// <summary>
         /// DestructionQueue is concurrent because it can be added to by multiple threads at once, publicly via AddToDestructionQueue()
         /// </summary>

@@ -249,6 +249,37 @@ namespace ACE.Server.Command.Handlers
             CommandHandlerHelper.WriteOutputInfo(session, sb.ToString());
         }
 
+        [CommandHandler("lbgroupstats", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of landblock group stats")]
+        public static void HandleLBGroupStats(Session session, params string[] parameters)
+        {
+            var sb = new StringBuilder();
+
+            var loadedLanblockGroups = LandblockManager.GetLoadedLandblockGroups();
+
+
+            sb.Append($"Largest Landblock Groups{'\n'}");
+            sb.Append($"Cnt, XMin - XMax, YMin - YMax, NextTrySplitTime{'\n'}");
+
+            var sortedByLargest = loadedLanblockGroups.OrderByDescending(r => r.Count).ToList();
+
+            for (int i = 0; i < Math.Min(5, sortedByLargest.Count - 1); i++)
+            {
+                var landblockGroup = sortedByLargest[i];
+
+                sb.Append($"{landblockGroup.Count.ToString().PadLeft(3)},   {landblockGroup.XMin.ToString("X2").PadLeft(2)} - {landblockGroup.XMax.ToString("X2").PadLeft(2)},    {landblockGroup.YMin.ToString("X2").PadLeft(2)} - {landblockGroup.YMax.ToString("X2").PadLeft(2)},      {(landblockGroup.NextTrySplitTime - DateTime.UtcNow).TotalMinutes.ToString("N1").PadLeft(4)} m{'\n'}");
+            }
+
+
+            sb.Append($"Highest Compute Landblock Groups{'\n'}");
+
+            //var sortedByHighestCompute = loadedLanblockGroups.OrderByDescending(r => r.Count);
+
+            // todo
+
+
+            CommandHandlerHelper.WriteOutputInfo(session, sb.ToString());
+        }
+
         // gcstatus
         [CommandHandler("gcstatus", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of server GC Information")]
         public static void HandleGCStatus(Session session, params string[] parameters)
