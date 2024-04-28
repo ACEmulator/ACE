@@ -266,7 +266,7 @@ namespace ACE.Server.Command.Handlers
             {
                 var landblockGroup = sortedByLargest[i];
 
-                sb.Append($"{landblockGroup.Count.ToString().PadLeft(3)},   {landblockGroup.XMin.ToString("X2").PadLeft(2)} - {landblockGroup.XMax.ToString("X2").PadLeft(2)},    {landblockGroup.YMin.ToString("X2").PadLeft(2)} - {landblockGroup.YMax.ToString("X2").PadLeft(2)},      {(landblockGroup.NextTrySplitTime - DateTime.UtcNow).TotalMinutes.ToString("N1").PadLeft(4)} m{'\n'}");
+                sb.Append($"{landblockGroup.Count.ToString().PadLeft(3)},   {landblockGroup.XMin.ToString("X2").PadLeft(2)} - {landblockGroup.XMax.ToString("X2").PadLeft(2)},     {landblockGroup.YMin.ToString("X2").PadLeft(2)} - {landblockGroup.YMax.ToString("X2").PadLeft(2)},      {(landblockGroup.NextTrySplitTime - DateTime.UtcNow).TotalMinutes.ToString("N1").PadLeft(4)} m{'\n'}");
             }
 
 
