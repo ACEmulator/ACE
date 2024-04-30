@@ -121,11 +121,27 @@ namespace ACE.Server.WorldObjects
             Skill.MagicItemTinkering
         };
 
-        private bool HasUst => GetNumInventoryItemsOfWeenieClass("tinkeringtool") >= 1;
-
-        public void HandleSalvaging(List<uint> salvageItems)
+        private bool ToolIsValidUst(uint tool)
         {
-            if (!HasUst)
+            var toolObject = FindObject(tool, SearchLocations.Everywhere, out _, out var rootOwner, out _);
+
+            if (toolObject == null || toolObject.WeenieClassId != (uint)ACE.Entity.Enum.WeenieClassName.W_TINKERINGTOOL_CLASS)
+            {
+                SendWeenieError(WeenieError.NotASalvageTool);
+                return false;
+            }
+            else if (rootOwner != this)
+            {
+                SendWeenieError(WeenieError.YouDoNotOwnThatSalvageTool);
+                return false;
+            }
+            else
+                return true;
+        }
+
+        public void HandleSalvaging(uint tool, List<uint> salvageItems)
+        {
+            if (!ToolIsValidUst(tool))
                 return;
 
             var salvageBags = new List<WorldObject>();
