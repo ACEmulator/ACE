@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -122,8 +121,13 @@ namespace ACE.Server.WorldObjects
             Skill.MagicItemTinkering
         };
 
+        private bool HasUst => GetNumInventoryItemsOfWeenieClass("tinkeringtool") >= 1;
+
         public void HandleSalvaging(List<uint> salvageItems)
         {
+            if (!HasUst)
+                return;
+
             var salvageBags = new List<WorldObject>();
             var salvageResults = new SalvageResults();
 
