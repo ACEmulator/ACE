@@ -1085,7 +1085,8 @@ namespace ACE.Server.Managers
             // First, there were name changes that were a result of the client side pre-pending of material type which resulted in bags being named "Salvage", "Salvaged"
             // Second, these bags that were generated from loot by players always ended with the number of materials in the bag, such as (100), (88), (1)
             // while non-lootgen bags did not include the number, so the name of the bag when displayed or broadcast varied like "Steel Salvage (100)", "Steel Salvaged (100)", "Steel Salvage"
-            // Third, Foolproof, again depending on weenie names, versions also had their own variations which resulted in display names like "Foolproof Black Garnet Gem", "Zircon Foolproof Zircon", "Imperial Topaz Foolproof Imperial Topaz"
+            // Third, Foolproof bags, again depending on weenie names, also had their own variations which resulted in display names like "Foolproof Black Garnet Gem", "Zircon Foolproof Zircon", "Imperial Topaz Foolproof Imperial Topaz"
+            // in many cases, there are multiple weenies of a particular salvage type, used by various systems, which resulted in each tinker operation having varied output even when doing essentially the same thing
             // Finally, items that were inscribed were surprisingly identified in the broadcast like "Reed Shark Hide Studded Leather Sleeves inscribed by Callaway", "Copper Frost Bow inscribed by Mini Bonsai"
             //
             // ACE output, as seen below, has for the most part standardized the message due to weenie name changes, salvage coding and recipe handling differences
