@@ -1092,9 +1092,7 @@ namespace ACE.Server.Managers
             // 
             var sourceName = Regex.Replace(tool.NameWithMaterial, @" \(\d+\)$", "");
 
-            var msg  = $"{player.Name} {(success ? "successfully applies" : "fails to apply")} the {sourceName} (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}";
-                msg += $"{((target.Inscription != null && target.ScribeName != null) ? $" inscribed by {target.ScribeName}" : "")}.";
-                msg += $"{(!success ? " The target is destroyed." : "")}";
+            var msg = $"{player.Name} {(success ? "successfully applies" : "fails to apply")} the {sourceName} (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}{((target.Inscription != null && target.ScribeName != null) ? $" inscribed by {target.ScribeName}" : "")}.{(!success ? " The target is destroyed." : "")}";
 
             // send local broadcast
             player.EnqueueBroadcast(new GameMessageSystemChat(msg, ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
