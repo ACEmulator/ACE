@@ -1088,7 +1088,7 @@ namespace ACE.Server.Managers
             // Third, Foolproof, again depending on weenie names, versions also had their own variations which resulted in display names like "Foolproof Black Garnet Gem", "Zircon Foolproof Zircon", "Imperial Topaz Foolproof Imperial Topaz"
             // Finally, items that were inscribed were surprisingly identified in the broadcast like "Reed Shark Hide Studded Leather Sleeves inscribed by Callaway", "Copper Frost Bow inscribed by Mini Bonsai"
             //
-            // ACE output, as seen below, has for the most part standardized the due to weenie name changes, salvage coding and recipe handling differences
+            // ACE output, as seen below, has for the most part standardized the message due to weenie name changes, salvage coding and recipe handling differences
             // 
             var sourceName = Regex.Replace(tool.NameWithMaterial, @" \(\d+\)$", "");
 
