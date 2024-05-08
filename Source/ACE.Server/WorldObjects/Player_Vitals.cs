@@ -21,7 +21,7 @@ namespace ACE.Server.WorldObjects
         {
             if (!Vitals.TryGetValue(vital, out var creatureVital))
             {
-                log.Error($"{Name}.HandleActionRaiseVital({vital}, {amount}) - invalid vital");
+                log.Warn($"{Name}.HandleActionRaiseVital({vital}, {amount}) - invalid vital");
                 return false;
             }
 
@@ -34,7 +34,7 @@ namespace ACE.Server.WorldObjects
 
                 ChatPacket.SendServerMessage(Session, $"Your attempt to raise {vital.ToSentence()} has failed.", ChatMessageType.Broadcast);
 
-                log.Error($"{Name}.HandleActionRaiseVital({vital}, {amount}) - amount > AvailableExperience ({AvailableExperience})");
+                log.Warn($"{Name}.HandleActionRaiseVital({vital}, {amount}) - amount > AvailableExperience ({AvailableExperience})");
                 return false;
             }
 
@@ -69,7 +69,7 @@ namespace ACE.Server.WorldObjects
             // ensure vital is not already max rank
             if (creatureVital.IsMaxRank)
             {
-                log.Error($"{Name}.SpendVitalXp({creatureVital.Vital}, {amount}) - player tried to raise vital beyond max rank");
+                log.Warn($"{Name}.SpendVitalXp({creatureVital.Vital}, {amount}) - player tried to raise vital beyond max rank");
                 return false;
             }
 
@@ -79,7 +79,7 @@ namespace ACE.Server.WorldObjects
 
             if (amount > amountToEnd)
             {
-                log.Error($"{Name}.SpendVitalXp({creatureVital.Vital}, {amount}) - player tried to raise vital beyond {amountToEnd} experience");
+                log.Warn($"{Name}.SpendVitalXp({creatureVital.Vital}, {amount}) - player tried to raise vital beyond {amountToEnd} experience");
                 return false;   // returning error here, instead of setting amount to amountToEnd
             }
 
@@ -87,7 +87,7 @@ namespace ACE.Server.WorldObjects
             // spend xp on vital
             if (!SpendXP(amount, sendNetworkUpdate))
             {
-                log.Error($"{Name}.SpendVitalXp({creatureVital.Vital}, {amount}) - SpendXP failed");
+                log.Warn($"{Name}.SpendVitalXp({creatureVital.Vital}, {amount}) - SpendXP failed");
                 return false;
             }
 
