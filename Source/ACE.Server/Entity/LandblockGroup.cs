@@ -201,7 +201,7 @@ namespace ACE.Server.Entity
 
             for (int i = remainingLandblocks.Count - 1; i >= 0; i--)
             {
-                if (landblockGroupSplitHelper.BoundaryDistance(remainingLandblocks[i]) < LandblockGroupMinSpacing)
+                if (landblockGroupSplitHelper.ClosestLandblock(remainingLandblocks[i]) < LandblockGroupMinSpacing)
                 {
                     landblockGroupSplitHelper.Add(remainingLandblocks[i]);
                     remainingLandblocks.RemoveAt(i);
@@ -282,6 +282,23 @@ namespace ACE.Server.Entity
             return TrySplit();
         }
 
+
+        public int ClosestLandblock(Landblock landblock)
+        {
+            int closest = int.MaxValue;
+
+            foreach (var value in landblocks)
+            {
+                var distance = Math.Max(
+                Math.Abs(value.Id.LandblockX - landblock.Id.LandblockX),
+                Math.Abs(value.Id.LandblockY - landblock.Id.LandblockY));
+
+                if (distance < closest)
+                    closest = distance;
+            }
+
+            return closest;
+        }
 
         /// <summary>
         /// This will calculate the distance from the landblock group boarder.<para />
