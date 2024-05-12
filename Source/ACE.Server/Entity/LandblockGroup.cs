@@ -31,7 +31,7 @@ namespace ACE.Server.Entity
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public const int LandblockGroupMinSpacing = 5;
+        public const int LandblockGroupMinSpacing = 4;
 
         private const int landblockGroupSpanRequiredBeforeSplitEligibility = LandblockGroupMinSpacing * 4;
 
@@ -257,7 +257,11 @@ namespace ACE.Server.Entity
                 newLandblockGroup = DoTrySplit();
             }
 
-            NextTrySplitTime = DateTime.UtcNow.Add(TrySplitInterval);
+            // If we have a very large landblock group that didn't split, we'll try to split it every 1 minute to help reduce server load
+            if (results.Count == 0 && landblocks.Count >= 200)
+                NextTrySplitTime = DateTime.UtcNow.AddMinutes(1);
+            else
+                NextTrySplitTime = DateTime.UtcNow.Add(TrySplitInterval);
             uniqueLandblockIdsRemoved.Clear();
 
             return results;
