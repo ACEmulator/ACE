@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+using ACE.Common.Performance;
+
 using log4net;
 
 namespace ACE.Server.Entity
@@ -55,6 +57,18 @@ namespace ACE.Server.Entity
 
         private int width;
         private int height;
+
+        /// <summary>
+        /// This is the total time it took for this LandBlockGroup to process under LandblockManager.TickPhysics for the last tick event.
+        /// This is used to help partition LandblockGroups for efficient multi-threaded distributed work.
+        /// </summary>
+        public readonly RollingTimeSpanTracker TickPhysicsTracker = new RollingTimeSpanTracker(60);
+
+        /// <summary>
+        /// This is the total time it took for this LandBlockGroup to process under LandblockManager.TickMultiThreadedWork for the last tick event.
+        /// This is used to help partition LandblockGroups for efficient multi-threaded distributed work.
+        /// </summary>
+        public readonly RollingTimeSpanTracker TickMultiThreadedWorkTracker = new RollingTimeSpanTracker(60);
 
         public LandblockGroup()
         {
