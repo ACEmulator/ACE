@@ -47,10 +47,10 @@ namespace ACE.Server.Entity
 
         private readonly HashSet<uint> uniqueLandblockIdsRemoved = new HashSet<uint>();
 
-        private int xMin = int.MaxValue;
-        private int xMax = int.MinValue;
-        private int yMin = int.MaxValue;
-        private int yMax = int.MinValue;
+        public int XMin { get; private set; } = int.MaxValue;
+        public int XMax { get; private set; } = int.MinValue;
+        public int YMin { get; private set; } = int.MaxValue;
+        public int YMax { get; private set; } = int.MinValue;
 
         private double xCenter;
         private double yCenter;
@@ -111,16 +111,16 @@ namespace ACE.Server.Entity
                 if (landblocks.Count == 1)
                     IsDungeon = landblock.IsDungeon;
 
-                if (landblock.Id.LandblockX < xMin) xMin = landblock.Id.LandblockX;
-                if (landblock.Id.LandblockX > xMax) xMax = landblock.Id.LandblockX;
-                if (landblock.Id.LandblockY < yMin) yMin = landblock.Id.LandblockY;
-                if (landblock.Id.LandblockY > yMax) yMax = landblock.Id.LandblockY;
+                if (landblock.Id.LandblockX < XMin) XMin = landblock.Id.LandblockX;
+                if (landblock.Id.LandblockX > XMax) XMax = landblock.Id.LandblockX;
+                if (landblock.Id.LandblockY < YMin) YMin = landblock.Id.LandblockY;
+                if (landblock.Id.LandblockY > YMax) YMax = landblock.Id.LandblockY;
 
-                xCenter = xMin + ((xMax - xMin) / 2.0);
-                yCenter = yMin + ((yMax - yMin) / 2.0);
+                xCenter = XMin + ((XMax - XMin) / 2.0);
+                yCenter = YMin + ((YMax - YMin) / 2.0);
 
-                width = (xMax - xMin) + 1;
-                height = (yMax - yMin) + 1;
+                width = (XMax - XMin) + 1;
+                height = (YMax - YMin) + 1;
 
                 return true;
             }
@@ -141,8 +141,8 @@ namespace ACE.Server.Entity
                 uniqueLandblockIdsRemoved.Add(landblock.Id.Raw);
 
                 // If this landblock is on the perimeter of the group, recalculate the boundaries (they may end up the same)
-                if (landblock.Id.LandblockX == xMin || landblock.Id.LandblockX == xMax ||
-                    landblock.Id.LandblockY == yMin || landblock.Id.LandblockY == yMax)
+                if (landblock.Id.LandblockX == XMin || landblock.Id.LandblockX == XMax ||
+                    landblock.Id.LandblockY == YMin || landblock.Id.LandblockY == YMax)
                 {
                     RecalculateBoundaries();
                 }
@@ -166,24 +166,24 @@ namespace ACE.Server.Entity
 
         private void RecalculateBoundaries()
         {
-            xMin = int.MaxValue;
-            xMax = int.MinValue;
-            yMin = int.MaxValue;
-            yMax = int.MinValue;
+            XMin = int.MaxValue;
+            XMax = int.MinValue;
+            YMin = int.MaxValue;
+            YMax = int.MinValue;
 
             foreach (var existing in landblocks)
             {
-                if (existing.Id.LandblockX < xMin) xMin = existing.Id.LandblockX;
-                if (existing.Id.LandblockX > xMax) xMax = existing.Id.LandblockX;
-                if (existing.Id.LandblockY < yMin) yMin = existing.Id.LandblockY;
-                if (existing.Id.LandblockY > yMax) yMax = existing.Id.LandblockY;
+                if (existing.Id.LandblockX < XMin) XMin = existing.Id.LandblockX;
+                if (existing.Id.LandblockX > XMax) XMax = existing.Id.LandblockX;
+                if (existing.Id.LandblockY < YMin) YMin = existing.Id.LandblockY;
+                if (existing.Id.LandblockY > YMax) YMax = existing.Id.LandblockY;
             }
 
-            xCenter = xMin + ((xMax - xMin) / 2.0);
-            yCenter = yMin + ((yMax - yMin) / 2.0);
+            xCenter = XMin + ((XMax - XMin) / 2.0);
+            yCenter = YMin + ((YMax - YMin) / 2.0);
 
-            width = (xMax - xMin) + 1;
-            height = (yMax - yMin) + 1;
+            width = (XMax - XMin) + 1;
+            height = (YMax - YMin) + 1;
         }
 
 
@@ -314,7 +314,7 @@ namespace ACE.Server.Entity
 
         public override string ToString()
         {
-            return $"x: 0x{xMin:X2} - 0x{xMax:X2}, y: 0x{yMin:X2} - 0x{yMax:X2}, w: {width.ToString().PadLeft(3)}, h: {height.ToString().PadLeft(3)}, Count: {Count.ToString().PadLeft(4)}";
+            return $"x: 0x{XMin:X2} - 0x{XMax:X2}, y: 0x{YMin:X2} - 0x{YMax:X2}, w: {width.ToString().PadLeft(3)}, h: {height.ToString().PadLeft(3)}, Count: {Count.ToString().PadLeft(4)}";
         }
     }
 }
