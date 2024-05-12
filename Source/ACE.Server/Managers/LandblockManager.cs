@@ -61,8 +61,15 @@ namespace ACE.Server.Managers
 
         public static List<LandblockGroup> GetLoadedLandblockGroups()
         {
-            lock (landblockMutex)
-                return landblockGroups.ToList();
+                landblockLock.EnterReadLock();
+                try
+                {
+                    return landblockGroups.ToList();
+                }
+                finally
+                {
+                    landblockLock.ExitReadLock();
+                }
         }
 
         /// <summary>
