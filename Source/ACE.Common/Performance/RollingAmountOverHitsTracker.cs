@@ -37,7 +37,7 @@ namespace ACE.Common.Performance
         {
             get
             {
-                if (amounts.Length == 0)
+                if (TotalAmounts == 0)
                     return 0;
 
                 var largest = double.MinValue;
