@@ -83,7 +83,7 @@ namespace ACE.Database.Models.Auth
             }
             else if (workFactor > 31)
             {
-                log.Warn("PasswordHashWorkFactor in config greater than minimum value of 31, using 31 and continuing.");
+                log.Warn("PasswordHashWorkFactor in config greater than maximum value of 31, using 31 and continuing.");
                 workFactor = 31;
             }
 
