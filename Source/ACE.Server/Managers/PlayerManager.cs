@@ -137,6 +137,7 @@ namespace ACE.Server.Managers
                 {
                     playersPendingFinalLogoff.RemoveFirst();
                     first.ForcedLogOffRequested = true;
+                    first.Session?.Terminate(SessionTerminationReason.AutoForcedLogOff, new GameMessageBootAccount(" because the character was forced to log off by system"));
                     first.ForceLogoff();
                 }
                 else
