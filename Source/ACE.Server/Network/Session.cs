@@ -170,8 +170,8 @@ namespace ACE.Server.Network
             }
             catch (Exception ex)
             {
-                log.ErrorFormat("Session TickOutbound {0} that threw an exception.", EndPointC2S);
-                log.Error(ex);
+                log.WarnFormat("Session TickOutbound {0} that threw an exception.", EndPointC2S);
+                log.Warn(ex);
             }
         }
 
