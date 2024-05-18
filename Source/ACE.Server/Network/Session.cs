@@ -118,53 +118,61 @@ namespace ACE.Server.Network
         /// </summary>
         public void TickOutbound()
         {
-            // Check if the player has been booted
-            if (PendingTermination != null)
+            try
             {
-                if (PendingTermination.TerminationStatus == SessionTerminationPhase.Initialized)
+                // Check if the player has been booted
+                if (PendingTermination != null)
                 {
-                    State = SessionState.TerminationStarted;
-                    Network.Update(); // boot messages may need sending
-                    if (DateTime.UtcNow.Ticks > PendingTermination.TerminationEndTicks)
-                        PendingTermination.TerminationStatus = SessionTerminationPhase.SessionWorkCompleted;
+                    if (PendingTermination.TerminationStatus == SessionTerminationPhase.Initialized)
+                    {
+                        State = SessionState.TerminationStarted;
+                        Network.Update(); // boot messages may need sending
+                        if (DateTime.UtcNow.Ticks > PendingTermination.TerminationEndTicks)
+                            PendingTermination.TerminationStatus = SessionTerminationPhase.SessionWorkCompleted;
+                    }
+                    return;
                 }
-                return;
-            }
 
-            if (State == SessionState.TerminationStarted)
-                return;
+                if (State == SessionState.TerminationStarted)
+                    return;
 
-            // Checks if the session has stopped responding.
-            if (DateTime.UtcNow.Ticks >= Network.TimeoutTick)
-            {
-                // The Session has reached a timeout.  Send the client the error disconnect signal, and then drop the session
-                Terminate(SessionTerminationReason.NetworkTimeout);
-                return;
-            }
-
-            Network.Update();
-
-            // Live server seemed to take about 6 seconds. 4 seconds is nice because it has smooth animation, and saves the user 2 seconds every logoff
-            // This could be made 0 for instant logoffs.
-            if (logOffRequestTime != DateTime.MinValue && logOffRequestTime.AddSeconds(6) <= DateTime.UtcNow)
-                SendFinalLogOffMessages();
-
-            // This section deviates from known retail pcaps/behavior, but appears to be the least harmful way to work around something that seemingly didn't occur to players using ThwargLauncher connecting to retail servers.
-            // In order to prevent the launcher from thinking the session is dead, we will send a Ping Response every 100 seconds, this will in effect make the client appear active to the launcher and allow players to create characters in peace.
-            if (State == SessionState.AuthConnected) // TODO: why is this needed? Why didn't retail have this problem? Is this fuzzy memory?
-            {
-                if (lastCharacterSelectPingReply == DateTime.MinValue)
-                    lastCharacterSelectPingReply = DateTime.UtcNow.AddSeconds(100);
-                else if (DateTime.UtcNow > lastCharacterSelectPingReply)
+                // Checks if the session has stopped responding.
+                if (DateTime.UtcNow.Ticks >= Network.TimeoutTick)
                 {
-                    Network.EnqueueSend(new GameEventPingResponse(this));
-                    lastCharacterSelectPingReply = DateTime.UtcNow.AddSeconds(100);
+                    // The Session has reached a timeout.  Send the client the error disconnect signal, and then drop the session
+                    Terminate(SessionTerminationReason.NetworkTimeout);
+                    return;
                 }
-            }
-            else if (lastCharacterSelectPingReply != DateTime.MinValue)
-                lastCharacterSelectPingReply = DateTime.MinValue;
 
-            ProcessDDDQueue();
+                Network.Update();
+
+                // Live server seemed to take about 6 seconds. 4 seconds is nice because it has smooth animation, and saves the user 2 seconds every logoff
+                // This could be made 0 for instant logoffs.
+                if (logOffRequestTime != DateTime.MinValue && logOffRequestTime.AddSeconds(6) <= DateTime.UtcNow)
+                    SendFinalLogOffMessages();
+
+                // This section deviates from known retail pcaps/behavior, but appears to be the least harmful way to work around something that seemingly didn't occur to players using ThwargLauncher connecting to retail servers.
+                // In order to prevent the launcher from thinking the session is dead, we will send a Ping Response every 100 seconds, this will in effect make the client appear active to the launcher and allow players to create characters in peace.
+                if (State == SessionState.AuthConnected) // TODO: why is this needed? Why didn't retail have this problem? Is this fuzzy memory?
+                {
+                    if (lastCharacterSelectPingReply == DateTime.MinValue)
+                        lastCharacterSelectPingReply = DateTime.UtcNow.AddSeconds(100);
+                    else if (DateTime.UtcNow > lastCharacterSelectPingReply)
+                    {
+                        Network.EnqueueSend(new GameEventPingResponse(this));
+                        lastCharacterSelectPingReply = DateTime.UtcNow.AddSeconds(100);
+                    }
+                }
+                else if (lastCharacterSelectPingReply != DateTime.MinValue)
+                    lastCharacterSelectPingReply = DateTime.MinValue;
+
+                ProcessDDDQueue();
+            }
+            catch (Exception ex)
+            {
+                log.ErrorFormat("Session TickOutbound {0} that threw an exception.", EndPointC2S);
+                log.Error(ex);
+            }
         }
 
 
