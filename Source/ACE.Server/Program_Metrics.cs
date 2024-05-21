@@ -201,32 +201,53 @@ namespace ACE.Server
             var loadedLandblocks = LandblockManager.GetLoadedLandblocks();
             int dormantLandblocks = 0, activeDungeonLandblocks = 0, dormantDungeonLandblocks = 0;
             int players = 0, creatures = 0, missiles = 0, other = 0, total = 0;
-            foreach (var landblock in loadedLandblocks)
+            try
             {
-                if (landblock.IsDormant)
-                    dormantLandblocks++;
-
-                if (landblock.IsDungeon)
+                foreach (var landblock in loadedLandblocks)
                 {
-                    if (landblock.IsDormant)
-                        dormantDungeonLandblocks++;
-                    else
-                        activeDungeonLandblocks++;
-                }
+                    try
+                    {
+                        if (landblock.IsDormant)
+                            dormantLandblocks++;
 
-                foreach (var worldObject in landblock.GetAllWorldObjectsForDiagnostics())
-                {
-                    if (worldObject is Player)
-                        players++;
-                    else if (worldObject is Creature)
-                        creatures++;
-                    else if (worldObject.Missile ?? false)
-                        missiles++;
-                    else
-                        other++;
+                        if (landblock.IsDungeon)
+                        {
+                            if (landblock.IsDormant)
+                                dormantDungeonLandblocks++;
+                            else
+                                activeDungeonLandblocks++;
+                        }
 
-                    total++;
+                        foreach (var worldObject in landblock.GetAllWorldObjectsForDiagnostics())
+                        {
+                            try
+                            {
+                                if (worldObject is Player)
+                                    players++;
+                                else if (worldObject is Creature)
+                                    creatures++;
+                                else if (worldObject.Missile ?? false)
+                                    missiles++;
+                                else
+                                    other++;
+
+                                total++;
+                            }
+                            catch (Exception)
+                            {
+
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+
+                    }
                 }
+            }
+            catch (Exception)
+            {
+
             }
             ace_LandblockManager_ActiveLandblocks.Set(loadedLandblocks.Count - dormantLandblocks);
             ace_LandblockManager_DormantLandblocks.Set(dormantLandblocks);
