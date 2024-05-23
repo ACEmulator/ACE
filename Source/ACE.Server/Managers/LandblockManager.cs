@@ -311,7 +311,8 @@ namespace ACE.Server.Managers
             {
                 CurrentlyTickingLandblockGroupsMultiThreaded = true;
 
-                var partitioner = Partitioner.Create(landblockGroups.OrderByDescending(r => r.TickPhysicsTracker.AverageAmount), EnumerablePartitionerOptions.NoBuffering);
+                //var partitioner = Partitioner.Create(landblockGroups.OrderByDescending(r => r.TickPhysicsTracker.AverageAmount));//, EnumerablePartitionerOptions.NoBuffering);
+                var partitioner = Partitioner.Create(landblockGroups.OrderByDescending(r => r.Count));//, EnumerablePartitionerOptions.NoBuffering);
 
                 var sw = new Stopwatch();
                 sw.Start();
@@ -373,7 +374,8 @@ namespace ACE.Server.Managers
             {
                 CurrentlyTickingLandblockGroupsMultiThreaded = true;
 
-                var partitioner = Partitioner.Create(landblockGroups.OrderByDescending(r => r.TickMultiThreadedWorkTracker.AverageAmount), EnumerablePartitionerOptions.NoBuffering);
+                //var partitioner = Partitioner.Create(landblockGroups.OrderByDescending(r => r.TickMultiThreadedWorkTracker.AverageAmount));//, EnumerablePartitionerOptions.NoBuffering);
+                var partitioner = Partitioner.Create(landblockGroups.OrderByDescending(r => r.Count));//, EnumerablePartitionerOptions.NoBuffering);
 
                 var sw = new Stopwatch();
                 sw.Start();
