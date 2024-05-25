@@ -72,13 +72,15 @@ namespace ACE.Server.Network.Structure
                     {
                         var squelchedAccountPlayers = PlayerManager.GetAccountPlayers(squelch.SquelchAccountId);
 
-                        if (squelchedAccountPlayers == null || squelchedAccountPlayers?.Count == 0)
+                        var mostRecentLoggedInCharacterForSquelchedAccount = squelchedAccountPlayers?.OrderByDescending(p => p.Value.GetProperty(ACE.Entity.Enum.Properties.PropertyFloat.LoginTimestamp) ?? 0).FirstOrDefault();
+
+                        if (mostRecentLoggedInCharacterForSquelchedAccount == null)
                         {
                             log.Warn($"BuildSquelchDB(): couldn't find character 0x{squelch.SquelchCharacterId:X8} and account {squelch.SquelchAccountId} has no other characters");
                             continue;
                         }
 
-                        squelchPlayer = squelchedAccountPlayers.OrderByDescending(p => p.Value.GetProperty(ACE.Entity.Enum.Properties.PropertyFloat.LoginTimestamp) ?? 0).First().Value;
+                        squelchPlayer = mostRecentLoggedInCharacterForSquelchedAccount?.Value;
                     }
 
                     Accounts.Add(squelchPlayer.Account.AccountName, squelchPlayer.Guid.Full);
