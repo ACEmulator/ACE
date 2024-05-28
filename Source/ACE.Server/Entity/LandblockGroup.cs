@@ -35,6 +35,8 @@ namespace ACE.Server.Entity
 
         public const int LandblockGroupMinSpacing = 4;
 
+        public const int LandblockGroupMinSpacingWhenDormant = 3;
+
         public bool IsDungeon { get; private set; }
 
         public static readonly TimeSpan TrySplitInterval = Landblock.UnloadInterval;
@@ -186,7 +188,7 @@ namespace ACE.Server.Entity
 
             for (int i = remainingLandblocks.Count - 1; i >= 0; i--)
             {
-                if (landblockGroupSplitHelper.ClosestLandblock(remainingLandblocks[i]) < LandblockGroupMinSpacing)
+                if (landblockGroupSplitHelper.ShouldBeAddedToThisLandblockGroup(remainingLandblocks[i]))
                 {
                     landblockGroupSplitHelper.Add(remainingLandblocks[i]);
                     remainingLandblocks.RemoveAt(i);
@@ -265,23 +267,28 @@ namespace ACE.Server.Entity
         }
 
 
-        public int ClosestLandblock(Landblock landblock)
+        public bool ShouldBeAddedToThisLandblockGroup(Landblock landblock)
         {
-            int closest = int.MaxValue;
-
             foreach (var value in landblocks)
             {
                 var distance = Math.Max(
                 Math.Abs(value.Id.LandblockX - landblock.Id.LandblockX),
                 Math.Abs(value.Id.LandblockY - landblock.Id.LandblockY));
 
-                if (distance < closest)
-                    closest = distance;
+                if (value.IsDormant || landblock.IsDormant)
+                {
+                    if (distance < LandblockGroup.LandblockGroupMinSpacingWhenDormant)
+                        return true;
+                }
+                else
+                {
+                    if (distance < LandblockGroup.LandblockGroupMinSpacing)
+                        return true;
+                }
             }
 
-            return closest;
+            return false;
         }
-
 
         public override string ToString()
         {

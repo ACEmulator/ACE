@@ -216,9 +216,7 @@ namespace ACE.Server.Managers
                             if (landblockGroups[j].IsDungeon)
                                 continue;
 
-                            var distance = landblockGroups[j].ClosestLandblock(landblockGroupPendingAdditions[i]);
-
-                            if (distance < LandblockGroup.LandblockGroupMinSpacing)
+                            if (landblockGroups[j].ShouldBeAddedToThisLandblockGroup(landblockGroupPendingAdditions[i]))
                                 landblockGroupsIndexMatchesByDistance.Add(j);
                         }
 
