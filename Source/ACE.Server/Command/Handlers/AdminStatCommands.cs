@@ -311,5 +311,65 @@ namespace ACE.Server.Command.Handlers
 
             CommandHandlerHelper.WriteOutputInfo(session, sb.ToString());
         }
+
+        // threaddebug
+        [CommandHandler("threaddebug", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "temporary thread testing")]
+        public static void HandleThreadDebug(Session session, params string[] parameters)
+        {
+            var sb = new StringBuilder();
+
+            sb.Append($"TickPhysicsInformation.Values.Count: {LandblockManager.TickPhysicsInformation.Values.Count}{'\n'}");
+            foreach (var value in LandblockManager.TickPhysicsInformation.Values)
+            {
+                sb.Append($"NumberOfParalellHits: {value.NumberOfParalellHits.ToString().PadLeft(3)}, NumberOfLandblocksInThisThread: {value.NumberOfLandblocksInThisThread.ToString().PadLeft(3)}, TotalTickDuration: {value.TotalTickDuration.TotalMilliseconds.ToString("N1").PadLeft(4)} ms, LongestTickedLandblockGroup: {value.LongestTickedLandblockGroup.TotalMilliseconds.ToString("N1").PadLeft(4)} ms{'\n'}");
+            }
+
+            sb.Append($"TickMultiThreadedWorkInformation.Values.Count: {LandblockManager.TickMultiThreadedWorkInformation.Values.Count}{'\n'}");
+            foreach (var value in LandblockManager.TickMultiThreadedWorkInformation.Values)
+            {
+                sb.Append($"NumberOfParalellHits: {value.NumberOfParalellHits.ToString().PadLeft(3)}, NumberOfLandblocksInThisThread: {value.NumberOfLandblocksInThisThread.ToString().PadLeft(3)}, TotalTickDuration: {value.TotalTickDuration.TotalMilliseconds.ToString("N1").PadLeft(4)} ms, LongestTickedLandblockGroup: {value.LongestTickedLandblockGroup.TotalMilliseconds.ToString("N1").PadLeft(4)} ms{'\n'}");
+            }
+
+            sb.Append($"PartitionerOrder: {LandblockManager.PartitionerOrder}{'\n'}");
+            sb.Append($"EnumerablePartitionerOptions: {LandblockManager.EnumerablePartitionerOptions}{'\n'}");
+
+            if (parameters.Length == 1)
+            {
+                if (parameters[0].ToLower().Contains("averageamount"))
+                {
+                    LandblockManager.PartitionerOrder = LandblockManager.PartitionerOrders.AverageAmount;
+                    sb.Append($"PartitionerOrder changed to: {LandblockManager.PartitionerOrder}{'\n'}");
+                }
+                else if (parameters[0].ToLower().Contains("lastamount"))
+                {
+                    LandblockManager.PartitionerOrder = LandblockManager.PartitionerOrders.LastAmount;
+                    sb.Append($"PartitionerOrder changed to: {LandblockManager.PartitionerOrder}{'\n'}");
+                }
+                else if (parameters[0].ToLower().Contains("sum"))
+                {
+                    LandblockManager.PartitionerOrder = LandblockManager.PartitionerOrders.Sum;
+                    sb.Append($"PartitionerOrder changed to: {LandblockManager.PartitionerOrder}{'\n'}");
+                }
+                else if (parameters[0].ToLower().Contains("count"))
+                {
+                    LandblockManager.PartitionerOrder = LandblockManager.PartitionerOrders.Count;
+                    sb.Append($"PartitionerOrder changed to: {LandblockManager.PartitionerOrder}{'\n'}");
+                }
+
+                // None, NoBuffering
+                if (parameters[0].ToLower().Contains("none"))
+                {
+                    LandblockManager.EnumerablePartitionerOptions = System.Collections.Concurrent.EnumerablePartitionerOptions.None;
+                    sb.Append($"EnumerablePartitionerOptions changed to: {LandblockManager.EnumerablePartitionerOptions}{'\n'}");
+                }
+                else if (parameters[0].ToLower().Contains("nobuffering"))
+                {
+                    LandblockManager.EnumerablePartitionerOptions = System.Collections.Concurrent.EnumerablePartitionerOptions.NoBuffering;
+                    sb.Append($"EnumerablePartitionerOptions changed to: {LandblockManager.EnumerablePartitionerOptions}{'\n'}");
+                }
+            }
+
+            CommandHandlerHelper.WriteOutputInfo(session, $"{sb}");
+        }
     }
 }
