@@ -283,7 +283,7 @@ namespace ACE.Server.WorldObjects
 
             if ((previouslyOfflineAndIsNowOnline && !previouslyOfflineAndAppearOffline) || previouslyOnlineAndIsNowOffline)
             {
-                var msg = $"{Name} has {(isOnline ? "come online" : "gone offline")}.";
+                var msg = $"{Name} has {(isOnline ? "come on" : "gone off")}line.";
 
                 var inverseFriends = PlayerManager.GetOnlineInverseFriends(Guid);
 
