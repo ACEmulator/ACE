@@ -275,10 +275,8 @@ namespace ACE.Server.WorldObjects
         public void SendFriendStatusUpdates(bool previouslyOnline, bool isOnline)
         {
             var appearOffline = GetAppearOffline();
-            //var previouslyOnlineButAppearOffline = !(previouslyOnline && appearOffline);
             var previouslyOnlineAndIsNowOffline = previouslyOnline && !isOnline;
             var previouslyOfflineAndIsNowOnline = !previouslyOnline && isOnline;
-            //var previouslyOfflineAndIsNowOffline = !(previouslyOnline && isOnline);
             var previouslyOfflineAndAppearOffline = !previouslyOnline && appearOffline;
 
             if ((previouslyOfflineAndIsNowOnline && !previouslyOfflineAndAppearOffline) || previouslyOnlineAndIsNowOffline)
