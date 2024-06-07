@@ -73,12 +73,12 @@ namespace ACE.Server.Factories.Tables
         public static readonly ChanceTable<TreasureItemType> MixedMagicEquipment = new ChanceTable<TreasureItemType>()
         {
             ( TreasureItemType.Armor,      0.30f ),
-            ( TreasureItemType.Weapon,     0.35f ),
+            ( TreasureItemType.Weapon,     0.32f ),
             ( TreasureItemType.Jewelry,    0.20f ),
-            ( TreasureItemType.Clothing,   0.14f ),
-            //( TreasureItemType.Gem,        0.05f ),    // 100% aetheria
+            ( TreasureItemType.Clothing,   0.15f ),
+            ( TreasureItemType.Gem,        0.0075f ),    // 100% aetheria
             //( TreasureItemType.Dinnerware, 0.05f ),
-            ( TreasureItemType.Cloak,      0.01f ),
+            ( TreasureItemType.Cloak,      0.0225f ),
         };
     }
 }

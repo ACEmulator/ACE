@@ -19,7 +19,7 @@ namespace ACE.DatLoader
         private static int ITERATION_LANGUAGE = 994;
         public static CellDatDatabase CellDat { get; private set; }
 
-        public static PortalDatDatabase PortalDat { get; private set; }
+        public static PortalDatDatabase PortalDat { get; set; }
         public static DatDatabase HighResDat { get; private set; }
         public static LanguageDatDatabase LanguageDat { get; private set; }
 

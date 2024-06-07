@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,16 @@ namespace ACE.Server.Factories
     public static class PlayerFactory
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        private static List<Skill> CustomAlwaysTrained = new List<Skill>()
+        {
+            Skill.Alchemy,
+            Skill.AssessCreature,
+            Skill.AssessPerson,
+            Skill.Cooking,
+            Skill.Lockpick,
+            Skill.ManaConversion
+        };
 
         public enum CreateResult
         {
@@ -160,8 +171,8 @@ namespace ACE.Server.Factories
                 player.Mana.Current = player.Mana.Base;
 
                 // set initial skill credit amount. 52 for all but "Olthoi", which have 68
-                player.SetProperty(PropertyInt.AvailableSkillCredits, (int)heritageGroup.SkillCredits);
-                player.SetProperty(PropertyInt.TotalSkillCredits, (int)heritageGroup.SkillCredits);
+                player.SetProperty(PropertyInt.AvailableSkillCredits, (int)heritageGroup.SkillCredits + 2);// Psyber Edit: start with 2 additional credits on entering the world. (On character create, not during creation)
+                player.SetProperty(PropertyInt.TotalSkillCredits, (int)heritageGroup.SkillCredits + 2);// Psyber Edit: +6 for alchemy + 6 for lockpick + 6 for ManaC + 4 for assess creature + 4 for cooking + 2 for assess person + 2 for bonus.
 
                 if (characterCreateInfo.SkillAdvancementClasses.Count != 55)
                     return CreateResult.ClientServerSkillsMismatch;
@@ -207,7 +218,13 @@ namespace ACE.Server.Factories
                             return CreateResult.FailedToTrainSkill;
                     }
                     else if (sac == SkillAdvancementClass.Untrained)
-                        player.UntrainSkill((Skill)i, 0);
+                        // Psyber Edit: If a free skill is still untrained, then train it. The 'free' part is handled under Player_Skills.cs TrainSkill function
+                        if (CustomAlwaysTrained.Contains((Skill)i))
+                            player.TrainSkill((Skill)i, trainedCost, true);
+                        else
+                        {
+                            player.UntrainSkill((Skill)i, 0);
+                        }
                 }
 
                 // Set Heritage based Melee and Ranged Masteries
@@ -358,8 +375,9 @@ namespace ACE.Server.Factories
             var starterArea = DatManager.PortalDat.CharGen.StarterAreas[(int)startArea];
 
             player.Location = new Position(starterArea.Locations[0].ObjCellID,
-                starterArea.Locations[0].Frame.Origin.X, starterArea.Locations[0].Frame.Origin.Y, starterArea.Locations[0].Frame.Origin.Z,
-                starterArea.Locations[0].Frame.Orientation.X, starterArea.Locations[0].Frame.Orientation.Y, starterArea.Locations[0].Frame.Orientation.Z, starterArea.Locations[0].Frame.Orientation.W);
+            starterArea.Locations[0].Frame.Origin.X, starterArea.Locations[0].Frame.Origin.Y, starterArea.Locations[0].Frame.Origin.Z,
+            starterArea.Locations[0].Frame.Orientation.X, starterArea.Locations[0].Frame.Orientation.Y, starterArea.Locations[0].Frame.Orientation.Z, starterArea.Locations[0].Frame.Orientation.W);
+            Position position = new Position(2847146009U, 84f, 7.1f, 94f, 0.0f, 0.0f, -0.0784591f, 0.996917f, false);
 
             var instantiation = new Position(0xA9B40019, 84, 7.1f, 94, 0, 0, -0.0784591f, 0.996917f); // ultimate fallback.
             var spellFreeRide = new Database.Models.World.Spell();
@@ -369,22 +387,24 @@ namespace ACE.Server.Factories
                     spellFreeRide = null; // no training area for olthoi, so they start and fall back to same place.
                     instantiation = new Position(player.Location);
                     break;
-                case "Shoushi":
-                    spellFreeRide = DatabaseManager.World.GetCachedSpell(3813); // Free Ride to Shoushi
-                    break;
-                case "Yaraq":
-                    spellFreeRide = DatabaseManager.World.GetCachedSpell(3814); // Free Ride to Yaraq
-                    break;
-                case "Sanamar":
-                    spellFreeRide = DatabaseManager.World.GetCachedSpell(3535); // Free Ride to Sanamar
-                    break;
-                case "Holtburg":
+                //case "Shoushi":
+                //    spellFreeRide = DatabaseManager.World.GetCachedSpell(3813); // Free Ride to Shoushi
+                //    break;
+                //case "Yaraq":
+                //    spellFreeRide = DatabaseManager.World.GetCachedSpell(3814); // Free Ride to Yaraq
+                //    break;
+                //case "Sanamar":
+                //    spellFreeRide = DatabaseManager.World.GetCachedSpell(3535); // Free Ride to Sanamar
+                //    break;
+                //case "Holtburg":
                 default:
                     spellFreeRide = DatabaseManager.World.GetCachedSpell(3815); // Free Ride to Holtburg
                     break;
             }
             if (spellFreeRide != null && spellFreeRide.Name != "")
-                instantiation = new Position(spellFreeRide.PositionObjCellId.Value, spellFreeRide.PositionOriginX.Value, spellFreeRide.PositionOriginY.Value, spellFreeRide.PositionOriginZ.Value, spellFreeRide.PositionAnglesX.Value, spellFreeRide.PositionAnglesY.Value, spellFreeRide.PositionAnglesZ.Value, spellFreeRide.PositionAnglesW.Value);
+                //instantiation = new Position(spellFreeRide.PositionObjCellId.Value, spellFreeRide.PositionOriginX.Value, spellFreeRide.PositionOriginY.Value, spellFreeRide.PositionOriginZ.Value, spellFreeRide.PositionAnglesX.Value, spellFreeRide.PositionAnglesY.Value, spellFreeRide.PositionAnglesZ.Value, spellFreeRide.PositionAnglesW.Value);
+            position = new Position(2248278445U, 12.3199f, -28.482f, 0.005f, 0.0f, 0.0f, 0.338946f, 0.940806f, false);
+            player.Location = position;
 
             player.Instantiation = new Position(instantiation);
 
@@ -540,36 +560,60 @@ namespace ACE.Server.Factories
         {
             switch (player.HeritageGroup)
             {
+                // Psyber Edit: all playable races start with above augs now.
+                //case HeritageGroup.Aluvian:
+                //case HeritageGroup.Gharundim:
+                //case HeritageGroup.Sho:
+                //case HeritageGroup.Viamontian:
+                //    player.AugmentationJackOfAllTrades = 1;
+                //    break;
+
+                //case HeritageGroup.Shadowbound:
+                //case HeritageGroup.Penumbraen:
+                //    player.AugmentationCriticalExpertise = 1;
+                //    break;
+
+                //case HeritageGroup.Gearknight:
+                //    player.AugmentationDamageReduction = 1;
+                //    break;
+
+                //case HeritageGroup.Undead:
+                //    player.AugmentationCriticalDefense = 1;
+                //    break;
+
+                //case HeritageGroup.Empyrean:
+                //    player.AugmentationInfusedLifeMagic = 1;
+                //    break;
+
+                //case HeritageGroup.Tumerok:
+                //    player.AugmentationCriticalPower = 1;
+                //    break;
+
+                //case HeritageGroup.Lugian:
+                //    player.AugmentationIncreasedCarryingCapacity = 1;
+                //    break;
                 case HeritageGroup.Aluvian:
                 case HeritageGroup.Gharundim:
                 case HeritageGroup.Sho:
                 case HeritageGroup.Viamontian:
-                    player.AugmentationJackOfAllTrades = 1;
-                    break;
-
                 case HeritageGroup.Shadowbound:
                 case HeritageGroup.Penumbraen:
-                    player.AugmentationCriticalExpertise = 1;
-                    break;
-
                 case HeritageGroup.Gearknight:
-                    player.AugmentationDamageReduction = 1;
-                    break;
-
                 case HeritageGroup.Undead:
-                    player.AugmentationCriticalDefense = 1;
-                    break;
-
                 case HeritageGroup.Empyrean:
-                    player.AugmentationInfusedLifeMagic = 1;
-                    break;
-
                 case HeritageGroup.Tumerok:
-                    player.AugmentationCriticalPower = 1;
-                    break;
-
                 case HeritageGroup.Lugian:
+                    player.AugmentationBonusXp = 1;
+                    player.AugmentationJackOfAllTrades = 1;
+                    player.AugmentationCriticalExpertise = 1;
+                    player.AugmentationDamageReduction = 1;
+                    player.AugmentationCriticalDefense = 1;
+                    player.AugmentationCriticalPower = 1;
+                    player.AugmentationInfusedLifeMagic = 1;
                     player.AugmentationIncreasedCarryingCapacity = 1;
+                    player.AugmentationLessDeathItemLoss = 3;
+                    player.PlayerQstBonus = 0;
+                    player.PlayerKillBonus = 0;
                     break;
 
                 case HeritageGroup.Olthoi:

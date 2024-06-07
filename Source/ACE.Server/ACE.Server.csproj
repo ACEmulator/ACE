@@ -30,6 +30,7 @@
     <PackageIcon>ace-retro-icon2.png</PackageIcon>
     <PackageIconUrl />
     <ApplicationIcon>images\ace_retro_icon_2.ico</ApplicationIcon>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -234,6 +235,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Discord.Net" Version="3.10.0" />
     <PackageReference Include="Lib.Harmony" Version="2.3.2" />
     <PackageReference Include="log4net" Version="2.0.17" />
     <PackageReference Include="Log4Net.Async.Standard" Version="3.1.0" />

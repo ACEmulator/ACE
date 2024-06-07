@@ -13,23 +13,25 @@ namespace ACE.Server.Factories.Tables
 
         private static readonly List<SpellId> spells = new List<SpellId>()
         {
-            SpellId.CANTRIPFOCUS1,
-            SpellId.CANTRIPWILLPOWER1,
+            //SpellId.CANTRIPFOCUS1,
+            //SpellId.CANTRIPWILLPOWER1,
 
-            SpellId.CANTRIPCREATUREENCHANTMENTAPTITUDE1,
-            SpellId.CANTRIPITEMENCHANTMENTAPTITUDE1,
-            SpellId.CANTRIPLIFEMAGICAPTITUDE1,
-            SpellId.CANTRIPWARMAGICAPTITUDE1,
-            SpellId.CantripVoidMagicAptitude1,      // missing from original
+            //SpellId.CANTRIPCREATUREENCHANTMENTAPTITUDE1,
+            //SpellId.CANTRIPITEMENCHANTMENTAPTITUDE1,
+            //SpellId.CANTRIPLIFEMAGICAPTITUDE1,
+            //SpellId.CANTRIPWARMAGICAPTITUDE1,
+            //SpellId.CantripVoidMagicAptitude1,      // missing from original
 
-            SpellId.CANTRIPARCANEPROWESS1,
-            SpellId.CANTRIPMANACONVERSIONPROWESS1,
+            //SpellId.CANTRIPARCANEPROWESS1,
+            //SpellId.CANTRIPMANACONVERSIONPROWESS1,
 
-            SpellId.CantripSneakAttackProwess1,
+            //SpellId.CantripSneakAttackProwess1,
 
             SpellId.CANTRIPDEFENDER1,
             SpellId.CantripHermeticLink1,
             SpellId.CantripSpiritThirst1,
+            SpellId.CANTRIPWARMAGICAPTITUDE1,
+            SpellId.CantripVoidMagicAptitude1
         };
 
         private static readonly int NumLevels = 4;
@@ -79,59 +81,59 @@ namespace ACE.Server.Factories.Tables
 
         private static ChanceTable<SpellId> casterCantrips = new ChanceTable<SpellId>()
         {
-            ( SpellId.CANTRIPCREATUREENCHANTMENTAPTITUDE1, 0.05f ),
-            ( SpellId.CANTRIPITEMENCHANTMENTAPTITUDE1,     0.05f ),
-            ( SpellId.CANTRIPLIFEMAGICAPTITUDE1,           0.05f ),
-            ( SpellId.CANTRIPWARMAGICAPTITUDE1,            0.05f ),     // gets mutated properly into VoidMagicAptitude for nether casters
+            //( SpellId.CANTRIPCREATUREENCHANTMENTAPTITUDE1, 0.05f ),
+            //( SpellId.CANTRIPITEMENCHANTMENTAPTITUDE1,     0.05f ),
+            //( SpellId.CANTRIPLIFEMAGICAPTITUDE1,           0.05f ),
+            ( SpellId.CANTRIPWARMAGICAPTITUDE1,            0.1f ),     // gets mutated properly into VoidMagicAptitude for nether casters
 
-            ( SpellId.CANTRIPDEFENDER1,                    0.05f ),
-            ( SpellId.CantripHermeticLink1,                0.05f ),
-            ( SpellId.CantripSpiritThirst1,                0.05f ),
+            ( SpellId.CANTRIPDEFENDER1,                    0.3f ),
+            ( SpellId.CantripHermeticLink1,                0.3f ),
+            ( SpellId.CantripSpiritThirst1,                0.3f ),
 
-            ( SpellId.CANTRIPMANACONVERSIONPROWESS1,       0.05f ),
-            ( SpellId.CANTRIPWILLPOWER1,                   0.05f ),
+            //( SpellId.CANTRIPMANACONVERSIONPROWESS1,       0.05f ),
+            //( SpellId.CANTRIPWILLPOWER1,                   0.05f ),
 
-            ( SpellId.CANTRIPSTRENGTH1,                    0.04f ),
-            ( SpellId.CANTRIPENDURANCE1,                   0.04f ),
-            ( SpellId.CANTRIPFOCUS1,                       0.04f ),
+            //( SpellId.CANTRIPSTRENGTH1,                    0.04f ),
+            //( SpellId.CANTRIPENDURANCE1,                   0.04f ),
+            //( SpellId.CANTRIPFOCUS1,                       0.04f ),
 
-            ( SpellId.CANTRIPARMOR1,                       0.03f ),
-            ( SpellId.CANTRIPACIDWARD1,                    0.01f ),
-            ( SpellId.CANTRIPBLUDGEONINGWARD1,             0.01f ),
-            ( SpellId.CANTRIPFLAMEWARD1,                   0.01f ),
-            ( SpellId.CANTRIPFROSTWARD1,                   0.01f ),
-            ( SpellId.CANTRIPPIERCINGWARD1,                0.01f ),
-            ( SpellId.CANTRIPSLASHINGWARD1,                0.01f ),
-            ( SpellId.CANTRIPSTORMWARD1,                   0.01f ),
+            //( SpellId.CANTRIPARMOR1,                       0.03f ),
+            //( SpellId.CANTRIPACIDWARD1,                    0.01f ),
+            //( SpellId.CANTRIPBLUDGEONINGWARD1,             0.01f ),
+            //( SpellId.CANTRIPFLAMEWARD1,                   0.01f ),
+            //( SpellId.CANTRIPFROSTWARD1,                   0.01f ),
+            //( SpellId.CANTRIPPIERCINGWARD1,                0.01f ),
+            //( SpellId.CANTRIPSLASHINGWARD1,                0.01f ),
+            //( SpellId.CANTRIPSTORMWARD1,                   0.01f ),
 
-            ( SpellId.CANTRIPIMPREGNABILITY1,              0.03f ),
-            ( SpellId.CANTRIPINVULNERABILITY1,             0.03f ),
-            ( SpellId.CANTRIPMAGICRESISTANCE1,             0.03f ),
+            //( SpellId.CANTRIPIMPREGNABILITY1,              0.03f ),
+            //( SpellId.CANTRIPINVULNERABILITY1,             0.03f ),
+            //( SpellId.CANTRIPMAGICRESISTANCE1,             0.03f ),
 
-            // no alchemy prowess in eor
-            ( SpellId.CANTRIPARCANEPROWESS1,               0.03f ),
-            ( SpellId.CANTRIPARMOREXPERTISE1,              0.01f ),
-            ( SpellId.CANTRIPCOOKINGPROWESS1,              0.01f ),
-            ( SpellId.CANTRIPDECEPTIONPROWESS1,            0.01f ),
-            ( SpellId.CANTRIPFEALTY1,                      0.01f ),
-            // no fletching prowess in eor
-            ( SpellId.CANTRIPHEALINGPROWESS1,              0.01f ),
-            ( SpellId.CANTRIPITEMEXPERTISE1,               0.01f ),
-            ( SpellId.CANTRIPJUMPINGPROWESS1,              0.01f ),
-            ( SpellId.CANTRIPLEADERSHIP1,                  0.01f ),
-            ( SpellId.CANTRIPLOCKPICKPROWESS1,             0.01f ),
-            ( SpellId.CANTRIPMAGICITEMEXPERTISE1,          0.01f ),
-            ( SpellId.CANTRIPMONSTERATTUNEMENT1,           0.01f ),
-            ( SpellId.CANTRIPPERSONATTUNEMENT1,            0.01f ),
-            ( SpellId.CantripSalvaging1,                   0.01f ),
-            ( SpellId.CANTRIPSPRINT1,                      0.01f ),
-            ( SpellId.CANTRIPWEAPONEXPERTISE1,             0.01f ),
+            //// no alchemy prowess in eor
+            //( SpellId.CANTRIPARCANEPROWESS1,               0.03f ),
+            //( SpellId.CANTRIPARMOREXPERTISE1,              0.01f ),
+            //( SpellId.CANTRIPCOOKINGPROWESS1,              0.01f ),
+            //( SpellId.CANTRIPDECEPTIONPROWESS1,            0.01f ),
+            //( SpellId.CANTRIPFEALTY1,                      0.01f ),
+            //// no fletching prowess in eor
+            //( SpellId.CANTRIPHEALINGPROWESS1,              0.01f ),
+            //( SpellId.CANTRIPITEMEXPERTISE1,               0.01f ),
+            //( SpellId.CANTRIPJUMPINGPROWESS1,              0.01f ),
+            //( SpellId.CANTRIPLEADERSHIP1,                  0.01f ),
+            //( SpellId.CANTRIPLOCKPICKPROWESS1,             0.01f ),
+            //( SpellId.CANTRIPMAGICITEMEXPERTISE1,          0.01f ),
+            //( SpellId.CANTRIPMONSTERATTUNEMENT1,           0.01f ),
+            //( SpellId.CANTRIPPERSONATTUNEMENT1,            0.01f ),
+            //( SpellId.CantripSalvaging1,                   0.01f ),
+            //( SpellId.CANTRIPSPRINT1,                      0.01f ),
+            //( SpellId.CANTRIPWEAPONEXPERTISE1,             0.01f ),
 
-            ( SpellId.CANTRIPCOORDINATION1,                0.01f ),
-            ( SpellId.CANTRIPQUICKNESS1,                   0.01f ),
+            //( SpellId.CANTRIPCOORDINATION1,                0.01f ),
+            //( SpellId.CANTRIPQUICKNESS1,                   0.01f ),
 
-            ( SpellId.CantripSneakAttackProwess1,          0.02f ),
-            ( SpellId.CantripSummoningProwess1,            0.02f ),
+            //( SpellId.CantripSneakAttackProwess1,          0.02f ),
+            //( SpellId.CantripSummoningProwess1,            0.02f ),
         };
 
         public static SpellId Roll()

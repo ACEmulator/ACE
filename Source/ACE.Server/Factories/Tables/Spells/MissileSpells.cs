@@ -14,8 +14,8 @@ namespace ACE.Server.Factories.Tables
 
         private static readonly List<SpellId> spells = new List<SpellId>()
         {
-            SpellId.StrengthSelf1,
-            SpellId.EnduranceSelf1,
+            //SpellId.StrengthSelf1,
+            //SpellId.EnduranceSelf1,
             SpellId.CoordinationSelf1,
             SpellId.QuicknessSelf1,     // added, according to spellSelectionGroup6
 
@@ -24,9 +24,9 @@ namespace ACE.Server.Factories.Tables
             SpellId.DefenderSelf1,
             SpellId.SwiftKillerSelf1,
 
-            SpellId.DirtyFightingMasterySelf1,
-            SpellId.RecklessnessMasterySelf1,
-            SpellId.SneakAttackMasterySelf1,
+            //SpellId.DirtyFightingMasterySelf1,
+            //SpellId.RecklessnessMasterySelf1,
+            //SpellId.SneakAttackMasterySelf1,
         };
 
         private static readonly int NumTiers = 8;

@@ -175,6 +175,7 @@ namespace ACE.Database
 
         public void GetPossessedBiotasInParallel(uint id, Action<PossessedBiotas> callback)
         {
+            //_queue.Add(Task.Run(() =>
             _queue.Add(new Task(() =>
             {
                 var c = BaseDatabase.GetPossessedBiotasInParallel(id);

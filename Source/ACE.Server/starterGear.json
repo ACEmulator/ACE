@@ -46,11 +46,21 @@
                 {
                     "weenieId": "273",
                     "name": "Pyreal",
-                    "stacksize": "10000"
+                    "stacksize": "25000"
                 },
                 {
                     "weenieId": "166",
                     "name": "Sack",
+                    "stacksize": "1"
+                },
+                {
+                    "weenieId": "20630",
+                    "name": "Trade Note (250,000)",
+                    "stacksize": "4"
+                },
+                {
+                    "weenieId": "399603",
+                    "name": "Welcome to Dragon Moon",
                     "stacksize": "1"
                 },
                 {
@@ -137,16 +147,6 @@
                         {
                             "weenieId": "43018",
                             "name": "Letter From Home",
-                            "stacksize": "1"
-                        },
-                        {
-                            "weenieId": "42979",
-                            "name": "Core Plating Integrator",
-                            "stacksize": "1"
-                        },
-                        {
-                            "weenieId": "43022",
-                            "name": "Core Plating Deintegrator",
                             "stacksize": "1"
                         }
                     ]
@@ -316,19 +316,14 @@
                     "stacksize": "1"
                 },
                 {
-                    "weenieId": "15270",
-                    "name": "Foci of Verdancy",
-                    "stacksize": "1"
-                },
-                {
                     "weenieId": "691",
                     "name": "Lead Scarab",
-                    "stacksize": "5"
+                    "stacksize": "15"
                 },
                 {
                     "weenieId": "20631",
                     "name": "Prismatic Taper",
-                    "stacksize": "25"
+                    "stacksize": "2500"
                 }
             ],
             "spells": [
@@ -386,12 +381,12 @@
                 {
                     "weenieId": "691",
                     "name": "Lead Scarab",
-                    "stacksize": "5"
+                    "stacksize": "15"
                 },
                 {
                     "weenieId": "20631",
                     "name": "Prismatic Taper",
-                    "stacksize": "25"
+                    "stacksize": "2500"
                 }
             ],
             "spells": [
@@ -447,32 +442,32 @@
                 {
                     "weenieId": "4586",
                     "name": "Bundle of Arrowheads",
-                    "stacksize": "30"
+                    "stacksize": "50"
                 },
                 {
                     "weenieId": "4586",
                     "name": "Bundle of Arrowheads",
-                    "stacksize": "30"
+                    "stacksize": "50"
                 },
                 {
                     "weenieId": "4586",
                     "name": "Bundle of Arrowheads",
-                    "stacksize": "30"
+                    "stacksize": "50"
                 },
                 {
                     "weenieId": "4585",
                     "name": "Bundle of Arrowshafts",
-                    "stacksize": "30"
+                    "stacksize": "50"
                 },
                 {
                     "weenieId": "15296",
                     "name": "Bundle of Atlatl Dart Shafts",
-                    "stacksize": "30"
+                    "stacksize": "50"
                 },
                 {
                     "weenieId": "5339",
                     "name": "Bundle of Quarrelshafts",
-                    "stacksize": "30"
+                    "stacksize": "50"
                 }
             ]
         },
@@ -550,12 +545,12 @@
                 {
                     "weenieId": "691",
                     "name": "Lead Scarab",
-                    "stacksize": "5"
+                    "stacksize": "15"
                 },
                 {
                     "weenieId": "20631",
                     "name": "Prismatic Taper",
-                    "stacksize": "25"
+                    "stacksize": "2500"
                 }
             ],
             "spells": [
@@ -748,7 +743,7 @@
                     "name": "Gharu'ndim",
                     "gear": [
                         {
-                            "weenieId":  "45550",
+                            "weenieId": "45550",
                             "name": "Training Staff",
                             "stacksize": "1"
                         }
@@ -886,7 +881,7 @@
                     "name": "Sho",
                     "gear": [
                         {
-                            "weenieId": "45557",
+                            "weenieId": "45537",
                             "name": "Training Handwraps",
                             "stacksize": "1"
                         }
@@ -908,7 +903,7 @@
                     "name": "Umbrean",
                     "gear": [
                         {
-                            "weenieId": "45557",
+                            "weenieId": "45537",
                             "name": "Training Handwraps",
                             "stacksize": "1"
                         }
@@ -963,7 +958,7 @@
                     "name": "Penumbraen",
                     "gear": [
                         {
-                            "weenieId": "45557",
+                            "weenieId": "45537",
                             "name": "Training Handwraps",
                             "stacksize": "1"
                         }
@@ -1169,8 +1164,8 @@
             "name": "Shield",
             "gear": [
                 {
-                    "weenieId": "93",
-                    "name": "Round Shield",
+                    "weenieId": "320022",
+                    "name": "Training Shield",
                     "stacksize": "1"
                 }
             ]

@@ -52,6 +52,24 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace31815_electricslingshot, 0.07f ),
         };
 
+        private static ChanceTable<WeenieClassName> T9_T12_Chances = new ChanceTable<WeenieClassName>()
+        {
+            ( WeenieClassName.atlatlslashing,             0.075f ),
+            ( WeenieClassName.atlatlpiercing,             0.075f ),
+            ( WeenieClassName.atlatlblunt,                0.07f ),
+            ( WeenieClassName.atlatlacid,                 0.07f ),
+            ( WeenieClassName.atlatlfire,                 0.07f ),
+            ( WeenieClassName.atlatlfrost,                0.07f ),
+            ( WeenieClassName.atlatlelectric,             0.07f ),
+            ( WeenieClassName.ace31812_slashingslingshot, 0.075f ),
+            ( WeenieClassName.ace31818_piercingslingshot, 0.075f ),
+            ( WeenieClassName.ace31814_bluntslingshot,    0.07f ),
+            ( WeenieClassName.ace31813_acidslingshot,     0.07f ),
+            ( WeenieClassName.ace31816_fireslingshot,     0.07f ),
+            ( WeenieClassName.ace31817_frostslingshot,    0.07f ),
+            ( WeenieClassName.ace31815_electricslingshot, 0.07f ),
+        };
+
         private static readonly List<ChanceTable<WeenieClassName>> atlatlTiers = new List<ChanceTable<WeenieClassName>>()
         {
             T1_T4_Chances,
@@ -62,6 +80,10 @@ namespace ACE.Server.Factories.Tables.Wcids
             T6_T8_Chances,
             T6_T8_Chances,
             T6_T8_Chances,
+            T9_T12_Chances,
+            T9_T12_Chances,
+            T9_T12_Chances,
+            T9_T12_Chances
         };
 
         public static WeenieClassName Roll(int tier)

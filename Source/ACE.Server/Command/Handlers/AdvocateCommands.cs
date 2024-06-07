@@ -23,8 +23,7 @@ namespace ACE.Server.Command.Handlers
             // This command sets whether monsters will attack you unprovoked.When turned on, monsters will attack you as if you are a normal player.  When turned off, monsters will ignore you.
             // @attackable - Sets whether monsters will attack you or not.
 
-            if (session.Player.IsAdvocate && session.Player.AdvocateLevel < 5)
-                return;
+            if (session.Player.IsAdvocate && session.Player.AdvocateLevel < 2) return;
 
             var param = parameters[0];
 

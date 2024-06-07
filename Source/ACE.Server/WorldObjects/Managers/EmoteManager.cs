@@ -21,7 +21,7 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
 using log4net;
-
+using Microsoft.Extensions.DependencyModel.Resolution;
 using Position = ACE.Entity.Position;
 using Spell = ACE.Server.Entity.Spell;
 
@@ -1491,6 +1491,84 @@ namespace ACE.Server.WorldObjects.Managers
                     PlayerManager.BroadcastToAll(new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast));
 
                     PlayerManager.LogBroadcastChat(Channel.AllBroadcast, WorldObject, message);
+
+                    break;
+
+                case EmoteType.SetWorldXPModifier:
+
+                    var additiveWorldXpBonus = emote.Max ?? 0;
+                    var additiveWorldXpDoubleBonus = emote.MaxDbl ?? 0;
+                    var xpWorldModifier = PropertyManager.GetDouble("xp_modifier").Item + additiveWorldXpBonus + additiveWorldXpDoubleBonus;
+                    var xpWorldModMax = PropertyManager.GetDouble("xp_modifier_max").Item;
+
+                    if (xpWorldModifier >= xpWorldModMax) xpWorldModifier = xpWorldModMax;
+                    PropertyManager.ModifyDouble("xp_modifier", xpWorldModifier, true);
+
+                    break;
+
+                case EmoteType.SetWorldKillXPModifier:
+
+                    var additiveKillBonus = emote.Max ?? 0;
+                    var additiveKillDoubleBonus = emote.MaxDbl ?? 0;
+                    var xpKillModifier = PropertyManager.GetDouble("kill_xp_modifier").Item + additiveKillBonus + additiveKillDoubleBonus;
+                    var xpKillModMax = PropertyManager.GetDouble("kill_xp_modifier_max").Item;
+
+                    if (xpKillModifier >= xpKillModMax) xpKillModifier = xpKillModMax;
+                    PropertyManager.ModifyDouble("kill_xp_modifier", xpKillModifier, true);
+
+                    break;
+
+                case EmoteType.SetWorldQuestXPModifier:
+
+                    var additiveQuestBonus = emote.Max ?? 0;
+                    var additiveQuestDoubleBonus = emote.MaxDbl ?? 0;
+                    var xpQuestModifier = PropertyManager.GetDouble("quest_xp_modifier").Item + additiveQuestBonus + additiveQuestDoubleBonus;
+                    var xpQuestModMax = PropertyManager.GetDouble("quest_xp_modifier_max").Item;
+
+                    if (xpQuestModifier >= xpQuestModMax) xpQuestModifier = xpQuestModMax;
+                    PropertyManager.ModifyDouble("quest_xp_modifier", xpQuestModifier, true);
+
+                    break;
+
+                case EmoteType.SetWorldLumModifier:
+
+                    var additiveLumBonus = emote.Max ?? 0;
+                    var additiveLumDoubleBonus = emote.MaxDbl ?? 0;
+                    var xpLumModifier = PropertyManager.GetDouble("luminance_modifier").Item + additiveLumBonus + additiveLumDoubleBonus;
+                    var xpLumModMax = PropertyManager.GetDouble("luminance_modifier_max").Item;
+
+                    if (xpLumModifier >= xpLumModMax) xpLumModifier = xpLumModMax;
+                    PropertyManager.ModifyDouble("luminance_modifier", xpLumModifier, true);
+
+                    break;
+
+                case EmoteType.SetWorldQuestLumModifier:
+
+                    var additiveQstLumBonus = emote.Max ?? 0;
+                    var additiveQstLumDoubleBonus = emote.MaxDbl ?? 0;
+                    var xpQstLumModifier = PropertyManager.GetDouble("quest_lum_modifier").Item + additiveQstLumBonus + additiveQstLumDoubleBonus;
+                    var xpQstLumModMax = PropertyManager.GetDouble("quest_lum_modifier_max").Item;
+
+                    if (xpQstLumModifier >= xpQstLumModMax) xpQstLumModifier = xpQstLumModMax;
+                    PropertyManager.ModifyDouble("luminance_modifier", xpQstLumModifier, true);
+
+                    break;
+
+                case EmoteType.InqWorldModifiers:
+
+                    var worldExpMult = PropertyManager.GetDouble("xp_modifier", 0, true).Item;
+                    var worldQstMult = PropertyManager.GetDouble("quest_xp_modifier", 0, true).Item;
+                    var worldKillMult = PropertyManager.GetDouble("kill_xp_modifier", 0, true).Item;
+                    var worldLumMult = PropertyManager.GetDouble("luminance_modifier", 0, true).Item;
+                    var worldQstLumMult = PropertyManager.GetDouble("quest_lum_modifier", 0, true).Item;
+
+                    if (player != null)
+                        player.Session.Network.EnqueueSend(new GameEventPopupString(player.Session, $"The current World XP Modifier is: {worldExpMult} _" +
+                            $"The current World Quest Modifier is: {worldQstMult} _" +
+                            $"The current World Kill Modifier is: {worldKillMult} _" +
+                            $"The current World Luminance Modifier is: {worldLumMult} _" +
+                            $"The current World Luminance Quest Modifier is: {worldQstLumMult} _" +
+                            $"You will recieve {worldExpMult * worldKillMult}x xp per kill, {worldExpMult * worldQstMult}x xp per quest, {worldLumMult}x lum per kill, and {worldLumMult * worldQstLumMult}x lum per quest."));
 
                     break;
 

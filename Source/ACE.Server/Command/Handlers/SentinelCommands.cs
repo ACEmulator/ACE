@@ -460,13 +460,14 @@ namespace ACE.Server.Command.Handlers
         }
 
         // banlist
-        [CommandHandler("banlist", AccessLevel.Sentinel, CommandHandlerFlag.None, 0,
+        [CommandHandler("banlist", AccessLevel.Advocate, CommandHandlerFlag.None, 0,
             "Lists all banned accounts on this world.",
-            "")]
+            "")]//Updated to advocate
         public static void HandleBanlist(Session session, params string[] parameters)
         {
             // @banlist - Lists all banned accounts on this world.
 
+            if (session.Player.IsAdvocate && session.Player.AdvocateLevel < 2) return;
             var bannedAccounts = DatabaseManager.Authentication.GetListofBannedAccounts();
 
             if (bannedAccounts.Count != 0)

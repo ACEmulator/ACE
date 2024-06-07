@@ -97,13 +97,14 @@ namespace ACE.Server.Factories
             {
                 if (armorType == LootTables.ArmorType.CovenantArmor || armorType == LootTables.ArmorType.OlthoiArmor)
                 {
-                    int chance = ThreadSafeRandom.Next(1, 3);
-                    var wieldSkill = chance switch
-                    {
-                        1 => Skill.MagicDefense,
-                        2 => Skill.MissileDefense,
-                        _ => Skill.MeleeDefense,
-                    };
+                    //int chance = ThreadSafeRandom.Next(1, 3);
+                    //var wieldSkill = chance switch
+                    //{
+                    //    1 => Skill.MagicDefense,
+                    //    2 => Skill.MissileDefense,
+                    //    _ => Skill.MeleeDefense,
+                    //};
+                    var wieldSkill = Skill.MeleeDefense;
 
                     wo.WieldRequirements = WieldRequirement.RawSkill;
                     wo.WieldSkillType = (int)wieldSkill;
@@ -117,7 +118,8 @@ namespace ACE.Server.Factories
                     wo.WieldDifficulty = profile.Tier switch
                     {
                         7 => 150,  // In this instance, used for indicating player level, rather than skill level
-                        _ => 180,  // In this instance, used for indicating player level, rather than skill level
+                        8 => 180,  // In this instance, used for indicating player level, rather than skill level
+                        _ => 200,  // In this instance, used for indicating player level, rather than skill level
                     };
                 }
             }
@@ -152,7 +154,7 @@ namespace ACE.Server.Factories
             if (profile.Tier > 6 && armorType != LootTables.ArmorType.SocietyArmor)
                 TryRollEquipmentSet(wo, profile, roll);
 
-            if (roll != null && profile.Tier == 8)
+            if (roll != null && profile.Tier >= 8)
                 TryMutateGearRating(wo, profile, roll);
 
             // item value
@@ -842,7 +844,7 @@ namespace ACE.Server.Factories
             // workmanship
             wo.Workmanship = WorkmanshipChance.Roll(profile.Tier);
 
-            if (roll != null && profile.Tier == 8)
+            if (roll != null && profile.Tier >= 8)
                 TryMutateGearRating(wo, profile, roll);
 
             // item value
@@ -985,7 +987,7 @@ namespace ACE.Server.Factories
 
         private static bool TryMutateGearRating(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
         {
-            if (profile.Tier != 8)
+            if (profile.Tier < 8)
                 return false;
 
             // shields don't have gear ratings
@@ -998,35 +1000,67 @@ namespace ACE.Server.Factories
 
             //Console.WriteLine($"TryMutateGearRating({wo.Name}, {profile.TreasureType}, {roll.ItemType}): rolled gear rating {gearRating}");
 
-            var rng = ThreadSafeRandom.Next(0, 1);
+            var rng = ThreadSafeRandom.Next(0, 5);
 
-            if (roll.HasArmorLevel(wo))
+            switch (rng)
             {
-                // clothing w/ al, and crowns would be included in this group
-                if (rng == 0)
+                case 0:
                     wo.GearCritDamage = gearRating;
-                else
+                    break;
+                case 1:
                     wo.GearCritDamageResist = gearRating;
-            }
-            else if (roll.IsClothing || roll.IsCloak)
-            {
-                if (rng == 0)
-                    wo.GearDamage = gearRating;
-                else
+                    break;
+                case 2:
+                    if (roll.HasArmorLevel(wo))
+                    {
+                        wo.GearCritDamage = gearRating;
+                    }
+                    else
+                    {
+                        wo.GearDamage = gearRating;
+                    }
+                    break;
+                case 3:
                     wo.GearDamageResist = gearRating;
-            }
-            else if (roll.IsJewelry)
-            {
-                if (rng == 0)
+                    break;
+                case 4:
                     wo.GearHealingBoost = gearRating;
-                else
+                    break;
+                case 5:
                     wo.GearMaxHealth = gearRating;
+                    break;
+                default:
+                    log.Error($"TryMutateGearRating({wo.Name}, {profile.TreasureType}, {roll.ItemType}): failed roll random");
+                    return false;
             }
-            else
-            {
-                log.Error($"TryMutateGearRating({wo.Name}, {profile.TreasureType}, {roll.ItemType}): unknown item type");
-                return false;
-            }
+
+            //if (roll.HasArmorLevel(wo))
+            //{
+            //    // clothing w/ al, and crowns would be included in this group
+            //    if (rng == 0)
+            //        wo.GearCritDamage = gearRating;
+            //    else
+            //        wo.GearCritDamageResist = gearRating;
+            //}
+            //else if (roll.IsClothing || roll.IsCloak)
+            //{
+            //    if (rng == 0)
+            //        wo.GearDamage = gearRating;
+            //    else
+            //        wo.GearDamageResist = gearRating;
+            //}
+            //else if (roll.IsJewelry)
+            //{
+            //    if (rng == 0)
+            //        wo.GearHealingBoost = gearRating;
+            //    else
+            //        wo.GearMaxHealth = gearRating;
+            //}
+            //else
+            //{
+            //    log.Error($"TryMutateGearRating({wo.Name}, {profile.TreasureType}, {roll.ItemType}): unknown item type");
+            //    return false;
+            //}
 
             // ensure wield requirement is level 180?
             if (roll.ArmorType != TreasureArmorType.Society)

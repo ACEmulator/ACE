@@ -130,6 +130,12 @@ namespace ACE.Entity.Enum
         InqContractsFull              = 121,
 
         // Unknown Id Emotes & Custom Emotes
-        Enlightenment                 = 9001
+        Enlightenment                 = 9001,
+        SetWorldXPModifier            = 9002,
+        SetWorldKillXPModifier        = 9003,
+        SetWorldQuestXPModifier       = 9004,
+        SetWorldLumModifier           = 9005,
+        SetWorldQuestLumModifier      = 9006,
+        InqWorldModifiers             = 9007
     }
 }

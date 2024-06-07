@@ -1100,6 +1100,20 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyInt.LumAugVitality); else SetProperty(PropertyInt.LumAugVitality, value); }
         }
 
+        // ======== Special Xp Modifiers ==========
+
+        public int PlayerQstBonus
+        {
+            get => GetProperty(PropertyInt.PlayerQstBonus) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.PlayerQstBonus); else SetProperty(PropertyInt.PlayerQstBonus, value); }
+        }
+
+        public int PlayerKillBonus
+        {
+            get => GetProperty(PropertyInt.PlayerKillBonus) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.PlayerKillBonus); else SetProperty(PropertyInt.PlayerKillBonus, value); }
+        }
+
         // ========================================
         // =============== Rares ==================
         // ========================================

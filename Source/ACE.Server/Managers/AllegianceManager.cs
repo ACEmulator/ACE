@@ -300,7 +300,26 @@ namespace ACE.Server.Managers
                 //vassal.CPTithed += generatedAmount;
                 //patron.CPCached += passupAmount;
                 //patron.CPPoolToUnload += passupAmount;
-
+                if (patron.Level < vassal.Level)
+                {
+                    var patronVassalDifference = vassal.Level - patron.Level;
+                    if (patronVassalDifference > 800)
+                    {
+                        passupAmount /= 16;
+                    }
+                    else if (patronVassalDifference > 600)
+                    {
+                            passupAmount /= 8;
+                    }
+                    else if (patronVassalDifference > 400)
+                    {
+                        passupAmount /= 4;
+                    }
+                    else if (patronVassalDifference > 200)
+                    {
+                        passupAmount /= 2;
+                    }
+                }
                 vassal.AllegianceXPGenerated += generatedAmount;
 
                 if (PropertyManager.GetBool("offline_xp_passup_limit").Item)

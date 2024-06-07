@@ -14,6 +14,12 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
+using System.Linq;
+using ACE.DatLoader;
+using ACE.Common.Cryptography;
+using ACE.Database.Models.Auth;
+using log4net.Core;
+using ACE.Server.Network.Enum;
 
 
 namespace ACE.Server.Command.Handlers
@@ -21,6 +27,10 @@ namespace ACE.Server.Command.Handlers
     public static class PlayerCommands
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly Position HavenDrop = (new Position(0x01AC010C, 10.28f, -19.9f, 0.005f, 0, 0, -0.707107f, 0.707107f));
+        private static readonly Position TNDrop = (new Position(0x00070143, 70.000000f, - 60.000000f, 0.003500f, 0.000000f, 0.000000f, - 1.000000f, 0.000000f));
+        private static readonly Position SubDrop = (new Position(0x01C9022D, 72.900002f, - 30.200001f, 0.003500f, 0.000000f, 0.000000f, - 0.990268f, 0.139173f));
+        private static readonly Position FacHubDrop = (new Position(0x8A020212, 58.639099f, - 89.923103f, 6.003500f, 0.000000f, 0.000000f, - 0.099833f, 0.995004f));
 
         // pop
         [CommandHandler("pop", AccessLevel.Player, CommandHandlerFlag.None, 0,
@@ -29,6 +39,297 @@ namespace ACE.Server.Command.Handlers
         public static void HandlePop(Session session, params string[] parameters)
         {
             CommandHandlerHelper.WriteOutputInfo(session, $"Current world population: {PlayerManager.GetOnlineCount():N0}", ChatMessageType.Broadcast);
+        }
+
+        // recruit
+        [CommandHandler("recruit", AccessLevel.Player,CommandHandlerFlag.RequiresWorld,"Sends a fellowship recruitment invite to player.")]
+        public static void HandleRecruit(Session session, params string[] parameters)
+        {
+
+            if (DateTime.UtcNow - session.Player.PrevControlledCommandLine < TimeSpan.FromSeconds(10))
+            {
+                session.Player.SendTransientError("You have used this command too recently! Please wait at least 10 seconds between intensive commands.");
+                return;
+            }
+
+            session.Player.PrevControlledCommandLine = DateTime.UtcNow;
+
+            if (parameters == null || parameters.Count() == 0 || session.Player.Fellowship == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Use /recruit <name of player> to invite a player to your fellowship. You must be in a fellowship.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var invitedPlayer = PlayerManager.GetOnlinePlayer(string.Join(" ", parameters));
+
+            if (invitedPlayer != null)
+            {
+                session.Player.FellowshipRecruit(invitedPlayer);
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Recruit message sent to {invitedPlayer.Name}.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            session.Network.EnqueueSend(new GameMessageSystemChat("Could not find player to invite.", ChatMessageType.Broadcast));
+
+        }
+
+        [CommandHandler("recruitme", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Sends a fellowship recruitment invite to player.")]
+        public static void HandleRecruitMe(Session session, params string[] parameters)
+        {
+
+            if (DateTime.UtcNow - session.Player.PrevControlledCommandLine < TimeSpan.FromSeconds(10))
+            {
+                session.Player.SendTransientError("You have used this command too recently! Please wait at least 10 seconds between intensive commands.");
+                return;
+            }
+
+            if (parameters == null || parameters.Count() == 0 || session.Player.Fellowship != null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Use /recruitme <name of player> to request an invite from the player. You must NOT already be in a fellowship.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var requestedPlayer = PlayerManager.GetOnlinePlayer(string.Join(" ", parameters));
+
+            if (requestedPlayer != null)
+            {
+                session.Player.PrevControlledCommandLine = DateTime.UtcNow; // If they got the name right and this check needs to be made time out the commands.
+                string fShipName = requestedPlayer.Fellowship.FellowshipName;
+                uint fShipLeader = requestedPlayer.Fellowship.FellowshipLeaderGuid;
+                string fShipLeaderName = PlayerManager.GetOnlinePlayer(fShipLeader).Name;
+                int fShipCount = requestedPlayer.Fellowship.GetFellowshipMembers().Count();
+                bool fShipLocked = requestedPlayer.Fellowship.IsLocked;
+                bool fShipOpen = requestedPlayer.Fellowship.Open;
+
+                if ((!fShipOpen && requestedPlayer.Guid.Full != fShipLeader) || fShipLocked || fShipCount == Fellowship.MaxFellows)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Fellowship {fShipName} lock status is: {(fShipLocked? "locked" : "unlocked")}. And the open status is: {(fShipOpen? "open" : "closed")}. Please see the party leader: {fShipLeaderName} for recruitment!", ChatMessageType.Broadcast));
+                    return;
+                }
+                else if (!requestedPlayer.Fellowship.Open && requestedPlayer.Guid.Full == requestedPlayer.Fellowship.FellowshipLeaderGuid)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"{fShipName} is a closed fellowship. Please talk with the leader: {fShipLeaderName} to discuss joining.", ChatMessageType.Broadcast));
+                    return;
+                }
+                else
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Recruit request message sent to {requestedPlayer.Name}.", ChatMessageType.Broadcast));
+                    requestedPlayer.FellowshipRecruit(session.Player);
+                    return;
+                }
+            }
+
+            session.Network.EnqueueSend(new GameMessageSystemChat("Could not find player to invite.", ChatMessageType.Broadcast));
+
+        }
+
+        [CommandHandler("myshare", AccessLevel.Player, CommandHandlerFlag.None, "Calculates your fellowship share portion from your current location in relation to your fellows.")]
+        public static void HandleMyShare(Session session, params string[] parameters)
+        {
+
+            if (DateTime.UtcNow - session.Player.PrevMyShare < TimeSpan.FromSeconds(10))
+            {
+                session.Player.SendTransientError("You have used this command too recently! Please wait at least 10 seconds between checks.");
+                return;
+            }
+
+            if (session.Player.Fellowship == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You are not in a fellowship. You are getting 100% of your rewards.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            session.Player.PrevMyShare = DateTime.UtcNow;
+            var msg = "Please input a valid number for xp and lum arguments or leave them blank.";
+            int param1 = 0;
+            int param2 = 0;
+
+            switch (parameters.Count())
+            {
+                case 0:
+                    param1 = 1;
+                    break;
+                case 1:
+                    try { param1 = int.Parse(parameters[0]); } catch { session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast)); return; }
+                    break;
+                case 2:
+                    try
+                    {
+                        param1 = int.Parse(parameters[0]);
+                        param2 = int.Parse(parameters[1]);
+                    }
+                    catch { param1 = 0; param2 = 0; break; }
+                    break;
+                default:
+                    break;
+            }
+
+            ShowMyProjectedShare( session, param1, param2 );
+
+        }
+
+        public static void ShowMyProjectedShare(Session session, int xPAmount, int lumAmount)
+        {
+            var player = session.Player;
+            List<Player> shareableMembers = player.Fellowship.GetFellowshipMembers().Values.ToList();
+            List<Player> inRange = shareableMembers.Intersect(player.Fellowship.WithinRange(player, true)).ToList();
+            int iRCount = inRange.Count;
+            double sharePerc = player.Fellowship.GetMemberSharePercent(iRCount);
+
+            var msg = $"======== Start Report ========\nPlayers in your fellowship within share range: {iRCount}";
+
+            foreach (var member in shareableMembers)
+            {
+                double distScalar = player.Fellowship.GetDistanceScalar(player, member, XpType.Fellowship);
+                float dist2D = player.Location.Distance2D(member.Location);
+
+                msg += $"\nPlayer: {member.Name} -- range from you: {Math.Round(dist2D,1):#,###0}\n   - DistanceScalar: {Math.Round(distScalar,2):0.##0}";
+
+                if (xPAmount <= 1)
+                {
+                    msg += $"\n   - EXP Shared Modifier: {Math.Round((1 * sharePerc * distScalar) * 100,3):0.##0}%";
+                }
+                else
+                {
+                    msg += $"\n   - EXP Share Modified: {Math.Round(xPAmount * sharePerc * distScalar):#,###0}";
+                }
+
+                if (lumAmount <= 1)
+                {
+                    msg += $"\n   - Lumin Shared Modifier: {Math.Round((1 * sharePerc * distScalar) * 100, 3):0.##0}%";
+                }
+                else
+                {
+                    msg += $"\n   - Lumin Share Modified: {Math.Round(lumAmount * sharePerc * distScalar):#,###0}";
+                }
+            }
+
+            msg += $"\n======== End Report ========";
+
+            session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+        }
+
+        [CommandHandler("haven", AccessLevel.Player, CommandHandlerFlag.None, 0, "Recalls to the Adventurer's Haven.")]
+        public static void HandleHavenRecall(Session session, params string[] parameters)
+        {
+            session.Player.HandleActionTeleToDefinedPlace(HavenDrop, "Adventurer's Haven");
+            return;
+        }
+
+        [CommandHandler("tn", AccessLevel.Player, CommandHandlerFlag.None, 0, "Recalls to the Town Network.")]
+        public static void HandleTownNetworkRecall(Session session, params string[] parameters)
+        {
+            session.Player.HandleActionTeleToDefinedPlace(TNDrop, "Town Network");
+            return;
+        }
+
+        [CommandHandler("sub", AccessLevel.Player, CommandHandlerFlag.None, 0, "Recalls to the Abandoned Mine.")]
+        [CommandHandler("hub", AccessLevel.Player, CommandHandlerFlag.None, 0, "Recalls to the Abandoned Mine.")]
+        public static void HandleAbandonedMineRecall(Session session, params string[] parameters)
+        {
+            session.Player.HandleActionTeleToDefinedPlace(SubDrop, "Abandoned Mine");
+            return;
+        }
+
+        [CommandHandler("fachub", AccessLevel.Player, CommandHandlerFlag.None, 0, "Recalls to the Facility Hub.")]
+        public static void HandleFacilityHubRecall(Session session, params string[] parameters)
+        {
+            if (session.Player.Level < 10)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("You must be level 10 to use this command.", ChatMessageType.Broadcast));
+                return;
+            }
+            session.Player.HandleActionTeleToDefinedPlace(FacHubDrop, "Facility Hub");
+            return;
+        }
+
+        //You need {(xpTable.CharacterLevelXPList[(Level ?? 0) + 1] - (ulong)(TotalExperience ?? 0)):#,###0} more experience to reach your next level!
+        [CommandHandler("nextlevel", AccessLevel.Player, CommandHandlerFlag.None, 0, "Recalls to the Adventurer's Haven.")]
+        [CommandHandler("lvl", AccessLevel.Player, CommandHandlerFlag.None, 0, "Recalls to the Adventurer's Haven.")]
+        public static void HandleNextLevel(Session session, params string[] parameters)
+        {
+
+            if (DateTime.UtcNow - session.Player.PrevControlledCommandLine < TimeSpan.FromSeconds(10))
+            {
+                session.Player.SendTransientError("You have used this command too recently! Please wait at least 10 seconds between intensive commands.");
+                return;
+            }
+
+            session.Player.PrevControlledCommandLine = DateTime.UtcNow;
+            var xpTable = DatManager.PortalDat.XpTable;
+            ulong totalExperience = (ulong)(session.Player.TotalExperience ?? 0);
+            string msg = "";
+
+            if (session.Player.Level != Player.GetMaxLevel())
+            {
+
+                ulong nextLevelExperience = xpTable.CharacterLevelXPList[(session.Player.Level ?? 0) + 1];
+                ulong currLevelExperience = xpTable.CharacterLevelXPList[(session.Player.Level ?? 0)];
+                double dividend = totalExperience - currLevelExperience;
+                double divisor = nextLevelExperience - currLevelExperience;
+                msg += $"You need {(nextLevelExperience - totalExperience):#,###0} more experience to reach your next level!"
+                    + $"\n   -- You are {Math.Round((dividend / divisor) * 100, 3):#,##0.##0}% of the way there!";
+
+
+            }
+            else
+            {
+                msg = $"You are currently at the maximum level of {session.Player.Level}!"
+                    + $"\n   -- You have {totalExperience:#,###0} total experience points gained towards your level."
+                    + $"\n   -- You have {session.Player.AvailableExperience:#,###0} available experience points to spend!";
+
+            }
+
+                session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+
+        }
+
+        [CommandHandler("lum", AccessLevel.Player, CommandHandlerFlag.None, 0, "Recalls to the Adventurer's Haven.")]
+        public static void HandleLum(Session session, params string[] parameters)
+        {
+
+            if (DateTime.UtcNow - session.Player.PrevControlledCommandLine < TimeSpan.FromSeconds(10))
+            {
+                session.Player.SendTransientError("You have used this command too recently! Please wait at least 10 seconds between intensive commands.");
+                return;
+            }
+
+            session.Player.PrevControlledCommandLine = DateTime.UtcNow;
+            // Ensure player actually has lum first.
+            if(session.Player.MaximumLuminance == null) { session.Network.EnqueueSend(new GameMessageSystemChat("You do not have the ability to gain luminence at this time.",ChatMessageType.Broadcast)); return; }
+
+            double playerMaxLumin = (ulong)(session.Player.MaximumLuminance ?? 0);
+            double playerAvailLumin = (ulong)(session.Player.AvailableLuminance ?? 0);
+            // Avoid div by 0
+            if (playerMaxLumin == 0 || playerAvailLumin == 0) { session.Network.EnqueueSend(new GameMessageSystemChat("Cannot divide by zero.", ChatMessageType.Broadcast)); return; }
+
+            string msg = $"You currently have {playerAvailLumin:#,###0} luminance with a capacity of {playerMaxLumin:#,###0}!";
+            msg += $"\n   -- You are {Math.Round((playerAvailLumin / playerMaxLumin) * 100, 3):#,##0.##0}% of the way full!";
+
+            session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+        }
+
+        [CommandHandler("blink", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Command utilized by a banned program.")]
+        public static void HandleBlink(Session session, params string[] parameters)
+        {
+
+            if(session.AccessLevel >= AccessLevel.Sentinel)
+            {
+                return;
+            }
+
+            string banText = $"Player {session.Player.Name} has used the /blink command. Account ( {session.Account} ) has been autobanned for 365 days.";
+            session.Player.Account.BannedTime = DateTime.UtcNow;
+            session.Player.Account.BanExpireTime = DateTime.UtcNow + TimeSpan.FromDays(365);
+            session.Player.Account.BanReason = banText;
+            session.Player.Account.BannedByAccountId = 1; // The admin account.
+
+            log.Info(banText);
+            CommandHandlerHelper.WriteOutputInfo(session, banText, ChatMessageType.Broadcast);
+            PlayerManager.BroadcastToAuditChannel(session.Player, banText);
+
+            session.Terminate(SessionTerminationReason.AccountBooted, new GameMessageBootAccount(banText));
+
         }
 
         // quest info (uses GDLe formatting to match plugin expectations)
@@ -345,7 +646,7 @@ namespace ACE.Server.Command.Handlers
             // however, the room after the door *does* have the portal drop / staircase room in its VisibleCells (the inverse relationship is imbalanced)
             // not sure how to fix this atm, seems like it triggers a client bug..
 
-            if (DateTime.UtcNow - session.Player.PrevObjSend < TimeSpan.FromMinutes(5))
+            if (DateTime.UtcNow - session.Player.PrevObjSend < TimeSpan.FromMinutes(2))// Psyber Edit: Normally 5 min, changed to 2.
             {
                 session.Player.SendTransientError("You have used this command too recently!");
                 return;

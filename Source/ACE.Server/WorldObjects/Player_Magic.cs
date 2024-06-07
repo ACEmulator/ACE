@@ -527,7 +527,13 @@ namespace ACE.Server.WorldObjects
 
         public CastingPreCheckStatus GetCastingPreCheckStatus(Spell spell, uint magicSkill, bool isWeaponSpell)
         {
+
             var difficulty = spell.Power;
+
+            if (difficulty == 400)
+            {
+                difficulty = 350;
+            }
 
             var castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
 

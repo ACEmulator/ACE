@@ -43,11 +43,33 @@ namespace ACE.Server.Factories.Tables
 
         private static ChanceTable<int> T8_PetLevelChances = new ChanceTable<int>()
         {
-            ( 100, 0.0125f ),
-            ( 125, 0.025f ),
+            ( 125, 0.0375f ),
             ( 150, 0.05f ),
             ( 180, 0.50f ),
             ( 200, 0.4125f ),
+        };
+
+        private static ChanceTable<int> T9_PetLevelChances = new ChanceTable<int>()
+        {
+            ( 150, 0.05f ),
+            ( 180, 0.50f ),
+            ( 200, 0.45f )
+        };
+
+        private static ChanceTable<int> T10_PetLevelChances = new ChanceTable<int>()
+        {
+            ( 180, 0.50f ),
+            ( 200, 0.50f )
+        };
+
+        private static ChanceTable<int> T11_PetLevelChances = new ChanceTable<int>()
+        {
+            ( 200, 1.0f )
+        };
+
+        private static ChanceTable<int> T12_PetLevelChances = new ChanceTable<int>()
+        {
+            ( 200, 1.0f )
         };
 
         private static readonly List<ChanceTable<int>> petLevelChances = new List<ChanceTable<int>>()
@@ -60,7 +82,11 @@ namespace ACE.Server.Factories.Tables
             T6_PetLevelChances,
             T7_PetLevelChances,
             T8_PetLevelChances,
-        };
+            T9_PetLevelChances,
+            T10_PetLevelChances,
+            T11_PetLevelChances,
+            T12_PetLevelChances
+       };
 
         /// <summary>
         /// Rolls for a CombatPet level for a PetDevice

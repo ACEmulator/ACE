@@ -512,6 +512,10 @@ namespace ACE.Server.Factories
             (1200, 1400),   // T6
             (1400, 1600),   // T7
             (1600, 1800),   // T8
+            (1800, 2000),   // T9
+            (2000, 2200),   // T10
+            (2200, 2400),   // T11
+            (2400, 2600),   // T12
         };
 
         private static int RollItemMaxMana(int tier, int numSpells)
@@ -558,7 +562,7 @@ namespace ACE.Server.Factories
 
             var rng = ThreadSafeRandom.Next(range.min, range.max);
 
-            return (int)Math.Ceiling(maxSpellMana * workmanship * rng);
+            return (int)Math.Ceiling(maxSpellMana * workmanship * rng * 1.32f); // Psyber Edit: give a little more >:)
         }
 
         /// <summary>
@@ -767,8 +771,9 @@ namespace ACE.Server.Factories
 
             if (wo.ItemSkillLevelLimit > 0)
                 itemSkillLevelFactor = wo.ItemSkillLevelLimit.Value / 2.0f;
-
-            var fArcane = spellcraft - itemSkillLevelFactor;
+            // Psyber Edit: stop breaking non-mage templates with rediculous arcane requirements!
+            //var fArcane = spellcraft - itemSkillLevelFactor;
+            var fArcane = spellcraft * 0.72f - itemSkillLevelFactor;
 
             if (fArcane < 0)
                 fArcane = 0;

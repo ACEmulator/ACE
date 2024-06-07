@@ -18,20 +18,20 @@ namespace ACE.Server.Factories.Tables
             SpellId.FocusSelf1,
             SpellId.WillpowerSelf1,
 
-            SpellId.CreatureEnchantmentMasterySelf1,
-            SpellId.ItemEnchantmentMasterySelf1,
-            SpellId.LifeMagicMasterySelf1,
-            SpellId.WarMagicMasterySelf1,
-            SpellId.VoidMagicMasterySelf1,  // missing from original
+            //SpellId.CreatureEnchantmentMasterySelf1,
+            //SpellId.ItemEnchantmentMasterySelf1,
+            //SpellId.LifeMagicMasterySelf1,
+            //SpellId.WarMagicMasterySelf1,
+            //SpellId.VoidMagicMasterySelf1,  // missing from original
 
             SpellId.DefenderSelf1,
             SpellId.HermeticLinkSelf1,
             SpellId.SpiritDrinkerSelf1,     // added to match WandCantrips
 
-            SpellId.ArcaneEnlightenmentSelf1,
-            SpellId.ManaMasterySelf1,
+            //SpellId.ArcaneEnlightenmentSelf1,
+            //SpellId.ManaMasterySelf1,
 
-            SpellId.SneakAttackMasterySelf1,
+            //SpellId.SneakAttackMasterySelf1,
         };
 
         private static readonly int NumTiers = 8;

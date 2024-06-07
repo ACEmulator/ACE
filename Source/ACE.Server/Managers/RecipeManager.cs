@@ -226,7 +226,8 @@ namespace ACE.Server.Managers
 
             // thanks to Endy's Tinkering Calculator for this formula!
             var attemptMod = TinkeringDifficulty[tinkeredCount];
-
+            // Psyber edit: increase salvage returns and salvage aug efficiency
+            //var difficulty = (int)Math.Floor(((salvageMod * 5.0f) + (itemWorkmanship * salvageMod * 2.0f) - (toolWorkmanship * workmanshipMod * salvageMod / 5.0f)) * attemptMod);
             var difficulty = (int)Math.Floor(((salvageMod * 5.0f) + (itemWorkmanship * salvageMod * 2.0f) - (toolWorkmanship * workmanshipMod * salvageMod / 5.0f)) * attemptMod);
 
             var playerCurrentPlusLumAugSkilledCraft = skill.Current + (uint)player.LumAugSkilledCraft;
@@ -236,7 +237,8 @@ namespace ACE.Server.Managers
             // imbue: divide success by 3
             if (recipe.IsImbuing())
             {
-                successChance /= 3.0f;
+                //successChance /= 3.0f; // Psbyer Edit: reduced failure rate of non-foolproof imbues.
+                successChance /= 1.5f;
 
                 if (player.AugmentationBonusImbueChance > 0)
                     successChance += player.AugmentationBonusImbueChance * 0.05f;
@@ -307,16 +309,33 @@ namespace ACE.Server.Managers
         public static List<float> TinkeringDifficulty = new List<float>()
         {
             // attempt #
-            1.0f,   // 1
+            //1.0f,   // 1
+            //1.1f,   // 2
+            //1.3f,   // 3
+            //1.6f,   // 4
+            //2.0f,   // 5
+            //2.5f,   // 6
+            //3.0f,   // 7
+            //3.5f,   // 8
+            //4.0f,   // 9
+            //4.5f    // 10
+            // Psyber Edit: there are now 15 tinks + imbue
+            1f,     // 1
             1.1f,   // 2
             1.3f,   // 3
             1.6f,   // 4
-            2.0f,   // 5
-            2.5f,   // 6
-            3.0f,   // 7
-            3.5f,   // 8
-            4.0f,   // 9
-            4.5f    // 10
+            2f,     // 5
+            2.25f,  // 6
+            2.5f,   // 7
+            2.75f,  // 8
+            3f,     // 9
+            3.25f,  // 10
+            3.5f,   // 11
+            3.75f,  // 12
+            4f,     // 13
+            4.25f,  // 14
+            4.5f,   // 15
+            4.8f    // 16
         };
 
         public static void ShowDialog(Player player, WorldObject source, WorldObject target, Recipe recipe, double successChance)

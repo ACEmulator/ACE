@@ -172,8 +172,10 @@ namespace ACE.Server.WorldObjects
         {
             var creatureSkill = GetCreatureSkill(skill);
 
-            if (creatureSkill.AdvancementClass >= SkillAdvancementClass.Trained || creditsSpent > AvailableSkillCredits)
-                return false;
+            if (creatureSkill.AdvancementClass >= SkillAdvancementClass.Trained || (creditsSpent > AvailableSkillCredits && !AlwaysTrained.Contains(creatureSkill.Skill)))// Psyber Edit: make sure we don't need to train new skills.
+            {
+                    return false;
+            }
 
             creatureSkill.AdvancementClass = SkillAdvancementClass.Trained;
             creatureSkill.Ranks = 0;
@@ -187,7 +189,8 @@ namespace ACE.Server.WorldObjects
             else
                 creatureSkill.ExperienceSpent = 0;
 
-            AvailableSkillCredits -= creditsSpent;
+            if (!AlwaysTrained.Contains(creatureSkill.Skill))
+                AvailableSkillCredits -= creditsSpent;
 
             // Tinkering skills can be reset at Asheron's Castle and Enlightenment, so if player has the augmentation when they train the skill again immediately specialize it again.
             if (IsSkillSpecializedViaAugmentation(skill, out var playerHasAugmentation) && playerHasAugmentation)
@@ -591,10 +594,16 @@ namespace ACE.Server.WorldObjects
 
         public static List<Skill> AlwaysTrained = new List<Skill>()
         {
+            Skill.Alchemy,
             Skill.ArcaneLore,
+            Skill.AssessCreature,
+            Skill.AssessPerson,
+            Skill.Cooking,
             Skill.Jump,
+            Skill.Lockpick,
             Skill.Loyalty,
             Skill.MagicDefense,
+            Skill.ManaConversion,
             Skill.Run,
             Skill.Salvaging
         };

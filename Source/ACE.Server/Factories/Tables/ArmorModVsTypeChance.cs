@@ -22,6 +22,10 @@ namespace ACE.Server.Factories.Tables
             0.40f,  // T6
             0.40f,  // T7
             0.40f,  // T8
+            0.42f,  // T9
+            0.44f,  // T10
+            0.46f,  // T11
+            0.48f,  // T12
         };
 
         public static bool Roll(int tier)
@@ -77,6 +81,34 @@ namespace ACE.Server.Factories.Tables
             ( 5, 0.10f ),
         };
 
+        private static ChanceTable<int> ArmorModVsType_T9_QualityLevel = new ChanceTable<int>()
+        {
+            ( 2, 0.10f ),
+            ( 3, 0.40f ),
+            ( 4, 0.40f ),
+            ( 5, 0.10f ),
+        };
+
+        private static ChanceTable<int> ArmorModVsType_T10_QualityLevel = new ChanceTable<int>()
+        {
+            ( 2, 0.10f ),
+            ( 3, 0.30f ),
+            ( 4, 0.35f ),
+            ( 5, 0.25f ),
+        };
+
+        private static ChanceTable<int> ArmorModVsType_T11_QualityLevel = new ChanceTable<int>()
+        {
+            ( 3, 0.34f ),
+            ( 4, 0.34f ),
+            ( 5, 0.32f ),
+        };
+
+        private static ChanceTable<int> ArmorModVsType_T12_QualityLevel = new ChanceTable<int>()
+        {
+            ( 5, 1.0f ),
+        };
+
         private static readonly List<ChanceTable<int>> qualityLevels = new List<ChanceTable<int>>()
         {
             null,
@@ -87,6 +119,10 @@ namespace ACE.Server.Factories.Tables
             ArmorModVsType_T6_T8_QualityLevel,
             ArmorModVsType_T6_T8_QualityLevel,
             ArmorModVsType_T6_T8_QualityLevel,
+            ArmorModVsType_T9_QualityLevel,
+            ArmorModVsType_T10_QualityLevel,
+            ArmorModVsType_T11_QualityLevel,
+            ArmorModVsType_T12_QualityLevel,
         };
 
         public static int RollQualityLevel(TreasureDeath profile)

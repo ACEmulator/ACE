@@ -91,6 +91,7 @@ namespace ACE.Server.Entity
 
         /// <summary>
         /// A mapping of spell levels => minimum power
+        /// Psyber Edit: reduced level 8 spell min power to 350 to follow diff curve
         /// </summary>
         public static Dictionary<uint, uint> MinPower = new Dictionary<uint, uint>()
         {
@@ -101,7 +102,7 @@ namespace ACE.Server.Entity
             { 5, 200 },
             { 6, 250 },
             { 7, 300 },
-            { 8, 400 }
+            { 8, 350 }
         };
 
         /// <summary>

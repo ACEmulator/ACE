@@ -220,6 +220,11 @@ namespace ACE.Server.Factories
 
                     if (lootWorldObject != null)
                         loot.Add(lootWorldObject);
+
+                    lootWorldObject = TryRollDragonCoin(profile);
+
+                    if (lootWorldObject != null)
+                        loot.Add(lootWorldObject);
                 }
 
                 return loot;
@@ -239,6 +244,11 @@ namespace ACE.Server.Factories
             // aetheria dropped in tiers 5+
             else
                 return TryRollAetheria(profile);
+        }
+
+        private static WorldObject TryRollDragonCoin(TreasureDeath profile)
+        {
+            return ThreadSafeRandom.Next(0.0f, 1f) < (double)PropertyManager.GetLong("dragon_coin_rate").Item * PropertyManager.GetDouble("dragon_coin_chance").Item ? WorldObjectFactory.CreateNewWorldObject(301007U) : (WorldObject)null;
         }
 
         private static WorldObject TryRollCoalescedMana(TreasureDeath profile)
@@ -781,6 +791,10 @@ namespace ACE.Server.Factories
             (400, 3500),    // T6
             (600, 4000),    // T7
             (600, 4500),    // T8
+            (800, 5000),    // T9
+            (800, 5500),    // T10
+            (1200, 6000),    // T11
+            (1200, 6500),    // T12
         };
 
         private static int Roll_ItemValue(WorldObject wo, int tier)
@@ -854,7 +868,7 @@ namespace ACE.Server.Factories
             var materialMod = MaterialTable.GetValueMod(wo.MaterialType);
             var gemValue = GemMaterialChance.GemValue(wo.GemType);
 
-            var tierMod = ItemValue_TierMod[Math.Clamp(tier, 1, 8) - 1];
+            var tierMod = ItemValue_TierMod[Math.Clamp(tier, 1, 12) - 1];
 
             var newValue = (int)wo.Value * valueFactor + materialMod * tierMod + gemValue;
 
@@ -903,6 +917,10 @@ namespace ACE.Server.Factories
             1000,   // T6
             2000,   // T7
             3000,   // T8
+            3500,   // T9
+            4000,   // T10
+            4500,   // T11
+            5000,   // T12
         };
 
         /// <summary>
@@ -1212,8 +1230,12 @@ namespace ACE.Server.Factories
             (25,  1000), // T4
             (50,  5000), // T5
             (250, 5000), // T6
-            (250, 5000), // T7
-            (250, 5000), // T8
+            (800, 8000), // T7
+            (1000, 10000), // T8
+            (1250, 12500), // T9
+            (1500, 15000), // T10
+            (2000, 20000), // T11
+            (2500, 25000), // T12
         };
 
         private static void MutateCoins(WorldObject wo, TreasureDeath profile)
@@ -1266,14 +1288,26 @@ namespace ACE.Server.Factories
 
             var wieldLevelReq = 150;
 
-            if (profile.Tier == 8)
+            switch (profile.Tier)
             {
-                // t8 had a 90% chance for 180
-                // loot quality mod?
-                var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+                case 8:
+                    // t8 had a 90% chance for 180
+                    // loot quality mod?
+                    var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
 
-                if (rng < 0.9f)
-                    wieldLevelReq = 180;
+                    if (rng < 0.9f)
+                        wieldLevelReq = 180;
+                    break;
+                case 9:
+                case 10:
+                case 11:
+                    wieldLevelReq = 200;
+                    break;
+                case 12:
+                    wieldLevelReq = 1000;
+                    break;
+                default:
+                    break;
             }
 
             wo.WieldRequirements = WieldRequirement.Level;

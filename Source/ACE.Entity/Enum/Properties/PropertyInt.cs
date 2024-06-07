@@ -576,6 +576,10 @@ namespace ACE.Entity.Enum.Properties
         // Number of times a character has enlightened
         [SendOnLogin]
         Enlightenment                            = 390,
+        [ServerOnly]
+        PlayerQstBonus                           = 391,
+        [ServerOnly]
+        PlayerKillBonus                          = 392,
 
         [ServerOnly]
         PCAPRecordedAutonomousMovement           = 8007,
@@ -781,6 +785,8 @@ namespace ACE.Entity.Enum.Properties
                 case PropertyInt.UseRequiresSkill:
                 case PropertyInt.UseRequiresSkillSpec:
                 case PropertyInt.SkillToBeAltered:
+                case PropertyInt.PlayerKillBonus:
+                case PropertyInt.PlayerQstBonus:
                     return System.Enum.GetName(typeof(Skill), value);
 
                 case PropertyInt.HookGroup:

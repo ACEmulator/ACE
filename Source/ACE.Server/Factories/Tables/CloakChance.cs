@@ -16,39 +16,59 @@ namespace ACE.Server.Factories.Tables
 
         private static ChanceTable<int> T2_ItemMaxLevel = new ChanceTable<int>()
         {
-            ( 1, 0.99f ),
-            ( 2, 0.01f ),
+            ( 1, 0.5f ),
+            ( 2, 0.5f ),
         };
 
         private static ChanceTable<int> T3_T4_ItemMaxLevel = new ChanceTable<int>()
         {
-            ( 1, 0.44f ),
-            ( 2, 0.55f ),
-            ( 3, 0.01f ),
+            ( 1, 0.1f ),
+            ( 2, 0.6f ),
+            ( 3, 0.3f ),
         };
 
         private static ChanceTable<int> T5_ItemMaxLevel = new ChanceTable<int>()
         {
-            ( 1, 0.04f ),
-            ( 2, 0.40f ),
-            ( 3, 0.55f ),
-            ( 4, 0.01f ),
+            ( 2, 0.34f ),
+            ( 3, 0.6f ),
+            ( 4, 0.06f ),
         };
 
         private static ChanceTable<int> T6_ItemMaxLevel = new ChanceTable<int>()
         {
-            ( 1, 0.04f ),
-            ( 2, 0.30f ),
-            ( 3, 0.65f ),
-            ( 4, 0.01f ),
+            ( 2, 0.22f ),
+            ( 3, 0.7f ),
+            ( 4, 0.08f ),
         };
 
         private static ChanceTable<int> T7_T8_ItemMaxLevel = new ChanceTable<int>()
         {
-            ( 2, 0.45f ),
-            ( 3, 0.50f ),
-            ( 4, 0.04f ),
-            ( 5, 0.01f ),
+            ( 3, 0.15f ),
+            ( 4, 0.6f ),
+            ( 5, 0.25f ),
+        };
+
+        private static ChanceTable<int> T9_ItemMaxLevel = new ChanceTable<int>()
+        {
+            ( 4, 0.7f ),
+            ( 5, 0.3f ),
+        };
+
+        private static ChanceTable<int> T10_ItemMaxLevel = new ChanceTable<int>()
+        {
+            ( 4, 0.5f ),
+            ( 5, 0.5f ),
+        };
+
+        private static ChanceTable<int> T11_ItemMaxLevel = new ChanceTable<int>()
+        {
+            ( 4, 0.3f ),
+            ( 5, 0.7f ),
+        };
+
+        private static ChanceTable<int> T12_ItemMaxLevel = new ChanceTable<int>()
+        {
+            ( 5, 1.0f ),
         };
 
         private static List<ChanceTable<int>> cloakLevels = new List<ChanceTable<int>>()
@@ -61,6 +81,10 @@ namespace ACE.Server.Factories.Tables
             T6_ItemMaxLevel,
             T7_T8_ItemMaxLevel,
             T7_T8_ItemMaxLevel,
+            T9_ItemMaxLevel,
+            T10_ItemMaxLevel,
+            T11_ItemMaxLevel,
+            T12_ItemMaxLevel,
         };
 
         public static int Roll_ItemMaxLevel(TreasureDeath profile)
@@ -120,14 +144,14 @@ namespace ACE.Server.Factories.Tables
 
         private static readonly List<SpellId> surgeSpells = new List<SpellId>()
         {
-            SpellId.AcidRing,           // Searing Disc
-            SpellId.BladeRing,          // Horizon's Blades
-            SpellId.FlameRing,          // Cassius' Ring of Fire
-            SpellId.ForceRing,          // Nuhmudira's Spines
-            SpellId.FrostRing,          // Halo of Frost
-            SpellId.LightningRing,      // Eye of the Storm
-            SpellId.ShockwaveRing,      // Tectonic Rifts
-            SpellId.NetherRing,         // Clouded Soul
+            //SpellId.AcidRing,           // Searing Disc
+            //SpellId.BladeRing,          // Horizon's Blades
+            //SpellId.FlameRing,          // Cassius' Ring of Fire
+            //SpellId.ForceRing,          // Nuhmudira's Spines
+            //SpellId.FrostRing,          // Halo of Frost
+            //SpellId.LightningRing,      // Eye of the Storm
+            //SpellId.ShockwaveRing,      // Tectonic Rifts
+            //SpellId.NetherRing,         // Clouded Soul
 
             SpellId.CloakAllSkill,      // Cloaked in Skill
 

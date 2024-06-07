@@ -54,6 +54,23 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return new ActivationResult(false);
 
+            // Psyber edit: add activation check to check storage item level against account access level.
+            if(!(Level == null))
+            {
+                var accessLevel = player.Account.AccessLevel;
+                var storageLevelReq = Level;
+
+                if (accessLevel < storageLevelReq)
+                {
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You do no have permission to access {Name}. Access level: {accessLevel} / {storageLevelReq}"));
+                    return new ActivationResult(false);
+                }
+                else
+                {
+                    return new ActivationResult(true);
+                }
+            }
+
             if (player.IgnoreHouseBarriers)
                 return new ActivationResult(true);
 

@@ -421,9 +421,11 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Debug command to print out all of the active players connected too the server.
         /// </summary>
-        [CommandHandler("listplayers", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Displays all of the active players connected too the server.")]
+        [CommandHandler("listplayers", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays all of the active players connected too the server.")]
         public static void HandleListPlayers(Session session, params string[] parameters)
         {
+            if (session.Player.IsAdvocate && session.Player.AdvocateLevel < 5) return;
+
             string message = "";
             uint playerCounter = 0;
 
@@ -2165,9 +2167,10 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Shows the dungeon name for the current landblock
         /// </summary>
-        [CommandHandler("dungeonname", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Shows the dungeon name for the current landblock")]
+        [CommandHandler("dungeonname", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, "Shows the dungeon name for the current landblock")]//Updated to Advocate
         public static void HandleDungeonName(Session session, params string[] parameters)
         {
+            if (session.Player.IsAdvocate && session.Player.AdvocateLevel < 2) return;
             var landblock = session.Player.Location.Landblock;
 
             var blockStart = landblock << 16;
@@ -2335,7 +2338,7 @@ namespace ACE.Server.Command.Handlers
         {
             var tier = 1;
             int.TryParse(parameters[0], out tier);
-            tier = Math.Clamp(tier, 1, 8);
+            tier = Math.Clamp(tier, 1, 12);//tier = Math.Clamp(tier, 1, 8);
 
             var numItems = 1;
             if (parameters.Length > 1)
@@ -2413,9 +2416,11 @@ namespace ACE.Server.Command.Handlers
             HandleForceLogoff(session, parameters);
         }
 
-        [CommandHandler("forcelogoff", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Force log off of specified character or last appraised character")]
+        [CommandHandler("forcelogoff", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, "Force log off of specified character or last appraised character")]
         public static void HandleForceLogoff(Session session, params string[] parameters)
         {
+            if (session.Player.IsAdvocate && session.Player.AdvocateLevel < 5) return;
+
             var playerName = "";
             if (parameters.Length > 0)
                 playerName = string.Join(" ", parameters);

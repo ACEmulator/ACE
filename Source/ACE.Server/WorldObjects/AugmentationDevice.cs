@@ -195,7 +195,7 @@ namespace ACE.Server.WorldObjects
             else if (AugTypeHelper.IsResist(type))
             {
                 // resistance shared cap
-                if (player.AugmentationResistanceFamily >= MaxAugs[type])
+                if (player.AugmentationResistanceFamily >= 14)//MaxAugs[type]) // Psyber edit: you can get all resistance augs twice each.
                 {
                     player.SendWeenieError(WeenieError.AugmentationTypeUsedTooManyTimes);
                     return false;

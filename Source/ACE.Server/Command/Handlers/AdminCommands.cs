@@ -14,6 +14,7 @@ using ACE.Common;
 using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Models.Auth;
+using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -37,6 +38,7 @@ namespace ACE.Server.Command.Handlers
     public static class AdminCommands
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly Position HotelSwankDrop = (new Position(0x018A0273, 120.000000f, - 79.900002f, 0.003500f, 0.000000f, 0.000000f, - 0.707107f, - 0.707107f));
 
         // // commandname parameters
         // [CommandHandler("commandname", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0)]
@@ -84,6 +86,51 @@ namespace ACE.Server.Command.Handlers
 
             // just a placeholder, probably not needed or should be handled by a decal plugin to replicate the admin ui
         }
+
+        [CommandHandler("ReadXPTable", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0)]
+        public static void HandleReadXPTable(Session session, params string[] parameters)
+        {
+            var xpTable = DatManager.PortalDat.XpTable;
+            var msgT1 = $"New XP FinalValue: {xpTable.CharacterLevelXPList.Last()} : {xpTable.CharacterLevelXPList.Count}";
+            var msgT2 = $"New Skill FinalValue: {xpTable.CharacterLevelSkillCreditList.Sum<uint>(i => (uint)i)} : {xpTable.CharacterLevelSkillCreditList.Count}";
+
+            ChatPacket.SendServerMessage(session, msgT1 + "\n" + msgT2, ChatMessageType.Broadcast);
+        }
+
+        [CommandHandler("poi", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Recalls to an UnkownLocation.")]
+        public static void HandlePOI(Session session, params string[] parameters)
+        {
+            if(parameters.Length < 1)
+            {
+                ChatPacket.SendServerMessage(session, "You must enter a location to recall to.", ChatMessageType.Broadcast);
+                return;
+            }
+
+            switch(parameters[1])
+            {
+                case "swank":
+                    session.Player.HandleActionTeleToDefinedPlace(HotelSwankDrop);
+                    break;
+                case "hotel":
+                    session.Player.HandleActionTeleToDefinedPlace(HotelSwankDrop);
+                    break;
+                default:
+                    var poi = String.Join(" ", parameters);
+                    var teleportPOI = DatabaseManager.World.GetCachedPointOfInterest(poi);
+                    if (teleportPOI == null)
+                    {
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"Location: \"{poi}\" not found. Use \"list\" to display all valid locations.", ChatMessageType.Broadcast));
+                        return;
+                    }
+                    var weenie = DatabaseManager.World.GetCachedWeenie(teleportPOI.WeenieClassId);
+                    var portalDest = new Position(weenie.GetPosition(PositionType.Destination));
+                    WorldObject.AdjustDungeon(portalDest);
+                    session.Player.Teleport(portalDest);
+                    break;
+            }
+            return;
+        }
+
 
         // delete
         [CommandHandler("delete", AccessLevel.Envoy, CommandHandlerFlag.RequiresWorld, 0, "Deletes the selected object.", "Players may not be deleted this way.")]
@@ -267,7 +314,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // gag < char name >
-        [CommandHandler("gag", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
+        [CommandHandler("gag", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, 1,
             "Prevents a character from talking.",
             "< char name >\nThe character will not be able to @tell or use chat normally.")]
         public static void HandleGag(Session session, params string[] parameters)
@@ -276,6 +323,7 @@ namespace ACE.Server.Command.Handlers
             // This command gags the specified character for five minutes.  The character will not be able to @tell or use chat normally.
             // @gag - Prevents a character from talking.
             // @ungag -Allows a gagged character to talk again.
+            if (session.Player.IsAdvocate && session.Player.AdvocateLevel < 3) return;
 
             if (parameters.Length > 0)
             {
@@ -296,13 +344,14 @@ namespace ACE.Server.Command.Handlers
         }
 
         // ungag < char name >
-        [CommandHandler("ungag", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1,
+        [CommandHandler("ungag", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, 1,
             "Allows a gagged character to talk again.",
             "< char name >\nThe character will again be able to @tell and use chat normally.")]
         public static void HandleUnGag(Session session, params string[] parameters)
         {
             // usage: @ungag < char name >
             // @ungag -Allows a gagged character to talk again.
+            if (session.Player.IsAdvocate && session.Player.AdvocateLevel < 3) return;
 
             if (parameters.Length > 0)
             {
@@ -2610,9 +2659,10 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Displays how much experience the last appraised creature is worth when killed.
         /// </summary>
-        [CommandHandler("deathxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Displays how much experience the last appraised creature is worth when killed.")]
+        [CommandHandler("deathxp", AccessLevel.Advocate, CommandHandlerFlag.RequiresWorld, 0, "Displays how much experience the last appraised creature is worth when killed.")]//Updated to advocate
         public static void HandleDeathxp(Session session, params string[] parameters)
         {
+            if (session.Player.IsAdvocate && session.Player.AdvocateLevel < 2) return;
             var creature = CommandHandlerHelper.GetLastAppraisedObject(session);
             if (creature == null) return;
 
@@ -2988,10 +3038,10 @@ namespace ACE.Server.Command.Handlers
             // Begin Godly Stats Increase
 
             var currentPlayer = session.Player;
-            currentPlayer.Level = 999;
+            currentPlayer.Level = 9999;
             currentPlayer.AvailableExperience = 0;
             currentPlayer.AvailableSkillCredits = 0;
-            currentPlayer.TotalExperience = 191226310247;
+            currentPlayer.TotalExperience = 92534753219632;
 
             var levelMsg = new GameMessagePrivateUpdatePropertyInt(currentPlayer, PropertyInt.Level, (int)currentPlayer.Level);
             var expMsg = new GameMessagePrivateUpdatePropertyInt64(currentPlayer, PropertyInt64.AvailableExperience, (long)currentPlayer.AvailableExperience);
@@ -4107,7 +4157,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // gamecastlocal <message>
-        [CommandHandler("gamecastlocal", AccessLevel.Developer, CommandHandlerFlag.None, 1,
+        [CommandHandler("gamecastlocal", AccessLevel.Advocate, CommandHandlerFlag.None, 1,
             "Sends a server-wide broadcast.",
             "<message>\n" +
             "This command sends the specified text to every player on the current server.\n" +
@@ -4119,6 +4169,7 @@ namespace ACE.Server.Command.Handlers
             // This command sends the specified text to every player on the current server.
             // See Also: @gamecast, @gamecastemote, @gamecastlocal, @gamecastlocalemote.
             // @gamecastlocal Sends a server-wide broadcast.
+            if (session.Player.IsAdvocate && session.Player.AdvocateLevel < 5) return;
 
             // Since we only have one server, this command will just call the other one
             HandleGamecast(session, parameters);
@@ -4175,13 +4226,13 @@ namespace ACE.Server.Command.Handlers
 
             if (list.Count > 0)
             {
-                message = $"The following accounts have been granted {accessLevel.ToString()} rights:\n";
+                message = $"The following accounts have been granted {accessLevel} rights:\n";
                 foreach (var item in list)
                     message += item + "\n";
             }
             else
             {
-                message = $"There are no accounts with {accessLevel.ToString()} rights.";
+                message = $"There are no accounts with {accessLevel} rights.";
             }
 
             CommandHandlerHelper.WriteOutputInfo(session, message, ChatMessageType.WorldBroadcast);
@@ -4446,7 +4497,16 @@ namespace ACE.Server.Command.Handlers
         public static void HandleResyncServerProperties(Session session, params string[] parameters)
         {
             PropertyManager.ResyncVariables();
+            PlayerManager.BroadcastToAuditChannel(session?.Player, $"Resyncing database properties");
         }
+
+        [CommandHandler("resyncfellowsharedist", AccessLevel.Admin, CommandHandlerFlag.None, "Resync the fellowship share distance with the properties database")]
+        public static void HandleResyncFellowShareDist(Session session, params string[] parameters)
+        {
+            Fellowship.MaxFellowDistance = (int)PropertyManager.GetLong("fellowship_max_share_dist").Item;
+            PlayerManager.BroadcastToAuditChannel(session?.Player, $"Resyncing fellowship share distance");
+        }
+
 
         [CommandHandler("fix-allegiances", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Fixes the monarch data for allegiances")]
         public static void HandleFixAllegiances(Session session, params string[] parameters)

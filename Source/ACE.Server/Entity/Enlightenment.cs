@@ -62,33 +62,34 @@ namespace ACE.Server.Entity
 
         public static bool VerifyRequirements(Player player)
         {
-            if (player.Level < 275)
+            //if (player.Level < 275)
+            if (player.Level < 1000)
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You must be level 275 for enlightenment.", ChatMessageType.Broadcast));
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You must be level 1000 for ascension.", ChatMessageType.Broadcast));
                 return false;
             }
 
             if (!VerifyLumAugs(player))
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You must have all luminance auras for enlightenment.", ChatMessageType.Broadcast));
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You must have all luminance auras for ascension.", ChatMessageType.Broadcast));
                 return false;
             }
 
             if (!VerifySocietyMaster(player))
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You must be a Master of one of the Societies of Dereth for enlightenment.", ChatMessageType.Broadcast));
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You must be a Master of one of the Societies of Dereth for ascension.", ChatMessageType.Broadcast));
                 return false;
             }
 
             if (player.GetFreeInventorySlots() < 25)
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You must have at least 25 free inventory slots in your main pack for enlightenment.", ChatMessageType.Broadcast));
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You must have at least 25 free inventory slots in your main pack for ascension.", ChatMessageType.Broadcast));
                 return false;
             }
 
             if (player.Enlightenment >= 5)
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have already reached the maximum enlightenment level!", ChatMessageType.Broadcast));
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have already reached the maximum ascension level!", ChatMessageType.Broadcast));
                 return false;
             }
             return true;
@@ -115,7 +116,7 @@ namespace ACE.Server.Entity
             lumAugCredits += player.LumAugSkilledCraft;
             lumAugCredits += player.LumAugSkilledSpec;
 
-            return lumAugCredits == 65;
+            return lumAugCredits >= 65;
         }
 
         public static void DequipAllItems(Player player)
@@ -128,40 +129,40 @@ namespace ACE.Server.Entity
 
         public static void RemoveAbility(Player player)
         {
-            RemoveSociety(player);
-            RemoveLuminance(player);
-            RemoveAetheria(player);
+            //RemoveSociety(player);
+            //RemoveLuminance(player);
+            //RemoveAetheria(player);
             RemoveAttributes(player);
             RemoveSkills(player);
             RemoveLevel(player);
         }
 
-        public static void RemoveSociety(Player player)
-        {
-            player.QuestManager.Erase("SocietyMember");
-            player.QuestManager.Erase("CelestialHandMember");
-            player.QuestManager.Erase("EnlightenedCelestialHandMaster");
-            player.QuestManager.Erase("EldrytchWebMember");
-            player.QuestManager.Erase("EnlightenedEldrytchWebMaster");
-            player.QuestManager.Erase("RadiantBloodMember");
-            player.QuestManager.Erase("EnlightenedRadiantBloodMaster");
+        //public static void RemoveSociety(Player player)
+        //{
+        //    player.QuestManager.Erase("SocietyMember");
+        //    player.QuestManager.Erase("CelestialHandMember");
+        //    player.QuestManager.Erase("EnlightenedCelestialHandMaster");
+        //    player.QuestManager.Erase("EldrytchWebMember");
+        //    player.QuestManager.Erase("EnlightenedEldrytchWebMaster");
+        //    player.QuestManager.Erase("RadiantBloodMember");
+        //    player.QuestManager.Erase("EnlightenedRadiantBloodMaster");
 
-            if (player.SocietyRankCelhan == 1001)
-                player.QuestManager.Stamp("EnlightenedCelestialHandMaster"); // after rejoining society, player can get promoted instantly to master when speaking to promotions officer
-            if (player.SocietyRankEldweb == 1001)
-                player.QuestManager.Stamp("EnlightenedEldrytchWebMaster");   // after rejoining society, player can get promoted instantly to master when speaking to promotions officer
-            if (player.SocietyRankRadblo == 1001)
-                player.QuestManager.Stamp("EnlightenedRadiantBloodMaster");  // after rejoining society, player can get promoted instantly to master when speaking to promotions officer
+        //    if (player.SocietyRankCelhan == 1001)
+        //        player.QuestManager.Stamp("EnlightenedCelestialHandMaster"); // after rejoining society, player can get promoted instantly to master when speaking to promotions officer
+        //    if (player.SocietyRankEldweb == 1001)
+        //        player.QuestManager.Stamp("EnlightenedEldrytchWebMaster");   // after rejoining society, player can get promoted instantly to master when speaking to promotions officer
+        //    if (player.SocietyRankRadblo == 1001)
+        //        player.QuestManager.Stamp("EnlightenedRadiantBloodMaster");  // after rejoining society, player can get promoted instantly to master when speaking to promotions officer
 
-            player.Faction1Bits = null;
-            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.Faction1Bits, 0));
-            player.SocietyRankCelhan = null;
-            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.SocietyRankCelhan, 0));
-            player.SocietyRankEldweb = null;
-            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.SocietyRankEldweb, 0));
-            player.SocietyRankRadblo = null;
-            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.SocietyRankRadblo, 0));
-        }
+        //    player.Faction1Bits = null;
+        //    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.Faction1Bits, 0));
+        //    player.SocietyRankCelhan = null;
+        //    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.SocietyRankCelhan, 0));
+        //    player.SocietyRankEldweb = null;
+        //    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.SocietyRankEldweb, 0));
+        //    player.SocietyRankRadblo = null;
+        //    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.SocietyRankRadblo, 0));
+        //}
 
         public static void RemoveLevel(Player player)
         {
@@ -172,31 +173,31 @@ namespace ACE.Server.Entity
             player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.Level, player.Level ?? 0));
         }
 
-        public static void RemoveAetheria(Player player)
-        {
-            player.QuestManager.Erase("EFULNorthManaFieldUsed");
-            player.QuestManager.Erase("EFULSouthManaFieldUsed");
-            player.QuestManager.Erase("EFULEastManaFieldUsed");
-            player.QuestManager.Erase("EFULWestManaFieldUsed");
-            player.QuestManager.Erase("EFULCenterManaFieldUsed");
+        //public static void RemoveAetheria(Player player)
+        //{
+        //    player.QuestManager.Erase("EFULNorthManaFieldUsed");
+        //    player.QuestManager.Erase("EFULSouthManaFieldUsed");
+        //    player.QuestManager.Erase("EFULEastManaFieldUsed");
+        //    player.QuestManager.Erase("EFULWestManaFieldUsed");
+        //    player.QuestManager.Erase("EFULCenterManaFieldUsed");
 
-            player.QuestManager.Erase("EFMLNorthManaFieldUsed");
-            player.QuestManager.Erase("EFMLSouthManaFieldUsed");
-            player.QuestManager.Erase("EFMLEastManaFieldUsed");
-            player.QuestManager.Erase("EFMLWestManaFieldUsed");
-            player.QuestManager.Erase("EFMLCenterManaFieldUsed");
+        //    player.QuestManager.Erase("EFMLNorthManaFieldUsed");
+        //    player.QuestManager.Erase("EFMLSouthManaFieldUsed");
+        //    player.QuestManager.Erase("EFMLEastManaFieldUsed");
+        //    player.QuestManager.Erase("EFMLWestManaFieldUsed");
+        //    player.QuestManager.Erase("EFMLCenterManaFieldUsed");
 
-            player.QuestManager.Erase("EFLLNorthManaFieldUsed");
-            player.QuestManager.Erase("EFLLSouthManaFieldUsed");
-            player.QuestManager.Erase("EFLLEastManaFieldUsed");
-            player.QuestManager.Erase("EFLLWestManaFieldUsed");
-            player.QuestManager.Erase("EFLLCenterManaFieldUsed");
+        //    player.QuestManager.Erase("EFLLNorthManaFieldUsed");
+        //    player.QuestManager.Erase("EFLLSouthManaFieldUsed");
+        //    player.QuestManager.Erase("EFLLEastManaFieldUsed");
+        //    player.QuestManager.Erase("EFLLWestManaFieldUsed");
+        //    player.QuestManager.Erase("EFLLCenterManaFieldUsed");
 
-            player.AetheriaFlags = AetheriaBitfield.None;
-            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AetheriaBitfield, 0));
+        //    player.AetheriaFlags = AetheriaBitfield.None;
+        //    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AetheriaBitfield, 0));
 
-            player.SendMessage("Your mastery of Aetheric magics fades.", ChatMessageType.Broadcast);
-        }
+        //    player.SendMessage("Your mastery of Aetheric magics fades.", ChatMessageType.Broadcast);
+        //}
 
         public static void RemoveAttributes(Player player)
         {
@@ -244,56 +245,57 @@ namespace ACE.Server.Entity
             availableSkillCredits += player.QuestManager.GetCurrentSolves("ArantahKill1");       // additional quest skill credit
             availableSkillCredits += player.QuestManager.GetCurrentSolves("OswaldManualCompleted");  // additional quest skill credit
             availableSkillCredits += player.QuestManager.GetCurrentSolves("LumAugSkillQuest");   // additional quest skill credits
+            availableSkillCredits += ((player.Enlightenment + 1) * 2);    // add skill credits for enlightenment
 
             player.AvailableSkillCredits = availableSkillCredits;
 
             player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AvailableSkillCredits, player.AvailableSkillCredits ?? 0));
         }
 
-        public static void RemoveLuminance(Player player)
-        {
-            player.QuestManager.Erase("OracleLuminanceRewardsAccess_1110");
-            player.QuestManager.Erase("LoyalToShadeOfLadyAdja");
-            player.QuestManager.Erase("LoyalToKahiri");
-            player.QuestManager.Erase("LoyalToLiamOfGelid");
-            player.QuestManager.Erase("LoyalToLordTyragar");
+        //public static void RemoveLuminance(Player player)
+        //{
+        //    player.QuestManager.Erase("OracleLuminanceRewardsAccess_1110");
+        //    player.QuestManager.Erase("LoyalToShadeOfLadyAdja");
+        //    player.QuestManager.Erase("LoyalToKahiri");
+        //    player.QuestManager.Erase("LoyalToLiamOfGelid");
+        //    player.QuestManager.Erase("LoyalToLordTyragar");
 
-            player.LumAugDamageRating = 0;
-            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugDamageRating, 0));
-            player.LumAugDamageReductionRating = 0;
-            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugDamageReductionRating, 0));
-            player.LumAugCritDamageRating = 0;
-            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugCritDamageRating, 0));
-            player.LumAugCritReductionRating = 0;
-            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugCritReductionRating, 0));
-            //player.LumAugSurgeEffectRating = 0;
-            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugSurgeEffectRating, 0));
-            player.LumAugSurgeChanceRating = 0;
-            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugSurgeChanceRating, 0));
-            player.LumAugItemManaUsage = 0;
-            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugItemManaUsage, 0));
-            player.LumAugItemManaGain = 0;
-            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugItemManaGain, 0));
-            player.LumAugVitality = 0;
-            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugVitality, 0));
-            player.LumAugHealingRating = 0;
-            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugHealingRating, 0));
-            player.LumAugSkilledCraft = 0;
-            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugSkilledCraft, 0));
-            player.LumAugSkilledSpec = 0;
-            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugSkilledSpec, 0));
-            player.LumAugAllSkills = 0;
-            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugAllSkills, 0));
+        //    player.LumAugDamageRating = 0;
+        //    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugDamageRating, 0));
+        //    player.LumAugDamageReductionRating = 0;
+        //    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugDamageReductionRating, 0));
+        //    player.LumAugCritDamageRating = 0;
+        //    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugCritDamageRating, 0));
+        //    player.LumAugCritReductionRating = 0;
+        //    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugCritReductionRating, 0));
+        //    //player.LumAugSurgeEffectRating = 0;
+        //    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugSurgeEffectRating, 0));
+        //    player.LumAugSurgeChanceRating = 0;
+        //    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugSurgeChanceRating, 0));
+        //    player.LumAugItemManaUsage = 0;
+        //    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugItemManaUsage, 0));
+        //    player.LumAugItemManaGain = 0;
+        //    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugItemManaGain, 0));
+        //    player.LumAugVitality = 0;
+        //    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugVitality, 0));
+        //    player.LumAugHealingRating = 0;
+        //    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugHealingRating, 0));
+        //    player.LumAugSkilledCraft = 0;
+        //    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugSkilledCraft, 0));
+        //    player.LumAugSkilledSpec = 0;
+        //    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugSkilledSpec, 0));
+        //    player.LumAugAllSkills = 0;
+        //    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugAllSkills, 0));
 
-            player.AvailableLuminance = null;
-            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(player, PropertyInt64.AvailableLuminance, 0));
-            player.MaximumLuminance = null;
-            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(player, PropertyInt64.MaximumLuminance, 0));
+        //    player.AvailableLuminance = null;
+        //    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(player, PropertyInt64.AvailableLuminance, 0));
+        //    player.MaximumLuminance = null;
+        //    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(player, PropertyInt64.MaximumLuminance, 0));
 
-            player.SendMessage("Your Luminance and Luminance Auras fade from your spirit.", ChatMessageType.Broadcast);
-        }
+        //    player.SendMessage("Your Luminance and Luminance Auras fade from your spirit.", ChatMessageType.Broadcast);
+        //}
 
-        public static uint AttributeResetCertificate => 46421;
+        // public static uint AttributeResetCertificate => 46421;
 
         public static void AddPerks(WorldObject npc, Player player)
         {
@@ -307,9 +309,16 @@ namespace ACE.Server.Entity
             player.Enlightenment += 1;
             player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.Enlightenment, player.Enlightenment));
 
-            player.SendMessage("You have become enlightened and view the world with new eyes.", ChatMessageType.Broadcast);
+            player.LumAugAllSkills += 10;
+            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.LumAugAllSkills, player.LumAugAllSkills));
+
+            player.OverpowerResist += 5;
+            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.OverpowerResist, (int)player.OverpowerResist));
+
+            //player.SendMessage("You have become enlightened and view the world with new eyes.", ChatMessageType.Broadcast);
+            player.SendMessage("You have ascended and view the world with new eyes.", ChatMessageType.Broadcast);
             player.SendMessage("Your available skill credits have been adjusted.", ChatMessageType.Broadcast);
-            player.SendMessage("You have risen to a higher tier of enlightenment!", ChatMessageType.Broadcast);
+            player.SendMessage("You have risen to a higher tier of ascension!", ChatMessageType.Broadcast);
 
             var lvl = "";
 
@@ -319,28 +328,34 @@ namespace ACE.Server.Entity
                 case 1:
                     player.AddTitle(CharacterTitle.Awakened);
                     lvl = "1st";
+                    player.MaximumLuminance = 500000000;
                     break;
                 case 2:
                     player.AddTitle(CharacterTitle.Enlightened);
                     lvl = "2nd";
+                    player.MaximumLuminance = 800000000;
                     break;
                 case 3:
                     player.AddTitle(CharacterTitle.Illuminated);
                     lvl = "3rd";
+                    player.MaximumLuminance = 1200000000;
                     break;
                 case 4:
                     player.AddTitle(CharacterTitle.Transcended);
                     lvl = "4th";
+                    player.MaximumLuminance = 1500000000;
                     break;
                 case 5:
                     player.AddTitle(CharacterTitle.CosmicConscious);
                     lvl = "5th";
+                    player.MaximumLuminance = 2000000000;
                     break;
             }
 
-            player.GiveFromEmote(npc, AttributeResetCertificate, 1);
+            // player.GiveFromEmote(npc, AttributeResetCertificate, 1);
 
-            var msg = $"{player.Name} has achieved the {lvl} level of Enlightenment!";
+            //var msg = $"{player.Name} has achieved the {lvl} level of Enlightenment!";
+            var msg = $"{player.Name} has achieved the {lvl} level of Ascension!";
             PlayerManager.BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast));
             PlayerManager.LogBroadcastChat(Channel.AllBroadcast, null, msg);
 

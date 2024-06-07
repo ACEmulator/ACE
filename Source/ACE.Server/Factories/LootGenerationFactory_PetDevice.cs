@@ -76,7 +76,9 @@ namespace ACE.Server.Factories
             // thanks to morosity for this formula!
             var baseRating = ThreadSafeRandom.Next(1, 10);
 
-            var chance = 0.4f + tier * 0.02f;
+            //var chance = 0.4f + tier * 0.02f;
+            // Psyber Edit: Give us ratings!
+            var chance = 0.5f + tier * 0.4f;
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
             if (rng < chance)
                 baseRating += ThreadSafeRandom.Next(1, 10);

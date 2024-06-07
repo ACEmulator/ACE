@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using System.Text;
 
+using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
@@ -110,6 +111,16 @@ namespace ACE.Server.Network.Handlers
                     log.DebugFormat("[CHAT] ChatType ({0}) was adjusted to {1} | ChatNetworkBlobDispatchType: {2}", chatType, adjustedchatType, chatBlobDispatchType);
 
                 var gameMessageTurbineChat = new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_EVENT_BINARY, ChatNetworkBlobDispatchType.ASYNCMETHOD_SENDTOROOMBYNAME, adjustedChannelID, session.Player.Name, message, senderID, adjustedchatType);
+
+                if (adjustedchatType == ChatType.General)
+                {
+                    DiscordChatManager.SendDiscordMessage(session.Player.Name, message, ConfigManager.Config.Chat.GeneralChannelId);
+                }
+
+                if (adjustedchatType == ChatType.Trade)
+                {
+                    DiscordChatManager.SendDiscordMessage(session.Player.Name, message, ConfigManager.Config.Chat.TradeChannelId);
+                }
 
                 if (adjustedChannelID > TurbineChatChannel.Olthoi || adjustedChannelID == TurbineChatChannel.Allegiance) // Channel must be an allegiance channel
                 {

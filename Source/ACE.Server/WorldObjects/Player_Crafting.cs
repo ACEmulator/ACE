@@ -197,11 +197,14 @@ namespace ACE.Server.WorldObjects
                 // if bags aren't being combined here
                 var valueFactor = (float)added / amountProduced;
                 if (item.ItemType != ItemType.TinkeringMaterial)
-                    valueFactor *= GetCreatureSkill(Skill.Salvaging).Current / 387.0f * (1.0f + 0.25f * AugmentationBonusSalvage);
+                    // Psyber Edit: more returns in general and much more for salvage augs
+                    //valueFactor *= GetCreatureSkill(Skill.Salvaging).Current / 387.0f * (1.0f + 0.25f * AugmentationBonusSalvage);
+                    valueFactor *= GetCreatureSkill(Skill.Salvaging).Current / (360.0f - 20.0f * AugmentationBonusSalvage) * (1.0f + 0.25f * AugmentationBonusSalvage);
 
                 var addedValue = (int)Math.Round((item.Value ?? 0) * valueFactor);
-
-                salvageBag.Value = Math.Min((salvageBag.Value ?? 0) + addedValue, 75000);
+                // Psyber Edit: raised value ceiling to 1 mmd.
+                //salvageBag.Value = Math.Min((salvageBag.Value ?? 0) + addedValue, 75000);
+                salvageBag.Value = Math.Min((salvageBag.Value ?? 0) + addedValue, 287500);
 
                 // a bit different here, since ACE handles overages
                 if (message != null)
@@ -324,7 +327,7 @@ namespace ACE.Server.WorldObjects
             // https://web.archive.org/web/20170130213649/http://www.thejackcat.com/AC/Shopping/Crafts/Salvage_old.htm
             // https://web.archive.org/web/20170130194012/http://www.thejackcat.com/AC/Shopping/Crafts/Salvage.htm
 
-            return 1 + (int)Math.Floor(skill / 194.0f * workmanship * (1.0f + 0.25f * numAugs));
+            return 1 + (int)Math.Floor(skill / (194.0f - (8 * numAugs)) * workmanship * (1.0f + 0.25f * numAugs));
         }
 
         public WorldObject GetSalvageBag(MaterialType materialType, List<WorldObject> salvageBags)

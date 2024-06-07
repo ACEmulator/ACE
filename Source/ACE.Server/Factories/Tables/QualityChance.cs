@@ -20,6 +20,10 @@ namespace ACE.Server.Factories.Tables
             0.9f,
             1.0f,
             1.0f,
+            1.0f,
+            1.0f,
+            1.0f,
+            1.0f,
             1.0f
         };
 
@@ -151,6 +155,70 @@ namespace ACE.Server.Factories.Tables
             1.00f,
         };
 
+        private static readonly List<float> T9_QualityChances = new List<float>()
+        {
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.25f,
+            0.50f,
+            0.75f,
+            0.90f,
+            1.00f,
+        };
+
+        private static readonly List<float> T10_QualityChances = new List<float>()
+        {
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.50f,
+            0.75f,
+            0.90f,
+            1.00f,
+        };
+
+        private static readonly List<float> T11_QualityChances = new List<float>()
+        {
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.75f,
+            0.90f,
+            1.00f,
+        };
+
+        private static readonly List<float> T12_QualityChances = new List<float>()
+        {
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.90f,
+            1.00f,
+        };
+
         /// <summary>
         /// Returns the quality chance tables for a tier
         /// </summary>
@@ -175,6 +243,14 @@ namespace ACE.Server.Factories.Tables
                     return T7_QualityChances;
                 case 8:
                     return T8_QualityChances;
+                case 9:
+                    return T9_QualityChances;
+                case 10:
+                    return T10_QualityChances;
+                case 11:
+                    return T11_QualityChances;
+                case 12:
+                    return T12_QualityChances;
             }
         }
 

@@ -23,7 +23,8 @@ namespace ACE.Server.Entity
         /// <summary>
         /// The maximum # of fellowship members
         /// </summary>
-        public static int MaxFellows = 9;
+        //public static int MaxFellows = 9;
+        public static int MaxFellows = 21;
 
         public string FellowshipName;
         public uint FellowshipLeaderGuid;
@@ -524,14 +525,14 @@ namespace ACE.Server.Entity
             // but with a significant boost to the amount of xp, based on # of fellowship members
             else if (EvenShare)
             {
-                var totalAmount = (ulong)Math.Round(amount * GetMemberSharePercent());
+                var inRange = GetFellowshipMembers().Values.Intersect(WithinRange(player, true)).ToList();
+                var totalAmount = (ulong)Math.Round(amount * GetMemberSharePercent(inRange.Count));
 
-                foreach (var member in fellowshipMembers.Values)
+                foreach (var member in inRange) //fellowshipMembers.Values)
                 {
                     var shareAmount = (ulong)Math.Round(totalAmount * GetDistanceScalar(player, member, xpType));
 
                     var fellowXpType = player == member ? xpType : XpType.Fellowship;
-
                     member.GrantXP((long)shareAmount, fellowXpType, shareType);
                 }
 
@@ -585,52 +586,75 @@ namespace ACE.Server.Entity
                 if (shareableMembers.Count == 0)
                     return;
 
-                var perAmount = (long)Math.Round((double)(amount / (ulong)shareableMembers.Count));
-
-                // further filter to fellows in radar range
                 var inRange = shareableMembers.Intersect(WithinRange(player, true)).ToList();
+
+                // further filter to fellows in radar range -- Scratch that. We don't want to restrict to radar range!
+
+                var perAmount = (ulong)Math.Round(amount * GetMemberSharePercent(inRange.Count));
 
                 foreach (var member in inRange)
                 {
                     if (member.MaximumLuminance == null) continue;
 
                     var fellowXpType = player == member ? xpType : XpType.Fellowship;
+                    perAmount = (ulong)Math.Round(perAmount * GetDistanceScalar(player, member, xpType));
 
-                    member.GrantLuminance(perAmount, fellowXpType, shareType);
+                    member.GrantLuminance((long)perAmount, fellowXpType, shareType);
                 }
             }
         }
 
-        internal double GetMemberSharePercent()
+        internal double GetMemberSharePercent(int FellowsInRange)
         {
-            var fellowshipMembers = GetFellowshipMembers();
-
-            switch (fellowshipMembers.Count)
+            switch (FellowsInRange)
             {
                 case 1:
-                    return 1.0;
+                    return 1.000000;    //100%
                 case 2:
-                    return .75;
+                    return 0.750000;    //150%
                 case 3:
-                    return .6;
+                    return 0.600000;    //180%
                 case 4:
-                    return .55;
+                    return 0.550000;    //220%
                 case 5:
-                    return .5;
+                    return 0.500000;    //250%
                 case 6:
-                    return .45;
+                    return 0.450000;    //270%
                 case 7:
-                    return .4;
+                    return 0.400000;    //280%
                 case 8:
-                    return .35;
+                    return 0.362500;    //290%
                 case 9:
-                    return .3;
-                    // TODO: handle fellowship mods with > 9 players?
+                    return 0.333333;    //300%
+                case 10:
+                    return 0.300000;    //300%
+                case 11:
+                    return 0.272727;    //300%
+                case 12:
+                    return 0.250000;    //300%
+                case 13:
+                    return 0.230769;    //300%
+                case 14:
+                    return 0.214286;    //300%
+                case 15:
+                    return 0.200000;    //300%
+                case 16:
+                    return 0.187500;    //300%
+                case 17:
+                    return 0.176471;    //300%
+                case 18:
+                    return 0.166666;    //300%
+                case 19:
+                    return 0.157895;    //300%
+                case 20:
+                    return 0.150000;    //300%
+                case 21:
+                    return 0.142857;    //300%
             }
             return 1.0;
         }
 
-        public static readonly int MaxDistance = 600;
+        public static int MaxFellowDistance = (int)PropertyManager.GetLong("fellowship_max_share_dist").Item;
 
         /// <summary>
         /// Returns the amount to scale the XP for a fellow
@@ -656,13 +680,13 @@ namespace ACE.Server.Entity
 
             var dist = earner.Location.Distance2D(fellow.Location);
 
-            if (dist >= MaxDistance * 2.0f)
+            if (dist >= MaxFellowDistance * 2.0f)
                 return 0.0f;
 
-            if (dist <= MaxDistance)
+            if (dist <= MaxFellowDistance)
                 return 1.0f;
 
-            var scalar = 1.0f - (dist - MaxDistance) / MaxDistance;
+            var scalar = 1.0f - (dist - MaxFellowDistance) / MaxFellowDistance;
 
             return Math.Max(0.0f, scalar);
         }
@@ -674,7 +698,7 @@ namespace ACE.Server.Entity
         {
             var fellows = GetFellowshipMembers();
 
-            var landblockRange = PropertyManager.GetBool("fellow_kt_landblock").Item;
+            //var landblockRange = PropertyManager.GetBool("fellow_kt_landblock").Item;
 
             var results = new List<Player>();
 
@@ -683,10 +707,14 @@ namespace ACE.Server.Entity
                 if (player == fellow && !includeSelf)
                     continue;
 
-                var shareable = player == fellow || landblockRange ?
-                    player.CurrentLandblock == fellow.CurrentLandblock || player.Location.DistanceTo(fellow.Location) <= 192.0f :
-                    player.Location.Distance2D(fellow.Location) <= player.CurrentRadarRange && player.ObjMaint.VisibleObjectsContainsKey(fellow.Guid.Full);      // 2d visible distance / radar range?
+                //var shareable = player == fellow || landblockRange ?
+                //    player.CurrentLandblock == fellow.CurrentLandblock || player.Location.DistanceTo(fellow.Location) <= 192.0f :
+                //    player.Location.Distance2D(fellow.Location) <= player.CurrentRadarRange && player.ObjMaint.VisibleObjectsContainsKey(fellow.Guid.Full);      // 2d visible distance / radar range?
 
+                var shareable = (player == fellow) || ((fellow.CurrentLandblock == player.CurrentLandblock) || (player.Location.Distance2D(fellow.Location) < (MaxFellowDistance * 2)));
+                //var msgInfo = $"{fellow.Name}_Distance: {player.Location.Distance2D(fellow.Location)},\n {player.Name}_LandBlock_Id: {player.CurrentLandblock.Id},\n {fellow.Name}_LandBlock_Id: {fellow.CurrentLandblock.Id} \n";
+
+                //log.Info(msgInfo);
                 if (shareable)
                     results.Add(fellow);
             }

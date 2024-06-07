@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Common.Extensions;
@@ -7,6 +8,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
+using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -19,15 +21,33 @@ namespace ACE.Server.WorldObjects
         /// <param name="amount">The amount of XP being added</param>
         /// <param name="xpType">The source of XP being added</param>
         /// <param name="shareable">True if this XP can be shared with Fellowship</param>
-        public void EarnXP(long amount, XpType xpType, ShareType shareType = ShareType.All)
+    public void EarnXP(long amount, XpType xpType, ShareType shareType = ShareType.All)
         {
             //Console.WriteLine($"{Name}.EarnXP({amount}, {sharable}, {fixedAmount})");
 
+            // Psyber Edit: add killModifier and a switch to determine when to apply the killModifier or questModifier
             // apply xp modifiers.  Quest XP is multiplicative with general XP modification
             var questModifier = PropertyManager.GetDouble("quest_xp_modifier").Item;
+            var killModifier = PropertyManager.GetDouble("kill_xp_modifier").Item;
+            //var globalQstDenominator = PropertyManager.GetDouble("global_Quest_XP_Denomenator").Item;
+            //var globalKillDenominator = PropertyManager.GetDouble("global_Kill_XP_Denomenator").Item;
             var modifier = PropertyManager.GetDouble("xp_modifier").Item;
-            if (xpType == XpType.Quest)
-                modifier *= questModifier;
+            //if (xpType == XpType.Quest)
+            //    modifier *= questModifier;
+            switch(xpType)
+            {
+                case XpType.Kill:
+                    modifier *= killModifier;
+                    break;
+                case XpType.Quest:
+                    modifier *= questModifier;
+                    break;
+                default:
+                    break;
+            }
+
+            //modifier *= globalKillDenominator;
+            //modifier *= globalQstDenominator;
 
             // should this be passed upstream to fellowship / allegiance?
             var enchantment = GetXPAndLuminanceModifier(xpType);
@@ -94,7 +114,23 @@ namespace ACE.Server.WorldObjects
 
             if (Level != maxLevel)
             {
-                var addAmount = amount;
+            var addAmount = amount;
+
+                ///switch (xpType)
+                ///{  case XpType.Kill:
+                ///        addAmount = amount;
+                ///        break;
+                ///    case XpType.Quest:
+                ///    case XpType.Allegiance:
+                ///    case XpType.Proficiency:
+                ///    case XpType.Fellowship:
+                ///        addAmount = amount + (PlayerQstBonus / 32 );
+                ///        break;
+                ///    default:
+                ///        addAmount = amount;
+                ///        break;
+                ///}
+
 
                 var amountLeftToEnd = (long)maxLevelXp - TotalExperience ?? 0;
                 if (amount > amountLeftToEnd)
@@ -301,13 +337,64 @@ namespace ACE.Server.WorldObjects
                 if (Level == maxLevel)
                 {
                     PlayParticleEffect(PlayScript.WeddingBliss, Guid);
+
+                    if (Session.Player.Enlightenment == 0)
+                    {
+                        if (PropertyManager.GetString("level_1000_first", "", true).Item == "Asheron")
+                        {
+                            AwardLevel1000("first");
+                        }
+                        else if (PropertyManager.GetString("level_1000_second", "", true).Item == "Asheron")
+                        {
+                            AwardLevel1000("second");
+                        }
+                        else if (PropertyManager.GetString("level_1000_third", "", true).Item == "Asheron")
+                        {
+                            AwardLevel1000("third");
+                        }
+                        else if (PropertyManager.GetString("level_1000_fourth", "", true).Item == "Asheron")
+                        {
+                            AwardLevel1000("fourth");
+                        }
+                        else if (PropertyManager.GetString("level_1000_fifth", "", true).Item == "Asheron")
+                        {
+                            AwardLevel1000("fifth");
+                        }
+                        else if (PropertyManager.GetString("level_1000_sixth", "", true).Item == "Asheron")
+                        {
+                            AwardLevel1000("sixth");
+                        }
+                        else if (PropertyManager.GetString("level_1000_seventh", "", true).Item == "Asheron")
+                        {
+                            AwardLevel1000("seventh");
+                        }
+                        else if (PropertyManager.GetString("level_1000_eighth", "", true).Item == "Asheron")
+                        {
+                            AwardLevel1000("eighth");
+                        }
+                        else if (PropertyManager.GetString("level_1000_nineth", "", true).Item == "Asheron")
+                        {
+                            AwardLevel1000("nineth");
+                        }
+                        else if (PropertyManager.GetString("level_1000_tenth", "", true).Item == "Asheron")
+                        {
+                            AwardLevel1000("tenth");
+                        }
+                        else
+                        {
+                            Session.Player.AddTitle(CharacterTitle.ACVeteran);
+                            var msg = $"{Session.Player.Name} has reached level {Level} for their first time! They are awarded the title of AC Veteran!";
+                            PlayerManager.BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast));
+                            PlayerManager.LogBroadcastChat(Channel.AllBroadcast, null, msg);
+                        }
+                    }
                     break;
                 }
             }
 
             if (Level > startingLevel)
             {
-                var message = (Level == maxLevel) ? $"You have reached the maximum level of {Level}!" : $"You are now level {Level}!";
+                var message = (Level == maxLevel) ? $"You have reached the maximum level of {Level}!" : $"You are now level {Level}! You will reach level {Level + 1} at {xpTable.CharacterLevelXPList[(Level ?? 0) + 1]:#,###0} total experience.\nYou need {(xpTable.CharacterLevelXPList[(Level ?? 0) + 1] - (ulong)(TotalExperience ?? 0)):#,###0} more experience to reach your next level!";
 
                 message += (AvailableSkillCredits > 0) ? $"\nYou have {AvailableExperience:#,###0} experience points and {AvailableSkillCredits} skill credits available to raise skills and attributes." : $"\nYou have {AvailableExperience:#,###0} experience points available to raise skills and attributes.";
 
@@ -344,6 +431,17 @@ namespace ACE.Server.WorldObjects
 
                 Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Advancement), currentCredits);
             }
+        }
+
+        public void AwardLevel1000(string racePlacement)
+        {
+            PropertyManager.ModifyString($"level_1000_{racePlacement}", Session.Player.Name);
+            PropertyManager.ResyncVariables();
+            Session.Player.AddTitle(CharacterTitle.LevelMaster);
+            Session.Player.AddTitle(CharacterTitle.ACVeteran);
+            var msg = $"{Session.Player.Name} is the {racePlacement} to achieve level {Level} on the server! They are awarded the titles of Level Master and AC Veteran!";
+            PlayerManager.BroadcastToAll(new GameMessageSystemChat(msg, ChatMessageType.WorldBroadcast));
+            PlayerManager.LogBroadcastChat(Channel.AllBroadcast, null, msg);
         }
 
         /// <summary>

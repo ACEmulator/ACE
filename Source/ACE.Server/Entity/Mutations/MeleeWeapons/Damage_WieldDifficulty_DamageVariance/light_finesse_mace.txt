@@ -1,561 +1,439 @@
 Mace (LightWeapons, FinesseWeapons) Mutation #0:
 
-Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
+Tier chances: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 
     - Chance: 100%:
-	    Damage = 7
+	    Damage = 12
 
 Mace (LightWeapons, FinesseWeapons) Mutation #1 (340 samples):
 
-Tier chances: 1, 0, 0, 0, 0, 0, 0, 0
+Tier chances: 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
-    - Chance: 3%:
-        Damage += 1
-
-    - Chance: 7%:
-        Damage += 2
-
-    - Chance: 10%:
-        Damage += 3
+    - Chance: 15%:
+        Damage += 8
 
     - Chance: 30%:
-        Damage += 4
+        Damage += 11
 
-    - Chance: 15%:
-        Damage += 5
-
-    - Chance: 15%:
-        Damage += 7
-
-    - Chance: 10%:
-        Damage += 9
-
-    - Chance: 7%:
-        Damage += 10
-
-    - Chance: 3%:
+    - Chance: 30%:
         Damage += 12
+
+    - Chance: 25%:
+        Damage += 14
 
 Mace (LightWeapons, FinesseWeapons) Mutation #2 (635 samples):
 
-Tier chances: 0, 1, 0, 0, 0, 0, 0, 0
-
-    - Chance: 2%:
-        Damage += 1
-
-    - Chance: 3%:
-        Damage += 2
+Tier chances: 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
     - Chance: 5%:
-        Damage += 3
-
-    - Chance: 15%:
-        Damage += 4
-
-    - Chance: 8%:
-        Damage += 5
-
-    - Chance: 7%:
-        Damage += 7
-
-    - Chance: 5%:
-        Damage += 9
-
-    - Chance: 3%:
-        Damage += 10
-
-    - Chance: 2%:
-        Damage += 12
-
-    - Chance: 5%:
-        Damage += 11
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance: 5%:
-        Damage += 13
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance: 5%:
-        Damage += 14
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance: 10%:
-        Damage += 15
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance: 10%:
-        Damage += 16
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance: 6%:
         Damage += 17
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 250
 
-    - Chance: 4%:
+    - Chance: 10%:
         Damage += 18
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 250
 
-    - Chance: 3%:
+    - Chance: 15%:
         Damage += 19
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 250
 
-    - Chance: 2%:
+    - Chance: 20%:
         Damage += 20
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 25%:
+        Damage += 21
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 15%:
+        Damage += 23
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 250
+
+    - Chance: 10%:
+        Damage += 24
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 250
 
 Mace (LightWeapons, FinesseWeapons) Mutation #3 (591 samples):
 
-Tier chances: 0, 0, 1, 0, 0, 0, 0, 0
-
-    - Chance: 2%:
-        Damage += 11
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance: 3%:
-        Damage += 13
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance: 5%:
-        Damage += 14
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance: 10%:
-        Damage += 15
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance: 10%:
-        Damage += 16
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance: 10%:
-        Damage += 17
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance: 5%:
-        Damage += 18
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance: 3%:
-        Damage += 19
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance: 2%:
-        Damage += 20
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 250
-
-    - Chance: 20%:
-        Damage += 21
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 300
+Tier chances: 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
     - Chance: 15%:
-        Damage += 22
+        Damage += 25
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 300
 
-    - Chance: 10%:
-        Damage += 23
+    - Chance: 20%:
+        Damage += 26
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 300
 
-    - Chance: 5%:
-        Damage += 24
+    - Chance: 35%:
+        Damage += 27
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 300
+
+    - Chance: 30%:
+        Damage += 29
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 300
 
 Mace (LightWeapons, FinesseWeapons) Mutation #4 (1,172 samples):
 
-Tier chances: 0, 0, 0, 1, 0, 0, 0, 0
-
-    - Chance: 20%:
-        Damage += 21
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 300
+Tier chances: 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
 
     - Chance: 15%:
-        Damage += 22
+        Damage += 31
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 300
-
-    - Chance: 10%:
-        Damage += 23
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 300
-
-    - Chance: 5%:
-        Damage += 24
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 300
+        WieldDifficulty = 325
 
     - Chance: 20%:
-        Damage += 25
+        Damage += 32
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 325
 
-    - Chance: 10%:
-        Damage += 26
+    - Chance: 35%:
+        Damage += 33
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 325
 
-    - Chance: 10%:
-        Damage += 27
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 325
-
-    - Chance: 5%:
-        Damage += 28
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 325
-
-    - Chance: 5%:
-        Damage += 29
+    - Chance: 30%:
+        Damage += 35
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 325
 
 Mace (LightWeapons, FinesseWeapons) Mutation #5 (1,097 samples):
 
-Tier chances: 0, 0, 0, 0, 1, 0, 0, 0
+Tier chances: 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
 
-    - Chance: 20%:
-        Damage += 25
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 325
-
-    - Chance: 10%:
-        Damage += 26
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 325
-
-    - Chance: 10%:
-        Damage += 27
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 325
-
-    - Chance: 5%:
-        Damage += 28
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 325
-
-    - Chance: 5%:
-        Damage += 29
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 325
-
-    - Chance: 20%:
-        Damage += 30
+    - Chance: 15%:
+        Damage += 36
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 350
 
-    - Chance: 15%:
-        Damage += 31
+    - Chance: 50%:
+        Damage += 37
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 350
 
-    - Chance: 15%:
-        Damage += 32
+    - Chance: 35%:
+        Damage += 38
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 350
 
 Mace (LightWeapons, FinesseWeapons) Mutation #6 (3,204 samples):
 
-Tier chances: 0, 0, 0, 0, 0, 1, 0, 0
+Tier chances: 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0
 
-    - Chance: 15%:
-        Damage += 30
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 350
-
-    - Chance: 20%:
-        Damage += 31
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 350
-
-    - Chance: 15%:
-        Damage += 32
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 350
-
-    - Chance: 5%:
-        Damage += 33
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 370
-
-    - Chance: 10%:
-        Damage += 34
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 370
-
-    - Chance: 10%:
-        Damage += 35
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 370
-
-    - Chance: 5%:
-        Damage += 36
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 370
-
-    - Chance: 10%:
-        Damage += 37
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance: 5%:
-        Damage += 38
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance: 3%:
+    - Chance: 2%:
         Damage += 39
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
+        WieldDifficulty = 370
+
+    - Chance: 8%:
+        Damage += 41
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 370
+
+    - Chance: 10%:
+        Damage += 42
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 370
+
+    - Chance: 20%:
+        Damage += 43
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 370
+
+    - Chance: 4%:
+        Damage += 44
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
         WieldDifficulty = 400
 
-    - Chance: 2%:
-        Damage += 40
+    - Chance: 6%:
+        Damage += 45
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 400
+
+    - Chance: 30%:
+        Damage += 47
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 400
+
+    - Chance: 20%:
+        Damage += 48
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 400
 
 Mace (LightWeapons, FinesseWeapons) Mutation #7 (831 samples):
 
-Tier chances: 0, 0, 0, 0, 0, 0, 1, 0
+Tier chances: 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0
 
     - Chance: 10%:
-        Damage += 37
+        Damage += 49
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 400
 
-    - Chance: 15%:
-        Damage += 38
+    - Chance: 12.5%:
+        Damage += 50
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 400
+
+    - Chance: 27.5%:
+        Damage += 51
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 400
+
+    - Chance: 30%:
+        Damage += 53
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 420
 
     - Chance: 20%:
-        Damage += 39
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance: 15%:
-        Damage += 40
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance: 10%:
-        Damage += 41
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance: 5%:
-        Damage += 42
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance: 5%:
-        Damage += 43
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance: 6%:
-        Damage += 42
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 420
-
-    - Chance: 5%:
-        Damage += 43
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 420
-
-    - Chance: 5%:
-        Damage += 44
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 420
-
-    - Chance: 4%:
-        Damage += 45
+        Damage += 54
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 420
 
 Mace (LightWeapons, FinesseWeapons) Mutation #8 (1,260 samples):
 
-Tier chances: 0, 0, 0, 0, 0, 0, 0, 1
-
-    - Chance: 1%:
-        Damage += 37
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance: 1%:
-        Damage += 38
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance: 1%:
-        Damage += 39
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance: 1%:
-        Damage += 40
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance: 1%:
-        Damage += 41
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
+Tier chances: 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0
 
     - Chance: 15%:
-        Damage += 42
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance: 10%:
-        Damage += 43
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 400
-
-    - Chance: 15%:
-        Damage += 42
+        Damage += 55
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 420
 
-    - Chance: 15%:
-        Damage += 43
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 420
-
-    - Chance: 10%:
-        Damage += 44
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 420
-
-    - Chance: 5%:
-        Damage += 45
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 420
-
-    - Chance: 5%:
-        Damage += 46
-        WieldRequirements = RawSkill
-        WieldSkillType = WeaponSkill
-        WieldDifficulty = 420
-
-    - Chance: 10%:
-        Damage += 46
+    - Chance: 30%:
+        Damage += 56
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 430
 
-    - Chance: 5%:
-        Damage += 47
+    - Chance: 35%:
+        Damage += 57
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
         WieldDifficulty = 430
+
+    - Chance: 20%:
+        Damage += 59
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 430
+
+Mace (LightWeapons, FinesseWeapons) Mutation #9 (1,260 samples):
+
+Tier chances: 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0
+
+    - Chance: 10%:
+        Damage += 59
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 430
+
+    - Chance: 30%:
+        Damage += 60
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 450
+
+    - Chance: 25%:
+        Damage += 61
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 450
+
+    - Chance: 15%:
+        Damage += 62
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 450
+
+    - Chance: 10%:
+        Damage += 63
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 450
+
+    - Chance: 5%:
+        Damage += 64
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 450
 
     - Chance: 3%:
-        Damage += 48
+        Damage += 65
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 430
+        WieldDifficulty = 450
 
     - Chance: 2%:
-        Damage += 49
+        Damage += 66
         WieldRequirements = RawSkill
         WieldSkillType = WeaponSkill
-        WieldDifficulty = 430
+        WieldDifficulty = 450
 
-Mace (LightWeapons, FinesseWeapons) Mutation #9:
+Mace (LightWeapons, FinesseWeapons) Mutation #10 (1,260 samples):
 
-Tier chances: 1, 1, 1, 1, 1, 1, 1, 1
+Tier chances: 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0
+
+    - Chance: 10%:
+        Damage += 66
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 450
+
+    - Chance: 45%:
+        Damage += 67
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 460
+
+    - Chance: 35%:
+        Damage += 68
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 460
+
+    - Chance: 5%:
+        Damage += 69
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 460
+
+    - Chance: 3%:
+        Damage += 70
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 460
+
+    - Chance: 2%:
+        Damage += 71
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 460
+
+Mace (LightWeapons, FinesseWeapons) Mutation #11 (1,260 samples):
+
+Tier chances: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0
+
+    - Chance: 10%:
+        Damage += 71
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 460
+
+    - Chance: 40%:
+        Damage += 72
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 480
+
+    - Chance: 30%:
+        Damage += 73
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 480
+
+    - Chance: 10%:
+        Damage += 74
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 480
+
+    - Chance: 5%:
+        Damage += 75
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 480
+
+    - Chance: 3%:
+        Damage += 76
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 480
+
+    - Chance: 2%:
+        Damage += 77
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 480
+
+Mace (LightWeapons, FinesseWeapons) Mutation #12 (1,260 samples):
+
+Tier chances: 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+
+    - Chance: 45%:
+        Damage += 85
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 500
+
+    - Chance: 35%:
+        Damage += 90
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 500
+
+    - Chance: 10%:
+        Damage += 95
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 500
+
+    - Chance: 8%:
+        Damage += 100
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 500
+
+    - Chance: 2%:
+        Damage += 105
+        WieldRequirements = RawSkill
+        WieldSkillType = WeaponSkill
+        WieldDifficulty = 500
+
+Mace (LightWeapons, FinesseWeapons) Mutation #13:
+
+Tier chances: 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 
     - Chance: 10%:
         DamageVariance = 0.43
