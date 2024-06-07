@@ -129,6 +129,7 @@
     <None Remove="Entity\Mutations\Recipes\3800004E - Sandstone.txt" />
     <None Remove="Entity\Mutations\Recipes\39000000 - Paragon Weapons.txt" />
     <None Remove="Entity\Mutations\Recipes\39000001 - Lucky White Rabbit%27s Foot.txt" />
+    <None Remove="images\ace-retro-icon2.png" />
     <None Include="..\..\LICENSE">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
@@ -262,10 +263,6 @@
     <None Update="Config.js.docker">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="images\ace-retro-icon2.png">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
     <None Update="Config.js.example">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -288,6 +285,14 @@
     <None Include="..\..\Database\Base\**" CopyToOutputDirectory="PreserveNewest" LinkBase="DatabaseSetupScripts\Base\" />
     <None Include="..\..\Database\Updates\**" CopyToOutputDirectory="PreserveNewest" LinkBase="DatabaseSetupScripts\Updates\" />
     <None Include="..\..\Database\Optional\**" CopyToOutputDirectory="PreserveNewest" LinkBase="DatabaseSetupScripts\Optional\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="images\ace-retro-icon2.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </Content>
+    <Content Include="images\ace_retro_icon_2.ico" />
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
