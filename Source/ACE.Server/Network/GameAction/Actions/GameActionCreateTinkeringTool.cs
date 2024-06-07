@@ -7,7 +7,7 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.CreateTinkeringTool)]
         public static void Handle(ClientMessage message, Session session)
         {
-            var vendorGuid = message.Payload.ReadUInt32();
+            var toolGuid = message.Payload.ReadUInt32();
             uint itemcount = message.Payload.ReadUInt32();
 
             var items = new List<uint>();
@@ -18,7 +18,7 @@ namespace ACE.Server.Network.GameAction.Actions
                 items.Add(message.Payload.ReadUInt32());
             }
 
-            session.Player.HandleSalvaging(items);
+            session.Player.HandleSalvaging(toolGuid, items);
         }
     }
 }

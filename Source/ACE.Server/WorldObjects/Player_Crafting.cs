@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -122,8 +121,29 @@ namespace ACE.Server.WorldObjects
             Skill.MagicItemTinkering
         };
 
-        public void HandleSalvaging(List<uint> salvageItems)
+        private bool ToolIsValidUst(uint tool)
         {
+            var toolObject = FindObject(tool, SearchLocations.Everywhere, out _, out var rootOwner, out _);
+
+            if (toolObject == null || toolObject.WeenieClassId != (uint)ACE.Entity.Enum.WeenieClassName.W_TINKERINGTOOL_CLASS)
+            {
+                SendWeenieError(WeenieError.NotASalvageTool);
+                return false;
+            }
+            else if (rootOwner != this)
+            {
+                SendWeenieError(WeenieError.YouDoNotOwnThatSalvageTool);
+                return false;
+            }
+            else
+                return true;
+        }
+
+        public void HandleSalvaging(uint tool, List<uint> salvageItems)
+        {
+            if (!ToolIsValidUst(tool))
+                return;
+
             var salvageBags = new List<WorldObject>();
             var salvageResults = new SalvageResults();
 

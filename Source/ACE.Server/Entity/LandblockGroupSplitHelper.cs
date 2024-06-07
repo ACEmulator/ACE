@@ -49,6 +49,23 @@ namespace ACE.Server.Entity
         }
 
 
+        public int ClosestLandblock(Landblock landblock)
+        {
+            int closest = int.MaxValue;
+
+            foreach (var value in landblocks)
+            {
+                var distance = Math.Max(
+                Math.Abs(value.Id.LandblockX - landblock.Id.LandblockX),
+                Math.Abs(value.Id.LandblockY - landblock.Id.LandblockY));
+
+                if (distance < closest)
+                    closest = distance;
+            }
+
+            return closest;
+        }
+
         /// <summary>
         /// This will calculate the distance from the landblock group boarder.<para />
         /// -X = Inside the bounds, where -1 is the outer perimeter<para />

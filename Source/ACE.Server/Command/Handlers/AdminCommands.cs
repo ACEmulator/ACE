@@ -2904,6 +2904,18 @@ namespace ACE.Server.Command.Handlers
                         }
                         item.Ethereal = ethereal;
 
+                        if (item.Ethereal == null)
+                        {
+                            var defaultPhysicsState = (PhysicsState)(item.GetProperty(PropertyInt.PhysicsState) ?? 0);
+
+                            if (defaultPhysicsState.HasFlag(PhysicsState.Ethereal))
+                                item.Ethereal = true;
+                            else
+                                item.Ethereal = false;
+                        }
+
+                        item.EnqueueBroadcastPhysicsState();
+
                         // drop success
                         player.Session.Network.EnqueueSend(
                             new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, ObjectGuid.Invalid),

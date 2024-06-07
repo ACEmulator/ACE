@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+using ACE.Common.Performance;
+
 using log4net;
 
 namespace ACE.Server.Entity
@@ -29,7 +31,7 @@ namespace ACE.Server.Entity
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public const int LandblockGroupMinSpacing = 5;
+        public const int LandblockGroupMinSpacing = 4;
 
         private const int landblockGroupSpanRequiredBeforeSplitEligibility = LandblockGroupMinSpacing * 4;
 
@@ -45,16 +47,28 @@ namespace ACE.Server.Entity
 
         private readonly HashSet<uint> uniqueLandblockIdsRemoved = new HashSet<uint>();
 
-        private int xMin = int.MaxValue;
-        private int xMax = int.MinValue;
-        private int yMin = int.MaxValue;
-        private int yMax = int.MinValue;
+        public int XMin { get; private set; } = int.MaxValue;
+        public int XMax { get; private set; } = int.MinValue;
+        public int YMin { get; private set; } = int.MaxValue;
+        public int YMax { get; private set; } = int.MinValue;
 
         private double xCenter;
         private double yCenter;
 
         private int width;
         private int height;
+
+        /// <summary>
+        /// This is the total time it took for this LandBlockGroup to process under LandblockManager.TickPhysics for the last tick event.
+        /// This is used to help partition LandblockGroups for efficient multi-threaded distributed work.
+        /// </summary>
+        public readonly RollingTimeSpanTracker TickPhysicsTracker = new RollingTimeSpanTracker(60);
+
+        /// <summary>
+        /// This is the total time it took for this LandBlockGroup to process under LandblockManager.TickMultiThreadedWork for the last tick event.
+        /// This is used to help partition LandblockGroups for efficient multi-threaded distributed work.
+        /// </summary>
+        public readonly RollingTimeSpanTracker TickMultiThreadedWorkTracker = new RollingTimeSpanTracker(60);
 
         public LandblockGroup()
         {
@@ -97,16 +111,16 @@ namespace ACE.Server.Entity
                 if (landblocks.Count == 1)
                     IsDungeon = landblock.IsDungeon;
 
-                if (landblock.Id.LandblockX < xMin) xMin = landblock.Id.LandblockX;
-                if (landblock.Id.LandblockX > xMax) xMax = landblock.Id.LandblockX;
-                if (landblock.Id.LandblockY < yMin) yMin = landblock.Id.LandblockY;
-                if (landblock.Id.LandblockY > yMax) yMax = landblock.Id.LandblockY;
+                if (landblock.Id.LandblockX < XMin) XMin = landblock.Id.LandblockX;
+                if (landblock.Id.LandblockX > XMax) XMax = landblock.Id.LandblockX;
+                if (landblock.Id.LandblockY < YMin) YMin = landblock.Id.LandblockY;
+                if (landblock.Id.LandblockY > YMax) YMax = landblock.Id.LandblockY;
 
-                xCenter = xMin + ((xMax - xMin) / 2.0);
-                yCenter = yMin + ((yMax - yMin) / 2.0);
+                xCenter = XMin + ((XMax - XMin) / 2.0);
+                yCenter = YMin + ((YMax - YMin) / 2.0);
 
-                width = (xMax - xMin) + 1;
-                height = (yMax - yMin) + 1;
+                width = (XMax - XMin) + 1;
+                height = (YMax - YMin) + 1;
 
                 return true;
             }
@@ -127,8 +141,8 @@ namespace ACE.Server.Entity
                 uniqueLandblockIdsRemoved.Add(landblock.Id.Raw);
 
                 // If this landblock is on the perimeter of the group, recalculate the boundaries (they may end up the same)
-                if (landblock.Id.LandblockX == xMin || landblock.Id.LandblockX == xMax ||
-                    landblock.Id.LandblockY == yMin || landblock.Id.LandblockY == yMax)
+                if (landblock.Id.LandblockX == XMin || landblock.Id.LandblockX == XMax ||
+                    landblock.Id.LandblockY == YMin || landblock.Id.LandblockY == YMax)
                 {
                     RecalculateBoundaries();
                 }
@@ -152,24 +166,24 @@ namespace ACE.Server.Entity
 
         private void RecalculateBoundaries()
         {
-            xMin = int.MaxValue;
-            xMax = int.MinValue;
-            yMin = int.MaxValue;
-            yMax = int.MinValue;
+            XMin = int.MaxValue;
+            XMax = int.MinValue;
+            YMin = int.MaxValue;
+            YMax = int.MinValue;
 
             foreach (var existing in landblocks)
             {
-                if (existing.Id.LandblockX < xMin) xMin = existing.Id.LandblockX;
-                if (existing.Id.LandblockX > xMax) xMax = existing.Id.LandblockX;
-                if (existing.Id.LandblockY < yMin) yMin = existing.Id.LandblockY;
-                if (existing.Id.LandblockY > yMax) yMax = existing.Id.LandblockY;
+                if (existing.Id.LandblockX < XMin) XMin = existing.Id.LandblockX;
+                if (existing.Id.LandblockX > XMax) XMax = existing.Id.LandblockX;
+                if (existing.Id.LandblockY < YMin) YMin = existing.Id.LandblockY;
+                if (existing.Id.LandblockY > YMax) YMax = existing.Id.LandblockY;
             }
 
-            xCenter = xMin + ((xMax - xMin) / 2.0);
-            yCenter = yMin + ((yMax - yMin) / 2.0);
+            xCenter = XMin + ((XMax - XMin) / 2.0);
+            yCenter = YMin + ((YMax - YMin) / 2.0);
 
-            width = (xMax - xMin) + 1;
-            height = (yMax - yMin) + 1;
+            width = (XMax - XMin) + 1;
+            height = (YMax - YMin) + 1;
         }
 
 
@@ -187,7 +201,7 @@ namespace ACE.Server.Entity
 
             for (int i = remainingLandblocks.Count - 1; i >= 0; i--)
             {
-                if (landblockGroupSplitHelper.BoundaryDistance(remainingLandblocks[i]) < LandblockGroupMinSpacing)
+                if (landblockGroupSplitHelper.ClosestLandblock(remainingLandblocks[i]) < LandblockGroupMinSpacing)
                 {
                     landblockGroupSplitHelper.Add(remainingLandblocks[i]);
                     remainingLandblocks.RemoveAt(i);
@@ -243,7 +257,11 @@ namespace ACE.Server.Entity
                 newLandblockGroup = DoTrySplit();
             }
 
-            NextTrySplitTime = DateTime.UtcNow.Add(TrySplitInterval);
+            // If we have a very large landblock group that didn't split, we'll try to split it every 1 minute to help reduce server load
+            if (results.Count == 0 && landblocks.Count >= 200)
+                NextTrySplitTime = DateTime.UtcNow.AddMinutes(1);
+            else
+                NextTrySplitTime = DateTime.UtcNow.Add(TrySplitInterval);
             uniqueLandblockIdsRemoved.Clear();
 
             return results;
@@ -268,6 +286,23 @@ namespace ACE.Server.Entity
             return TrySplit();
         }
 
+
+        public int ClosestLandblock(Landblock landblock)
+        {
+            int closest = int.MaxValue;
+
+            foreach (var value in landblocks)
+            {
+                var distance = Math.Max(
+                Math.Abs(value.Id.LandblockX - landblock.Id.LandblockX),
+                Math.Abs(value.Id.LandblockY - landblock.Id.LandblockY));
+
+                if (distance < closest)
+                    closest = distance;
+            }
+
+            return closest;
+        }
 
         /// <summary>
         /// This will calculate the distance from the landblock group boarder.<para />
@@ -300,7 +335,7 @@ namespace ACE.Server.Entity
 
         public override string ToString()
         {
-            return $"x: 0x{xMin:X2} - 0x{xMax:X2}, y: 0x{yMin:X2} - 0x{yMax:X2}, w: {width.ToString().PadLeft(3)}, h: {height.ToString().PadLeft(3)}, Count: {Count.ToString().PadLeft(4)}";
+            return $"x: 0x{XMin:X2} - 0x{XMax:X2}, y: 0x{YMin:X2} - 0x{YMax:X2}, w: {width.ToString().PadLeft(3)}, h: {height.ToString().PadLeft(3)}, Count: {Count.ToString().PadLeft(4)}";
         }
     }
 }
