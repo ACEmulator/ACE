@@ -54,6 +54,9 @@ namespace ACE.Server.Command.Handlers
 
             foreach (var player in players)
             {
+                // skip Sentinel and above in god state and olthoi
+                if (player.Account == null || player.GetProperty(PropertyInt.HeritageGroup) == (int)HeritageGroup.Olthoi || player.GetProperty(PropertyInt.HeritageGroup) == (int)HeritageGroup.OlthoiAcid || (player.Account.AccessLevel >= (uint)AccessLevel.Sentinel && player.GetProperty(PropertyString.GodState) != null && player.GetProperty(PropertyString.GodState) != ""))
+                    continue;
                 var updated = false;
 
                 foreach (var attr in new Dictionary<PropertyAttribute, PropertiesAttribute>(player.Biota.PropertiesAttribute))
@@ -170,6 +173,9 @@ namespace ACE.Server.Command.Handlers
 
             foreach (var player in players)
             {
+                // skip Sentinel and above in god state and olthoi
+                if (player.Account == null || player.GetProperty(PropertyInt.HeritageGroup) == (int)HeritageGroup.Olthoi || player.GetProperty(PropertyInt.HeritageGroup) == (int)HeritageGroup.OlthoiAcid || (player.Account.AccessLevel >= (uint)AccessLevel.Sentinel && player.GetProperty(PropertyString.GodState) != null && player.GetProperty(PropertyString.GodState) != ""))
+                    continue;
                 var updated = false;
 
                 foreach (var vital in new Dictionary<PropertyAttribute2nd, PropertiesAttribute2nd>(player.Biota.PropertiesAttribute2nd))
@@ -246,9 +252,22 @@ namespace ACE.Server.Command.Handlers
             var fix = parameters.Length > 0 && parameters[0].Equals("fix");
             var fixStr = fix ? " -- fixed" : "";
             var foundIssues = false;
+            bool fixSACU = false;
+            bool fixSACT = false;
+            bool fixSACS = false;
+
+            if (parameters.Length > 1)
+            {
+                fixSACU = parameters[1].Equals("utrn");
+                fixSACT = parameters[1].Equals("trn");
+                fixSACS = parameters[1].Equals("spc");
+            }
 
             foreach (var player in players)
             {
+                // skip Sentinel and above in god state and olthoi
+                if (player.Account == null || player.GetProperty(PropertyInt.HeritageGroup) == (int)HeritageGroup.Olthoi || player.GetProperty(PropertyInt.HeritageGroup) == (int)HeritageGroup.OlthoiAcid || (player.Account.AccessLevel >= (uint)AccessLevel.Sentinel && player.GetProperty(PropertyString.GodState) != null && player.GetProperty(PropertyString.GodState) != ""))
+                    continue;
                 var updated = false;
 
                 foreach (var skill in new Dictionary<Skill, PropertiesSkill>(player.Biota.PropertiesSkill))
@@ -273,12 +292,13 @@ namespace ACE.Server.Command.Handlers
                     var sac = skill.Value.SAC;
                     if (sac < SkillAdvancementClass.Trained)
                     {
+
                         if (skill.Value.PP > 0 || skill.Value.LevelFromPP > 0)
                         {
                             Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.PP:N0} xp (rank {skill.Value.LevelFromPP}){fixStr}");
                             foundIssues = true;
 
-                            if (fix)
+                            if (fix && fixSACU)
                             {
                                 // i have found no instances of this situation being run into,
                                 // but if it does happen, verify-xp will refund the player xp properly
@@ -288,7 +308,14 @@ namespace ACE.Server.Command.Handlers
                                 updated = true;
                             }
                         }
-                        continue;
+                        if (!Player.IsSkillUntrainable(skill.Key))
+                        {
+                            skill.Value.SAC = SkillAdvancementClass.Trained;
+                        }
+                        else 
+                        {
+                            continue;
+                        }
                     }
 
                     if (sac != SkillAdvancementClass.Specialized)
@@ -298,7 +325,7 @@ namespace ACE.Server.Command.Handlers
                             Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel{fixStr}");
                             foundIssues = true;
 
-                            if (fix)
+                            if (fix && fixSACT)
                             {
                                 skill.Value.InitLevel = 0;
 
@@ -313,7 +340,7 @@ namespace ACE.Server.Command.Handlers
                             Console.WriteLine($"{player.Name} has {sac} skill {skill.Key} with {skill.Value.InitLevel:N0} InitLevel{fixStr}");
                             foundIssues = true;
 
-                            if (fix)
+                            if (fix && fixSACS)
                             {
                                 skill.Value.InitLevel = 10;
 
@@ -385,6 +412,7 @@ namespace ACE.Server.Command.Handlers
             HashSet<uint> oswaldSkillCredit = null;
             HashSet<uint> ralireaSkillCredit = null;
             Dictionary<uint, int> lumAugSkillCredits = null;
+            Dictionary<uint, int> muleStatus = null;
 
             using (var ctx = new ShardDbContext())
             {
@@ -392,16 +420,19 @@ namespace ACE.Server.Command.Handlers
                 // - OswaldManualCompleted
                 // - ArantahKill1 (no 'turned in' stamp, only if given figurine?)
                 // - LumAugSkillQuest (stamped either 1 or 2 times)
+                // - Enlightenment adds 2 credits per - handled in loop
+                // - 2 free credits at level 1 - handled in loop
 
                 oswaldSkillCredit = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("OswaldManualCompleted")).Select(i => i.CharacterId).ToHashSet();
                 ralireaSkillCredit = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("ArantahKill1")).Select(i => i.CharacterId).ToHashSet();
                 lumAugSkillCredits = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("LumAugSkillQuest")).ToDictionary(i => i.CharacterId, i => i.NumTimesCompleted);
+                muleStatus = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("BecameAMule")).ToDictionary(i => i.CharacterId, i => i.NumTimesCompleted);
             }
 
             foreach (var player in players)
             {
-                // skip admins
-                if (player.Account == null || player.Account.AccessLevel == (uint)AccessLevel.Admin)
+                // skip Sentinel and above in god state
+                if (player.Account == null || muleStatus.TryGetValue(player.Guid.Full, out var isMule) ||(player.Account.AccessLevel >= (uint)AccessLevel.Sentinel && player.GetProperty(PropertyString.GodState) != null && player.GetProperty(PropertyString.GodState) != ""))
                     continue;
 
                 if (!player.Heritage.HasValue)
@@ -416,7 +447,7 @@ namespace ACE.Server.Command.Handlers
 
                 var startCredits = (int)heritageGroup.SkillCredits;
 
-                var levelCredits = GetAdditionalCredits(player.Level ?? 1);
+                var levelCredits = GetAdditionalCredits(player.Level ?? 1) + 2;  // plus 2 free credits at level 1
 
                 var questCredits = 0;
 
@@ -434,6 +465,10 @@ namespace ACE.Server.Command.Handlers
                 if (lumAugSkillCredits.TryGetValue(player.Guid.Full, out var lumSkillCredits))
                     questCredits += lumSkillCredits;
 
+                // - Enlightenment adds 2 credits per
+                if (player.GetProperty(PropertyInt.Enlightenment) != null)
+                    questCredits += ((int)player.GetProperty(PropertyInt.Enlightenment) * 2);
+
                 var totalCredits = startCredits + levelCredits + questCredits;
 
                 //Console.WriteLine($"{player.Name} (0x{player.Guid}) Heritage: {heritage}, Level: {player.Level}, Base Credits: {startCredits}, Additional Level Credits: {levelCredits}, Quest Credits: {questCredits}, Total Skill Credits: {totalCredits}");
@@ -441,6 +476,8 @@ namespace ACE.Server.Command.Handlers
                 var used = 0;
 
                 var specCreditsSpent = 0;
+
+                var targetMsg = "";
 
                 foreach (var skill in new Dictionary<Skill, PropertiesSkill>(player.Biota.PropertiesSkill))
                 {
@@ -460,8 +497,11 @@ namespace ACE.Server.Command.Handlers
                     var specializedCost = adjustedCost?.PrimaryCost ?? skillInfo.SpecializedCost;
 
                     //Console.WriteLine($"{(Skill)skill.Type} trained cost: {skillInfo.TrainedCost}, spec cost: {skillInfo.SpecializedCost}, adjusted trained cost: {trainedCost}, adjusted spec cost: {specializedCost}");
-
-                    used += trainedCost;
+                    // TODO: make this change happen at database read so we don't waste time like this:
+                    if (Player.IsSkillUntrainable(skill.Key))
+                    {
+                        used += trainedCost;
+                    }
 
                     if (sac == SkillAdvancementClass.Specialized)
                     {
@@ -480,10 +520,11 @@ namespace ACE.Server.Command.Handlers
 
                         specCreditsSpent += specializedCost;
                     }
+                        targetMsg += $"{skill.Key} Total Credits Used: {used} AdvClass: {sac}\n";
                 }
 
                 var targetCredits = totalCredits - used;
-                var targetMsg = $"{player.Name} (0x{player.Guid}) should have {targetCredits} available skill credits";
+                targetMsg = $"{player.Name} (0x{player.Guid})\nShould have {targetCredits} available skill credits\n==== Skills ====\n" + targetMsg + $"\n==== End Skill Read ====";
 
                 if (targetCredits < 0)
                 {
@@ -499,12 +540,12 @@ namespace ACE.Server.Command.Handlers
                     continue;
                 }
 
-                if (specCreditsSpent > 70)
+                if (specCreditsSpent > 100) // originally 70 limit
                 {
                     // if the player has already spent more skill credits than they should have,
                     // unfortunately this situation requires a partial reset..
 
-                    Console.WriteLine($"{player.Name} (0x{player.Guid}) has spent {specCreditsSpent} skill credits on specialization, {specCreditsSpent - 70} over the limit of 70. To fix this situation, specialized skill reset will need to be applied{fixStr}");
+                    Console.WriteLine($"{player.Name} (0x{player.Guid}) has spent {specCreditsSpent} skill credits on specialization, {specCreditsSpent - 100} over the limit of 100. To fix this situation, specialized skill reset will need to be applied{fixStr}");
                     foundIssues = true;
 
                     if (fix)
@@ -517,7 +558,7 @@ namespace ACE.Server.Command.Handlers
 
                 if (availableCredits != targetCredits)
                 {
-                    Console.WriteLine($"{targetMsg}, but they have {availableCredits}{fixStr}");
+                    Console.WriteLine($"{targetMsg}\nBut they have {availableCredits}. {used} + {availableCredits} should equal {totalCredits}{fixStr}\n");
                     foundIssues = true;
 
                     if (fix)
@@ -531,7 +572,9 @@ namespace ACE.Server.Command.Handlers
 
                 if (totalSkillCredits != totalCredits)
                 {
-                    Console.WriteLine($"{player.Name} (0x{player.Guid}) should have {totalCredits} total skill credits, but they have {totalSkillCredits}{fixStr}");
+                    var totalSCMsg = $"{player.Name} (0x{player.Guid})({player.Level}) should have {totalCredits} total skill credits, but they have {totalSkillCredits}{fixStr}"
+                        + $"\nHeritage Credits: {startCredits}({player.Heritage}) || Level Credits: {levelCredits} || Quest Credits: {questCredits}\n";
+                    Console.WriteLine(totalSCMsg);
                     foundIssues = true;
 
                     if (fix)
@@ -608,7 +651,31 @@ namespace ACE.Server.Command.Handlers
             { 200, 43 },
             { 225, 44 },
             { 250, 45 },
-            { 275, 46 }
+            { 275, 46 },
+            { 300, 47 }, // Level 1k mod additional credits
+            { 330, 48 },
+            { 360, 49 },
+            { 390, 50 },
+            { 420, 51 },
+            { 450, 52 },
+            { 480, 53 },
+            { 510, 54 },
+            { 540, 55 },
+            { 570, 56 },
+            { 600, 57 },
+            { 630, 58 },
+            { 660, 59 },
+            { 690, 60 },
+            { 720, 61 },
+            { 750, 62 },
+            { 780, 63 },
+            { 810, 64 },
+            { 840, 65 },
+            { 870, 66 },
+            { 900, 67 },
+            { 930, 68 },
+            { 960, 69 },
+            { 990, 70 }
         };
 
         /// <summary>
@@ -904,6 +971,9 @@ namespace ACE.Server.Command.Handlers
 
             foreach (var player in players)
             {
+                // skip Sentinel and above in god state and olthoi
+                if (player.Account == null || player.GetProperty(PropertyInt.HeritageGroup) == (int)HeritageGroup.Olthoi || player.GetProperty(PropertyInt.HeritageGroup) == (int)HeritageGroup.OlthoiAcid || (player.Account.AccessLevel >= (uint)AccessLevel.Sentinel && player.GetProperty(PropertyString.GodState) != null && player.GetProperty(PropertyString.GodState) != ""))
+                    continue;
                 var totalXP = player.GetProperty(PropertyInt64.TotalExperience) ?? 0;
                 var unassignedXP = player.GetProperty(PropertyInt64.AvailableExperience) ?? 0;
 
@@ -1333,10 +1403,10 @@ namespace ACE.Server.Command.Handlers
         }
 
         // head / hands / feet
-        public static readonly int MaxArmorLevel_Extremity = 345;
+        public static readonly int MaxArmorLevel_Extremity = 405; // original 345
 
         // everything else
-        public static readonly int MaxArmorLevel_NonExtremity = 315;
+        public static readonly int MaxArmorLevel_NonExtremity = 435; // original 315
 
         public static int GetArmorLevel(int armorLevel, EquipMask equipMask, TinkerLog tinkerLog, int numTinkers, int imbuedEffect)
         {

@@ -1565,7 +1565,7 @@ namespace ACE.Server
             XmlConfigurator.ConfigureAndWatch(logRepository, log4netFileInfo);
 
             if (Environment.ProcessorCount < 2)
-                log.Warn("Only one vCPU was detected. ACE may run with limited performance. You should increase your vCPU count for anything more than a single player server.");
+                log.Warn("[STARTUP] Only one vCPU was detected. ACE may run with limited performance. You should increase your vCPU count for anything more than a single player server.");
 
             // Do system specific initializations here
             try
@@ -1578,13 +1578,13 @@ namespace ACE.Server
             }
             catch (Exception ex)
             {
-                log.Error(ex.ToString());
+                log.Error("[STARTUP] " + ex.ToString());
             }
 
-            log.Info("Starting ACEmulator...");
+            log.Info("[STARTUP] Starting ACEmulator...");
 
             if (IsRunningInContainer)
-                log.Info("ACEmulator is running in a container...");
+                log.Info("[STARTUP] ACEmulator is running in a container...");
             
             var configFile = Path.Combine(exeLocation, "Config.js");
             var configConfigContainer = Path.Combine(containerConfigDirectory, "Config.js");
@@ -1608,10 +1608,10 @@ namespace ACE.Server
                 }
             }
 
-            log.Info("Initializing ConfigManager...");
+            log.Info("[STARTUP] Initializing ConfigManager...");
             ConfigManager.Initialize();
 
-            log.Info("Initializing ModManager...");
+            log.Info("[STARTUP] Initializing ModManager...");
             ModManager.Initialize();
 
             if (ConfigManager.Config.Server.WorldName != "ACEmulator")
@@ -1622,43 +1622,43 @@ namespace ACE.Server
 
             if (ConfigManager.Config.Offline.PurgeDeletedCharacters)
             {
-                log.Info($"Purging deleted characters, and their possessions, older than {ConfigManager.Config.Offline.PurgeDeletedCharactersDays} days ({DateTime.Now.AddDays(-ConfigManager.Config.Offline.PurgeDeletedCharactersDays)})...");
+                log.Info($"[STARTUP] Purging deleted characters, and their possessions, older than {ConfigManager.Config.Offline.PurgeDeletedCharactersDays} days ({DateTime.Now.AddDays(-ConfigManager.Config.Offline.PurgeDeletedCharactersDays)})...");
                 ShardDatabaseOfflineTools.PurgeCharactersInParallel(ConfigManager.Config.Offline.PurgeDeletedCharactersDays, out var charactersPurged, out var playerBiotasPurged, out var possessionsPurged);
-                log.Info($"Purged {charactersPurged:N0} characters, {playerBiotasPurged:N0} player biotas and {possessionsPurged:N0} possessions.");
+                log.Info($"[STARTUP] Purged {charactersPurged:N0} characters, {playerBiotasPurged:N0} player biotas and {possessionsPurged:N0} possessions.");
             }
 
             if (ConfigManager.Config.Offline.PurgeOrphanedBiotas)
             {
-                log.Info($"Purging orphaned biotas...");
+                log.Info($"[STARTUP] Purging orphaned biotas...");
                 ShardDatabaseOfflineTools.PurgeOrphanedBiotasInParallel(out var numberOfBiotasPurged);
-                log.Info($"Purged {numberOfBiotasPurged:N0} biotas.");
+                log.Info($"[STARTUP] Purged {numberOfBiotasPurged:N0} biotas.");
             }
 
             if (ConfigManager.Config.Offline.PruneDeletedCharactersFromFriendLists)
             {
-                log.Info($"Pruning invalid friends from all friend lists...");
+                log.Info($"[STARTUP] Pruning invalid friends from all friend lists...");
                 ShardDatabaseOfflineTools.PruneDeletedCharactersFromFriendLists(out var numberOfFriendsPruned);
-                log.Info($"Pruned {numberOfFriendsPruned:N0} invalid friends found on friend lists.");
+                log.Info($"[STARTUP] Pruned {numberOfFriendsPruned:N0} invalid friends found on friend lists.");
             }
 
             if (ConfigManager.Config.Offline.PruneDeletedObjectsFromShortcutBars)
             {
-                log.Info($"Pruning invalid shortcuts from all shortcut bars...");
+                log.Info($"[STARTUP] Pruning invalid shortcuts from all shortcut bars...");
                 ShardDatabaseOfflineTools.PruneDeletedObjectsFromShortcutBars(out var numberOfShortcutsPruned);
-                log.Info($"Pruned {numberOfShortcutsPruned:N0} deleted objects found on shortcut bars.");
+                log.Info($"[STARTUP] Pruned {numberOfShortcutsPruned:N0} deleted objects found on shortcut bars.");
             }
 
             if (ConfigManager.Config.Offline.PruneDeletedCharactersFromSquelchLists)
             {
-                log.Info($"Pruning invalid squelches from all squelch lists...");
+                log.Info($"[STARTUP] Pruning invalid squelches from all squelch lists...");
                 ShardDatabaseOfflineTools.PruneDeletedCharactersFromSquelchLists(out var numberOfSquelchesPruned);
-                log.Info($"Pruned {numberOfSquelchesPruned:N0} invalid squelched characters found on squelch lists.");
+                log.Info($"[STARTUP] Pruned {numberOfSquelchesPruned:N0} invalid squelched characters found on squelch lists.");
             }
 
             if (ConfigManager.Config.Offline.AutoServerUpdateCheck)
                 CheckForServerUpdate();
             else
-                log.Info($"AutoServerVersionCheck is disabled...");
+                log.Info($"[STARTUP] AutoServerVersionCheck is disabled...");
 
             if (ConfigManager.Config.Offline.AutoUpdateWorldDatabase)
             {
@@ -1668,12 +1668,12 @@ namespace ACE.Server
                     AutoApplyWorldCustomizations();
             }
             else
-                log.Info($"AutoUpdateWorldDatabase is disabled...");
+                log.Info($"[STARTUP] AutoUpdateWorldDatabase is disabled...");
 
             if (ConfigManager.Config.Offline.AutoApplyDatabaseUpdates)
                 AutoApplyDatabaseUpdates();
             else
-                log.Info($"AutoApplyDatabaseUpdates is disabled...");
+                log.Info($"[STARTUP] AutoApplyDatabaseUpdates is disabled...");
 
             // This should only be enabled manually. To enable it, simply uncomment this line
             //ACE.Database.OfflineTools.Shard.BiotaGuidConsolidator.ConsolidateBiotaGuids(0xA0000000, true, false, out int numberOfBiotasConsolidated, out int numberOfBiotasSkipped, out int numberOfErrors);
@@ -1684,31 +1684,31 @@ namespace ACE.Server
             // pre-load starterGear.json, abort startup if file is not found as it is required to create new characters.
             if (Factories.StarterGearFactory.GetStarterGearConfiguration() == null)
             {
-                log.Fatal("Unable to load or parse starterGear.json. ACEmulator will now abort startup.");
+                log.Fatal("[STARTUP] Unable to load or parse starterGear.json. ACEmulator will now abort startup.");
                 ServerManager.StartupAbort();
                 Environment.Exit(0);
             }
 
-            log.Info("Initializing ServerManager...");
+            log.Info("[STARTUP] Initializing ServerManager...");
             ServerManager.Initialize();
 
-            log.Info("Initializing DatManager...");
+            log.Info("[STARTUP] Initializing DatManager...");
             DatManager.Initialize(ConfigManager.Config.Server.DatFilesDirectory, true);
 
             if (ConfigManager.Config.DDD.EnableDATPatching)
             {
-                log.Info("Initializing DDDManager...");
+                log.Info("[STARTUP] Initializing DDDManager...");
                 DDDManager.Initialize();
             }
             else
-                log.Info("DAT Patching Disabled...");
+                log.Info("[STARTUP] DAT Patching Disabled...");
 
-            log.Info("Initializing DatabaseManager...");
+            log.Info("[STARTUP] Initializing DatabaseManager...");
             DatabaseManager.Initialize();
 
             if (DatabaseManager.InitializationFailure)
             {
-                log.Fatal("DatabaseManager initialization failed. ACEmulator will now abort startup.");
+                log.Fatal("[STARTUP] DatabaseManager initialization failed. ACEmulator will now abort startup.");
                 ServerManager.StartupAbort();
                 Environment.Exit(0);
             }
@@ -1721,32 +1721,33 @@ namespace ACE.Server
                     xpTable.CharacterLevelSkillCreditList.AddRange(CharacterLevelSkillCreditListMOD);
                     DatManager.PortalDat.XpTable = xpTable;
                 }
-                log.Info($" -- LevelMod active: {xpTable.CharacterLevelXPList.Count - 1} -- SkillCreditMod active: {xpTable.CharacterLevelSkillCreditList.Count - 1} / {xpTable.CharacterLevelSkillCreditList.Sum<uint>(i => (uint)i)}");
+                log.Info($"[STARTUP]  -- LevelMod active: {xpTable.CharacterLevelXPList.Count - 1} -- SkillCreditMod active: {xpTable.CharacterLevelSkillCreditList.Count - 1} / {xpTable.CharacterLevelSkillCreditList.Sum<uint>(i => (uint)i)}");
             }
 
-            log.Info("Starting DatabaseManager...");
+            log.Info("[STARTUP] Starting DatabaseManager...");
             DatabaseManager.Start();
 
-            log.Info("Starting PropertyManager...");
+            log.Info("[STARTUP] Starting PropertyManager...");
             PropertyManager.Initialize();
 
-            log.Info("Initializing GuidManager...");
+            log.Info("[STARTUP] Initializing GuidManager...");
             GuidManager.Initialize();
 
             if (!string.IsNullOrEmpty(ConfigManager.Config.Chat.DiscordToken))
             {
-                log.Info("Attempting to start Discord Client...");
+                log.Info("[STARTUP] Attempting to start Discord Client...");
                 DiscordChatManager.Initialize();
             }
 
             if (ConfigManager.Config.Server.ServerPerformanceMonitorAutoStart)
             {
-                log.Info("Server Performance Monitor auto starting...");
+                log.Info("[STARTUP] Server Performance Monitor auto starting...");
                 ServerPerformanceMonitor.Start();
             }
 
             if (ConfigManager.Config.Server.WorldDatabasePrecaching)
             {
+                log.Info("[STARTUP] Precaching Started...");
                 log.Info("Precaching Weenies...");
                 DatabaseManager.World.CacheAllWeenies();
                 log.Info("Precaching Cookbooks...");
@@ -1769,30 +1770,31 @@ namespace ACE.Server
                 DatabaseManager.World.CacheAllTreasureMaterialColor();
                 log.Info("Precaching Treasures - Wielded...");
                 DatabaseManager.World.CacheAllTreasureWielded();
+                log.Info("[STARTUP] Precaching Finished.");
             }
             else
-                log.Info("Precaching World Database Disabled...");
+                log.Info("[STARTUP] Precaching World Database Disabled...");
 
-            log.Info("Initializing PlayerManager...");
+            log.Info("[STARTUP] Initializing PlayerManager...");
             PlayerManager.Initialize();
 
-            log.Info("Initializing HouseManager...");
+            log.Info("[STARTUP] Initializing HouseManager...");
             HouseManager.Initialize();
 
-            log.Info("Initializing InboundMessageManager...");
+            log.Info("[STARTUP] Initializing InboundMessageManager...");
             InboundMessageManager.Initialize();
 
-            log.Info("Initializing SocketManager...");
+            log.Info("[STARTUP] Initializing SocketManager...");
             SocketManager.Initialize();
 
-            log.Info("Initializing WorldManager...");
+            log.Info("[STARTUP] Initializing WorldManager...");
             WorldManager.Initialize();
 
-            log.Info("Initializing EventManager...");
+            log.Info("[STARTUP] Initializing EventManager...");
             EventManager.Initialize();
 
             // Free up memory before the server goes online. This can free up 6 GB+ on larger servers.
-            log.Info("Forcing .net garbage collection...");
+            log.Info("[STARTUP] Forcing .net garbage collection...");
             for (int i = 0; i < 10; i++)
             {
                 // https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/fundamentals
@@ -1803,11 +1805,11 @@ namespace ACE.Server
             }
 
             // This should be last
-            log.Info("Initializing CommandManager...");
+            log.Info("[STARTUP] Initializing CommandManager...");
             CommandManager.Initialize();
 
             //Register mod commands
-            log.Info("Registering ModManager commands...");
+            log.Info("[STARTUP] Registering ModManager commands...");
             ModManager.RegisterCommands();
             ModManager.ListMods();
 
@@ -1827,7 +1829,7 @@ namespace ACE.Server
             if (!IsRunningInContainer)
             {
                 if (!ServerManager.ShutdownInitiated)
-                    log.Warn("Unsafe server shutdown detected! Data loss is possible!");
+                    log.Warn("[SHUTDOWN] Unsafe server shutdown detected! Data loss is possible!");
 
                 PropertyManager.StopUpdating();
                 DatabaseManager.Stop();
@@ -1842,7 +1844,7 @@ namespace ACE.Server
                 }
                 catch (Exception ex)
                 {
-                    log.Error(ex.ToString());
+                    log.Error("[SHUTDOWN] " + ex.ToString());
                 }
             }
             else

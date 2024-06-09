@@ -447,6 +447,8 @@ namespace ACE.Server.WorldObjects
         public static int CalcSkillRank(SkillAdvancementClass sac, uint xpAmount)
         {
             var rankXpTable = GetSkillXPTable(sac);
+            if (rankXpTable == null)
+                return 0;
             for (var i = rankXpTable.Count - 1; i >= 0; i--)
             {
                 var rankAmount = rankXpTable[i];

@@ -19,7 +19,14 @@ namespace ACE.Server.Managers
 
         public static void SendDiscordMessage(string player, string message, long channelId)
         {
-            _discordSocketClient.GetGuild((ulong)ConfigManager.Config.Chat.ServerId).GetTextChannel((ulong)channelId).SendMessageAsync(player + " : " + message);
+            try
+            {
+                _discordSocketClient.GetGuild((ulong)ConfigManager.Config.Chat.ServerId).GetTextChannel((ulong)channelId).SendMessageAsync(player + " : " + message);
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+            }
         }
 
         public static void Initialize()

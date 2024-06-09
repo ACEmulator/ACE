@@ -1488,7 +1488,8 @@ namespace ACE.Server.Command.Handlers
             }
 
             Creature creature = (Creature)item;
-            string output = "Strength: " + creature.Strength.Current;
+            string output = $"== {creature.Name} ==";
+            output = "\nStrength: " + creature.Strength.Current;
             output += "\nEndurance: " + creature.Endurance.Current;
             output += "\nCoordination: " + creature.Coordination.Current;
             output += "\nQuickness: " + creature.Quickness.Current;
@@ -1498,6 +1499,17 @@ namespace ACE.Server.Command.Handlers
             output += "\n\nHealth: " + creature.Health.Current + "/" + creature.Health.MaxValue;
             output += "\nStamina: " + creature.Stamina.Current + "/" + creature.Stamina.MaxValue;
             output += "\nMana: " + creature.Mana.Current + "/" + creature.Mana.MaxValue;
+
+            output += "\n== Resistances ==";
+            output += "\nBludgeon: " + creature.ResistBludgeon + "/" + creature.ResistBludgeonMod + $" {(creature.ResistBludgeon + creature.ResistBludgeonMod)}";
+            output += "\nSlash: " + creature.ResistSlash + "/" + creature.ResistSlashMod + $" {(creature.ResistSlash + creature.ResistSlashMod)}";
+            output += "\nPierce: " + creature.ResistPierce + "/" + creature.ResistPierceMod + $" {(creature.ResistPierce + creature.ResistPierceMod)}";
+            output += "\nFire: " + creature.ResistFire + "/" + creature.ResistFireMod + $" {(creature.ResistFire + creature.ResistFireMod)}";
+            output += "\nCold: " + creature.ResistCold + "/" + creature.ResistColdMod + $" {(creature.ResistCold + creature.ResistColdMod)}";
+            output += "\nAcid: " + creature.ResistAcid + "/" + creature.ResistAcidMod + $" {(creature.ResistAcid + creature.ResistAcidMod)}";
+            output += "\nElectric: " + creature.ResistElectric + "/" + creature.ResistElectricMod + $" {(creature.ResistElectric + creature.ResistElectricMod)}";
+            output += "\nNether: " + creature.ResistNether + "/" + creature.ResistNetherMod + $" {(creature.ResistNether + creature.ResistNetherMod)}";
+            output += "\nResistanceMod: " + creature.ResistanceModifier + "/" + creature.ResistanceModifierType;
 
             var specialized = creature.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Specialized).OrderBy(s => s.Skill.ToString());
             var trained = creature.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Trained).OrderBy(s => s.Skill.ToString());

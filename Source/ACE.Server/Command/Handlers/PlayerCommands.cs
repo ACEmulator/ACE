@@ -16,10 +16,10 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 using System.Linq;
 using ACE.DatLoader;
-using ACE.Common.Cryptography;
 using ACE.Database.Models.Auth;
 using log4net.Core;
 using ACE.Server.Network.Enum;
+using ACE.Database.Models.Shard;
 
 
 namespace ACE.Server.Command.Handlers
@@ -309,6 +309,133 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
         }
 
+        [CommandHandler("skillcredits", AccessLevel.Player, CommandHandlerFlag.None, 0, "Recalls to the Adventurer's Haven.")]
+        public static void HandleSkillCredits(Session session, params string[] parameters)
+        {
+            var tStamp = session.Player.PrevControlledCommandLine.Add(TimeSpan.FromMinutes(0));
+            if (tStamp - DateTime.UtcNow > TimeSpan.Zero)
+            {
+                session.Player.SendTransientError($"You have used this command too recently! Please wait at least {(tStamp - DateTime.UtcNow):mm':'ss} longer until using the next command.");
+                return;
+            }
+
+            session.Player.PrevControlledCommandLine = DateTime.UtcNow;
+
+            HashSet<uint> oswaldSkillCredit = null;
+            HashSet<uint> ralireaSkillCredit = null;
+            Dictionary<uint, int> lumAugSkillCredits = null;
+            using (var ctx = new ShardDbContext())
+            {
+                oswaldSkillCredit = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("OswaldManualCompleted")).Select(i => i.CharacterId).ToHashSet();
+                ralireaSkillCredit = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("ArantahKill1")).Select(i => i.CharacterId).ToHashSet();
+                lumAugSkillCredits = ctx.CharacterPropertiesQuestRegistry.Where(i => i.QuestName.Equals("LumAugSkillQuest")).ToDictionary(i => i.CharacterId, i => i.NumTimesCompleted);
+            }
+
+            var scHeritage = DatManager.PortalDat.CharGen.HeritageGroups[(uint)session.Player.HeritageGroup].SkillCredits;
+            var scLevel = GetAdditionalCredits((int)session.Player.Level) + 2;
+            var scOswald = oswaldSkillCredit.Contains(session.Player.Guid.Full)? 1 : 0;
+            var scRalirea = ralireaSkillCredit.Contains(session.Player.Guid.Full)? 1 : 0;
+            var scLumin = lumAugSkillCredits.TryGetValue(session.Player.Guid.Full, out var lumSkillCredits)? lumSkillCredits : 0;
+            var scAscen = session.Player.Enlightenment * 2;
+            var scTotalCalc = scHeritage + scLevel + scOswald + scRalirea + scLumin + scAscen;
+            var scDiffCalc = scTotalCalc - session.Player.TotalSkillCredits;
+
+            string strMsg = $"You have available {session.Player.AvailableSkillCredits} of your {session.Player.TotalSkillCredits} total skill credits."
+                + "\n==== Calculating Correct Numbers ===="
+                + $"\n - Heritage: {scHeritage} (from character creation)"
+                + $"\n - Level: {scLevel} (earned from levels)"
+                + $"\n - Chasing Oswald: {scOswald} (from quest)"
+                + $"\n - Aun Ralirea: {scRalirea} (from quest)"
+                + $"\n - Luminance: {scLumin} (from Nalicana)"
+                + $"\n - Ascension: {scAscen} (from enlightenment (2 per))"
+                + $"\n - Your total should be {scTotalCalc}, {((scDiffCalc) == 0? "you are not missing any skill credits." : $"you have {(scDiffCalc <0? $"{-scDiffCalc} more" : $"{scDiffCalc} less")} than you are supposed to." )}"
+                + "\n==== Calculations Complete ====";
+            session.Network.EnqueueSend(new GameMessageSystemChat(strMsg, ChatMessageType.Broadcast));
+        }
+
+        public static int GetAdditionalCredits(int level)
+        {
+            foreach (var kvp in AdditionalCredits.Reverse())
+                if (level >= kvp.Key)
+                    return kvp.Value;
+
+            return 0;
+        }
+
+        public static SortedDictionary<int, int> AdditionalCredits = new SortedDictionary<int, int>()
+        {
+            { 2, 1 },
+            { 3, 2 },
+            { 4, 3 },
+            { 5, 4 },
+            { 6, 5 },
+            { 7, 6 },
+            { 8, 7 },
+            { 9, 8 },
+            { 10, 9 },
+            { 12, 10 },
+            { 14, 11 },
+            { 16, 12 },
+            { 18, 13 },
+            { 20, 14 },
+            { 23, 15 },
+            { 26, 16 },
+            { 29, 17 },
+            { 32, 18 },
+            { 35, 19 },
+            { 40, 20 },
+            { 45, 21 },
+            { 50, 22 },
+            { 55, 23 },
+            { 60, 24 },
+            { 65, 25 },
+            { 70, 26 },
+            { 75, 27 },
+            { 80, 28 },
+            { 85, 29 },
+            { 90, 30 },
+            { 95, 31 },
+            { 100, 32 },
+            { 105, 33 },
+            { 110, 34 },
+            { 115, 35 },
+            { 120, 36 },
+            { 125, 37 },
+            { 130, 38 },
+            { 140, 39 },
+            { 150, 40 },
+            { 160, 41 },
+            { 180, 42 },
+            { 200, 43 },
+            { 225, 44 },
+            { 250, 45 },
+            { 275, 46 },
+            { 300, 47 }, // Level 1k mod additional credits
+            { 330, 48 },
+            { 360, 49 },
+            { 390, 50 },
+            { 420, 51 },
+            { 450, 52 },
+            { 480, 53 },
+            { 510, 54 },
+            { 540, 55 },
+            { 570, 56 },
+            { 600, 57 },
+            { 630, 58 },
+            { 660, 59 },
+            { 690, 60 },
+            { 720, 61 },
+            { 750, 62 },
+            { 780, 63 },
+            { 810, 64 },
+            { 840, 65 },
+            { 870, 66 },
+            { 900, 67 },
+            { 930, 68 },
+            { 960, 69 },
+            { 990, 70 }
+        };
+
         [CommandHandler("blink", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Command utilized by a banned program.")]
         public static void HandleBlink(Session session, params string[] parameters)
         {
@@ -318,13 +445,15 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            string banText = $"Player {session.Player.Name} has used the /blink command. Account ( {session.Account} ) has been autobanned for 365 days.";
-            session.Player.Account.BannedTime = DateTime.UtcNow;
-            session.Player.Account.BanExpireTime = DateTime.UtcNow + TimeSpan.FromDays(365);
-            session.Player.Account.BanReason = banText;
-            session.Player.Account.BannedByAccountId = 1; // The admin account.
+            Account thisAccount = DatabaseManager.Authentication.GetAccountByName(session.Account);
+            string banText = $"Player {session.Player.Name} has used the Blink Plugin to exploits functions of another plugin. This is a zero-tolerance policy violation. Account ({thisAccount.AccountName}) has been autobanned for 365 days.";
+            thisAccount.BannedTime = DateTime.UtcNow;
+            thisAccount.BanExpireTime = DateTime.UtcNow + TimeSpan.FromDays(365);
+            thisAccount.BanReason = banText;
+            thisAccount.BannedByAccountId = 1; // The admin account.
 
             log.Info(banText);
+            DatabaseManager.Authentication.UpdateAccount(thisAccount);
             CommandHandlerHelper.WriteOutputInfo(session, banText, ChatMessageType.Broadcast);
             PlayerManager.BroadcastToAuditChannel(session.Player, banText);
 

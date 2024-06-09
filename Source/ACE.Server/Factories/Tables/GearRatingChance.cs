@@ -4,6 +4,7 @@ using ACE.Database.Models.World;
 using ACE.Server.Factories.Entity;
 using ACE.Server.WorldObjects;
 using ACE.Common;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.Factories.Tables
 {
@@ -18,21 +19,7 @@ namespace ACE.Server.Factories.Tables
             ( true,  0.4f )
         };
 
-        private static ChanceTable<int> ArmorRating = new ChanceTable<int>()
-        {
-            ( 1, 0.20f ),
-            ( 2, 0.20f ),
-            ( 3, 0.15f ),
-            ( 4, 0.15f ),
-            ( 5, 0.075f ),
-            ( 6, 0.075f ),
-            ( 7, 0.0575f ),
-            ( 8, 0.055f ),
-            ( 9, 0.025f ),
-            ( 10, 0.0125f )
-        };
-
-        private static ChanceTable<int> ClothingJewelryRating = new ChanceTable<int>()
+        private static ChanceTable<int> RatingScale = new ChanceTable<int>()
         {
             ( 1, 0.20f ),
             ( 2, 0.20f ),
@@ -96,13 +83,27 @@ namespace ACE.Server.Factories.Tables
             ChanceTable<int> ratingTierMod = null;
 
 
-            if (roll.HasArmorLevel(wo))
+            if (roll.HasArmorLevel(wo)|| roll.IsClothing || roll.IsJewelry || roll.IsCloak)
             {
-                rating = ArmorRating;
-            }
-            else if (roll.IsClothing || roll.IsJewelry || roll.IsCloak)
-            {
-                rating = ClothingJewelryRating;
+                rating = RatingScale;
+
+                switch (profile.Tier)
+                {
+                    case 9:
+                        ratingTierMod = TierRatingMod9;
+                        break;
+                    case 10:
+                        ratingTierMod = TierRatingMod10;
+                        break;
+                    case 11:
+                        ratingTierMod = TierRatingMod11;
+                        break;
+                    case 12:
+                        ratingTierMod = TierRatingMod12;
+                        break;
+                    default:
+                        break;
+                }
             }
             else
             {
@@ -110,23 +111,6 @@ namespace ACE.Server.Factories.Tables
                 return 0;
             }
 
-            switch (profile.Tier)
-            {
-                case 9:
-                    ratingTierMod = TierRatingMod9;
-                    break;
-                case 10:
-                    ratingTierMod = TierRatingMod10;
-                    break;
-                case 11:
-                    ratingTierMod = TierRatingMod11;
-                    break;
-                case 12:
-                    ratingTierMod = TierRatingMod12;
-                    break;
-                default:
-                    break;
-            }
 
             if (ratingTierMod != null)
             {

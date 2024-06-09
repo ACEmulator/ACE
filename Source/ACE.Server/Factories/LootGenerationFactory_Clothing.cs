@@ -993,76 +993,36 @@ namespace ACE.Server.Factories
             // shields don't have gear ratings
             if (wo.IsShield) return false;
 
-            var gearRating = GearRatingChance.Roll(wo, profile, roll);
+            var totalGearRating = GearRatingChance.Roll(wo, profile, roll);
 
-            if (gearRating == 0)
+            if (totalGearRating == 0)
                 return false;
 
             //Console.WriteLine($"TryMutateGearRating({wo.Name}, {profile.TreasureType}, {roll.ItemType}): rolled gear rating {gearRating}");
 
-            var rng = ThreadSafeRandom.Next(0, 5);
+            int r1Value = totalGearRating;
+            int r2Value = 0;
+            int r3Value = 0;
 
-            switch (rng)
+            if (totalGearRating > 19)
             {
-                case 0:
-                    wo.GearCritDamage = gearRating;
-                    break;
-                case 1:
-                    wo.GearCritDamageResist = gearRating;
-                    break;
-                case 2:
-                    if (roll.HasArmorLevel(wo))
-                    {
-                        wo.GearCritDamage = gearRating;
-                    }
-                    else
-                    {
-                        wo.GearDamage = gearRating;
-                    }
-                    break;
-                case 3:
-                    wo.GearDamageResist = gearRating;
-                    break;
-                case 4:
-                    wo.GearHealingBoost = gearRating;
-                    break;
-                case 5:
-                    wo.GearMaxHealth = gearRating;
-                    break;
-                default:
-                    log.Error($"TryMutateGearRating({wo.Name}, {profile.TreasureType}, {roll.ItemType}): failed roll random");
-                    return false;
+                r1Value = (int)Math.Floor((double)totalGearRating * 5 / 8);
+                r2Value = (int)Math.Floor((double)totalGearRating / 4);
+                r3Value = (int)Math.Ceiling((double)totalGearRating / 8);
+            }
+            else if (totalGearRating > 10)
+            {
+                r1Value = (int)Math.Ceiling((double)totalGearRating * 5 / 8);
+                r2Value = (int)Math.Floor((double)totalGearRating * 3 / 8);
             }
 
-            //if (roll.HasArmorLevel(wo))
-            //{
-            //    // clothing w/ al, and crowns would be included in this group
-            //    if (rng == 0)
-            //        wo.GearCritDamage = gearRating;
-            //    else
-            //        wo.GearCritDamageResist = gearRating;
-            //}
-            //else if (roll.IsClothing || roll.IsCloak)
-            //{
-            //    if (rng == 0)
-            //        wo.GearDamage = gearRating;
-            //    else
-            //        wo.GearDamageResist = gearRating;
-            //}
-            //else if (roll.IsJewelry)
-            //{
-            //    if (rng == 0)
-            //        wo.GearHealingBoost = gearRating;
-            //    else
-            //        wo.GearMaxHealth = gearRating;
-            //}
-            //else
-            //{
-            //    log.Error($"TryMutateGearRating({wo.Name}, {profile.TreasureType}, {roll.ItemType}): unknown item type");
-            //    return false;
-            //}
+            if (r1Value > 0)
+                RollAndAssignGearRating(wo, profile, roll, r1Value);
+            if (r2Value > 0)
+                RollAndAssignGearRating(wo, profile, roll, r2Value);
+            if (r3Value > 0)
+                RollAndAssignGearRating(wo, profile, roll, r3Value);
 
-            // ensure wield requirement is level 180?
             if (roll.ArmorType != TreasureArmorType.Society)
                 SetWieldLevelReq(wo, 180);
 
@@ -1110,6 +1070,64 @@ namespace ACE.Server.Factories
             }
             armorType = null;
             return false;
+        }
+
+        private static void RollAndAssignGearRating(WorldObject wo, TreasureDeath profile, TreasureRoll roll, int ratingValue = 0)
+        {
+            var rng = ThreadSafeRandom.Next(0, 5);
+
+            switch (rng)
+            {
+                case 0:
+                    if (wo.GearCritDamage == null)
+                    { wo.GearCritDamage = ratingValue; }
+                    else
+                    { wo.GearCritDamage += ratingValue; }
+                    break;
+                case 1:
+                    if (wo.GearCritDamageResist == null)
+                        {wo.GearCritDamageResist = ratingValue;}
+                    else
+                        {wo.GearCritDamageResist += ratingValue;}
+                    break;
+                case 2:
+                    if (roll.HasArmorLevel(wo))
+                    {
+                        if (wo.GearCritDamage == null)
+                        { wo.GearCritDamage = ratingValue; }
+                        else
+                        { wo.GearCritDamage += ratingValue; }
+                    }
+                    else
+                    {
+                        if (wo.GearDamage == null)
+                        { wo.GearDamage = ratingValue; }
+                        else
+                        { wo.GearDamage += ratingValue; }
+                    }
+                    break;
+                case 3:
+                    if (wo.GearDamageResist == null)
+                    { wo.GearDamageResist = ratingValue; }
+                    else
+                    { wo.GearDamageResist += ratingValue; }
+                    break;
+                case 4:
+                    if (wo.GearHealingBoost == null)
+                    { wo.GearHealingBoost = ratingValue; }
+                    else
+                    { wo.GearHealingBoost += ratingValue; }
+                    break;
+                case 5:
+                    if (wo.GearMaxHealth == null)
+                    { wo.GearMaxHealth = ratingValue; }
+                    else
+                    { wo.GearMaxHealth += ratingValue; }
+                    break;
+                default:
+                    log.Error($"TryMutateGearRating({wo.Name}, {profile.TreasureType}, {roll.ItemType}): failed roll rating type");
+                    break;
+            }
         }
     }
 }
