@@ -7,6 +7,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.WorldObjects;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.DatLoader.FileTypes;
 
 namespace ACE.Server.Entity
 {
@@ -69,6 +70,14 @@ namespace ACE.Server.Entity
                 return false;
             }
 
+            string lumCheck = VerifyAvailableLuminance(player);
+
+            if (lumCheck != "true")
+            {
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You must have {lumCheck} Luminance available for ascension.", ChatMessageType.Broadcast));
+                return false;
+            }
+
             if (!VerifyLumAugs(player))
             {
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You must have all luminance auras for ascension.", ChatMessageType.Broadcast));
@@ -95,6 +104,40 @@ namespace ACE.Server.Entity
             return true;
         }
 
+        public static string VerifyAvailableLuminance(Player player)
+        {
+
+            switch (player.Enlightenment)
+            {
+                case 1:
+                    if (player.AvailableLuminance < 500000000)
+                        return "500,000,000";
+                    break;
+                case 2:
+                    if (player.AvailableLuminance < 800000000)
+                        return "800,000,000";
+                    break;
+                case 3:
+                    if (player.AvailableLuminance < 1200000000)
+                        return "1,200,000,000";
+                    break;
+                case 4:
+                    if (player.AvailableLuminance < 1500000000)
+                        return "1,500,000,000";
+                    break;
+                case 5:
+                    if (player.AvailableLuminance < 2000000000)
+                        return "2,000,000,000";
+                    break;
+                default:
+                    if (player.AvailableLuminance < 1000)
+                        return "1,000";
+                    break;
+            }
+
+            return "true";
+        }
+
         public static bool VerifySocietyMaster(Player player)
         {
             return player.SocietyRankCelhan == 1001 || player.SocietyRankEldweb == 1001 || player.SocietyRankRadblo == 1001;
@@ -102,21 +145,47 @@ namespace ACE.Server.Entity
 
         public static bool VerifyLumAugs(Player player)
         {
-            var lumAugCredits = 0;
+            //var lumAugCredits = 0;
 
-            lumAugCredits += player.LumAugAllSkills;
-            lumAugCredits += player.LumAugSurgeChanceRating;
-            lumAugCredits += player.LumAugCritDamageRating;
-            lumAugCredits += player.LumAugCritReductionRating;
-            lumAugCredits += player.LumAugDamageRating;
-            lumAugCredits += player.LumAugDamageReductionRating;
-            lumAugCredits += player.LumAugItemManaUsage;
-            lumAugCredits += player.LumAugItemManaGain;
-            lumAugCredits += player.LumAugHealingRating;
-            lumAugCredits += player.LumAugSkilledCraft;
-            lumAugCredits += player.LumAugSkilledSpec;
+            //lumAugCredits += player.LumAugAllSkills;
+            //lumAugCredits += player.LumAugSurgeChanceRating;
+            //lumAugCredits += player.LumAugCritDamageRating;
+            //lumAugCredits += player.LumAugCritReductionRating;
+            //lumAugCredits += player.LumAugDamageRating;
+            //lumAugCredits += player.LumAugDamageReductionRating;
+            //lumAugCredits += player.LumAugItemManaUsage;
+            //lumAugCredits += player.LumAugItemManaGain;
+            //lumAugCredits += player.LumAugHealingRating;
+            //lumAugCredits += player.LumAugSkilledCraft;
+            //lumAugCredits += player.LumAugSkilledSpec;
 
-            return lumAugCredits >= 65;
+            //return lumAugCredits >= 65;
+
+            if (player.LumAugAllSkills < 21)
+                return false;
+            if (player.LumAugSurgeChanceRating < 5)
+                return false;
+            if (player.LumAugCritDamageRating < 10)
+                return false;
+            if (player.LumAugCritReductionRating < 10)
+                return false;
+            if (player.LumAugDamageRating < 25)
+                return false;
+            if (player.LumAugDamageReductionRating < 25)
+                return false;
+            if (player.LumAugItemManaUsage < 5)
+                return false;
+            if (player.LumAugItemManaGain < 5)
+                return false;
+            if (player.LumAugHealingRating < 5)
+                return false;
+            if (player.LumAugSkilledCraft < 5)
+                return false;
+            if (player.LumAugSkilledSpec < 10)
+                return false;
+
+            return true;
+
         }
 
         public static void DequipAllItems(Player player)
@@ -166,8 +235,14 @@ namespace ACE.Server.Entity
 
         public static void RemoveLevel(Player player)
         {
+            // Available and total exp reset
+            player.AvailableExperience = 0;
+            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(player, PropertyInt64.AvailableExperience, player.AvailableExperience ?? 0));
             player.TotalExperience = 0;
             player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(player, PropertyInt64.TotalExperience, player.TotalExperience ?? 0));
+            // Available Lum reset
+            player.AvailableLuminance = 0;
+            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(player, PropertyInt64.AvailableLuminance, player.AvailableLuminance ?? 0));
 
             player.Level = 1;
             player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.Level, player.Level ?? 0));
@@ -328,26 +403,51 @@ namespace ACE.Server.Entity
                 case 1:
                     player.AddTitle(CharacterTitle.Awakened);
                     lvl = "1st";
+                    player.Vitals[PropertyAttribute2nd.MaxHealth].StartingValue += 4;
+                    player.Vitals[PropertyAttribute2nd.MaxStamina].StartingValue += 8;
+                    player.Vitals[PropertyAttribute2nd.MaxMana].StartingValue += 8;
+                    player.AugmentationIncreasedSpellDuration += 1;
+                    player.AugmentationBonusXp += 1;
                     player.MaximumLuminance = 500000000;
                     break;
                 case 2:
                     player.AddTitle(CharacterTitle.Enlightened);
                     lvl = "2nd";
+                    player.Vitals[PropertyAttribute2nd.MaxHealth].StartingValue += 8;
+                    player.Vitals[PropertyAttribute2nd.MaxStamina].StartingValue += 16;
+                    player.Vitals[PropertyAttribute2nd.MaxMana].StartingValue += 16;
+                    player.AugmentationIncreasedSpellDuration += 1;
+                    player.AugmentationBonusXp += 1;
                     player.MaximumLuminance = 800000000;
                     break;
                 case 3:
                     player.AddTitle(CharacterTitle.Illuminated);
                     lvl = "3rd";
+                    player.Vitals[PropertyAttribute2nd.MaxHealth].StartingValue += 12;
+                    player.Vitals[PropertyAttribute2nd.MaxStamina].StartingValue += 24;
+                    player.Vitals[PropertyAttribute2nd.MaxMana].StartingValue += 24;
+                    player.AugmentationIncreasedSpellDuration += 1;
+                    player.AugmentationBonusXp += 1;
                     player.MaximumLuminance = 1200000000;
                     break;
                 case 4:
                     player.AddTitle(CharacterTitle.Transcended);
                     lvl = "4th";
+                    player.Vitals[PropertyAttribute2nd.MaxHealth].StartingValue += 16;
+                    player.Vitals[PropertyAttribute2nd.MaxStamina].StartingValue += 32;
+                    player.Vitals[PropertyAttribute2nd.MaxMana].StartingValue += 32;
+                    player.AugmentationIncreasedSpellDuration += 1;
+                    player.AugmentationBonusXp += 1;
                     player.MaximumLuminance = 1500000000;
                     break;
                 case 5:
                     player.AddTitle(CharacterTitle.CosmicConscious);
                     lvl = "5th";
+                    player.Vitals[PropertyAttribute2nd.MaxHealth].StartingValue += 20;
+                    player.Vitals[PropertyAttribute2nd.MaxStamina].StartingValue += 40;
+                    player.Vitals[PropertyAttribute2nd.MaxMana].StartingValue += 40;
+                    player.AugmentationIncreasedSpellDuration += 1;
+                    player.AugmentationBonusXp += 1;
                     player.MaximumLuminance = 2000000000;
                     break;
             }

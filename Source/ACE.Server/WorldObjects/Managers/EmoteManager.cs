@@ -1563,12 +1563,12 @@ namespace ACE.Server.WorldObjects.Managers
                     var worldQstLumMult = PropertyManager.GetDouble("quest_lum_modifier", 0, true).Item;
 
                     if (player != null)
-                        player.Session.Network.EnqueueSend(new GameEventPopupString(player.Session, $"The current World XP Modifier is: {worldExpMult} _" +
-                            $"The current World Quest Modifier is: {worldQstMult} _" +
-                            $"The current World Kill Modifier is: {worldKillMult} _" +
-                            $"The current World Luminance Modifier is: {worldLumMult} _" +
-                            $"The current World Luminance Quest Modifier is: {worldQstLumMult} _" +
-                            $"You will recieve {worldExpMult * worldKillMult}x xp per kill, {worldExpMult * worldQstMult}x xp per quest, {worldLumMult}x lum per kill, and {worldLumMult * worldQstLumMult}x lum per quest."));
+                        player.Session.Network.EnqueueSend(new GameEventPopupString(player.Session, $"The current World XP Modifier is: {worldExpMult}\n" +
+                            $"The current World Quest Modifier is: {worldQstMult}\n" +
+                            $"The current World Kill Modifier is: {worldKillMult}\n" +
+                            $"The current World Luminance Modifier is: {worldLumMult}\n" +
+                            $"The current World Luminance Quest Modifier is: {worldQstLumMult}\n" +
+                            $"\nYou will recieve {worldExpMult * worldKillMult}x xp per kill, {worldExpMult * worldQstMult}x xp per quest, {worldLumMult}x lum per kill, and {worldLumMult * worldQstLumMult}x lum per quest."));
 
                     break;
 

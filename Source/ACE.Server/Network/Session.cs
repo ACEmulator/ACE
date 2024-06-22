@@ -83,6 +83,9 @@ namespace ACE.Server.Network
         /// </summary>
         public DateTime LastPassTime { get; set; }
 
+        public static bool BanIPBySession(IPEndPoint endPoint) => (DatabaseManager.Authentication.UpdateIPIsBanned(endPoint));
+        public static bool UnBanIPBySession(IPEndPoint endPoint) => (DatabaseManager.Authentication.RemoveIPIsBanned(endPoint));
+
         public Session(ConnectionListener connectionListener, IPEndPoint endPoint, ushort clientId, ushort serverId)
         {
             EndPointC2S = endPoint;

@@ -19,6 +19,7 @@ namespace ACE.Database.Models.Auth
 
         public virtual DbSet<Accesslevel> Accesslevel { get; set; }
         public virtual DbSet<Account> Account { get; set; }
+        public virtual DbSet<BlackList> BlackList { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -138,6 +139,14 @@ namespace ACE.Database.Models.Auth
                     .HasForeignKey(d => d.AccessLevel)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_accesslevel");
+            });
+
+            modelBuilder.Entity<BlackList>(entity =>
+            {
+                entity.ToTable("blacklist");
+
+                entity.HasKey(e => e.IP)
+                    .HasName("PRIMARY");
             });
 
             OnModelCreatingPartial(modelBuilder);

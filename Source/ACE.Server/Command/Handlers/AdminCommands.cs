@@ -32,6 +32,8 @@ using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
 
 using Position = ACE.Entity.Position;
+using ACE.Server.Network.Managers;
+using Microsoft.EntityFrameworkCore;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -97,7 +99,7 @@ namespace ACE.Server.Command.Handlers
             ChatPacket.SendServerMessage(session, msgT1 + "\n" + msgT2, ChatMessageType.Broadcast);
         }
 
-        [CommandHandler("poi", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Recalls to an UnkownLocation.")]
+        [CommandHandler("poi", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Recalls to a defined location.")]
         public static void HandlePOI(Session session, params string[] parameters)
         {
             if(parameters.Length < 1)
@@ -106,13 +108,15 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            switch(parameters[1])
+            var portalDest = new Position();
+
+            switch(parameters[0])
             {
                 case "swank":
-                    session.Player.HandleActionTeleToDefinedPlace(HotelSwankDrop);
+                    portalDest = (HotelSwankDrop);
                     break;
                 case "hotel":
-                    session.Player.HandleActionTeleToDefinedPlace(HotelSwankDrop);
+                    portalDest = (HotelSwankDrop);
                     break;
                 default:
                     var poi = String.Join(" ", parameters);
@@ -123,11 +127,12 @@ namespace ACE.Server.Command.Handlers
                         return;
                     }
                     var weenie = DatabaseManager.World.GetCachedWeenie(teleportPOI.WeenieClassId);
-                    var portalDest = new Position(weenie.GetPosition(PositionType.Destination));
+                    portalDest = new Position(weenie.GetPosition(PositionType.Destination));
                     WorldObject.AdjustDungeon(portalDest);
-                    session.Player.Teleport(portalDest);
                     break;
             }
+
+            session.Player.Teleport(portalDest);
             return;
         }
 
@@ -188,6 +193,103 @@ namespace ACE.Server.Command.Handlers
             // @draw - Draws undrawable things.
 
             // TODO: output
+        }
+
+        // banIP
+        [CommandHandler("banip", AccessLevel.Admin, CommandHandlerFlag.None, 1, "Bans the IP of a specified character.",
+            "[Character Name]\nGiven a character name, this command looks up the associated IP and bans it based on last connected IP")]
+        public static void HandleBanIP(Session session, params string[] parameters)
+        {
+            // Combine the parameters to form the character name
+            var characterName = string.Join(" ", parameters);
+            var character = PlayerManager.FindByName(characterName);
+            string msg;
+            bool banStatus = false;
+
+            if (character != null)
+            {
+                if (character.Account != null)
+                {
+                    try
+                    {
+                        // Specify a default port (e.g., 0 or any other value that makes sense in your context)
+                        int defaultPort = 0;
+                        IPEndPoint endPoint = ByteArrayToIPEndPoint(character.Account.LastLoginIP, defaultPort);
+                        banStatus = Session.BanIPBySession(endPoint);
+
+                        msg = $"Login name: {character.Account.AccountName}      Character: {character.Name}      IP: {endPoint}"
+                            + $"\n --- BanStatus: {banStatus}";
+                    }
+                    catch (Exception ex)
+                    {
+                        msg = $"Failed to ban IP for character {character.Name}. Error: {ex.Message}";
+                    }
+                }
+                else
+                {
+                    msg = $"Login name: account not found, character is orphaned.      Character: {character.Name}\n";
+                }
+            }
+            else
+            {
+                msg = $"There was no active character named \"{characterName}\" found in the database.\n";
+            }
+
+            CommandHandlerHelper.WriteOutputInfo(session, msg, ChatMessageType.WorldBroadcast);
+        }
+
+        [CommandHandler("unbanip", AccessLevel.Admin, CommandHandlerFlag.None, 1, "UnBans the IP of a specified character.",
+            "[Character Name]\nGiven a character name, this command looks up the associated IP and unbans it based on last connected IP")]
+        public static void HandleUnBanIP(Session session, params string[] parameters)
+        {
+            // Combine the parameters to form the character name
+            var characterName = string.Join(" ", parameters);
+            var character = PlayerManager.FindByName(characterName);
+            string msg;
+            bool unBanned = false;
+
+            if (character != null)
+            {
+                if (character.Account != null)
+                {
+                    try
+                    {
+                        // Specify a default port (e.g., 0 or any other value that makes sense in your context)
+                        int defaultPort = 0;
+                        IPEndPoint endPoint = ByteArrayToIPEndPoint(character.Account.LastLoginIP, defaultPort);
+                        unBanned = Session.UnBanIPBySession(endPoint);
+
+                        msg = $"Login name: {character.Account.AccountName}      Character: {character.Name}      IP: {endPoint}"
+                            + $"\n --- UnBanned: {unBanned}";
+                    }
+                    catch (Exception ex)
+                    {
+                        msg = $"Failed to ban IP for character {character.Name}. Error: {ex.Message}";
+                    }
+                }
+                else
+                {
+                    msg = $"Login name: account not found, character is orphaned.      Character: {character.Name}\n";
+                }
+            }
+            else
+            {
+                msg = $"There was no active character named \"{characterName}\" found in the database.\n";
+            }
+
+            CommandHandlerHelper.WriteOutputInfo(session, msg, ChatMessageType.WorldBroadcast);
+        }
+
+        public static IPEndPoint ByteArrayToIPEndPoint(byte[] data, int defaultPort)
+        {
+            if (data == null || data.Length < 4) // Minimum length for an IP address
+                throw new ArgumentException("Invalid byte array", nameof(data));
+
+            // The byte array contains only the IP address bytes (IPv4 or IPv6)
+            IPAddress ipAddress = new IPAddress(data);
+
+            // Create the IPEndPoint using the provided default port
+            return new IPEndPoint(ipAddress, defaultPort);
         }
 
         // finger [ [-a] character] [-m account]
@@ -4518,7 +4620,6 @@ namespace ACE.Server.Command.Handlers
             Fellowship.MaxFellowDistance = (int)PropertyManager.GetLong("fellowship_max_share_dist").Item;
             PlayerManager.BroadcastToAuditChannel(session?.Player, $"Resyncing fellowship share distance");
         }
-
 
         [CommandHandler("fix-allegiances", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Fixes the monarch data for allegiances")]
         public static void HandleFixAllegiances(Session session, params string[] parameters)

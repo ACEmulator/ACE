@@ -12,6 +12,7 @@ using ACE.Entity.Enum;
 using System.Collections.Generic;
 using System;
 using System.Net;
+using System.Security.Principal;
 
 namespace ACE.Database
 {
@@ -111,6 +112,71 @@ namespace ACE.Database
                     .FirstOrDefault(r => r.AccountName == accountName);
 
                 return (result != null) ? result.AccountId : 0;
+            }
+        }
+
+        /// <summary>
+        /// result will be false if the endPoint was not found.
+        /// </summary>
+        public bool GetIPIsBanned(IPEndPoint endPoint)
+        {
+            using (var context = new AuthDbContext())
+            {
+                var result = context.BlackList
+                    .AsNoTracking()
+                    .FirstOrDefault(r => r.IP == endPoint.Address.GetAddressBytes());
+
+                return (result != null) ? true : false;
+            }
+        }
+
+        /// <summary>
+        /// result will be false if the endPoint was not found.
+        /// </summary>
+        public bool UpdateIPIsBanned(IPEndPoint endPoint)
+        {
+            using (var context = new AuthDbContext())
+            {
+
+                // Create a new BlackList item
+                var newBlackListItem = new BlackList
+                {
+                    IP = endPoint.Address.GetAddressBytes()
+                };
+
+                // Add the new item to the BlackList DbSet
+                context.BlackList.Add(newBlackListItem);
+
+                // Save the changes to the database
+                return context.SaveChanges() > 0;
+            }
+        }
+
+        /// <summary>
+        /// result will be false if the endPoint was not found.
+        /// </summary>
+        public bool RemoveIPIsBanned(IPEndPoint endPoint)
+        {
+            using (var context = new AuthDbContext())
+            {
+                // Convert the IP address to a byte array
+                byte[] ipAddressBytes = endPoint.Address.GetAddressBytes();
+
+                // Find the existing BlackList item
+                var blackListItem = context.BlackList
+                                           .FirstOrDefault(b => b.IP.SequenceEqual(ipAddressBytes));
+
+                if (blackListItem != null)
+                {
+                    // Remove the found item
+                    context.BlackList.Remove(blackListItem);
+
+                    // Save the changes to the database
+                    return context.SaveChanges() > 0;
+                }
+
+                // Return false if the item was not found
+                return false;
             }
         }
 

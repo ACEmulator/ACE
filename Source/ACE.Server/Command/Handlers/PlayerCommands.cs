@@ -20,6 +20,9 @@ using ACE.Database.Models.Auth;
 using log4net.Core;
 using ACE.Server.Network.Enum;
 using ACE.Database.Models.Shard;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 
 namespace ACE.Server.Command.Handlers
@@ -77,50 +80,57 @@ namespace ACE.Server.Command.Handlers
         public static void HandleRecruitMe(Session session, params string[] parameters)
         {
 
+
             if (DateTime.UtcNow - session.Player.PrevControlledCommandLine < TimeSpan.FromSeconds(10))
             {
                 session.Player.SendTransientError("You have used this command too recently! Please wait at least 10 seconds between intensive commands.");
                 return;
             }
 
-            if (parameters == null || parameters.Count() == 0 || session.Player.Fellowship != null)
+
+            if (parameters == null || parameters.Length == 0 || session.Player.Fellowship != null)
             {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Use /recruitme <name of player> to request an invite from the player. You must NOT already be in a fellowship.", ChatMessageType.Broadcast));
+                session.Network.EnqueueSend(new GameMessageSystemChat("Use /recruitme <name of player> to request an invite from the player. You must NOT already be in a fellowship.\nYou can also use /recruit to send an invite request. Type /recruit for more info.", ChatMessageType.Broadcast));
                 return;
             }
 
             var requestedPlayer = PlayerManager.GetOnlinePlayer(string.Join(" ", parameters));
 
-            if (requestedPlayer != null)
+            if (requestedPlayer == null) // Check null player
+                { session.Network.EnqueueSend(new GameMessageSystemChat("Could not find player to request invite.", ChatMessageType.Broadcast)); return; }
+
+            session.Player.PrevControlledCommandLine = DateTime.UtcNow; // If they got the name right and this check needs to be made to time out the command.
+
+            if ( requestedPlayer.Fellowship == null) // Check null fellowship
+                { session.Network.EnqueueSend(new GameMessageSystemChat($"The player {requestedPlayer} must be in a fellowship to send you an invite.", ChatMessageType.Broadcast)); return; }
+
+            string fShipName = requestedPlayer.Fellowship.FellowshipName;
+            uint fShipLeader = requestedPlayer.Fellowship.FellowshipLeaderGuid;
+            string fShipLeaderName = PlayerManager.GetOnlinePlayer(fShipLeader).Name;
+            int fShipCount = requestedPlayer.Fellowship.GetFellowshipMembers().Count();
+            bool fShipLocked = requestedPlayer.Fellowship.IsLocked;
+            bool fShipOpen = requestedPlayer.Fellowship.Open;
+            string msg;
+
+            if ((!fShipOpen && requestedPlayer.Guid.Full != fShipLeader) || fShipLocked || fShipCount == Fellowship.MaxFellows)
             {
-                session.Player.PrevControlledCommandLine = DateTime.UtcNow; // If they got the name right and this check needs to be made time out the commands.
-                string fShipName = requestedPlayer.Fellowship.FellowshipName;
-                uint fShipLeader = requestedPlayer.Fellowship.FellowshipLeaderGuid;
-                string fShipLeaderName = PlayerManager.GetOnlinePlayer(fShipLeader).Name;
-                int fShipCount = requestedPlayer.Fellowship.GetFellowshipMembers().Count();
-                bool fShipLocked = requestedPlayer.Fellowship.IsLocked;
-                bool fShipOpen = requestedPlayer.Fellowship.Open;
-
-                if ((!fShipOpen && requestedPlayer.Guid.Full != fShipLeader) || fShipLocked || fShipCount == Fellowship.MaxFellows)
-                {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Fellowship {fShipName} lock status is: {(fShipLocked? "locked" : "unlocked")}. And the open status is: {(fShipOpen? "open" : "closed")}. Please see the party leader: {fShipLeaderName} for recruitment!", ChatMessageType.Broadcast));
-                    return;
-                }
-                else if (!requestedPlayer.Fellowship.Open && requestedPlayer.Guid.Full == requestedPlayer.Fellowship.FellowshipLeaderGuid)
-                {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"{fShipName} is a closed fellowship. Please talk with the leader: {fShipLeaderName} to discuss joining.", ChatMessageType.Broadcast));
-                    return;
-                }
-                else
-                {
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Recruit request message sent to {requestedPlayer.Name}.", ChatMessageType.Broadcast));
-                    requestedPlayer.FellowshipRecruit(session.Player);
-                    return;
-                }
+                msg = $"Fellowship {fShipName} lock status is: {(fShipLocked ? "locked" : "unlocked")}. And the open status is: {(fShipOpen ? "open" : "closed")}. Please see the party leader: {fShipLeaderName} for recruitment!";
+                session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                return;
             }
-
-            session.Network.EnqueueSend(new GameMessageSystemChat("Could not find player to invite.", ChatMessageType.Broadcast));
-
+            else if (!requestedPlayer.Fellowship.Open && requestedPlayer.Guid.Full == requestedPlayer.Fellowship.FellowshipLeaderGuid)
+            {
+                msg = $"{fShipName} is a closed fellowship. Please talk with the leader: {fShipLeaderName} to discuss joining.";
+                session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                return;
+            }
+            else
+            {
+                msg = $"Recruit request message sent to {requestedPlayer.Name}.";
+                session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                requestedPlayer.FellowshipRecruit(session.Player);
+                return;
+            }
         }
 
         [CommandHandler("myshare", AccessLevel.Player, CommandHandlerFlag.None, "Calculates your fellowship share portion from your current location in relation to your fellows.")]
@@ -446,7 +456,7 @@ namespace ACE.Server.Command.Handlers
             }
 
             Account thisAccount = DatabaseManager.Authentication.GetAccountByName(session.Account);
-            string banText = $"Player {session.Player.Name} has used the Blink Plugin to exploits functions of another plugin. This is a zero-tolerance policy violation. Account ({thisAccount.AccountName}) has been autobanned for 365 days.";
+            string banText = $"Player {session.Player.Name} used the Blink Plugin to exploit functions of VTank. This is a zero-tolerance policy violation. Account ({thisAccount.AccountName}) has been autobanned for 365 days.";
             thisAccount.BannedTime = DateTime.UtcNow;
             thisAccount.BanExpireTime = DateTime.UtcNow + TimeSpan.FromDays(365);
             thisAccount.BanReason = banText;
@@ -465,6 +475,14 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("myquests", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Shows your quest log")]
         public static void HandleQuests(Session session, params string[] parameters)
         {
+            if (DateTime.UtcNow - session.Player.PrevControlledCommandLine < TimeSpan.FromSeconds(10))
+            {
+                session.Player.SendTransientError("You have used this command too recently! Please wait at least 10 seconds between intensive commands.");
+                return;
+            }
+
+            session.Player.PrevControlledCommandLine = DateTime.UtcNow;
+
             if (!PropertyManager.GetBool("quest_info_enabled").Item)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat("The command \"myquests\" is not currently enabled on this server.", ChatMessageType.Broadcast));
@@ -499,6 +517,63 @@ namespace ACE.Server.Command.Handlers
 
                 session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
             }
+        }
+
+        [CommandHandler("checkquest", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Shows your quest log entry for a sepecific quest")]
+        public static void HandleCheckQuest(Session session, params string[] parameters)
+        {
+            var msg = "@checkquest - Check information on your quest.\n";
+            msg += "Usage: @checkquest [questName] - List the quest flags for specified quest name.\n";
+            msg += "  ---  @checkquest fellow [questName] - List the quest flags for your Fellowship. You must be in a fellowship to use this.";
+
+            if(parameters.Length == 0)
+            {
+                session.Player.SendMessage(msg);
+                return;
+            }
+
+            CharacterPropertiesQuestRegistry quest;
+
+            if (parameters[0].Equals("fellow"))
+            {
+                if (session.Player.Fellowship == null || parameters.Length < 2)
+                {
+                    session.Player.SendMessage(msg);
+                    return;
+                }
+
+                quest = session.Player.Fellowship.QuestManager.GetQuest(parameters[1]);
+
+                if (quest == null)
+                {
+                    session.Player.SendMessage("No quests found.");
+                    return;
+                }
+            }
+            else
+            {
+                quest = session.Player.QuestManager.GetQuest(parameters[1]);
+
+                if (quest == null)
+                {
+                    session.Player.SendMessage("No quests found.");
+                    return;
+                }
+            }
+
+            msg = $"Quest Name: {quest.QuestName}\nCompletions: {quest.NumTimesCompleted} | Last Completion: {quest.LastTimeCompleted} ({Common.Time.GetDateTimeFromTimestamp(quest.LastTimeCompleted).ToLocalTime()})\n";
+            var nextSolve = session.Player.Fellowship.QuestManager.GetNextSolveTime(quest.QuestName);
+
+            if (nextSolve == TimeSpan.MinValue)
+                msg += "Can Solve: Immediately\n";
+            else if (nextSolve == TimeSpan.MaxValue)
+                msg += "Can Solve: Never again\n";
+            else
+                msg += $"Can Solve: In {nextSolve:%d} days, {nextSolve:%h} hours, {nextSolve:%m} minutes and, {nextSolve:%s} seconds. ({(DateTime.UtcNow + nextSolve).ToLocalTime()})\n";
+
+            session.Player.SendMessage(msg);
+
+            return;
         }
 
         /// <summary>

@@ -457,6 +457,11 @@ namespace ACE.Database
 
         private readonly ConcurrentDictionary<string /* Event Name */, Event> cachedEvents = new ConcurrentDictionary<string, Event>();
 
+        public bool ClearCachedEvent(string eventName)
+        {
+            return cachedEvents.TryRemove(eventName, out _);
+        }
+
         public override List<Event> GetAllEvents(WorldDbContext context)
         {
             var events = base.GetAllEvents(context);
@@ -826,6 +831,10 @@ namespace ACE.Database
             }
         }
 
+        public void ClearTreasureDeathCache()
+        {
+            cachedDeathTreasure.Clear();
+        }
 
         // =====================================
         // TreasureMaterial

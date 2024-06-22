@@ -14,6 +14,7 @@ using ACE.Server.Managers;
 using ACE.Server.Network.Packets;
 using ACE.Server.Network.Handlers;
 using ACE.Server.Network.Enum;
+using ACE.Database;
 
 namespace ACE.Server.Network.Managers
 {
@@ -110,6 +111,11 @@ namespace ACE.Server.Network.Managers
                     {
                         log.InfoFormat("Login Request from {0} rejected. Server shutting down in less than 2 minutes.", endPoint);
                         SendLoginRequestReject(connectionListener, endPoint, CharacterError.ServerCrash1);
+                    }
+                    else if (DatabaseManager.Authentication.GetIPIsBanned(endPoint))
+                    {
+                        log.InfoFormat("Login Request from {0} rejected. IP is BlackListed.", endPoint);
+                        SendLoginRequestReject(connectionListener, endPoint, CharacterError.SubscriptionExpired);
                     }
                     else
                     {

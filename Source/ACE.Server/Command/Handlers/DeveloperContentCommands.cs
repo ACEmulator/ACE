@@ -2404,16 +2404,52 @@ namespace ACE.Server.Command.Handlers.Processors
             var mode = CacheType.All;
             if (parameters.Length > 0)
             {
+                if (parameters[0].Contains("event", StringComparison.OrdinalIgnoreCase))
+                    mode = CacheType.Event;
                 if (parameters[0].Contains("landblock", StringComparison.OrdinalIgnoreCase))
                     mode = CacheType.Landblock;
+                if (parameters[0].Contains("quest", StringComparison.OrdinalIgnoreCase))
+                    mode = CacheType.Quest;
                 if (parameters[0].Contains("recipe", StringComparison.OrdinalIgnoreCase))
                     mode = CacheType.Recipe;
                 if (parameters[0].Contains("spell", StringComparison.OrdinalIgnoreCase))
                     mode = CacheType.Spell;
+                if (parameters[0].Contains("treasuredeath", StringComparison.OrdinalIgnoreCase))
+                    mode = CacheType.TreasureDeath;
                 if (parameters[0].Contains("weenie", StringComparison.OrdinalIgnoreCase))
                     mode = CacheType.Weenie;
                 if (parameters[0].Contains("wield", StringComparison.OrdinalIgnoreCase))
                     mode = CacheType.WieldedTreasure;
+            }
+
+            if (mode.HasFlag(CacheType.Quest))
+            {
+
+                if (parameters.Length < 2)
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, "You must pass a quest name to clear");
+                    return;
+                }
+
+                var result = (DatabaseManager.World.ClearCachedQuest(parameters[1])? "Success":"Failed");
+
+                CommandHandlerHelper.WriteOutputInfo(session, $"Clearing quest cache of {parameters[1]}\n --- Attempt: {result}");
+                return;
+            }
+
+            if (mode.HasFlag(CacheType.Event))
+            {
+
+                if (parameters.Length < 2)
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, "You must pass an event name to clear");
+                    return;
+                }
+
+                var result = (DatabaseManager.World.ClearCachedEvent(parameters[1]) ? "Success" : "FAIL");
+
+                CommandHandlerHelper.WriteOutputInfo(session, $"Clearing event cache of {parameters[1]}\n --- Attempt: {result}");
+                return;
             }
 
             if (mode.HasFlag(CacheType.Landblock))
@@ -2435,9 +2471,37 @@ namespace ACE.Server.Command.Handlers.Processors
                 WorldObject.ClearSpellCache();
             }
 
-            if (mode.HasFlag(CacheType.Weenie))
+            if (mode.HasFlag(CacheType.TreasureDeath))
             {
-                CommandHandlerHelper.WriteOutputInfo(session, "Clearing weenie cache");
+                CommandHandlerHelper.WriteOutputInfo(session, "Clearing death treasure cache");
+                DatabaseManager.World.ClearTreasureDeathCache();
+            }
+
+            if (mode.HasFlag(CacheType.Weenie)) // Takes about 5 ms. Would like it to go faster but it's an admin command so not terrible
+            {
+                var msg = "Clearing weenie cache";
+                if (parameters.Length > 1)
+                {
+                    uint weenie = 0;
+                    for (int i = 1; i < parameters.Length; i++)
+                    {
+                        msg = $"Clearing weenie cache specific:";
+                        try
+                        {
+                            weenie = Convert.ToUInt32(parameters[i]);
+                            msg += $"\n --- WCID: {parameters[i]} Attempt: {(DatabaseManager.World.ClearCachedWeenie(weenie) ? "Success" : "FAIL -- WCID not found in cache.")}";
+                        }
+                        catch (Exception)
+                        {
+                            msg += $"\n --- WCID: {parameters[i]} Attempt: FAIL -- Are you using a WCID?";
+                            continue;
+                        }
+                    }
+                    CommandHandlerHelper.WriteOutputInfo(session, msg);
+                    return;
+                }
+
+                CommandHandlerHelper.WriteOutputInfo(session, msg);
                 DatabaseManager.World.ClearWeenieCache();
             }
 
@@ -2455,9 +2519,12 @@ namespace ACE.Server.Command.Handlers.Processors
             Landblock       = 0x1,
             Recipe          = 0x2,
             Spell           = 0x4,
-            Weenie          = 0x8,
-            WieldedTreasure = 0x10,
-            All             = 0xFFFF
+            TreasureDeath   = 0x8,
+            Weenie          = 0x10,
+            WieldedTreasure = 0x20,
+            All             = 0x3FFF,
+            Event           = 0x7FFF,
+            Quest           = 0xFFFF
         };
 
         public static FileType GetFileType(string filename)
