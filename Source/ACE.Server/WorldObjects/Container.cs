@@ -648,6 +648,34 @@ namespace ACE.Server.WorldObjects
             {
                 int removedItemsPlacementPosition = item.PlacementPosition ?? 0;
 
+                var currentPrevOwners = item.GetProperty(PropertyString.PreviousOwners) ?? "";
+                var currentOwner = item.OwnerId ?? 0;
+                if (!ObjectGuid.IsPlayer(currentOwner))
+                {
+                    if (item.Container is Container && item.Container.Container is Player)
+                        currentOwner = item.Container.Container.Guid.Full;
+                }
+
+                //if (!ObjectGuid.IsPlayer(currentOwner) && !ObjectGuid.IsStatic(currentOwner))
+                if (!ObjectGuid.IsPlayer(currentOwner))
+                    currentOwner = 0;
+
+                if (currentOwner > 0)
+                {
+                    var owners = currentPrevOwners.Split(";", StringSplitOptions.RemoveEmptyEntries);
+                    if (owners.Length > 0)
+                    {
+                        var lastOwner = owners[owners.Length - 1];
+                        if (Convert.ToUInt32(lastOwner[0..10], 16) != currentOwner)
+                            item.SetProperty(PropertyString.PreviousOwners, currentPrevOwners + $"0x{currentOwner:X8}:{Common.Time.GetUnixTime()};");
+                    }
+                    else
+                        item.SetProperty(PropertyString.PreviousOwners, currentPrevOwners + $"0x{currentOwner:X8}:{Common.Time.GetUnixTime()};");
+                }
+
+                if (PropertyManager.GetBool("record_remove_stacktrace").Item)
+                    item.SetProperty(PropertyString.PreviousOwnerStackLog, Environment.StackTrace);
+
                 item.OwnerId = null;
                 item.ContainerId = null;
                 item.Container = null;
