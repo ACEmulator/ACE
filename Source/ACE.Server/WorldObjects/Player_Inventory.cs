@@ -1483,6 +1483,18 @@ namespace ACE.Server.WorldObjects
             }
             item.Ethereal = ethereal;
 
+            if (item.Ethereal == null)
+            {
+                var defaultPhysicsState = (PhysicsState)(item.GetProperty(PropertyInt.PhysicsState) ?? 0);
+
+                if (defaultPhysicsState.HasFlag(PhysicsState.Ethereal))
+                    item.Ethereal = true;
+                else
+                    item.Ethereal = false;
+            }
+
+            item.EnqueueBroadcastPhysicsState();
+
             return true;
         }
 
