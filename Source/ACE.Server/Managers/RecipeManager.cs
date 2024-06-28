@@ -1079,16 +1079,27 @@ namespace ACE.Server.Managers
 
         public static void BroadcastTinkering(Player player, WorldObject tool, WorldObject target, double chance, bool success)
         {
+            // retail AC had some inconsistency with respect to the messages broadcast by tinkering.
+            //
+            // Largely this revolved around the name of the weenies that represented each of the salvage bags.
+            // First, there were name changes that were a result of the client side pre-pending of material type which resulted in bags being named "Salvage", "Salvaged"
+            // Second, these bags that were generated from loot by players always ended with the number of materials in the bag, such as (100), (88), (1)
+            // while non-lootgen bags did not include the number, so the name of the bag when displayed or broadcast varied like "Steel Salvage (100)", "Steel Salvaged (100)", "Steel Salvage"
+            // Third, Foolproof bags, again depending on weenie names, also had their own variations which resulted in display names like "Foolproof Black Garnet Gem", "Zircon Foolproof Zircon", "Imperial Topaz Foolproof Imperial Topaz"
+            // in many cases, there are multiple weenies of a particular salvage type, used by various systems, which resulted in each tinker operation having varied output even when doing essentially the same thing
+            // Finally, items that were inscribed were surprisingly identified in the broadcast like "Reed Shark Hide Studded Leather Sleeves inscribed by Callaway", "Copper Frost Bow inscribed by Mini Bonsai"
+            //
+            // ACE output, as seen below, has for the most part standardized the message due to weenie name changes, salvage coding and recipe handling differences
+            // 
             var sourceName = Regex.Replace(tool.NameWithMaterial, @" \(\d+\)$", "");
 
+            var msg = $"{player.Name} {(success ? "successfully applies" : "fails to apply")} the {sourceName} (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}{((target.Inscription != null && target.ScribeName != null) ? $" inscribed by {target.ScribeName}" : "")}.{(!success ? " The target is destroyed." : "")}";
+
             // send local broadcast
-            if (success)
-                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} successfully applies the {sourceName} (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
-            else
-                player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} fails to apply the {sourceName} (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}. The target is destroyed.", ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
+            player.EnqueueBroadcast(new GameMessageSystemChat(msg, ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
 
             if (log.IsDebugEnabled)
-                log.Debug($"[TINKERING] {player.Name} {(success ? "successfully applies" : "fails to apply")} the {sourceName} (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}.{(!success ? " The target is destroyed." : "")} | Chance: {chance}");
+                log.Debug($"[TINKERING] {msg} | Chance: {chance}");
         }
 
         public static WorldObject CreateItem(Player player, uint wcid, uint amount)

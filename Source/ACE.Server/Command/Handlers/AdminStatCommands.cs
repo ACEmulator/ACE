@@ -32,7 +32,9 @@ namespace ACE.Server.Command.Handlers
 
             HandleServerPerformance(session, parameters);
 
-            HandleLandblockPerformance(session, parameters);
+            HandleLandblockStats(session, parameters);
+
+            HandleLBGroupStats(session, parameters);
 
             HandleGCStatus(session, parameters);
 
@@ -118,7 +120,8 @@ namespace ACE.Server.Command.Handlers
             sb.Append($"Total Server Objects: {ServerObjectManager.ServerObjects.Count:N0}{'\n'}");
 
             sb.Append($"World DB Cache Counts - Weenies: {DatabaseManager.World.GetWeenieCacheCount():N0}, LandblockInstances: {DatabaseManager.World.GetLandblockInstancesCacheCount():N0}, PointsOfInterest: {DatabaseManager.World.GetPointsOfInterestCacheCount():N0}, Cookbooks: {DatabaseManager.World.GetCookbookCacheCount():N0}, Spells: {DatabaseManager.World.GetSpellCacheCount():N0}, Encounters: {DatabaseManager.World.GetEncounterCacheCount():N0}, Events: {DatabaseManager.World.GetEventsCacheCount():N0}{'\n'}");
-            sb.Append($"Shard DB Counts - Biotas: {DatabaseManager.Shard.BaseDatabase.GetBiotaCount():N0}{'\n'}");
+            //sb.Append($"Shard DB Counts - Biotas: {DatabaseManager.Shard.BaseDatabase.GetBiotaCount():N0}{'\n'}");
+            sb.Append($"Shard DB Counts - Biotas: ~{DatabaseManager.Shard.BaseDatabase.GetEstimatedBiotaCount(ConfigManager.Config.MySql.Shard.Database):N0}{'\n'}");
             if (DatabaseManager.Shard.BaseDatabase is ShardDatabaseWithCaching shardDatabaseWithCaching)
             {
                 var biotaIds = shardDatabaseWithCaching.GetBiotaCacheKeys();
@@ -135,7 +138,7 @@ namespace ACE.Server.Command.Handlers
             CommandHandlerHelper.WriteOutputInfo(session, $"{sb}");
         }
 
-        // serverstatus
+        // serverperformance
         [CommandHandler("serverperformance", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of server performance statistics")]
         public static void HandleServerPerformance(Session session, params string[] parameters)
         {
@@ -191,7 +194,8 @@ namespace ACE.Server.Command.Handlers
         }
 
         [CommandHandler("landblockperformance", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of landblock performance statistics")]
-        public static void HandleLandblockPerformance(Session session, params string[] parameters)
+        [CommandHandler("landblockstats", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of landblock performance statistics")]
+        public static void HandleLandblockStats(Session session, params string[] parameters)
         {
             var sb = new StringBuilder();
 
@@ -245,6 +249,41 @@ namespace ACE.Server.Command.Handlers
                           $"{entry.Monitor1h.EventHistory.TotalEvents.ToString().PadLeft(7)} {entry.Monitor1h.EventHistory.AverageEventDuration:N4} {entry.Monitor1h.EventHistory.LongestEvent:N3} {entry.Monitor1h.EventHistory.LastEvent:N3} - " +
                           $"0x{entry.Id.Raw:X8} {players.ToString().PadLeft(7)}  {creatures.ToString().PadLeft(9)}{'\n'}");
             }
+
+            CommandHandlerHelper.WriteOutputInfo(session, sb.ToString());
+        }
+
+        // lbgroupstats
+        [CommandHandler("lbgroupstats", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of landblock group stats")]
+        public static void HandleLBGroupStats(Session session, params string[] parameters)
+        {
+            var sb = new StringBuilder();
+
+            sb.Append($"TickPhysicsEfficiencyTracker: {LandblockManager.TickPhysicsEfficiencyTracker.AverageAmount,3:N0} %, TickMultiThreadedWorkEfficiencyTracker: {LandblockManager.TickMultiThreadedWorkEfficiencyTracker.AverageAmount,3:N0} %{'\n'}");
+
+            var loadedLanblockGroups = LandblockManager.GetLoadedLandblockGroups();
+
+            var sortedByLargest = loadedLanblockGroups.OrderByDescending(r => r.Count).Take(5);
+
+            sb.Append($"Largest Landblock Groups{'\n'}");
+            sb.Append($"Cnt, XMin - XMax, YMin - YMax, TickPhysicsTracker avg   max, TickMultiThreadedWorkTracker avg   max (s){'\n'}");
+
+            foreach (var landblockGroup in sortedByLargest)
+                sb.Append($"{landblockGroup.Count,3},   {landblockGroup.XMin,2:X2} - {landblockGroup.XMax,2:X2},     {landblockGroup.YMin,2:X2} - {landblockGroup.YMax,2:X2}  ,                  {landblockGroup.TickPhysicsTracker.AverageAmount,5:N3} {landblockGroup.TickPhysicsTracker.LargestAmount,5:N3},                            {landblockGroup.TickMultiThreadedWorkTracker.AverageAmount,5:N3} {landblockGroup.TickMultiThreadedWorkTracker.LargestAmount,5:N3}{'\n'}");
+
+            var sortedByTopTickPhysicsTracker = loadedLanblockGroups.OrderByDescending(r => r.TickPhysicsTracker.AverageAmount).Take(5);
+
+            sb.Append($"Top TickPhysicsTracker Landblock Groups{'\n'}");
+
+            foreach (var landblockGroup in sortedByTopTickPhysicsTracker)
+                sb.Append($"{landblockGroup.Count,3},   {landblockGroup.XMin,2:X2} - {landblockGroup.XMax,2:X2},     {landblockGroup.YMin,2:X2} - {landblockGroup.YMax,2:X2}  ,                  {landblockGroup.TickPhysicsTracker.AverageAmount,5:N3} {landblockGroup.TickPhysicsTracker.LargestAmount,5:N3},                            {landblockGroup.TickMultiThreadedWorkTracker.AverageAmount,5:N3} {landblockGroup.TickMultiThreadedWorkTracker.LargestAmount,5:N3}{'\n'}");
+
+            var sortedByTopTickMultiThreadedWorkTracker = loadedLanblockGroups.OrderByDescending(r => r.TickMultiThreadedWorkTracker.AverageAmount).Take(5);
+
+            sb.Append($"Top TickMultiThreadedWorkTracker Landblock Groups{'\n'}");
+
+            foreach (var landblockGroup in sortedByTopTickMultiThreadedWorkTracker)
+                sb.Append($"{landblockGroup.Count,3},   {landblockGroup.XMin,2:X2} - {landblockGroup.XMax,2:X2},     {landblockGroup.YMin,2:X2} - {landblockGroup.YMax,2:X2}  ,                  {landblockGroup.TickPhysicsTracker.AverageAmount,5:N3} {landblockGroup.TickPhysicsTracker.LargestAmount,5:N3},                            {landblockGroup.TickMultiThreadedWorkTracker.AverageAmount,5:N3} {landblockGroup.TickMultiThreadedWorkTracker.LargestAmount,5:N3}{'\n'}");
 
             CommandHandlerHelper.WriteOutputInfo(session, sb.ToString());
         }

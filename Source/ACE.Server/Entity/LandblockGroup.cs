@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+using ACE.Common.Performance;
+
 using log4net;
 
 namespace ACE.Server.Entity
@@ -12,49 +14,56 @@ namespace ACE.Server.Entity
     /// Landblock groups describe their area using a rectangle.
     /// As landblocks are added (and removed) the rectangle that contains all the landblocks in the group is adjusted.
     ///
-    /// Landblocks are added to groups based on a minimum distance to the landblock groups rectangle.
+    /// While landblock groups describe their area using rectangles, groups can be ireggular shaped.
+    /// Two groups can have overlapping rectangles as long as all of their landblocks are LandblockGroupMinSpacing apart from each other.
+    /// 
+    /// Landblocks are added to groups based on a minimum distance to all contained landblocks in the group.
     ///
-    /// In the event a landblock needs to be added and is within range of multiple groups, those groups will be combined into one.
+    /// In the event a landblock needs to be added and is within LandblockGroupMinSpacing range of multiple groups, those groups will be combined into one.
     ///
     /// Periodically, landblock groups are checked to see if they can be split.
     /// When a landblock group is split, it can result in a new group that has an overlapping rectangle to the parent group.
     /// This is not a problem because all the landblocks within each group meet the minimum distance requirements.
-    /// In the event that a new landblock is added and is close to both rectangles, the groups will then be merged again.
     ///
     /// Adding landblocks to groups is a very efficient process
     /// Removing landblocks from groups is a very efficient process
-    /// Checking landblock groups for split potential does incur some overhead (~0.5 ms) which is why it's only done on intervals that are twice the Landblock.UnloadInterval.
+    /// Checking landblock groups for split potential does incur some overhead (~0.5 ms) which is why it's only done once every Landblock.UnloadInterval.
     /// </summary>
     public class LandblockGroup : IEnumerable<Landblock>
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public const int LandblockGroupMinSpacing = 5;
+        public const int LandblockGroupMinSpacing = 4;
 
-        private const int landblockGroupSpanRequiredBeforeSplitEligibility = LandblockGroupMinSpacing * 4;
-
-        private const int numberOfUniqueLandblocksRemovedBeforeSplitEligibility = LandblockGroupMinSpacing * LandblockGroupMinSpacing;
+        public const int LandblockGroupMinSpacingWhenDormant = 3;
 
         public bool IsDungeon { get; private set; }
 
-        public static readonly TimeSpan TrySplitInterval = Landblock.UnloadInterval * 2;
+        public static readonly TimeSpan TrySplitInterval = Landblock.UnloadInterval;
 
         public DateTime NextTrySplitTime { get; private set; } = DateTime.UtcNow.Add(TrySplitInterval);
 
         private readonly HashSet<Landblock> landblocks = new HashSet<Landblock>();
 
-        private readonly HashSet<uint> uniqueLandblockIdsRemoved = new HashSet<uint>();
-
-        private int xMin = int.MaxValue;
-        private int xMax = int.MinValue;
-        private int yMin = int.MaxValue;
-        private int yMax = int.MinValue;
-
-        private double xCenter;
-        private double yCenter;
+        public int XMin { get; private set; } = int.MaxValue;
+        public int XMax { get; private set; } = int.MinValue;
+        public int YMin { get; private set; } = int.MaxValue;
+        public int YMax { get; private set; } = int.MinValue;
 
         private int width;
         private int height;
+
+        /// <summary>
+        /// This is the historical tick times it took for this LandBlockGroup to process under LandblockManager.TickPhysics for the last ~10 s.
+        /// This is used to help partition LandblockGroups for efficient multi-threaded distributed work.
+        /// </summary>
+        public readonly RollingAmountOverHitsTracker TickPhysicsTracker = new RollingAmountOverHitsTracker(500);
+
+        /// <summary>
+        /// This is the historical tick times it took for this LandBlockGroup to process under LandblockManager.TickMultiThreadedWork for the last ~10 s.
+        /// This is used to help partition LandblockGroups for efficient multi-threaded distributed work.
+        /// </summary>
+        public readonly RollingAmountOverHitsTracker TickMultiThreadedWorkTracker = new RollingAmountOverHitsTracker(500);
 
         public LandblockGroup()
         {
@@ -97,16 +106,13 @@ namespace ACE.Server.Entity
                 if (landblocks.Count == 1)
                     IsDungeon = landblock.IsDungeon;
 
-                if (landblock.Id.LandblockX < xMin) xMin = landblock.Id.LandblockX;
-                if (landblock.Id.LandblockX > xMax) xMax = landblock.Id.LandblockX;
-                if (landblock.Id.LandblockY < yMin) yMin = landblock.Id.LandblockY;
-                if (landblock.Id.LandblockY > yMax) yMax = landblock.Id.LandblockY;
+                if (landblock.Id.LandblockX < XMin) XMin = landblock.Id.LandblockX;
+                if (landblock.Id.LandblockX > XMax) XMax = landblock.Id.LandblockX;
+                if (landblock.Id.LandblockY < YMin) YMin = landblock.Id.LandblockY;
+                if (landblock.Id.LandblockY > YMax) YMax = landblock.Id.LandblockY;
 
-                xCenter = xMin + ((xMax - xMin) / 2.0);
-                yCenter = yMin + ((yMax - yMin) / 2.0);
-
-                width = (xMax - xMin) + 1;
-                height = (yMax - yMin) + 1;
+                width = (XMax - XMin) + 1;
+                height = (YMax - YMin) + 1;
 
                 return true;
             }
@@ -124,11 +130,9 @@ namespace ACE.Server.Entity
                 if (landblocks.Count == 0)
                     return true;
 
-                uniqueLandblockIdsRemoved.Add(landblock.Id.Raw);
-
                 // If this landblock is on the perimeter of the group, recalculate the boundaries (they may end up the same)
-                if (landblock.Id.LandblockX == xMin || landblock.Id.LandblockX == xMax ||
-                    landblock.Id.LandblockY == yMin || landblock.Id.LandblockY == yMax)
+                if (landblock.Id.LandblockX == XMin || landblock.Id.LandblockX == XMax ||
+                    landblock.Id.LandblockY == YMin || landblock.Id.LandblockY == YMax)
                 {
                     RecalculateBoundaries();
                 }
@@ -152,24 +156,21 @@ namespace ACE.Server.Entity
 
         private void RecalculateBoundaries()
         {
-            xMin = int.MaxValue;
-            xMax = int.MinValue;
-            yMin = int.MaxValue;
-            yMax = int.MinValue;
+            XMin = int.MaxValue;
+            XMax = int.MinValue;
+            YMin = int.MaxValue;
+            YMax = int.MinValue;
 
             foreach (var existing in landblocks)
             {
-                if (existing.Id.LandblockX < xMin) xMin = existing.Id.LandblockX;
-                if (existing.Id.LandblockX > xMax) xMax = existing.Id.LandblockX;
-                if (existing.Id.LandblockY < yMin) yMin = existing.Id.LandblockY;
-                if (existing.Id.LandblockY > yMax) yMax = existing.Id.LandblockY;
+                if (existing.Id.LandblockX < XMin) XMin = existing.Id.LandblockX;
+                if (existing.Id.LandblockX > XMax) XMax = existing.Id.LandblockX;
+                if (existing.Id.LandblockY < YMin) YMin = existing.Id.LandblockY;
+                if (existing.Id.LandblockY > YMax) YMax = existing.Id.LandblockY;
             }
 
-            xCenter = xMin + ((xMax - xMin) / 2.0);
-            yCenter = yMin + ((yMax - yMin) / 2.0);
-
-            width = (xMax - xMin) + 1;
-            height = (yMax - yMin) + 1;
+            width = (XMax - XMin) + 1;
+            height = (YMax - YMin) + 1;
         }
 
 
@@ -187,7 +188,7 @@ namespace ACE.Server.Entity
 
             for (int i = remainingLandblocks.Count - 1; i >= 0; i--)
             {
-                if (landblockGroupSplitHelper.BoundaryDistance(remainingLandblocks[i]) < LandblockGroupMinSpacing)
+                if (landblockGroupSplitHelper.ShouldBeAddedToThisLandblockGroup(remainingLandblocks[i]))
                 {
                     landblockGroupSplitHelper.Add(remainingLandblocks[i]);
                     remainingLandblocks.RemoveAt(i);
@@ -243,8 +244,11 @@ namespace ACE.Server.Entity
                 newLandblockGroup = DoTrySplit();
             }
 
-            NextTrySplitTime = DateTime.UtcNow.Add(TrySplitInterval);
-            uniqueLandblockIdsRemoved.Clear();
+            // If we have a very large landblock group that didn't split, we'll try to split it every 1 minute to help reduce server load
+            if (results.Count == 0 && landblocks.Count >= 200)
+                NextTrySplitTime = DateTime.UtcNow.AddMinutes(1);
+            else
+                NextTrySplitTime = DateTime.UtcNow.Add(TrySplitInterval);
 
             return results;
         }
@@ -256,12 +260,6 @@ namespace ACE.Server.Entity
         /// </summary>
         public List<LandblockGroup> TryThrottledSplit()
         {
-            if (width < landblockGroupSpanRequiredBeforeSplitEligibility && height < landblockGroupSpanRequiredBeforeSplitEligibility)
-                return null;
-
-            if (uniqueLandblockIdsRemoved.Count < numberOfUniqueLandblocksRemovedBeforeSplitEligibility)
-                return null;
-
             if (NextTrySplitTime > DateTime.UtcNow)
                 return null;
 
@@ -269,38 +267,32 @@ namespace ACE.Server.Entity
         }
 
 
-        /// <summary>
-        /// This will calculate the distance from the landblock group boarder.<para />
-        /// -X = Inside the bounds, where -1 is the outer perimeter<para />
-        ///  0 = Outside of the bounds but adjacent (touching)<para />
-        /// +X = Has X landblocks between this and the bounds of the group<para />
-        /// Distances are measured horizontally and vertically (not diagonally) pictured here: https://math.stackexchange.com/questions/2724537/finding-the-clear-spacing-distance-between-two-rectangles
-        /// </summary>
-        public int BoundaryDistance(Landblock landblock)
+        public bool ShouldBeAddedToThisLandblockGroup(Landblock landblock)
         {
-            return (int)Math.Max(
-                Math.Abs(xCenter - landblock.Id.LandblockX) - (width + 1) / 2.0,
-                Math.Abs(yCenter - landblock.Id.LandblockY) - (height + 1) / 2.0);
-        }
+            foreach (var value in landblocks)
+            {
+                var distance = Math.Max(
+                Math.Abs(value.Id.LandblockX - landblock.Id.LandblockX),
+                Math.Abs(value.Id.LandblockY - landblock.Id.LandblockY));
 
-        /// <summary>
-        /// This will calculate the distance between the landblock group boarders.<para />
-        /// -X = Inside the bounds, where -1 is an overlapping outer perimeter<para />
-        ///  0 = Outside of the bounds but adjacent (touching)<para />
-        /// +X = Has X landblocks between this and the bounds of the group<para />
-        /// Distances are measured horizontally and vertically (not diagonally) pictured here: https://math.stackexchange.com/questions/2724537/finding-the-clear-spacing-distance-between-two-rectangles
-        /// </summary>
-        public int BoundaryDistance(LandblockGroup landblockGroup)
-        {
-            return (int)Math.Max(
-                Math.Abs(xCenter - landblockGroup.xCenter) - (width + landblockGroup.width) / 2.0,
-                Math.Abs(yCenter - landblockGroup.yCenter) - (height + landblockGroup.height) / 2.0);
-        }
+                if (value.IsDormant || landblock.IsDormant)
+                {
+                    if (distance < LandblockGroup.LandblockGroupMinSpacingWhenDormant)
+                        return true;
+                }
+                else
+                {
+                    if (distance < LandblockGroup.LandblockGroupMinSpacing)
+                        return true;
+                }
+            }
 
+            return false;
+        }
 
         public override string ToString()
         {
-            return $"x: 0x{xMin:X2} - 0x{xMax:X2}, y: 0x{yMin:X2} - 0x{yMax:X2}, w: {width.ToString().PadLeft(3)}, h: {height.ToString().PadLeft(3)}, Count: {Count.ToString().PadLeft(4)}";
+            return $"x: 0x{XMin:X2} - 0x{XMax:X2}, y: 0x{YMin:X2} - 0x{YMax:X2}, w: {width.ToString().PadLeft(3)}, h: {height.ToString().PadLeft(3)}, Count: {Count.ToString().PadLeft(4)}";
         }
     }
 }
