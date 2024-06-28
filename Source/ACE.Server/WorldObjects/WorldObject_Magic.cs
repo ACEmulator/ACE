@@ -900,19 +900,19 @@ namespace ACE.Server.WorldObjects
 
             if (spell.School == MagicSchool.LifeMagic)
             {
-                if (spell.Name.Contains("Blight"))
+                if (spell.DamageType.HasFlag(DamageType.Mana))
                 {
                     var tryDamage = (int)Math.Round(caster.GetCreatureVital(PropertyAttribute2nd.Mana).Current * spell.DrainPercentage);
                     damage = (uint)-caster.UpdateVitalDelta(caster.Mana, -tryDamage);
                     damageType = DamageType.Mana;
                 }
-                else if (spell.Name.Contains("Tenacity"))
+                else if (spell.DamageType.HasFlag(DamageType.Stamina))
                 {
                     var tryDamage = (int)Math.Round(caster.GetCreatureVital(PropertyAttribute2nd.Stamina).Current * spell.DrainPercentage);
                     damage = (uint)-caster.UpdateVitalDelta(caster.Stamina, -tryDamage);
                     damageType = DamageType.Stamina;
                 }
-                else
+                else if (spell.DamageType.HasFlag(DamageType.Health))
                 {
                     var tryDamage = (int)Math.Round(caster.GetCreatureVital(PropertyAttribute2nd.Health).Current * spell.DrainPercentage);
                     damage = (uint)-caster.UpdateVitalDelta(caster.Health, -tryDamage);
@@ -920,7 +920,12 @@ namespace ACE.Server.WorldObjects
                     damageType = DamageType.Health;
 
                     //if (player != null && player.Fellowship != null)
-                        //player.Fellowship.OnVitalUpdate(player);
+                    //player.Fellowship.OnVitalUpdate(player);
+                }
+                else
+                {
+                    log.Warn($"Unknown DamageType for LifeProjectile {spell.Name} - {spell.Id}");
+                    return;
                 }
             }
 
