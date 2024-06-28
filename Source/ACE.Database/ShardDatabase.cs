@@ -132,6 +132,33 @@ namespace ACE.Database
                 return context.Biota.Count();
         }
 
+        public int GetEstimatedBiotaCount(string dbName)
+        {
+            // https://mariadb.com/kb/en/incredibly-slow-count-on-mariadb-mysql/
+
+            var sql = $"SELECT TABLE_ROWS FROM information_schema.tables" + Environment.NewLine +
+                      $"WHERE TABLE_SCHEMA = '{dbName}'" + Environment.NewLine +
+                      $"AND TABLE_NAME = 'biota';";
+
+            using (var context = new ShardDbContext())
+            {
+                var connection = context.Database.GetDbConnection();
+                connection.Open();
+                var command = connection.CreateCommand();
+                command.CommandText = sql;
+                var reader = command.ExecuteReader();
+
+                var biotaEstimatedCount = 0;
+
+                while (reader.Read())
+                {
+                    biotaEstimatedCount = reader.GetFieldValue<int>(0);
+                }
+
+                return biotaEstimatedCount;
+            }    
+        }
+
         [Flags]
         public enum PopulatedCollectionFlags
         {
