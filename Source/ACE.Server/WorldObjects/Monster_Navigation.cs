@@ -254,9 +254,9 @@ namespace ACE.Server.WorldObjects
 
         public void UpdatePosition(bool netsend = true)
         {
-            stopwatch.Restart();
+            //stopwatch.Restart();
             PhysicsObj.update_object();
-            ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Monster_Navigation_UpdatePosition_PUO, stopwatch.Elapsed.TotalSeconds);
+            //ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Monster_Navigation_UpdatePosition_PUO, stopwatch.Elapsed.TotalSeconds);
             UpdatePosition_SyncLocation();
 
             if (netsend)

@@ -42,18 +42,17 @@ namespace ACE.Common.Performance
 
         /// <summary>
         /// Stops time interval measurement.
-        /// Registers the completion of an event and returns the elapsed seconds for this event
         /// </summary>
-        public double RegisterEventEnd()
+        public void RegisterEventEnd()
         {
             stopwatch.Stop();
 
-            return RegisterEvent(stopwatch.Elapsed.TotalSeconds);
+            RegisterEvent(stopwatch.Elapsed.TotalSeconds);
         }
 
-        public double RegisterEvent(double totalSeconds)
+        public void RegisterEvent(double totalSeconds)
         {
-            return EventHistory.RegisterEvent(totalSeconds);
+            EventHistory.RegisterEvent(totalSeconds);
         }
 
         public void ClearEventHistory()
