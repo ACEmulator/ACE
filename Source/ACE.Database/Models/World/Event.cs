@@ -1,17 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
 
-#nullable disable
+namespace ACE.Database.Models.World;
 
-namespace ACE.Database.Models.World
+/// <summary>
+/// Events
+/// </summary>
+public partial class Event
 {
-    public partial class Event
-    {
-        public uint Id { get; set; }
-        public string Name { get; set; }
-        public int StartTime { get; set; }
-        public int EndTime { get; set; }
-        public int State { get; set; }
-        public DateTime LastModified { get; set; }
-    }
+    /// <summary>
+    /// Unique Id of this Event
+    /// </summary>
+    public uint Id { get; set; }
+
+    /// <summary>
+    /// Unique Event of Quest
+    /// </summary>
+    public string Name { get; set; }
+
+    /// <summary>
+    /// Unixtime of Event Start
+    /// </summary>
+    public int StartTime { get; set; }
+
+    /// <summary>
+    /// Unixtime of Event End
+    /// </summary>
+    public int EndTime { get; set; }
+
+    /// <summary>
+    /// State of Event (GameEventState)
+    /// </summary>
+    public int State { get; set; }
+
+    public DateTime LastModified { get; set; }
 }

@@ -23,7 +23,7 @@ Your startup project 'ACE.Server' doesn't reference Microsoft.EntityFrameworkCor
 
 Run this command from Package Manager Console on ACE.Server project:
 
-Install-Package Microsoft.EntityFrameworkCore.Tools -Version 3.1.10
+Install-Package Microsoft.EntityFrameworkCore.Tools -Version 8.0.5
 
 If any changes were detected, C# classes will have been added or modified. Leave the auto generated classes alone. Do not try to optimize them, or clean them up cosmetically.
 They are partial classes, so you can create a partial class if you want to add methods, or, you can create extension methods as well in a separate file.

@@ -1,16 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 
-#nullable disable
+namespace ACE.Database.Models.World;
 
-namespace ACE.Database.Models.World
+/// <summary>
+/// EventFilter Properties of Weenies
+/// </summary>
+public partial class WeeniePropertiesEventFilter
 {
-    public partial class WeeniePropertiesEventFilter
-    {
-        public uint Id { get; set; }
-        public uint ObjectId { get; set; }
-        public int Event { get; set; }
+    /// <summary>
+    /// Unique Id of this Property
+    /// </summary>
+    public uint Id { get; set; }
 
-        public virtual Weenie Object { get; set; }
-    }
+    /// <summary>
+    /// Id of the object this property belongs to
+    /// </summary>
+    public uint ObjectId { get; set; }
+
+    /// <summary>
+    /// Id of Event to filter
+    /// </summary>
+    public int Event { get; set; }
+
+    public virtual Weenie Object { get; set; }
 }

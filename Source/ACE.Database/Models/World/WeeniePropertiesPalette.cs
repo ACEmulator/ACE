@@ -1,18 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 
-#nullable disable
+namespace ACE.Database.Models.World;
 
-namespace ACE.Database.Models.World
+/// <summary>
+/// Palette Changes (from PCAPs) of Weenies
+/// </summary>
+public partial class WeeniePropertiesPalette
 {
-    public partial class WeeniePropertiesPalette
-    {
-        public uint Id { get; set; }
-        public uint ObjectId { get; set; }
-        public uint SubPaletteId { get; set; }
-        public ushort Offset { get; set; }
-        public ushort Length { get; set; }
+    /// <summary>
+    /// Unique Id of this Property
+    /// </summary>
+    public uint Id { get; set; }
 
-        public virtual Weenie Object { get; set; }
-    }
+    /// <summary>
+    /// Id of the object this property belongs to
+    /// </summary>
+    public uint ObjectId { get; set; }
+
+    public uint SubPaletteId { get; set; }
+
+    public ushort Offset { get; set; }
+
+    public ushort Length { get; set; }
+
+    public virtual Weenie Object { get; set; }
 }

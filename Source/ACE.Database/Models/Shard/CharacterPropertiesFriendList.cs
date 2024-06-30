@@ -1,15 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 
-#nullable disable
+namespace ACE.Database.Models.Shard;
 
-namespace ACE.Database.Models.Shard
+/// <summary>
+/// FriendList Properties of Weenies
+/// </summary>
+public partial class CharacterPropertiesFriendList
 {
-    public partial class CharacterPropertiesFriendList
-    {
-        public uint CharacterId { get; set; }
-        public uint FriendId { get; set; }
+    /// <summary>
+    /// Id of the character this property belongs to
+    /// </summary>
+    public uint CharacterId { get; set; }
 
-        public virtual Character Character { get; set; }
-    }
+    /// <summary>
+    /// Id of Friend
+    /// </summary>
+    public uint FriendId { get; set; }
+
+    public virtual Character Character { get; set; }
 }

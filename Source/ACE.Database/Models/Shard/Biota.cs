@@ -1,69 +1,77 @@
 ﻿using System;
 using System.Collections.Generic;
 
-#nullable disable
+namespace ACE.Database.Models.Shard;
 
-namespace ACE.Database.Models.Shard
+/// <summary>
+/// Dynamic Weenies of a Shard/World
+/// </summary>
+public partial class Biota
 {
-    public partial class Biota
-    {
-        public Biota()
-        {
-            BiotaPropertiesAllegiance = new HashSet<BiotaPropertiesAllegiance>();
-            BiotaPropertiesAnimPart = new HashSet<BiotaPropertiesAnimPart>();
-            BiotaPropertiesAttribute = new HashSet<BiotaPropertiesAttribute>();
-            BiotaPropertiesAttribute2nd = new HashSet<BiotaPropertiesAttribute2nd>();
-            BiotaPropertiesBodyPart = new HashSet<BiotaPropertiesBodyPart>();
-            BiotaPropertiesBookPageData = new HashSet<BiotaPropertiesBookPageData>();
-            BiotaPropertiesBool = new HashSet<BiotaPropertiesBool>();
-            BiotaPropertiesCreateList = new HashSet<BiotaPropertiesCreateList>();
-            BiotaPropertiesDID = new HashSet<BiotaPropertiesDID>();
-            BiotaPropertiesEmote = new HashSet<BiotaPropertiesEmote>();
-            BiotaPropertiesEnchantmentRegistry = new HashSet<BiotaPropertiesEnchantmentRegistry>();
-            BiotaPropertiesEventFilter = new HashSet<BiotaPropertiesEventFilter>();
-            BiotaPropertiesFloat = new HashSet<BiotaPropertiesFloat>();
-            BiotaPropertiesGenerator = new HashSet<BiotaPropertiesGenerator>();
-            BiotaPropertiesIID = new HashSet<BiotaPropertiesIID>();
-            BiotaPropertiesInt = new HashSet<BiotaPropertiesInt>();
-            BiotaPropertiesInt64 = new HashSet<BiotaPropertiesInt64>();
-            BiotaPropertiesPalette = new HashSet<BiotaPropertiesPalette>();
-            BiotaPropertiesPosition = new HashSet<BiotaPropertiesPosition>();
-            BiotaPropertiesSkill = new HashSet<BiotaPropertiesSkill>();
-            BiotaPropertiesSpellBook = new HashSet<BiotaPropertiesSpellBook>();
-            BiotaPropertiesString = new HashSet<BiotaPropertiesString>();
-            BiotaPropertiesTextureMap = new HashSet<BiotaPropertiesTextureMap>();
-            HousePermission = new HashSet<HousePermission>();
-        }
+    /// <summary>
+    /// Unique Object Id within the Shard
+    /// </summary>
+    public uint Id { get; set; }
 
-        public uint Id { get; set; }
-        public uint WeenieClassId { get; set; }
-        public int WeenieType { get; set; }
-        public uint PopulatedCollectionFlags { get; set; }
+    /// <summary>
+    /// Weenie Class Id of the Weenie this Biota was created from
+    /// </summary>
+    public uint WeenieClassId { get; set; }
 
-        public virtual BiotaPropertiesBook BiotaPropertiesBook { get; set; }
-        public virtual ICollection<BiotaPropertiesAllegiance> BiotaPropertiesAllegiance { get; set; }
-        public virtual ICollection<BiotaPropertiesAnimPart> BiotaPropertiesAnimPart { get; set; }
-        public virtual ICollection<BiotaPropertiesAttribute> BiotaPropertiesAttribute { get; set; }
-        public virtual ICollection<BiotaPropertiesAttribute2nd> BiotaPropertiesAttribute2nd { get; set; }
-        public virtual ICollection<BiotaPropertiesBodyPart> BiotaPropertiesBodyPart { get; set; }
-        public virtual ICollection<BiotaPropertiesBookPageData> BiotaPropertiesBookPageData { get; set; }
-        public virtual ICollection<BiotaPropertiesBool> BiotaPropertiesBool { get; set; }
-        public virtual ICollection<BiotaPropertiesCreateList> BiotaPropertiesCreateList { get; set; }
-        public virtual ICollection<BiotaPropertiesDID> BiotaPropertiesDID { get; set; }
-        public virtual ICollection<BiotaPropertiesEmote> BiotaPropertiesEmote { get; set; }
-        public virtual ICollection<BiotaPropertiesEnchantmentRegistry> BiotaPropertiesEnchantmentRegistry { get; set; }
-        public virtual ICollection<BiotaPropertiesEventFilter> BiotaPropertiesEventFilter { get; set; }
-        public virtual ICollection<BiotaPropertiesFloat> BiotaPropertiesFloat { get; set; }
-        public virtual ICollection<BiotaPropertiesGenerator> BiotaPropertiesGenerator { get; set; }
-        public virtual ICollection<BiotaPropertiesIID> BiotaPropertiesIID { get; set; }
-        public virtual ICollection<BiotaPropertiesInt> BiotaPropertiesInt { get; set; }
-        public virtual ICollection<BiotaPropertiesInt64> BiotaPropertiesInt64 { get; set; }
-        public virtual ICollection<BiotaPropertiesPalette> BiotaPropertiesPalette { get; set; }
-        public virtual ICollection<BiotaPropertiesPosition> BiotaPropertiesPosition { get; set; }
-        public virtual ICollection<BiotaPropertiesSkill> BiotaPropertiesSkill { get; set; }
-        public virtual ICollection<BiotaPropertiesSpellBook> BiotaPropertiesSpellBook { get; set; }
-        public virtual ICollection<BiotaPropertiesString> BiotaPropertiesString { get; set; }
-        public virtual ICollection<BiotaPropertiesTextureMap> BiotaPropertiesTextureMap { get; set; }
-        public virtual ICollection<HousePermission> HousePermission { get; set; }
-    }
+    /// <summary>
+    /// WeenieType for this Object
+    /// </summary>
+    public int WeenieType { get; set; }
+
+    public uint PopulatedCollectionFlags { get; set; }
+
+    public virtual ICollection<BiotaPropertiesAllegiance> BiotaPropertiesAllegiance { get; set; } = new List<BiotaPropertiesAllegiance>();
+
+    public virtual ICollection<BiotaPropertiesAnimPart> BiotaPropertiesAnimPart { get; set; } = new List<BiotaPropertiesAnimPart>();
+
+    public virtual ICollection<BiotaPropertiesAttribute> BiotaPropertiesAttribute { get; set; } = new List<BiotaPropertiesAttribute>();
+
+    public virtual ICollection<BiotaPropertiesAttribute2nd> BiotaPropertiesAttribute2nd { get; set; } = new List<BiotaPropertiesAttribute2nd>();
+
+    public virtual ICollection<BiotaPropertiesBodyPart> BiotaPropertiesBodyPart { get; set; } = new List<BiotaPropertiesBodyPart>();
+
+    public virtual BiotaPropertiesBook BiotaPropertiesBook { get; set; }
+
+    public virtual ICollection<BiotaPropertiesBookPageData> BiotaPropertiesBookPageData { get; set; } = new List<BiotaPropertiesBookPageData>();
+
+    public virtual ICollection<BiotaPropertiesBool> BiotaPropertiesBool { get; set; } = new List<BiotaPropertiesBool>();
+
+    public virtual ICollection<BiotaPropertiesCreateList> BiotaPropertiesCreateList { get; set; } = new List<BiotaPropertiesCreateList>();
+
+    public virtual ICollection<BiotaPropertiesDID> BiotaPropertiesDID { get; set; } = new List<BiotaPropertiesDID>();
+
+    public virtual ICollection<BiotaPropertiesEmote> BiotaPropertiesEmote { get; set; } = new List<BiotaPropertiesEmote>();
+
+    public virtual ICollection<BiotaPropertiesEnchantmentRegistry> BiotaPropertiesEnchantmentRegistry { get; set; } = new List<BiotaPropertiesEnchantmentRegistry>();
+
+    public virtual ICollection<BiotaPropertiesEventFilter> BiotaPropertiesEventFilter { get; set; } = new List<BiotaPropertiesEventFilter>();
+
+    public virtual ICollection<BiotaPropertiesFloat> BiotaPropertiesFloat { get; set; } = new List<BiotaPropertiesFloat>();
+
+    public virtual ICollection<BiotaPropertiesGenerator> BiotaPropertiesGenerator { get; set; } = new List<BiotaPropertiesGenerator>();
+
+    public virtual ICollection<BiotaPropertiesIID> BiotaPropertiesIID { get; set; } = new List<BiotaPropertiesIID>();
+
+    public virtual ICollection<BiotaPropertiesInt> BiotaPropertiesInt { get; set; } = new List<BiotaPropertiesInt>();
+
+    public virtual ICollection<BiotaPropertiesInt64> BiotaPropertiesInt64 { get; set; } = new List<BiotaPropertiesInt64>();
+
+    public virtual ICollection<BiotaPropertiesPalette> BiotaPropertiesPalette { get; set; } = new List<BiotaPropertiesPalette>();
+
+    public virtual ICollection<BiotaPropertiesPosition> BiotaPropertiesPosition { get; set; } = new List<BiotaPropertiesPosition>();
+
+    public virtual ICollection<BiotaPropertiesSkill> BiotaPropertiesSkill { get; set; } = new List<BiotaPropertiesSkill>();
+
+    public virtual ICollection<BiotaPropertiesSpellBook> BiotaPropertiesSpellBook { get; set; } = new List<BiotaPropertiesSpellBook>();
+
+    public virtual ICollection<BiotaPropertiesString> BiotaPropertiesString { get; set; } = new List<BiotaPropertiesString>();
+
+    public virtual ICollection<BiotaPropertiesTextureMap> BiotaPropertiesTextureMap { get; set; } = new List<BiotaPropertiesTextureMap>();
+
+    public virtual ICollection<HousePermission> HousePermission { get; set; } = new List<HousePermission>();
 }

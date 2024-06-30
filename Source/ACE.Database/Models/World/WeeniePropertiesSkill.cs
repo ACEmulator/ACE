@@ -1,22 +1,57 @@
 ﻿using System;
 using System.Collections.Generic;
 
-#nullable disable
+namespace ACE.Database.Models.World;
 
-namespace ACE.Database.Models.World
+/// <summary>
+/// Skill Properties of Weenies
+/// </summary>
+public partial class WeeniePropertiesSkill
 {
-    public partial class WeeniePropertiesSkill
-    {
-        public uint Id { get; set; }
-        public uint ObjectId { get; set; }
-        public ushort Type { get; set; }
-        public ushort LevelFromPP { get; set; }
-        public uint SAC { get; set; }
-        public uint PP { get; set; }
-        public uint InitLevel { get; set; }
-        public uint ResistanceAtLastCheck { get; set; }
-        public double LastUsedTime { get; set; }
+    /// <summary>
+    /// Unique Id of this Property
+    /// </summary>
+    public uint Id { get; set; }
 
-        public virtual Weenie Object { get; set; }
-    }
+    /// <summary>
+    /// Id of the object this property belongs to
+    /// </summary>
+    public uint ObjectId { get; set; }
+
+    /// <summary>
+    /// Type of Property the value applies to (PropertySkill.????)
+    /// </summary>
+    public ushort Type { get; set; }
+
+    /// <summary>
+    /// points raised
+    /// </summary>
+    public ushort LevelFromPP { get; set; }
+
+    /// <summary>
+    /// skill state
+    /// </summary>
+    public uint SAC { get; set; }
+
+    /// <summary>
+    /// XP spent on this skill
+    /// </summary>
+    public uint PP { get; set; }
+
+    /// <summary>
+    /// starting point for advancement of the skill (eg bonus points)
+    /// </summary>
+    public uint InitLevel { get; set; }
+
+    /// <summary>
+    /// last use difficulty
+    /// </summary>
+    public uint ResistanceAtLastCheck { get; set; }
+
+    /// <summary>
+    /// time skill was last used
+    /// </summary>
+    public double LastUsedTime { get; set; }
+
+    public virtual Weenie Object { get; set; }
 }

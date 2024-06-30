@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 
-#nullable disable
+namespace ACE.Database.Models.Shard;
 
-namespace ACE.Database.Models.Shard
+public partial class CharacterPropertiesSquelch
 {
-    public partial class CharacterPropertiesSquelch
-    {
-        public uint CharacterId { get; set; }
-        public uint SquelchCharacterId { get; set; }
-        public uint SquelchAccountId { get; set; }
-        public uint Type { get; set; }
+    public uint CharacterId { get; set; }
 
-        public virtual Character Character { get; set; }
-    }
+    public uint SquelchCharacterId { get; set; }
+
+    public uint SquelchAccountId { get; set; }
+
+    public uint Type { get; set; }
+
+    public virtual Character Character { get; set; }
 }
