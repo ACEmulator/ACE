@@ -53,7 +53,7 @@ namespace ACE.Server.Managers
             Player_Tick_UpdateObjectPhysics,
             WorldObject_Tick_UpdateObjectPhysics,
 
-            // These are all found in Landblock.TickLandblockGroupThreadSafeWork()
+            // These are all found in Landblock.TickMultiThreadedWork()
             Landblock_Tick_RunActions,
             Landblock_Tick_Monster_Tick,
             Landblock_Tick_GeneratorUpdate,
@@ -65,7 +65,7 @@ namespace ACE.Server.Managers
             Landblock_Tick_Player_Tick,
             Landblock_Tick_WorldObject_Heartbeat,
 
-            // These are all found in various places and are cumulative per Landblock_Tick
+            // These are all found in various places and are cumulative per LandblockManager.Tick()
             Monster_Awareness_FindNextTarget,
             Monster_Navigation_UpdatePosition_PUO,
             LootGenerationFactory_CreateRandomLootObjects,
@@ -305,11 +305,11 @@ namespace ACE.Server.Managers
                 for (int i = (int) CumulativeEventHistoryType.Player_Tick_UpdateObjectPhysics; i <= (int) CumulativeEventHistoryType.WorldObject_Tick_UpdateObjectPhysics; i++)
                     AddMonitorOutputToStringBuilder(cumulative5m[i], cumulative1h[i], cumulative24h[i], ((CumulativeEventHistoryType) i).ToString(), sb);
 
-                sb.Append($"Calls from Landblock.TickLandblockGroupThreadSafeWork() - Cumulative over a single UpdateGameWorld Tick{'\n'}");
+                sb.Append($"Calls from Landblock.TickMultiThreadedWork() - Cumulative over a single UpdateGameWorld Tick{'\n'}");
                 for (int i = (int) CumulativeEventHistoryType.Landblock_Tick_RunActions; i <= (int) CumulativeEventHistoryType.Landblock_Tick_Database_Save; i++)
                     AddMonitorOutputToStringBuilder(cumulative5m[i], cumulative1h[i], cumulative24h[i], ((CumulativeEventHistoryType) i).ToString(), sb);
 
-                sb.Append($"Calls from Landblock.TickLandblockGroupThreadSafeWork() - Misc - Cumulative over a single UpdateGameWorld Tick{'\n'}");
+                sb.Append($"Calls from Landblock.TickMultiThreadedWork() - Misc - Cumulative over a single UpdateGameWorld Tick{'\n'}");
                 for (int i = (int) CumulativeEventHistoryType.Monster_Awareness_FindNextTarget; i <= (int) CumulativeEventHistoryType.LootGenerationFactory_CreateRandomLootObjects; i++)
                     AddMonitorOutputToStringBuilder(cumulative5m[i], cumulative1h[i], cumulative24h[i], ((CumulativeEventHistoryType) i).ToString(), sb);
 
