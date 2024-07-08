@@ -80,7 +80,7 @@ namespace ACE.Server.Entity
         {
             try
             {
-                var landblock = LScape.get_landblock(p.LandblockId.Raw);
+                //var landblock = LScape.get_landblock(p.LandblockId.Raw);
 
                 // dungeons
                 // TODO: investigate dungeons that are below actual traversable overworld terrain
@@ -116,6 +116,7 @@ namespace ACE.Server.Entity
                     // are we below ground? if so, search all of the indoor cells for this landblock
                     if (terrainPos.Z > p.Pos.Z)
                     {
+                        var landblock = LScape.get_landblock(p.LandblockId.Raw);
                         var envCells = landblock.get_envcells();
                         foreach (var envCell in envCells)
                             if (envCell.point_in_cell(p.Pos))
