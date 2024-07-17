@@ -4,7 +4,7 @@ namespace ACE.Common.Cryptography
 {
     public static class Hash32
     {
-        public static uint Calculate(byte[] data, int length)
+        public static uint Calculate(Span<byte> data, int length)
         {
             uint checksum = (uint)length << 16;
 

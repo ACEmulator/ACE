@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 using ACE.Common.Cryptography;
@@ -35,12 +36,12 @@ namespace ACE.Server.Network
             Queue       = (ushort)(buffer[offset++] | (buffer[offset++] << 8));
         }
 
-        public void Pack(byte[] buffer, int offset = 0)
+        public void Pack(Span<byte> buffer, int offset = 0)
         {
             Pack(buffer, ref offset);
         }
 
-        public void Pack(byte[] buffer, ref int offset)
+        public void Pack(Span<byte> buffer, ref int offset)
         {
             buffer[offset++] = (byte)Sequence;
             buffer[offset++] = (byte)(Sequence >> 8);

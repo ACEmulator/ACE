@@ -1,5 +1,5 @@
 using System;
-using System.Buffers;
+using System.Buffers.Binary;
 using System.IO;
 
 using ACE.Common.Cryptography;
@@ -41,8 +41,16 @@ namespace ACE.Server.Network
             Iteration   = (ushort)(buffer[offset++] | (buffer[offset++] << 8));
         }
 
-        public void Pack(byte[] buffer, int offset = 0)
+        public void Pack(Span<byte> buffer, int offset = 0)
         {
+            //BinaryPrimitives.WriteUInt32LittleEndian(buffer, Sequence);
+            //BinaryPrimitives.WriteUInt32LittleEndian(buffer.Slice(4), (uint)Flags);
+            //BinaryPrimitives.WriteUInt32LittleEndian(buffer.Slice(8), Checksum);
+            //BinaryPrimitives.WriteUInt16LittleEndian(buffer.Slice(12), Id);
+            //BinaryPrimitives.WriteUInt16LittleEndian(buffer.Slice(14), Time);
+            //BinaryPrimitives.WriteUInt16LittleEndian(buffer.Slice(16), Size);
+            //BinaryPrimitives.WriteUInt16LittleEndian(buffer.Slice(18), Iteration);
+
             buffer[offset++] = (byte)Sequence;
             buffer[offset++] = (byte)(Sequence >> 8);
             buffer[offset++] = (byte)(Sequence >> 16);
@@ -73,24 +81,17 @@ namespace ACE.Server.Network
 
         public uint CalculateHash32()
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(HeaderSize);
+            Span<byte> buffer = stackalloc byte[HeaderSize];
 
-            try
-            {
-                uint original = Checksum;
-                Checksum = 0xBADD70DD;
+            uint original = Checksum;
+            Checksum = 0xBADD70DD;
 
-                Pack(buffer);
+            Pack(buffer);
 
-                var checksum = Hash32.Calculate(buffer, HeaderSize);
-                Checksum = original;
+            var checksum = Hash32.Calculate(buffer, HeaderSize);
+            Checksum = original;
 
-                return checksum;
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
+            return checksum;
         }
 
         public bool HasFlag(PacketHeaderFlags flags) { return (flags & Flags) != 0; }
