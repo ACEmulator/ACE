@@ -97,6 +97,12 @@ namespace ACE.Server.Command.Handlers
             "\tSet the shutdown delay in seconds with @set-shutdown-interval < 0-99999 >")]
         public static void ShutdownServer(Session session, params string[] parameters)
         {
+            if (ServerManager.ShutdownInitiated)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Shutdown is already in progress.", ChatMessageType.Broadcast);
+                return;
+            }
+
             var adminText = "";
             if (parameters.Length > 0)
                 adminText = string.Join(" ", parameters);
@@ -126,7 +132,7 @@ namespace ACE.Server.Command.Handlers
             if (adminName.Equals("CONSOLE"))
                 adminName = "System";
 
-            var genericMsgToPlayers = $"Broadcast from {(hideName ? "System": $"{adminName}")}> {(timeTillShutdown.TotalMinutes > 1.5 ? "ATTENTION" : "WARNING")} - This Asheron's Call Server is shutting down in {time}.{(timeTillShutdown.TotalMinutes <= 3 ? " Please log out." : "")}";
+            var genericMsgToPlayers = $"Broadcast from {(hideName ? "System": $"{adminName}")}> {(timeTillShutdown.TotalMinutes > 1.5 ? "ATTENTION" : "WARNING")} - This Asheron's Call Server will be shutting down in {time}{(sdt.TotalMinutes <= 1 ? "!" : ".")}{(timeTillShutdown.TotalMinutes <= 3 ? $" Please log out{(sdt.TotalMinutes <= 1 ? "!" : ".")}" : "")}";
 
             if (sdt.TotalMilliseconds == 0)
                 genericMsgToPlayers = $"Broadcast from {(hideName ? "System" : $"{adminName}")}> ATTENTION - This Asheron's Call Server is shutting down NOW!!!!";

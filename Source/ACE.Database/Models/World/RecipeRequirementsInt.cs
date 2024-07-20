@@ -1,20 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
 
-#nullable disable
+namespace ACE.Database.Models.World;
 
-namespace ACE.Database.Models.World
+/// <summary>
+/// Recipe Int Requirments
+/// </summary>
+public partial class RecipeRequirementsInt
 {
-    public partial class RecipeRequirementsInt
-    {
-        public uint Id { get; set; }
-        public uint RecipeId { get; set; }
-        public sbyte Index { get; set; }
-        public int Stat { get; set; }
-        public int Value { get; set; }
-        public int Enum { get; set; }
-        public string Message { get; set; }
+    /// <summary>
+    /// Unique Id of this Recipe Requirement instance
+    /// </summary>
+    public uint Id { get; set; }
 
-        public virtual Recipe Recipe { get; set; }
-    }
+    /// <summary>
+    /// Unique Id of Recipe
+    /// </summary>
+    public uint RecipeId { get; set; }
+
+    public sbyte Index { get; set; }
+
+    public int Stat { get; set; }
+
+    public int Value { get; set; }
+
+    public int Enum { get; set; }
+
+    public string Message { get; set; }
+
+    public virtual Recipe Recipe { get; set; }
 }
