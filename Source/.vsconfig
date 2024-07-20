@@ -6,9 +6,6 @@
     "Microsoft.Net.Component.4.8.SDK",
     "Microsoft.Net.Component.4.7.2.TargetingPack",
     "Microsoft.Net.ComponentGroup.DevelopmentPrerequisites",
-    "Microsoft.VisualStudio.Component.TypeScript.TSServer",
-    "Microsoft.VisualStudio.ComponentGroup.WebToolsExtensions",
-    "Microsoft.VisualStudio.Component.JavaScript.TypeScript",
     "Microsoft.VisualStudio.Component.Roslyn.Compiler",
     "Microsoft.Component.MSBuild",
     "Microsoft.VisualStudio.Component.Roslyn.LanguageServices",
@@ -27,17 +24,12 @@
     "Microsoft.VisualStudio.Component.DiagnosticTools",
     "Microsoft.VisualStudio.Component.EntityFramework",
     "Microsoft.VisualStudio.Component.Debugger.JustInTime",
-    "Component.Microsoft.VisualStudio.LiveShare.2022",
     "Microsoft.VisualStudio.Component.IntelliCode",
-    "Component.VisualStudio.GitHub.Copilot",
     "Microsoft.NetCore.Component.Runtime.6.0",
     "Microsoft.VisualStudio.Component.ManagedDesktop.Prerequisites",
-    "Microsoft.VisualStudio.Component.DotNetModelBuilder",
     "Microsoft.ComponentGroup.Blend",
     "Microsoft.VisualStudio.Workload.ManagedDesktop",
     "Microsoft.VisualStudio.Component.Git"
   ],
-  "extensions": [
-    "https://marketplace.visualstudio.com/items?itemName=MLNET.ModelBuilder2022"
-  ]
+  "extensions": []
 }
