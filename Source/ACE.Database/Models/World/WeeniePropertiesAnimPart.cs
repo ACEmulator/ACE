@@ -1,17 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 
-#nullable disable
+namespace ACE.Database.Models.World;
 
-namespace ACE.Database.Models.World
+/// <summary>
+/// Animation Part Changes (from PCAPs) of Weenies
+/// </summary>
+public partial class WeeniePropertiesAnimPart
 {
-    public partial class WeeniePropertiesAnimPart
-    {
-        public uint Id { get; set; }
-        public uint ObjectId { get; set; }
-        public byte Index { get; set; }
-        public uint AnimationId { get; set; }
+    /// <summary>
+    /// Unique Id of this Property
+    /// </summary>
+    public uint Id { get; set; }
 
-        public virtual Weenie Object { get; set; }
-    }
+    /// <summary>
+    /// Id of the object this property belongs to
+    /// </summary>
+    public uint ObjectId { get; set; }
+
+    public byte Index { get; set; }
+
+    public uint AnimationId { get; set; }
+
+    public virtual Weenie Object { get; set; }
 }
