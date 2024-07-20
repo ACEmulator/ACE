@@ -1,16 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 
-#nullable disable
+namespace ACE.Database.Models.Shard;
 
-namespace ACE.Database.Models.Shard
+/// <summary>
+/// SpellBook Properties of Weenies
+/// </summary>
+public partial class BiotaPropertiesSpellBook
 {
-    public partial class BiotaPropertiesSpellBook
-    {
-        public uint ObjectId { get; set; }
-        public int Spell { get; set; }
-        public float Probability { get; set; }
+    /// <summary>
+    /// Id of the object this property belongs to
+    /// </summary>
+    public uint ObjectId { get; set; }
 
-        public virtual Biota Object { get; set; }
-    }
+    /// <summary>
+    /// Id of Spell
+    /// </summary>
+    public int Spell { get; set; }
+
+    /// <summary>
+    /// Chance to cast this spell
+    /// </summary>
+    public float Probability { get; set; }
+
+    public virtual Biota Object { get; set; }
 }
