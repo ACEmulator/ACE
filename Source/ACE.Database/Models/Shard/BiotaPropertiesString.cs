@@ -1,16 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 
-#nullable disable
+namespace ACE.Database.Models.Shard;
 
-namespace ACE.Database.Models.Shard
+/// <summary>
+/// String Properties of Weenies
+/// </summary>
+public partial class BiotaPropertiesString
 {
-    public partial class BiotaPropertiesString
-    {
-        public uint ObjectId { get; set; }
-        public ushort Type { get; set; }
-        public string Value { get; set; }
+    /// <summary>
+    /// Id of the object this property belongs to
+    /// </summary>
+    public uint ObjectId { get; set; }
 
-        public virtual Biota Object { get; set; }
-    }
+    /// <summary>
+    /// Type of Property the value applies to (PropertyString.????)
+    /// </summary>
+    public ushort Type { get; set; }
+
+    /// <summary>
+    /// Value of this Property
+    /// </summary>
+    public string Value { get; set; }
+
+    public virtual Biota Object { get; set; }
 }
