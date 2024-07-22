@@ -1,16 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 
-#nullable disable
+namespace ACE.Database.Models.Shard;
 
-namespace ACE.Database.Models.Shard
+/// <summary>
+/// Book Properties of Weenies
+/// </summary>
+public partial class BiotaPropertiesBook
 {
-    public partial class BiotaPropertiesBook
-    {
-        public uint ObjectId { get; set; }
-        public int MaxNumPages { get; set; }
-        public int MaxNumCharsPerPage { get; set; }
+    /// <summary>
+    /// Id of the object this property belongs to
+    /// </summary>
+    public uint ObjectId { get; set; }
 
-        public virtual Biota Object { get; set; }
-    }
+    /// <summary>
+    /// Maximum number of pages per book
+    /// </summary>
+    public int MaxNumPages { get; set; }
+
+    /// <summary>
+    /// Maximum number of characters per page
+    /// </summary>
+    public int MaxNumCharsPerPage { get; set; }
+
+    public virtual Biota Object { get; set; }
 }

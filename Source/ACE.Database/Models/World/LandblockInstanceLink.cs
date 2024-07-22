@@ -1,17 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 
-#nullable disable
+namespace ACE.Database.Models.World;
 
-namespace ACE.Database.Models.World
+/// <summary>
+/// Weenie Instance Links
+/// </summary>
+public partial class LandblockInstanceLink
 {
-    public partial class LandblockInstanceLink
-    {
-        public uint Id { get; set; }
-        public uint ParentGuid { get; set; }
-        public uint ChildGuid { get; set; }
-        public DateTime LastModified { get; set; }
+    /// <summary>
+    /// Unique Id of this Instance Link
+    /// </summary>
+    public uint Id { get; set; }
 
-        public virtual LandblockInstance ParentGu { get; set; }
-    }
+    /// <summary>
+    /// GUID of parent instance
+    /// </summary>
+    public uint ParentGuid { get; set; }
+
+    /// <summary>
+    /// GUID of child instance
+    /// </summary>
+    public uint ChildGuid { get; set; }
+
+    public DateTime LastModified { get; set; }
+
+    public virtual LandblockInstance Parent { get; set; }
 }
