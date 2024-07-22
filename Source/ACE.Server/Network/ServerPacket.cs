@@ -8,7 +8,7 @@ namespace ACE.Server.Network
     public class ServerPacket : Packet
     {
         // TODO: I don't know why this value is 464. The reasoning and math needs to be documented here.
-        public static int MaxPacketSize { get; } = 464;
+        public const int MaxPacketSize = 464;
 
         /// <summary>
         /// Make sure you call InitializeDataWriter() before you use this

@@ -10,11 +10,15 @@ namespace ACE.Server.Network
         public bool Unpack(BinaryReader payload)
         {
             Header.Unpack(payload);
+
             if (Header.Size - PacketFragmentHeader.HeaderSize < 0)
                 return false;
+
             if (Header.Size > 464)
                 return false;
+
             Data = payload.ReadBytes(Header.Size - PacketFragmentHeader.HeaderSize);
+
             return true;
         }
 
