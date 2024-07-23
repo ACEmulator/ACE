@@ -1,5 +1,5 @@
 using System;
-using System.Buffers;
+using System.Buffers.Binary;
 using System.IO;
 
 using ACE.Common.Cryptography;
@@ -8,7 +8,7 @@ namespace ACE.Server.Network
 {
     public class PacketHeader
     {
-        public static int HeaderSize { get; } = 20;
+        public const int HeaderSize = 20;
 
         public uint Sequence { get; set; }
         public PacketHeaderFlags Flags { get; set; }
@@ -41,56 +41,30 @@ namespace ACE.Server.Network
             Iteration   = (ushort)(buffer[offset++] | (buffer[offset++] << 8));
         }
 
-        public void Pack(byte[] buffer, int offset = 0)
+        public void Pack(Span<byte> buffer, int offset = 0)
         {
-            buffer[offset++] = (byte)Sequence;
-            buffer[offset++] = (byte)(Sequence >> 8);
-            buffer[offset++] = (byte)(Sequence >> 16);
-            buffer[offset++] = (byte)(Sequence >> 24);
-
-            buffer[offset++] = (byte)Flags;
-            buffer[offset++] = (byte)((int)Flags >> 8);
-            buffer[offset++] = (byte)((int)Flags >> 16);
-            buffer[offset++] = (byte)((int)Flags >> 24);
-
-            buffer[offset++] = (byte)Checksum;
-            buffer[offset++] = (byte)(Checksum >> 8);
-            buffer[offset++] = (byte)(Checksum >> 16);
-            buffer[offset++] = (byte)(Checksum >> 24);
-
-            buffer[offset++] = (byte)Id;
-            buffer[offset++] = (byte)(Id >> 8);
-
-            buffer[offset++] = (byte)Time;
-            buffer[offset++] = (byte)(Time >> 8);
-
-            buffer[offset++] = (byte)Size;
-            buffer[offset++] = (byte)(Size >> 8);
-
-            buffer[offset++] = (byte)Iteration;
-            buffer[offset++] = (byte)(Iteration >> 8);
+            BinaryPrimitives.WriteUInt32LittleEndian(buffer.Slice(offset), Sequence);
+            BinaryPrimitives.WriteUInt32LittleEndian(buffer.Slice(offset + 4), (uint)Flags);
+            BinaryPrimitives.WriteUInt32LittleEndian(buffer.Slice(offset + 8), Checksum);
+            BinaryPrimitives.WriteUInt16LittleEndian(buffer.Slice(offset + 12), Id);
+            BinaryPrimitives.WriteUInt16LittleEndian(buffer.Slice(offset + 14), Time);
+            BinaryPrimitives.WriteUInt16LittleEndian(buffer.Slice(offset + 16), Size);
+            BinaryPrimitives.WriteUInt16LittleEndian(buffer.Slice(offset + 18), Iteration);
         }
 
         public uint CalculateHash32()
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(HeaderSize);
+            Span<byte> buffer = stackalloc byte[HeaderSize];
 
-            try
-            {
-                uint original = Checksum;
-                Checksum = 0xBADD70DD;
+            uint original = Checksum;
+            Checksum = 0xBADD70DD;
 
-                Pack(buffer);
+            Pack(buffer);
 
-                var checksum = Hash32.Calculate(buffer, HeaderSize);
-                Checksum = original;
+            var checksum = Hash32.Calculate(buffer, HeaderSize);
+            Checksum = original;
 
-                return checksum;
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
+            return checksum;
         }
 
         public bool HasFlag(PacketHeaderFlags flags) { return (flags & Flags) != 0; }
