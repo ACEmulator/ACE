@@ -385,6 +385,29 @@ namespace ACE.Server.WorldObjects
 
             RemoveItemFromEquippedItemsRatingCache(worldObject);
 
+            var currentPrevOwners = worldObject.GetProperty(PropertyString.PreviousWielders) ?? "";
+            var currentOwner = worldObject.WielderId ?? 0;
+
+            //if (!ObjectGuid.IsPlayer(currentOwner) && !ObjectGuid.IsStatic(currentOwner))
+            if (!ObjectGuid.IsPlayer(currentOwner))
+                currentOwner = 0;
+
+            if (currentOwner > 0)
+            {
+                var owners = currentPrevOwners.Split(";", StringSplitOptions.RemoveEmptyEntries);
+                if (owners.Length > 0)
+                {
+                    var lastOwner = owners[owners.Length - 1];
+                    if (Convert.ToUInt32(lastOwner[0..10], 16) != currentOwner)
+                        worldObject.SetProperty(PropertyString.PreviousWielders, currentPrevOwners + $"0x{currentOwner:X8}:{Time.GetUnixTime()};");
+                }
+                else
+                    worldObject.SetProperty(PropertyString.PreviousWielders, currentPrevOwners + $"0x{currentOwner:X8}:{Time.GetUnixTime()};");
+            }
+
+            if (PropertyManager.GetBool("record_dequip_stacktrace").Item)
+                worldObject.SetProperty(PropertyString.PreviousWielderStackLog, Environment.StackTrace);
+
             wieldedLocation = worldObject.CurrentWieldedLocation ?? EquipMask.None;
 
             worldObject.RemoveProperty(PropertyInt.CurrentWieldedLocation);

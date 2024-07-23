@@ -8,8 +8,8 @@ namespace ACE.Common
     public class OfflineConfiguration
     {
         /// <summary>
-        /// Purge characters that have been deleted longer than PruneDeletedCharactersDays
-        /// These characters, and their associated biotas, will be deleted permanantly!
+        /// Purge characters that have been deleted longer than PurgeDeletedCharactersDays
+        /// These characters, and their associated biotas, will be deleted permanently!
         /// </summary>
         public bool PurgeDeletedCharacters { get; set; } = false;
 
@@ -24,6 +24,17 @@ namespace ACE.Common
         /// This can be time consuming so it's not something you would have set to true for every server startup. You might run this once every few months
         /// </summary>
         public bool PurgeOrphanedBiotas { get; set; } = false;
+
+        /// <summary>
+        /// Purge biota that have been deleted longer than PurgeReleasedBiotasDays
+        /// These biota will be deleted permanently!
+        /// </summary>
+        public bool PurgeReleasedBiotas { get; set; } = false;
+
+        /// <summary>
+        /// Number of days a biota must have been deleted for before eligible for purging
+        /// </summary>
+        public int PurgeReleasedBiotasDays { get; set; } = 30;
 
         /// <summary>
         /// Prune deleted characters from all friend lists

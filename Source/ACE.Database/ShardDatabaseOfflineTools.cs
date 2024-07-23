@@ -333,6 +333,7 @@ namespace ACE.Database
 
             HashSet<uint> playerBiotaIds = null;
             HashSet<uint> characterIds = null;
+            HashSet<uint> releasedIds = null;
 
             Dictionary<uint, WeenieType> biotas = null;
             Dictionary<uint, BiotaPropertiesIID> containerPointers = null;
@@ -428,6 +429,9 @@ namespace ACE.Database
                 });
             }
 
+            context.Database.SetCommandTimeout(900);
+            releasedIds = context.BiotaPropertiesFloat.AsNoTracking().Where(r => r.Type == (ushort)PropertyFloat.ReleasedTimestamp).Select(r => r.ObjectId).ToHashSet();
+
             // Purge contained items that belong to a parent container that no longer exists
             {
                 // select * from biota_properties_i_i_d iid left join biota on biota.id=iid.`value` where iid.`type`=2 and biota.id is null;
@@ -460,7 +464,7 @@ namespace ACE.Database
 
                 Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
-                    if (PurgeBiota(result.ObjectId, "Parent container not found"))
+                    if (!releasedIds.Contains(result.ObjectId) && PurgeBiota(result.ObjectId, "Parent container not found"))
                         Interlocked.Increment(ref totalNumberOfBiotasPurged);
                 });
 
@@ -498,7 +502,7 @@ namespace ACE.Database
 
                 Parallel.ForEach(results, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
                 {
-                    if (PurgeBiota(result.ObjectId, "Parent wielder not found"))
+                    if (!releasedIds.Contains(result.ObjectId) && PurgeBiota(result.ObjectId, "Parent wielder not found"))
                         Interlocked.Increment(ref totalNumberOfBiotasPurged);
                 });
 
@@ -512,6 +516,10 @@ namespace ACE.Database
 
                 foreach (var kvp in biotas)
                 {
+                    // exclude released objects
+                    if (releasedIds.Contains(kvp.Key))
+                        continue;
+
                     // exclude allegiances
                     if (kvp.Value == WeenieType.Allegiance)
                         continue;
@@ -917,6 +925,55 @@ namespace ACE.Database
         {
             using (var context = new ShardDbContext())
                 PurgeOrphanedBiotasInParallel(context, out numberOfBiotasPurged);
+        }
+
+        public static void PurgeReleasedBiotasInParallel(ShardDbContext context, int daysLimiter, out int numberOfBiotasPurged)
+        {
+            var deleteLimit = Time.GetUnixTime(DateTime.UtcNow.AddDays(-daysLimiter));
+
+            context.Database.SetCommandTimeout(900);
+
+            var releasedIds = context.BiotaPropertiesFloat.AsNoTracking().Where(r => r.Type == (ushort)PropertyFloat.ReleasedTimestamp && r.Value <= deleteLimit).Select(r => new { r.ObjectId, r.Value }).AsEnumerable().Select(r => (Id: r.ObjectId, ReleasedTimestamp: r.Value)).ToHashSet();
+
+            int biotaPurgedTotal = 0;
+
+            Parallel.ForEach(releasedIds, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
+            {
+                if (PurgeBiota(result.Id, $"Released on {Time.GetDateTimeFromTimestamp(result.ReleasedTimestamp).ToLocalTime()} which is older than {daysLimiter} days"))
+                    Interlocked.Increment(ref biotaPurgedTotal);
+            });
+
+            numberOfBiotasPurged = biotaPurgedTotal;
+        }
+
+        public static void PurgeDoDBiotasInParallel(out int numberOfBiotasPurged)
+        {
+            using (var context = new ShardDbContext())
+            {
+                context.Database.SetCommandTimeout(900);
+                PurgeDoDBiotasInParallel(context, out numberOfBiotasPurged);
+            }
+        }
+
+        public static void PurgeDoDBiotasInParallel(ShardDbContext context, out int numberOfBiotasPurged)
+        {
+            var destroyedIds = context.BiotaPropertiesInt.AsNoTracking().Where(r => r.Type == (ushort)PropertyInt.Bonded && r.Value == (int)BondedStatus.Destroy).Select(r => r.ObjectId).ToHashSet();
+
+            int biotaPurgedTotal = 0;
+
+            Parallel.ForEach(destroyedIds, ConfigManager.Config.Server.Threading.DatabaseParallelOptions, result =>
+            {
+                if (PurgeBiota(result, $"Biota has BondedStatus.Destroy"))
+                    Interlocked.Increment(ref biotaPurgedTotal);
+            });
+
+            numberOfBiotasPurged = biotaPurgedTotal;
+        }
+
+        public static void PurgeReleasedBiotasInParallel(int daysLimiter, out int numberOfBiotasPurged)
+        {
+            using (var context = new ShardDbContext())
+                PurgeReleasedBiotasInParallel(context, daysLimiter, out numberOfBiotasPurged);
         }
 
         /// <summary>
