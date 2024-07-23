@@ -3705,7 +3705,34 @@ namespace ACE.Server.WorldObjects
             Prev_PutItemInContainer[1] = Prev_PutItemInContainer[0];
             Prev_PutItemInContainer[0] = new PutItemInContainerEvent(itemGuid, containerGuid, placement);
         }
-        
+
+        // Map of the various legendary keys that may be given on emote/quest and the number of uses.
+        // Static map for quick comparisons
+        static Dictionary<uint, int> _LegendaryKeyUses = new Dictionary<uint, int>()
+        {
+            {48746, 1 }, // Aged Legendary Key
+            {48747, 1 }, // 24 hour, single use
+            {48748, 2 }, // 24 hour, 2 use
+            {48749, 3 }, // 24 hour, 3 use
+            {48750, 4 }, // 24 hour, 4 use
+            {48914, 1 }, // 24 hour, 1 use, quest legendary chest key
+            {51558, 1 }, // 1 use
+            {51586, 3 }, // 24 hour, 3 use, quest legendary chest key
+            {51648, 3 }, // 24 hour, 3 use, quest legendary chest key
+            {51954, 10 }, // Durable Legendary Key
+            {51963, 25 }, // 25 use
+            {52010, 5 }, // 24 hour, 5 use, quest legendary chest key
+            {72048, 1 }, // 24 hour, 1 use, quest legendary chest key non-pcap
+            {72338, 3 }, // 24 hour, 3 use, quest legendary chest key non-pcap
+            {72474, 2 }, // 24 hour, 2 use, quest legendary chest key non-pcap
+            {72600, 1 }, // 24 hour, 1 use, quest legendary chest key non-pcap
+            {72628, 1 }, // 24 hour, 1 use, quest legendary chest key non-pcap
+            {72635, 3 }, // 24 hour, 3 use, quest legendary chest key non-pcap
+            {72669, 1 }, // 24 hour, 1 use, quest legendary chest key non-pcap
+            {72807, 2 }, // 24 hour, 2 use, quest legendary chest key non-pcap
+            {87168, 4 }  // 24 hour, 4 use, quest legendary chest key non-pcap
+        };
+
         public void GiveFromEmote(WorldObject emoter, uint weenieClassId, int amount = 1, int palette = 0, float shade = 0)
         {
             if (emoter is null || weenieClassId == 0)
@@ -3719,8 +3746,17 @@ namespace ACE.Server.WorldObjects
             }
             var itemsToReceive = new ItemsToReceive(this);
 
-            itemsToReceive.Add(weenieClassId, amount);
+            // If supported by server setting, substitute emote given items across all interactions
+            uint substituteItem = (uint)PropertyManager.GetLong("award_wcid_for_legendary").Item;
+            if ((substituteItem != 0) && _LegendaryKeyUses.ContainsKey(weenieClassId))
+            {
+                // log.Debug($"Substituting {substituteItem} for {weenieClassId} with quantity {amount}");
+                amount *= _LegendaryKeyUses[weenieClassId];
+                weenieClassId = substituteItem;
+                // log.Debug($"Substituted quantity {amount}");
+            }
 
+            itemsToReceive.Add(weenieClassId, amount);
             var itemStacks = itemsToReceive.RequiredSlots;
 
             if (itemsToReceive.PlayerExceedsLimits)
