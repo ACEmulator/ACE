@@ -180,14 +180,24 @@ namespace ACE.Entity.Enum
 
     public static class CharacterOptionExtensions
     {
+        private static Dictionary<CharacterOption, CharacterOptions1Attribute> CharacterOptions1Attributes { get; }
+        private static Dictionary<CharacterOption, CharacterOptions2Attribute> CharacterOptions2Attributes { get; }
+
+        static CharacterOptionExtensions()
+        {
+            var vals = System.Enum.GetValues(typeof(CharacterOption)).Cast<CharacterOption>();
+            CharacterOptions1Attributes = vals.ToDictionary(o => o, o => o.GetAttributeOfType<CharacterOptions1Attribute>());
+            CharacterOptions2Attributes = vals.ToDictionary(o => o, o => o.GetAttributeOfType<CharacterOptions2Attribute>());
+        }
+
         public static CharacterOptions1Attribute GetCharacterOptions1Attribute(this CharacterOption val)
         {
-            return val.GetAttributeOfType<CharacterOptions1Attribute>();
+            return CharacterOptions1Attributes[val];
         }
 
         public static CharacterOptions2Attribute GetCharacterOptions2Attribute(this CharacterOption val)
         {
-            return val.GetAttributeOfType<CharacterOptions2Attribute>();
+            return CharacterOptions2Attributes[val];
         }
 
         public static uint GetCharacterOptions1Flag(this ReadOnlyDictionary<CharacterOption, bool> options)
