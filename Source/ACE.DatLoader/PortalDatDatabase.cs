@@ -12,6 +12,7 @@ namespace ACE.DatLoader
             CharGen = ReadFromDat<CharGen>(CharGen.FILE_ID);
             ContractTable = ReadFromDat<ContractTable>(ContractTable.FILE_ID);
             GeneratorTable = ReadFromDat<GeneratorTable>(GeneratorTable.FILE_ID);
+            MasterProperty = ReadFromDat<MasterProperty>(MasterProperty.FILE_ID);
             NameFilterTable = ReadFromDat<NameFilterTable>(NameFilterTable.FILE_ID);
             RegionDesc = ReadFromDat<RegionDesc>(RegionDesc.FILE_ID);
             SecondaryAttributeTable = ReadFromDat<SecondaryAttributeTable>(SecondaryAttributeTable.FILE_ID);
@@ -27,6 +28,7 @@ namespace ACE.DatLoader
         public CharGen CharGen { get; }
         public ContractTable ContractTable { get; }
         public GeneratorTable GeneratorTable { get; }
+        public MasterProperty MasterProperty { get; }
         public NameFilterTable NameFilterTable { get; }
         public RegionDesc RegionDesc { get; }
         public SecondaryAttributeTable SecondaryAttributeTable { get; }
