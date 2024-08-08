@@ -237,6 +237,8 @@ namespace ACE.Server
             log.Info("Initializing DatManager...");
             DatManager.Initialize(ConfigManager.Config.Server.DatFilesDirectory, true);
 
+            var actionMapTest = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.ActionMap>(0x26000000);
+
             if (ConfigManager.Config.DDD.EnableDATPatching)
             {
                 log.Info("Initializing DDDManager...");

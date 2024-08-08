@@ -137,7 +137,6 @@ namespace ACE.DatLoader.Tests
                 if (fileType == DatFileType.RenderMaterial) continue;
                 if (fileType == DatFileType.MaterialModifier) continue;
                 if (fileType == DatFileType.MaterialInstance) continue;
-                if (fileType == DatFileType.ActionMap) continue;
                 if (fileType == DatFileType.DbProperties) continue;
 
                 var type = types
