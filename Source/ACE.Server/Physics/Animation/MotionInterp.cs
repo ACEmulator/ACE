@@ -176,7 +176,7 @@ namespace ACE.Server.Physics.Animation
         {
             if (PhysicsObj == null) return;
 
-            if (WeenieObj != null && !WeenieObj.IsCreature()) return;
+            if (WeenieObj != null && !WeenieObj.IsCreature) return;
 
             if (!PhysicsObj.State.HasFlag(PhysicsState.Gravity)) return;
 
@@ -193,7 +193,7 @@ namespace ACE.Server.Physics.Animation
         {
             if (PhysicsObj == null) return;
 
-            if (WeenieObj != null && !WeenieObj.IsCreature()) return;
+            if (WeenieObj != null && !WeenieObj.IsCreature) return;
 
             if (!PhysicsObj.State.HasFlag(PhysicsState.Gravity)) return;
 
@@ -265,7 +265,7 @@ namespace ACE.Server.Physics.Animation
         {
             if (PhysicsObj == null || !Initted) return;
 
-            if (WeenieObj == null || WeenieObj.IsCreature() && PhysicsObj.movement_is_autonomous())
+            if (WeenieObj == null || WeenieObj.IsCreature && PhysicsObj.movement_is_autonomous())
                 apply_raw_movement(false, false);
             else
                 apply_interpreted_movement(false, false);
@@ -393,7 +393,7 @@ namespace ACE.Server.Physics.Animation
 
         public void adjust_motion(ref uint motion, ref float speed, HoldKey holdKey)
         {
-            if (WeenieObj != null && !WeenieObj.IsCreature())
+            if (WeenieObj != null && !WeenieObj.IsCreature)
                 return;
 
             switch (motion)
@@ -431,7 +431,7 @@ namespace ACE.Server.Physics.Animation
         {
             if (PhysicsObj == null || !Initted) return;
 
-            if (WeenieObj != null && !WeenieObj.IsCreature() || !PhysicsObj.movement_is_autonomous())
+            if (WeenieObj != null && !WeenieObj.IsCreature || !PhysicsObj.movement_is_autonomous())
                 apply_interpreted_movement(cancelMoveTo, allowJump);
             else
                 apply_raw_movement(cancelMoveTo, allowJump);
@@ -588,7 +588,7 @@ namespace ACE.Server.Physics.Animation
             if (motion == (uint)MotionCommand.Dead || motion == (uint)MotionCommand.Falling || motion >= (uint)MotionCommand.TurnRight && motion <= (uint)MotionCommand.TurnLeft)
                 return true;
 
-            if (WeenieObj != null && !WeenieObj.IsCreature())
+            if (WeenieObj != null && !WeenieObj.IsCreature)
                 return true;
 
             if (!PhysicsObj.State.HasFlag(PhysicsState.Gravity))
@@ -744,7 +744,7 @@ namespace ACE.Server.Physics.Animation
             if (PhysicsObj == null)
                 return WeenieError.NoPhysicsObject;
 
-            if (WeenieObj == null && !WeenieObj.IsCreature() || !PhysicsObj.State.HasFlag(PhysicsState.Gravity) ||
+            if (WeenieObj == null && !WeenieObj.IsCreature || !PhysicsObj.State.HasFlag(PhysicsState.Gravity) ||
                 PhysicsObj.TransientState.HasFlag(TransientStateFlags.Contact | TransientStateFlags.OnWalkable))
             {
                 if (PhysicsObj.IsFullyConstrained())
@@ -811,7 +811,7 @@ namespace ACE.Server.Physics.Animation
 
                 if (diff)
                 {
-                    if (WeenieObj != null && WeenieObj.IsCreature() || action.Autonomous)
+                    if (WeenieObj != null && WeenieObj.IsCreature || action.Autonomous)
                     {
                         ServerActionStamp = action.Stamp;
                         movementParams.Speed = action.Speed;
