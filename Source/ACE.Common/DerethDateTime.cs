@@ -8,29 +8,29 @@ namespace ACE.Common
     public class DerethDateTime
     {
         // Changing the four variables below will result in the Date and Time reported in ACClient no longer matching
-        private static int hoursInADay      = 16;   // A Derethian day has 16 hours
-        private static int daysInAMonth     = 30;   // A Derethian month has 30 days and does not vary like Earth months.
-        private static int monthsInAYear    = 12;   // A Derethian year has 12 months
-        private static double dayTicks      = 7620; // A Derethain day has 7620 ticks per day
+        private const int hoursInADay      = 16;   // A Derethian day has 16 hours
+        private const int daysInAMonth     = 30;   // A Derethian month has 30 days and does not vary like Earth months.
+        private const int monthsInAYear    = 12;   // A Derethian year has 12 months
+        private const double dayTicks      = 7620; // A Derethain day has 7620 ticks per day
 
-        private static double hourTicks     = dayTicks / hoursInADay;
-        private static double minuteTicks   = hourTicks / 60;
-        private static double secondTicks   = minuteTicks / 60;
+        private const double hourTicks     = dayTicks / hoursInADay;
+        private const double minuteTicks   = hourTicks / 60;
+        private const double secondTicks   = minuteTicks / 60;
 
-        private static double monthTicks    = dayTicks * daysInAMonth;
-        private static double yearTicks     = monthTicks * monthsInAYear;
+        private const double monthTicks    = dayTicks * daysInAMonth;
+        private const double yearTicks     = monthTicks * monthsInAYear;
 
-        private static double dayZeroTicks  = 0; // Morningthaw 1, 10 P.Y. - Morntide-and-Half
-        private static double hourOneTicks  = 210; // Morningthaw 1, 10 P.Y. - Midsong
-        private static double dayOneTicks   = dayZeroTicks + hourOneTicks + (hourTicks * 8); // Morningthaw 2, 10 P.Y. - Darktide
-        private static double yearOneTicks  = dayOneTicks + (dayTicks * 359); // Morningthaw 1, 11 P.Y. - Darktide
-        private static double yearZeroTicks = dayOneTicks + (dayTicks * 269); // Snowreap 1, 10 P.Y. - Darktide
+        private const double dayZeroTicks  = 0; // Morningthaw 1, 10 P.Y. - Morntide-and-Half
+        private const double hourOneTicks  = 210; // Morningthaw 1, 10 P.Y. - Midsong
+        private const double dayOneTicks   = dayZeroTicks + hourOneTicks + (hourTicks * 8); // Morningthaw 2, 10 P.Y. - Darktide
+        private const double yearOneTicks  = dayOneTicks + (dayTicks * 359); // Morningthaw 1, 11 P.Y. - Darktide
+        private const double yearZeroTicks = dayOneTicks + (dayTicks * 269); // Snowreap 1, 10 P.Y. - Darktide
 
-        private static DateTime dayZero_RealWorld       = new DateTime(1999, 4, 1, 10, 30, 00);
-        private static DateTime dayOne_RealWorld        = new DateTime(1999, 4, 2, 00, 00, 00);
+        private static readonly DateTime dayZero_RealWorld       = new DateTime(1999, 4, 1, 10, 30, 00);
+        private static readonly DateTime dayOne_RealWorld        = new DateTime(1999, 4, 2, 00, 00, 00);
 
-        private static DateTime retailDayOne_RealWorld  = new DateTime(1999, 11, 2, 00, 00, 00);
-        private static DateTime retailDayLast_RealWorld = new DateTime(2017, 1, 31, 12, 00, 00); // Eastern Standard Time
+        private static readonly DateTime retailDayOne_RealWorld  = new DateTime(1999, 11, 2, 00, 00, 00);
+        private static readonly DateTime retailDayLast_RealWorld = new DateTime(2017, 1, 31, 12, 00, 00); // Eastern Standard Time
 
         /// <summary>
         /// <para>A <see cref="DerethDateTime"/> instance set to the Derethian Date, Portal Year and Time when the worlds first opened.</para>
@@ -55,13 +55,13 @@ namespace ACE.Common
         /// <summary>
         /// <para>Date: Morningthaw 1, 10 P.Y. | Time: Morntide-and-Half (0)</para>
         /// </summary>
-        public static readonly double MinValue = 0; // Morningthaw 1, 10 P.Y. - Morntide-and-Half
+        public const double MinValue = 0; // Morningthaw 1, 10 P.Y. - Morntide-and-Half
 
         /// <summary>
         /// <para>Any value higher than this results in acclient crashing upon connection to server.</para>
         /// <para>Date: Thistledown 2, 401 P.Y. | Time: Morntide-and-Half (1073741828)</para>
         /// </summary>
-        public static readonly double MaxValue = (yearTicks * 391) + (monthTicks * 5) + (dayTicks * 1) + 4; // Thistledown 2, 401 P.Y. - Morntide-and-Half (1073741828)
+        public const double MaxValue = (yearTicks * 391) + (monthTicks * 5) + (dayTicks * 1) + 4; // Thistledown 2, 401 P.Y. - Morntide-and-Half (1073741828)
 
         /// <summary>
         /// Months of the Portal Year

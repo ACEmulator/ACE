@@ -630,7 +630,7 @@ namespace ACE.Server.Entity
             return 1.0;
         }
 
-        public static readonly int MaxDistance = 600;
+        public const int MaxDistance = 600;
 
         /// <summary>
         /// Returns the amount to scale the XP for a fellow

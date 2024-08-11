@@ -14,7 +14,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The delay between missile attacks (todo: find actual value)
         /// </summary>
-        public static readonly float MissileDelay = 1.0f;
+        public const float MissileDelay = 1.0f;
 
         /// <summary>
         /// Returns TRUE if monster has physical ranged attacks

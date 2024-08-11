@@ -1479,7 +1479,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// flag to use c# logic instead of mutate script logic
         /// </summary>
-        private static readonly bool useMutateNative = false;
+        private const bool useMutateNative = false;
 
         public static bool TryMutate(Player player, WorldObject source, WorldObject target, Recipe recipe, uint dataId, HashSet<uint> modified)
         {
