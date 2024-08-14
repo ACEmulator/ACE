@@ -36,7 +36,7 @@ namespace ACE.DatLoader.Entity
         PropertyInheritanceType m_inheritanceType;
         PropertyDatFileType m_datFileType;
         PropertyPropagationType m_propagationType;
-        PropertyCachingType m_cachingType;
+        //PropertyCachingType m_cachingType;
 
         public bool m_bRequired;
         public bool m_bReadOnly;

@@ -99,7 +99,7 @@ namespace ACE.DatLoader.Entity
                 default:
                     // Should never hit this!
                     throw new NotImplementedException();
-                    break;
+                    //break;
             }
 
 
