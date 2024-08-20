@@ -26,7 +26,7 @@ namespace ACE.Server
         /// https://docs.microsoft.com/en-us/windows/desktop/api/timeapi/nf-timeapi-timebeginperiod
         /// Important note: This function affects a global Windows setting. Windows uses the lowest value (that is, highest resolution) requested by any process.
         /// </summary>
-        [DllImport("winmm.dll", EntryPoint="timeBeginPeriod")]
+        [DllImport("winmm.dll", EntryPoint = "timeBeginPeriod")]
         public static extern uint MM_BeginPeriod(uint uMilliseconds);
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace ACE.Server
                         File.Copy(log4netConfigExample, log4netConfig);
                     }
                     else
-                    {                        
+                    {
                         if (!File.Exists(log4netConfigContainer))
                         {
                             Console.WriteLine("log4net Configuration file is missing, ACEmulator is running in a container,  cloning from docker file.");
@@ -127,7 +127,7 @@ namespace ACE.Server
 
             if (IsRunningInContainer)
                 log.Info("ACEmulator is running in a container...");
-            
+
             var configFile = Path.Combine(exeLocation, "Config.js");
             var configConfigContainer = Path.Combine(containerConfigDirectory, "Config.js");
 

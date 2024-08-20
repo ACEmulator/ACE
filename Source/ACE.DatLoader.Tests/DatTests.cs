@@ -144,7 +144,6 @@ namespace ACE.DatLoader.Tests
                 if (fileType == DatFileType.RenderMaterial) continue; // 0x16, 1 file
                 if (fileType == DatFileType.MaterialModifier) continue; // 0x17, 1 file
                 if (fileType == DatFileType.MaterialInstance) continue; // 0x18, 1 file
-                if (fileType == DatFileType.ActionMap) continue; // 0x26, 1 file
 
                 var type = types
                     .SelectMany(m => m.GetCustomAttributes(typeof(DatFileTypeAttribute), false), (m, a) => new { m, a })
