@@ -736,8 +736,8 @@ namespace ACE.Server.Factories
             return gemResult.MaterialType;
         }
 
-        public static readonly float WeaponBulk = 0.50f;
-        public static readonly float ArmorBulk = 0.25f;
+        public const float WeaponBulk = 0.50f;
+        public const float ArmorBulk = 0.25f;
 
         private static bool MutateBurden(WorldObject wo, TreasureDeath treasureDeath, bool isWeapon)
         {
@@ -839,9 +839,9 @@ namespace ACE.Server.Factories
         }
 
         // increase for a wider variance in item value ranges
-        private static readonly float valueFactor = 1.0f / 3.0f;
+        private const float valueFactor = 1.0f / 3.0f;
 
-        private static readonly float valueNonFactor = 1.0f - valueFactor;
+        private const float valueNonFactor = 1.0f - valueFactor;
 
         private static void MutateValue_Generic(WorldObject wo, int tier)
         {

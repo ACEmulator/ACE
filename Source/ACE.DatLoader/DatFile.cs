@@ -7,7 +7,7 @@ namespace ACE.DatLoader
 {
     public class DatFile : IUnpackable
     {
-        internal static readonly uint ObjectSize = (sizeof(uint) * 6);
+        internal const uint ObjectSize = (sizeof(uint) * 6);
 
         
         //public uint BitFlags { get; private set; }

@@ -17,9 +17,9 @@ namespace ACE.Server.Physics.Animation
         public bool Initialized;
         public double StickyTimeoutTime;
 
-        public static readonly float StickyRadius = 0.3f;
+        public const float StickyRadius = 0.3f;
 
-        public static readonly float StickyTime = 1.0f;
+        public const float StickyTime = 1.0f;
 
         public StickyManager()
         {

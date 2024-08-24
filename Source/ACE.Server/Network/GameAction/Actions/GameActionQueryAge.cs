@@ -17,19 +17,19 @@ namespace ACE.Server.Network.GameAction.Actions
             session.Network.EnqueueSend(new GameEventQueryAgeResponse(session, string.Empty, ageMsg));
         }
 
-        private static readonly int SecondsPerMinute = 60;
-        private static readonly int MinutesPerHour = 60;
-        private static readonly int HoursPerDay = 24;
+        private const int SecondsPerMinute = 60;
+        private const int MinutesPerHour = 60;
+        private const int HoursPerDay = 24;
 
-        private static readonly int DaysPerWeek = 7;
-        private static readonly int DaysPerMonth = 30;
-        private static readonly int DaysPerYear = 365;
+        private const int DaysPerWeek = 7;
+        private const int DaysPerMonth = 30;
+        private const int DaysPerYear = 365;
 
-        private static readonly int SecondsPerHour = SecondsPerMinute * MinutesPerHour;     // 3600
-        private static readonly int SecondsPerDay = SecondsPerHour * HoursPerDay;           // 86400
-        private static readonly int SecondsPerWeek = SecondsPerDay * DaysPerWeek;           // 604800
-        private static readonly int SecondsPerMonth = SecondsPerDay * DaysPerMonth;         // 2592000
-        private static readonly int SecondsPerYear = SecondsPerDay * DaysPerYear;           // 31536000
+        private const int SecondsPerHour = SecondsPerMinute * MinutesPerHour;     // 3600
+        private const int SecondsPerDay = SecondsPerHour * HoursPerDay;           // 86400
+        private const int SecondsPerWeek = SecondsPerDay * DaysPerWeek;           // 604800
+        private const int SecondsPerMonth = SecondsPerDay * DaysPerMonth;         // 2592000
+        private const int SecondsPerYear = SecondsPerDay * DaysPerYear;           // 31536000
 
         public static string CalculateAgeMessage(int ageSeconds)
         {

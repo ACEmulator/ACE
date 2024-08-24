@@ -18,7 +18,7 @@ namespace ACE.Server.Physics.Common
         /// <summary>
         /// The client automatically removes known objects if they remain outside visibility for this amount of time
         /// </summary>
-        public static readonly float DestructionTime = 25.0f;
+        public const float DestructionTime = 25.0f;
 
         private static readonly ReaderWriterLockSlim rwLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
 

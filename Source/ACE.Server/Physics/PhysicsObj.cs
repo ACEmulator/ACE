@@ -114,7 +114,7 @@ namespace ACE.Server.Physics
         public ObjectMaint ObjMaint;
         public bool IsPlayer => ID >= 0x50000001 && ID <= 0x5FFFFFFF;
 
-        public static readonly int UpdateTimeLength = 9;
+        public const int UpdateTimeLength = 9;
 
         public bool IsSticky => PositionManager?.StickyManager != null && PositionManager.StickyManager.TargetID != 0;
 

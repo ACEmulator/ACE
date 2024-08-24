@@ -116,7 +116,7 @@ namespace ACE.Server.WorldObjects
             DoHealMotion(healer, targetPlayer, true);
         }
 
-        public static readonly float Healing_MaxMove = 5.0f;
+        public const float Healing_MaxMove = 5.0f;
 
         public void DoHealMotion(Player healer, Player target, bool success)
         {

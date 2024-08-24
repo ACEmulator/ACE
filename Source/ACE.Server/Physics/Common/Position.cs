@@ -136,8 +136,8 @@ namespace ACE.Server.Physics.Common
             return offset.Length() - (radius + otherRadius);
         }
 
-        public static readonly float ThresholdMed = 1.0f / 3.0f;
-        public static readonly float ThresholdHigh = 2.0f / 3.0f;
+        public const float ThresholdMed = 1.0f / 3.0f;
+        public const float ThresholdHigh = 2.0f / 3.0f;
 
         public Quadrant DetermineQuadrant(float height, Position position)
         {

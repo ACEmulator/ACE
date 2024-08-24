@@ -15,8 +15,8 @@ namespace ACE.Server.Physics.Animation
         public int NodeFailCounter;
         public Position BlipToPosition;
 
-        public static readonly float LargeDistance = 999999.0f;
-        public static readonly float MaxInterpolatedVelocity = 7.5f;
+        public const float LargeDistance = 999999.0f;
+        public const float MaxInterpolatedVelocity = 7.5f;
 
         public static bool UseAdjustedSpeed = true;
 
