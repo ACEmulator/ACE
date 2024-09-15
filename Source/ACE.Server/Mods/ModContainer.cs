@@ -1,4 +1,5 @@
 using ACE.Common;
+using ACE.Common.Extensions;
 
 using log4net;
 
@@ -135,7 +136,7 @@ namespace ACE.Server.Mods
             if (Status != ModStatus.Active)
                 return;
 
-            log.Info($"{FolderName} shutting down @ {DateTime.Now}");
+            log.Info($"{FolderName} shutting down @ {DateTime.Now.ToCommonString()}");
 
             this.UnregisterAllCommands();
 
@@ -232,7 +233,7 @@ namespace ACE.Server.Mods
             }
 
             Restart();
-            log.Info($"Reloaded {FolderName} @ {DateTime.Now} after {lapsed.TotalSeconds}/{RELOAD_TIMEOUT.TotalSeconds} seconds");
+            log.Info($"Reloaded {FolderName} @ {DateTime.Now.ToCommonString()} after {lapsed.TotalSeconds}/{RELOAD_TIMEOUT.TotalSeconds} seconds");
         }
 
 
@@ -246,7 +247,7 @@ namespace ACE.Server.Mods
                 return;
             }
 
-            log.Info($"{FolderName} changed @ {DateTime.Now} after {lapsed.TotalMilliseconds}ms");
+            log.Info($"{FolderName} changed @ {DateTime.Now.ToCommonString()} after {lapsed.TotalMilliseconds}ms");
             _lastChange = DateTime.Now;
 
             Disable();
