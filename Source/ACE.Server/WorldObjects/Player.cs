@@ -640,7 +640,7 @@ namespace ACE.Server.WorldObjects
         {
             if (!ForcedLogOffRequested) return;
 
-            log.WarnFormat("[LOGOUT] Executing ForcedLogoff for Account {0} with character {1} (0x{2}) at {3}.", Account.AccountName, Name, Guid, DateTime.Now);
+            log.WarnFormat("[LOGOUT] Executing ForcedLogoff for Account {0} with character {1} (0x{2}) at {3}.", Account.AccountName, Name, Guid, DateTime.Now.ToCommonString());
 
             FinalizeLogout();
 
