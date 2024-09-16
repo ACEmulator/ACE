@@ -526,6 +526,8 @@ namespace ACE.Server.WorldObjects
             IsBusy = true;
             IsLoggingOut = true;
 
+            PlayerManager.AddPlayerToFinalLogoffQueue(this);
+
             if (Fellowship != null)
                 FellowshipQuit(false);
 
@@ -626,6 +628,8 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        public double LogOffFinalizedTime;
+
         public bool ForcedLogOffRequested;
 
         /// <summary>
@@ -636,6 +640,8 @@ namespace ACE.Server.WorldObjects
         {
             if (!ForcedLogOffRequested) return;
 
+            log.WarnFormat("[LOGOUT] Executing ForcedLogoff for Account {0} with character {1} (0x{2}) at {3}.", Account.AccountName, Name, Guid, DateTime.Now);
+
             FinalizeLogout();
 
             ForcedLogOffRequested = false;
@@ -643,6 +649,7 @@ namespace ACE.Server.WorldObjects
 
         private void FinalizeLogout()
         {
+            PlayerManager.RemovePlayerFromFinalLogoffQueue(this);
             CurrentLandblock?.RemoveWorldObject(Guid, false);
             SetPropertiesAtLogOut();
             SavePlayerToDatabase();
