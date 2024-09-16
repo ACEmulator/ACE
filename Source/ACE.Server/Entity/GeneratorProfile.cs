@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 using log4net;
 
+using ACE.Common;
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -115,6 +117,16 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
+        /// DateTime for when the profile last spawned something
+        /// </summary>
+        public DateTime MostRecentSpawnTime { get; set; } = DateTime.MinValue;
+
+        /// <summary>
+        /// DateTime for when the profile is considered stale
+        /// </summary>
+        public DateTime StaleTime { get; set; } = DateTime.MinValue;
+
+        /// <summary>
         /// DateTime for when the profile is available as a possible spawn choice
         /// </summary>
         public DateTime NextAvailable { get; set; } = DateTime.UtcNow;
@@ -128,6 +140,60 @@ namespace ACE.Server.Entity
         /// Returns TRUE if this profile MaxCreate is not infinite (-1) and CurrentCreate does not currently meet or exceed MaxCreate
         /// </summary>
         public bool IsMaxed => MaxCreate != -1 && CurrentCreate >= MaxCreate;
+
+        ///// <summary>
+        ///// Returns TRUE if this profile has any non-Creature WorldObjects, Creatures with IsAwake being false, any Containers with IsOpen being false,
+        ///// any Chests with DefaultLocked true and IsLocked being true
+        ///// </summary>
+        public bool IsAbleToBeMarkedStale(ref int hasNonWorldObjects, ref int hasAwakeCreatures, ref int hasOpenContainers, ref int hasUnlockedChests)
+        {
+            //var hasNonWorldObjects = 0;
+            //var hasAwakeCreatures = 0;
+            //var hasOpenContainers = 0;
+            //var hasUnlockedChests = 0;
+
+            if (Spawned.Count == 0)
+                return false;
+
+            foreach (var spawn in Spawned.Values)
+            {
+                var wo = spawn.TryGetWorldObject();
+                if (wo != null)
+                {
+                    if (wo is not Creature && !wo.IsGenerator)
+                        hasNonWorldObjects++;
+
+                    if (wo.IsGenerator)
+                    {
+                        //if (wo is not Creature)
+                        //    hasNonWorldObjects++;
+
+                        //if (wo is not Creature && wo is not GenericObject)
+                        //    hasNonWorldObjects++;
+
+                        //if (wo is Switch)
+                        //    hasNonWorldObjects++;
+
+                        foreach (var profile in wo.GeneratorProfiles)
+                        {
+                            if (profile.IsAbleToBeMarkedStale(ref hasNonWorldObjects, ref hasAwakeCreatures, ref hasOpenContainers, ref hasUnlockedChests))
+                                hasNonWorldObjects++;
+                        }
+                    }
+
+                    if (wo is Creature creature && creature.IsAwake)
+                        hasAwakeCreatures++;
+
+                    if (wo is Container container && container.IsOpen)
+                        hasOpenContainers++;
+
+                    if (wo is Chest chest && (chest.GetProperty(PropertyBool.DefaultLocked) ?? false) && !chest.IsLocked)
+                        hasUnlockedChests++;
+                }
+            }
+
+            return hasNonWorldObjects > 0 && hasAwakeCreatures == 0 && hasOpenContainers == 0 && hasUnlockedChests == 0;
+        }
 
         /// <summary>
         /// The generator world object for this profile
@@ -180,6 +246,16 @@ namespace ACE.Server.Entity
                     break;
                 }*/
                 SpawnQueue.Add(GetSpawnTime());
+
+                //if (Generator.IsEncounter)
+                //{
+                //    Generator.CurrentLandblock?.NotifyEncounterGenerators(Generator, (int)Id);
+                //    foreach (var landblock in Generator.CurrentLandblock?.Adjacents)
+                //        landblock.NotifyEncounterGenerators(Generator, (int)Id);
+                //}
+
+                //if (Generator.IsEncounter)
+                //    Generator.CurrentLandblock?.RegisterEncounterProfileUsed(Generator, Id, Delay);
             }
         }
 
@@ -213,6 +289,16 @@ namespace ACE.Server.Entity
                             var woi = new WorldObjectInfo(obj);
 
                             Spawned.Add(obj.Guid.Full, woi);
+                        }
+
+                        MostRecentSpawnTime = DateTime.UtcNow;
+
+                        if (Generator.IsEncounter)
+                        {
+                            var variance = ThreadSafeRandom.Next(0, Delay);
+                            StaleTime = DateTime.UtcNow.AddSeconds(Delay * MaxCreate + variance);
+
+                            //Generator.CurrentLandblock?.NotifyEncounterGenerators(Generator, (int)Id);
                         }
                     }
                 }
@@ -619,6 +705,8 @@ namespace ACE.Server.Entity
             Spawned.Clear();
             SpawnQueue.Clear();
 
+            MostRecentSpawnTime = DateTime.MinValue;
+            StaleTime = DateTime.MinValue;
             NextAvailable = DateTime.UtcNow;
 
             GeneratedTreasureItem = false;
