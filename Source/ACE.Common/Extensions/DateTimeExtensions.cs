@@ -6,7 +6,7 @@ namespace ACE.Common.Extensions
     {
         public static string ToCommonString(this DateTime dateTime)
         {
-            return dateTime.ToString("M/d/yyyy h:mm:ss tt");
+            return dateTime.ToString("yyyy-MM-dd h:mm:ss tt");
         }
     }
 }
