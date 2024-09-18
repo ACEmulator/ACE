@@ -2,6 +2,7 @@ using System;
 
 using log4net;
 
+using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network;
@@ -29,7 +30,7 @@ namespace ACE.Server.Command.Handlers
         public static void HandleCancelShutdown(Session session, params string[] parameters)
         {
             var adminName = (session == null) ? "CONSOLE" : session.Player.Name;
-            var msg = $"{adminName} has requested the pending shut down @ {ServerManager.ShutdownTime.ToLocalTime()} ({ServerManager.ShutdownTime} UTC) be cancelled.";
+            var msg = $"{adminName} has requested the pending shut down @ {ServerManager.ShutdownTime.ToLocalTime().ToCommonString()} ({ServerManager.ShutdownTime.ToCommonString()} UTC) be cancelled.";
             log.Info(msg);
             PlayerManager.BroadcastToAuditChannel(session?.Player, msg);
 
@@ -113,9 +114,9 @@ namespace ACE.Server.Command.Handlers
             var timeTillShutdown = TimeSpan.FromSeconds(ServerManager.ShutdownInterval);
             var timeRemaining = "The server will shut down in " + (timeTillShutdown.TotalSeconds > 120 ? $"{(int)timeTillShutdown.TotalMinutes} minutes." : $"{timeTillShutdown.TotalSeconds} seconds.");
 
-            log.Info($"{adminName} initiated a complete server shutdown @ {DateTime.Now} ({DateTime.UtcNow} UTC)");
+            log.Info($"{adminName} initiated a complete server shutdown @ {DateTime.Now.ToCommonString()} ({DateTime.UtcNow.ToCommonString()} UTC)");
             log.Info(timeRemaining);
-            PlayerManager.BroadcastToAuditChannel(session?.Player, $"{adminName} initiated a complete server shutdown @ {DateTime.Now} ({DateTime.UtcNow} UTC)");
+            PlayerManager.BroadcastToAuditChannel(session?.Player, $"{adminName} initiated a complete server shutdown @ {DateTime.Now.ToCommonString()} ({DateTime.UtcNow.ToCommonString()} UTC)");
 
             if (adminText.Length > 0)
             {
