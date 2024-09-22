@@ -22,22 +22,22 @@ namespace ACE.Server.Entity
         /// <summary>
         /// A landblock has this many cells squared
         /// </summary>
-        public static readonly int CellDim = 8;
+        public const int CellDim = 8;
 
         /// <summary>
         /// A landblock is this unit size squared
         /// </summary>
-        public static readonly int LandblockSize = 192;
+        public const int LandblockSize = 192;
 
         /// <summary>
         /// A landblock cell is this unit size squared
         /// </summary>
-        public static readonly int CellSize = LandblockSize / CellDim;
+        public const int CellSize = LandblockSize / CellDim;
 
         /// <summary>
         /// A landblock has this many vertices squared
         /// </summary>
-        public static readonly int VertexDim = CellDim + 1;
+        public const int VertexDim = CellDim + 1;
 
         /// <summary>
         /// LandHeightTable mapping non-linear heights

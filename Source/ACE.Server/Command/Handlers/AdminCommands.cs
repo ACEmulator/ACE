@@ -216,8 +216,8 @@ namespace ACE.Server.Command.Handlers
                         message = $"Account '{account.AccountName}' is not banned.\n";
                     if (account.AccessLevel > (int)AccessLevel.Player)
                         message += $"Account '{account.AccountName}' has been granted AccessLevel.{((AccessLevel)account.AccessLevel).ToString()} rights.\n";
-                    message += $"Account created on {account.CreateTime.ToLocalTime()} by IP: {(account.CreateIP != null ? new IPAddress(account.CreateIP).ToString() : "N/A")} \n";
-                    message += $"Account last logged on at {(account.LastLoginTime.HasValue ? account.LastLoginTime.Value.ToLocalTime().ToString() : "N/A")} by IP: {(account.LastLoginIP != null ? new IPAddress(account.LastLoginIP).ToString() : "N/A")}\n";
+                    message += $"Account created on {account.CreateTime.ToLocalTime().ToCommonString()} by IP: {(account.CreateIP != null ? new IPAddress(account.CreateIP).ToString() : "N/A")} \n";
+                    message += $"Account last logged on at {(account.LastLoginTime.HasValue ? account.LastLoginTime.Value.ToLocalTime().ToCommonString() : "N/A")} by IP: {(account.LastLoginIP != null ? new IPAddress(account.LastLoginIP).ToString() : "N/A")}\n";
                     message += $"Account total times logged on {account.TotalTimesLoggedIn}\n";
                     var characters = DatabaseManager.Shard.BaseDatabase.GetCharacters(account.AccountId, true);
                     message += $"{characters.Count} Character(s) owned by: {account.AccountName}\n";
@@ -964,7 +964,7 @@ namespace ACE.Server.Command.Handlers
         {
             // @time - Displays the server's current game time.
 
-            var messageUTC = "The current server time in UtcNow is: " + DateTime.UtcNow;
+            var messageUTC = "The current server time in UtcNow is: " + DateTime.UtcNow.ToCommonString();
             //var messagePY = "The current server time translated to DerethDateTime is:\n" + Timers.CurrentLoreTime;
             var messageIGPY = "The current server time shown in game client is:\n" + Timers.CurrentInGameTime;
             var messageTOD = $"It is currently {Timers.CurrentInGameTime.TimeOfDay} in game right now.";
@@ -1251,7 +1251,7 @@ namespace ACE.Server.Command.Handlers
                         if (house != null)
                         {
                             var houseData = house.GetHouseData(PlayerManager.FindByGuid(new ObjectGuid(house.HouseOwner ?? 0)));
-                            msg += $"{house.HouseType} | Owner: {house.HouseOwnerName} (0x{house.HouseOwner:X8}) | BuyTime: {Time.GetDateTimeFromTimestamp(houseData.BuyTime).ToLocalTime()} ({houseData.BuyTime}) | RentTime: {Time.GetDateTimeFromTimestamp(houseData.RentTime).ToLocalTime()} ({houseData.RentTime}) | RentDue: {Time.GetDateTimeFromTimestamp(house.GetRentDue(houseData.RentTime)).ToLocalTime()} ({house.GetRentDue(houseData.RentTime)}) | Rent is {(house.SlumLord.IsRentPaid() ? "" : "NOT ")}paid{(house.HouseStatus != HouseStatus.Active ? $"  ({house.HouseStatus})" : "")}";
+                            msg += $"{house.HouseType} | Owner: {house.HouseOwnerName} (0x{house.HouseOwner:X8}) | BuyTime: {Time.GetDateTimeFromTimestamp(houseData.BuyTime).ToLocalTime().ToCommonString()} ({houseData.BuyTime}) | RentTime: {Time.GetDateTimeFromTimestamp(houseData.RentTime).ToLocalTime().ToCommonString()} ({houseData.RentTime}) | RentDue: {Time.GetDateTimeFromTimestamp(house.GetRentDue(houseData.RentTime)).ToLocalTime().ToCommonString()} ({house.GetRentDue(houseData.RentTime)}) | Rent is {(house.SlumLord.IsRentPaid() ? "" : "NOT ")}paid{(house.HouseStatus != HouseStatus.Active ? $"  ({house.HouseStatus})" : "")}";
                         }
                         else
                         {
@@ -1547,9 +1547,9 @@ namespace ACE.Server.Command.Handlers
                     msg += $"===HouseData===================================\n";
                     msg += $"Location: {houseData.Position.ToLOCString()}\n";
                     msg += $"Type: {houseData.Type}\n";
-                    msg += $"BuyTime: {(houseData.BuyTime > 0 ? $"{Time.GetDateTimeFromTimestamp(houseData.BuyTime).ToLocalTime()}" : "N/A")} ({houseData.BuyTime})\n";
-                    msg += $"RentTime: {(houseData.RentTime > 0 ? $"{Time.GetDateTimeFromTimestamp(houseData.RentTime).ToLocalTime()}" : "N/A")} ({houseData.RentTime})\n";
-                    msg += $"RentDue: {(houseData.RentTime > 0 ? $"{Time.GetDateTimeFromTimestamp(house.GetRentDue(houseData.RentTime)).ToLocalTime()} ({house.GetRentDue(houseData.RentTime)})" : " N/A (0)")}\n";
+                    msg += $"BuyTime: {(houseData.BuyTime > 0 ? $"{Time.GetDateTimeFromTimestamp(houseData.BuyTime).ToLocalTime().ToCommonString()}" : "N/A")} ({houseData.BuyTime})\n";
+                    msg += $"RentTime: {(houseData.RentTime > 0 ? $"{Time.GetDateTimeFromTimestamp(houseData.RentTime).ToLocalTime().ToCommonString()}" : "N/A")} ({houseData.RentTime})\n";
+                    msg += $"RentDue: {(houseData.RentTime > 0 ? $"{Time.GetDateTimeFromTimestamp(house.GetRentDue(houseData.RentTime)).ToLocalTime().ToCommonString()} ({house.GetRentDue(houseData.RentTime)})" : " N/A (0)")}\n";
                     msg += $"MaintenanceFree: {houseData.MaintenanceFree}\n";
                     session.Player.SendMessage(msg, ChatMessageType.System);
                 }
@@ -2928,7 +2928,7 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 string returnState = "1=";
-                returnState += $"{DateTime.UtcNow}=";
+                returnState += $"{DateTime.UtcNow.ToCommonString()}=";
 
                 // need level 25, available skill credits 24
                 returnState += $"24={session.Player.AvailableSkillCredits}=25={session.Player.Level}=";
@@ -3602,7 +3602,7 @@ namespace ACE.Server.Command.Handlers
                     foreach (var quest in quests)
                     {
                         var questEntry = "";
-                        questEntry += $"Quest Name: {quest.QuestName}\nCompletions: {quest.NumTimesCompleted} | Last Completion: {quest.LastTimeCompleted} ({Common.Time.GetDateTimeFromTimestamp(quest.LastTimeCompleted).ToLocalTime()})\n";
+                        questEntry += $"Quest Name: {quest.QuestName}\nCompletions: {quest.NumTimesCompleted} | Last Completion: {quest.LastTimeCompleted} ({Time.GetDateTimeFromTimestamp(quest.LastTimeCompleted).ToLocalTime().ToCommonString()})\n";
                         var nextSolve = creature.QuestManager.GetNextSolveTime(quest.QuestName);
 
                         if (nextSolve == TimeSpan.MinValue)
@@ -3610,7 +3610,7 @@ namespace ACE.Server.Command.Handlers
                         else if (nextSolve == TimeSpan.MaxValue)
                             questEntry += "Can Solve: Never again\n";
                         else
-                            questEntry += $"Can Solve: In {nextSolve:%d} days, {nextSolve:%h} hours, {nextSolve:%m} minutes and, {nextSolve:%s} seconds. ({(DateTime.UtcNow + nextSolve).ToLocalTime()})\n";
+                            questEntry += $"Can Solve: In {nextSolve:%d} days, {nextSolve:%h} hours, {nextSolve:%m} minutes and, {nextSolve:%s} seconds. ({(DateTime.UtcNow + nextSolve).ToLocalTime().ToCommonString()})\n";
 
                         questEntry += "--====--\n";
                         session.Player.SendMessage(questEntry);
@@ -3813,7 +3813,7 @@ namespace ACE.Server.Command.Handlers
                         questEntry += $"Quest Name: {quest.QuestName}\n";
                         questEntry += $"Current Set Bits: 0x{quest.NumTimesCompleted:X}\n";
                         questEntry += $"Allowed Max Bits: 0x{maxSolves:X}\n";
-                        questEntry += $"Last Set On: {quest.LastTimeCompleted} ({Common.Time.GetDateTimeFromTimestamp(quest.LastTimeCompleted).ToLocalTime()})\n";
+                        questEntry += $"Last Set On: {quest.LastTimeCompleted} ({Common.Time.GetDateTimeFromTimestamp(quest.LastTimeCompleted).ToLocalTime().ToCommonString()})\n";
 
                         //var nextSolve = creature.QuestManager.GetNextSolveTime(quest.QuestName);
 
@@ -3872,7 +3872,7 @@ namespace ACE.Server.Command.Handlers
                             foreach (var quest in quests)
                             {
                                 var questEntry = "";
-                                questEntry += $"Quest Name: {quest.QuestName}\nCompletions: {quest.NumTimesCompleted} | Last Completion: {quest.LastTimeCompleted} ({Common.Time.GetDateTimeFromTimestamp(quest.LastTimeCompleted).ToLocalTime()})\n";
+                                questEntry += $"Quest Name: {quest.QuestName}\nCompletions: {quest.NumTimesCompleted} | Last Completion: {quest.LastTimeCompleted} ({Time.GetDateTimeFromTimestamp(quest.LastTimeCompleted).ToLocalTime().ToCommonString()})\n";
                                 var nextSolve = fellowship.QuestManager.GetNextSolveTime(quest.QuestName);
 
                                 if (nextSolve == TimeSpan.MinValue)
@@ -3880,7 +3880,7 @@ namespace ACE.Server.Command.Handlers
                                 else if (nextSolve == TimeSpan.MaxValue)
                                     questEntry += "Can Solve: Never again\n";
                                 else
-                                    questEntry += $"Can Solve: In {nextSolve:%d} days, {nextSolve:%h} hours, {nextSolve:%m} minutes and, {nextSolve:%s} seconds. ({(DateTime.UtcNow + nextSolve).ToLocalTime()})\n";
+                                    questEntry += $"Can Solve: In {nextSolve:%d} days, {nextSolve:%h} hours, {nextSolve:%m} minutes and, {nextSolve:%s} seconds. ({(DateTime.UtcNow + nextSolve).ToLocalTime().ToCommonString()})\n";
 
                                 questEntry += "--====--\n";
                                 session.Player.SendMessage(questEntry);

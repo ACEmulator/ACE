@@ -163,8 +163,8 @@ namespace ACE.Server.Network.Structure
 
         // aside from RestrictionDB, this appears to be the only other place in the client that calls PHashTable/IntrusiveHashTable constructor directly
         // 256 is ignored, and 23 is used
-        private static readonly ushort headerNumBuckets = 256;
-        private static readonly ushort actualNumBuckets = 23;
+        private const ushort headerNumBuckets = 256;
+        private const ushort actualNumBuckets = 23;
 
         private static readonly GuidComparer guidComparer = new GuidComparer(actualNumBuckets);
 
