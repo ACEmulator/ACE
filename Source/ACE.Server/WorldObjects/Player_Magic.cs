@@ -687,7 +687,7 @@ namespace ACE.Server.WorldObjects
         }
 
         // 20 from MoveToManager threshold?
-        public static readonly float MaxAngle = 5;
+        public const float MaxAngle = 5;
 
         public void DoCastSpell(MagicState _state, bool checkAngle = true)
         {

@@ -8,12 +8,12 @@ namespace ACE.Server.WorldObjects
     public class SkillFormula
     {
         // everything else: melee weapons (including finesse), thrown weapons, atlatls
-        public static readonly float DefaultMod = 0.011f;
+        public const float DefaultMod = 0.011f;
 
         // bows and crossbows
-        public static readonly float BowMod = 0.008f;
+        public const float BowMod = 0.008f;
 
-        public static readonly float ArmorMod = 200.0f / 3.0f;
+        public const float ArmorMod = 200.0f / 3.0f;
 
         public static float GetAttributeMod(int currentSkill, bool isBow = false)
         {

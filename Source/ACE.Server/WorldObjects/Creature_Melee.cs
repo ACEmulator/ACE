@@ -100,11 +100,11 @@ namespace ACE.Server.WorldObjects
             return dist1.CompareTo(dist2);
         }
 
-        public static readonly float CleaveRange = 5.0f;
-        public static readonly float CleaveRangeSq = CleaveRange * CleaveRange;
-        public static readonly float CleaveAngle = 180.0f;
+        public const float CleaveRange = 5.0f;
+        public const float CleaveRangeSq = CleaveRange * CleaveRange;
+        public const float CleaveAngle = 180.0f;
 
-        public static readonly float CleaveCylRange = 2.0f;
+        public const float CleaveCylRange = 2.0f;
 
         /// <summary>
         /// Performs a cleaving attack for two-handed weapons

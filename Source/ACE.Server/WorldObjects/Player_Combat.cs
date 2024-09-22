@@ -729,7 +729,7 @@ namespace ACE.Server.WorldObjects
 
         public CombatMode LastCombatMode;
 
-        public static readonly float UseTimeEpsilon = 0.05f;
+        public const float UseTimeEpsilon = 0.05f;
 
         /// <summary>
         /// This method processes the Game Action (F7B1) Change Combat Mode (0x0053)

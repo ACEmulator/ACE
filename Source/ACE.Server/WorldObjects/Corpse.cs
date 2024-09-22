@@ -24,7 +24,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The maximum number of seconds for an empty corpse to stick around
         /// </summary>
-        public static readonly double EmptyDecayTime = 15.0;
+        public const double EmptyDecayTime = 15.0;
 
         /// <summary>
         /// Flag indicates if a corpse is from a monster or a player

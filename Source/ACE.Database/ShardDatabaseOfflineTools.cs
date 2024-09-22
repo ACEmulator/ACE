@@ -124,7 +124,7 @@ namespace ACE.Database
             var message = $"[DATABASE][PURGE] Character 0x{characterId:X8}";
 
             if (character != null)
-               message += $":{character.Name}, deleted on {Time.GetDateTimeFromTimestamp(character.DeleteTime).ToLocalTime()}";
+               message += $":{character.Name}, deleted on {Time.GetDateTimeFromTimestamp(character.DeleteTime).ToLocalTime().ToCommonString()}";
 
             message += $", and {possessionsPurged} of their possessions has been purged.";
 

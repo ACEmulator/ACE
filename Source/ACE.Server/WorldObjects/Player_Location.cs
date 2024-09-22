@@ -792,7 +792,7 @@ namespace ACE.Server.WorldObjects
                 CurrentLandblock?.SetActive();
         }
 
-        public static readonly float RunFactor = 1.5f;
+        public const float RunFactor = 1.5f;
 
         /// <summary>
         /// Returns the amount of time for player to rotate by the # of degrees

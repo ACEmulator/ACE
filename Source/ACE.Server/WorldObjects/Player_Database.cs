@@ -14,7 +14,7 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        public static readonly long DefaultPlayerSaveIntervalSecs = 300; // default to 5 minutes
+        public const long DefaultPlayerSaveIntervalSecs = 300; // default to 5 minutes
 
         public DateTime CharacterLastRequestedDatabaseSave { get; protected set; }
 

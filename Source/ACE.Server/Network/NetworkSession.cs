@@ -19,7 +19,6 @@ using ACE.Server.Network.Managers;
 using ACE.Server.Network.Packets;
 
 using log4net;
-using log4net.Util;
 
 namespace ACE.Server.Network
 {
