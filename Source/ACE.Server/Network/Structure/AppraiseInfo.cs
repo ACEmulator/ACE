@@ -18,7 +18,7 @@ namespace ACE.Server.Network.Structure
     /// </summary>
     public class AppraiseInfo
     {
-        private static readonly uint EnchantmentMask = 0x80000000;
+        private const uint EnchantmentMask = 0x80000000;
 
         public IdentifyResponseFlags Flags;
 

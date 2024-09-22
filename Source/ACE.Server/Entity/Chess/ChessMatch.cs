@@ -711,7 +711,7 @@ namespace ACE.Server.Entity.Chess
         /// <summary>
         /// How quickly the rankings will raise / lower
         /// </summary>
-        public static readonly int RankFactor = 50;
+        public const int RankFactor = 50;
 
         /// <summary>
         /// Adjusts the chess ranks for 2 players after a match

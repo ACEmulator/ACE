@@ -117,7 +117,7 @@ namespace ACE.Server.WorldObjects
         /// If a player tries to use 2 portals in under this amount of time,
         /// they receive an error message
         /// </summary>
-        private static readonly float minTimeSinceLastPortal = 3.5f;
+        private const float minTimeSinceLastPortal = 3.5f;
 
         public override ActivationResult CheckUseRequirements(WorldObject activator)
         {

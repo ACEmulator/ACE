@@ -503,9 +503,9 @@ namespace ACE.Entity
             return $"0x{LandblockId.Raw:X8} [{PositionX:F6} {PositionY:F6} {PositionZ:F6}] {RotationW:F6} {RotationX:F6} {RotationY:F6} {RotationZ:F6}";
         }
 
-        public static readonly int BlockLength = 192;
-        public static readonly int CellSide = 8;
-        public static readonly int CellLength = 24;
+        public const int BlockLength = 192;
+        public const int CellSide = 8;
+        public const int CellLength = 24;
 
         public bool Equals(Position p)
         {

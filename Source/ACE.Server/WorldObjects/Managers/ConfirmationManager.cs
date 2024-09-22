@@ -17,7 +17,7 @@ namespace ACE.Server.WorldObjects.Managers
 
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static readonly double confirmationTimeout = 30;
+        private const double confirmationTimeout = 30;
 
         private UIntSequence contextSequence = new UIntSequence();
 

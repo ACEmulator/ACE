@@ -4,6 +4,7 @@ using System.Threading;
 using log4net;
 
 using ACE.Common;
+using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
@@ -108,7 +109,7 @@ namespace ACE.Server.Managers
                 if (!ShutdownInitiated)
                 {
                     // reset shutdown details
-                    string shutdownText = $"The server shut down has been cancelled @ {DateTime.Now} ({DateTime.UtcNow} UTC)";
+                    string shutdownText = $"The server shut down has been cancelled @ {DateTime.Now.ToCommonString()} ({DateTime.UtcNow.ToCommonString()} UTC)";
                     log.Info(shutdownText);
 
                     // special text
@@ -220,7 +221,7 @@ namespace ACE.Server.Managers
             }
 
             // Write exit to console/log
-            log.Info($"Exiting at {DateTime.UtcNow}");
+            log.Info($"Exiting at {DateTime.UtcNow.ToCommonString()}");
 
             // System exit
             Environment.Exit(Environment.ExitCode);
