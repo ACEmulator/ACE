@@ -38,7 +38,7 @@ namespace ACE.Common
         /// <summary>
         /// The maximum possible double < 1.0
         /// </summary>
-        private static readonly double maxExclusive = 0.9999999999999999;
+        private const double maxExclusive = 0.9999999999999999;
 
         public static double NextIntervalMax(float qualityMod)
         {

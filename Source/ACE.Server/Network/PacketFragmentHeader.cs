@@ -1,3 +1,5 @@
+using System;
+using System.Buffers.Binary;
 using System.IO;
 
 using ACE.Common.Cryptography;
@@ -6,7 +8,7 @@ namespace ACE.Server.Network
 {
     public class PacketFragmentHeader
     {
-        public static int HeaderSize { get; } = 16;
+        public const int HeaderSize = 16;
 
         public uint Sequence { get; set; }
         public uint Id { get; set; }
@@ -35,34 +37,21 @@ namespace ACE.Server.Network
             Queue       = (ushort)(buffer[offset++] | (buffer[offset++] << 8));
         }
 
-        public void Pack(byte[] buffer, int offset = 0)
+        public void Pack(Span<byte> buffer, int offset = 0)
         {
             Pack(buffer, ref offset);
         }
 
-        public void Pack(byte[] buffer, ref int offset)
+        public void Pack(Span<byte> buffer, ref int offset)
         {
-            buffer[offset++] = (byte)Sequence;
-            buffer[offset++] = (byte)(Sequence >> 8);
-            buffer[offset++] = (byte)(Sequence >> 16);
-            buffer[offset++] = (byte)(Sequence >> 24);
+            BinaryPrimitives.WriteUInt32LittleEndian(buffer.Slice(offset), Sequence);
+            BinaryPrimitives.WriteUInt32LittleEndian(buffer.Slice(offset + 4), Id);
+            BinaryPrimitives.WriteUInt16LittleEndian(buffer.Slice(offset + 8), Count);
+            BinaryPrimitives.WriteUInt16LittleEndian(buffer.Slice(offset + 10), Size);
+            BinaryPrimitives.WriteUInt16LittleEndian(buffer.Slice(offset + 12), Index);
+            BinaryPrimitives.WriteUInt16LittleEndian(buffer.Slice(offset + 14), Queue);
 
-            buffer[offset++] = (byte)Id;
-            buffer[offset++] = (byte)(Id >> 8);
-            buffer[offset++] = (byte)(Id >> 16);
-            buffer[offset++] = (byte)(Id >> 24);
-
-            buffer[offset++] = (byte)Count;
-            buffer[offset++] = (byte)(Count >> 8);
-
-            buffer[offset++] = (byte)Size;
-            buffer[offset++] = (byte)(Size >> 8);
-
-            buffer[offset++] = (byte)Index;
-            buffer[offset++] = (byte)(Index >> 8);
-
-            buffer[offset++] = (byte)Queue;
-            buffer[offset++] = (byte)(Queue >> 8);
+            offset += 16;
         }
 
         /// <summary>

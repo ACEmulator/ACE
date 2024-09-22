@@ -8,29 +8,29 @@ namespace ACE.DatLoader.Entity
 {
     public class BasePropertyDesc : IUnpackable
     {
-        uint m_propertyName;
-        BasePropertyType m_propertyType;
-        PropertyGroupName m_propertyGroup;
-        uint m_propertyProvider;
-        uint m_data;
-        int unknown_int_1; // Is this `m_ePatchFlags`?
+        public uint m_propertyName;
+        public BasePropertyType m_propertyType;
+        public PropertyGroupName m_propertyGroup;
+        public uint m_propertyProvider;
+        public uint m_data;
+        public int unknown_int_1; // Is this `m_ePatchFlags`?
 
-        bool has_default_value; // Guessed Var Name based on usage
-        bool hasMax; // Guessed Var Name based on usage
-        bool hasMin; // Guessed Var Name based on usage
-        float minFloat;
-        float maxFloat;
-        int min;
-        int max;
+        public bool has_default_value; // Guessed Var Name based on usage
+        public bool hasMax; // Guessed Var Name based on usage
+        public bool hasMin; // Guessed Var Name based on usage
+        public float minFloat;
+        public float maxFloat;
+        public int min;
+        public int max;
 
         // These are technically all extended BasePropertyValue types, e.g. BoolPropertyValue
-        bool defaultValueBool;
-        uint defaultValueColor;
-        Vector3 defaultValueVector;
-        int defaultValueInt;
-        float defaultValueFloat;
-        uint defaultValueEnum;
-        uint defaultValueDataFile;
+        public bool defaultValueBool;
+        public uint defaultValueColor;
+        public Vector3 defaultValueVector;
+        public int defaultValueInt;
+        public float defaultValueFloat;
+        public uint defaultValueEnum;
+        public uint defaultValueDataFile;
 
         float m_fPredictionTimeout;
         PropertyInheritanceType m_inheritanceType;
@@ -38,23 +38,23 @@ namespace ACE.DatLoader.Entity
         PropertyPropagationType m_propagationType;
         //PropertyCachingType m_cachingType;
 
-        bool m_bRequired;
-        bool m_bReadOnly;
-        bool m_bPropagateToChildren;
-        bool m_bNoCheckpoint;
-        bool m_bAbsoluteTimeStamp;
-        bool m_bGroupable;
-        bool m_bAllAvailable;
-        bool m_bDoNotReplay;
-        bool m_bRecorded;
-        bool m_bToolOnly;
+        public bool m_bRequired;
+        public bool m_bReadOnly;
+        public bool m_bPropagateToChildren;
+        public bool m_bNoCheckpoint;
+        public bool m_bAbsoluteTimeStamp;
+        public bool m_bGroupable;
+        public bool m_bAllAvailable;
+        public bool m_bDoNotReplay;
+        public bool m_bRecorded;
+        public bool m_bToolOnly;
 
-        Dictionary<uint, uint> m_availableProperties = new Dictionary<uint, uint>();
+        public Dictionary<uint, uint> m_availableProperties = new Dictionary<uint, uint>();
 
         public void Unpack(BinaryReader reader)
         {
             // This is a reference to the m_emapper of the MasterProperty. It also matches the SmartArray key
-            m_propertyName = reader.ReadUInt32(); 
+            m_propertyName = reader.ReadUInt32();
             m_propertyType = (BasePropertyType)reader.ReadUInt32();
             m_propertyGroup = (PropertyGroupName)reader.ReadUInt32();
             m_propertyProvider = reader.ReadUInt32();
@@ -110,7 +110,7 @@ namespace ACE.DatLoader.Entity
             }
             hasMin = reader.ReadBoolean();
             if (hasMax)
-            { 
+            {
                 switch (m_propertyType)
                 {
                     case BasePropertyType.Float:
@@ -141,7 +141,7 @@ namespace ACE.DatLoader.Entity
             m_bToolOnly = reader.ReadBoolean(); // Always true
 
             var numItems = reader.ReadByte();
-            for(var i = 0; i < numItems; i++)
+            for (var i = 0; i < numItems; i++)
             {
                 m_availableProperties.Add(reader.ReadUInt32(), reader.ReadUInt32());
             }

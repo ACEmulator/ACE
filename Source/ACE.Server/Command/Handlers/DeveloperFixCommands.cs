@@ -1333,10 +1333,10 @@ namespace ACE.Server.Command.Handlers
         }
 
         // head / hands / feet
-        public static readonly int MaxArmorLevel_Extremity = 345;
+        public const int MaxArmorLevel_Extremity = 345;
 
         // everything else
-        public static readonly int MaxArmorLevel_NonExtremity = 315;
+        public const int MaxArmorLevel_NonExtremity = 315;
 
         public static int GetArmorLevel(int armorLevel, EquipMask equipMask, TinkerLog tinkerLog, int numTinkers, int imbuedEffect)
         {

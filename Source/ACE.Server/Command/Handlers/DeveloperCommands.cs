@@ -1296,7 +1296,7 @@ namespace ACE.Server.Command.Handlers
                             else if (timeWhenDone == TimeSpan.MaxValue)
                                 contracts += $"TimeWhenDone: Unlimited ({contractTracker.TimeWhenDone})\n";
                             else
-                                contracts += $"TimeWhenDone: In {timeWhenDone:%d} days, {timeWhenDone:%h} hours, {timeWhenDone:%m} minutes and, {timeWhenDone:%s} seconds. ({(DateTime.UtcNow + timeWhenDone).ToLocalTime()})\n";
+                                contracts += $"TimeWhenDone: In {timeWhenDone:%d} days, {timeWhenDone:%h} hours, {timeWhenDone:%m} minutes and, {timeWhenDone:%s} seconds. ({(DateTime.UtcNow + timeWhenDone).ToLocalTime().ToCommonString()})\n";
                         }
 
                         if (contractTracker.Stage == Network.Structure.ContractStage.DoneOrPendingRepeat)
@@ -1309,7 +1309,7 @@ namespace ACE.Server.Command.Handlers
                             else if (timeWhenRepeats == TimeSpan.MaxValue)
                                 contracts += $"TimeWhenRepeats: Unlimited ({contractTracker.TimeWhenDone})\n";
                             else
-                                contracts += $"TimeWhenRepeats: In {timeWhenRepeats:%d} days, {timeWhenRepeats:%h} hours, {timeWhenRepeats:%m} minutes and, {timeWhenRepeats:%s} seconds. ({(DateTime.UtcNow + timeWhenRepeats).ToLocalTime()})\n";
+                                contracts += $"TimeWhenRepeats: In {timeWhenRepeats:%d} days, {timeWhenRepeats:%h} hours, {timeWhenRepeats:%m} minutes and, {timeWhenRepeats:%s} seconds. ({(DateTime.UtcNow + timeWhenRepeats).ToLocalTime().ToCommonString()})\n";
                         }
 
                         contracts += "--====--\n";
@@ -1974,7 +1974,7 @@ namespace ACE.Server.Command.Handlers
         public static void HandleSetPurchaseTime(Session session, params string[] parameters)
         {
             var currentTime = DateTime.UtcNow;
-            Console.WriteLine($"Current time: {currentTime}");
+            Console.WriteLine($"Current time: {currentTime.ToCommonString()}");
             // subtract 30 days
             var purchaseTime = currentTime - TimeSpan.FromDays(30);
             // add buffer
@@ -1985,11 +1985,11 @@ namespace ACE.Server.Command.Handlers
             var prevPurchaseTime = DateTimeOffset.FromUnixTimeSeconds(session.Player.HousePurchaseTimestamp ?? 0).UtcDateTime;
             var prevRentDue = DateTimeOffset.FromUnixTimeSeconds(session.Player.House.GetRentDue((uint)(session.Player.HousePurchaseTimestamp ?? 0))).UtcDateTime;
 
-            Console.WriteLine($"Previous purchase time: {prevPurchaseTime}");
-            Console.WriteLine($"New purchase time: {purchaseTime}");
+            Console.WriteLine($"Previous purchase time: {prevPurchaseTime.ToCommonString()}");
+            Console.WriteLine($"New purchase time: {purchaseTime.ToCommonString()}");
 
-            Console.WriteLine($"Previous rent time: {prevRentDue}");
-            Console.WriteLine($"New rent time: {rentDue}");
+            Console.WriteLine($"Previous rent time: {prevRentDue.ToCommonString()}");
+            Console.WriteLine($"New rent time: {rentDue.ToCommonString()}");
 
             session.Player.HousePurchaseTimestamp = (int)Time.GetUnixTime(purchaseTime);
             session.Player.HouseRentTimestamp = (int)session.Player.House.GetRentDue((uint)Time.GetUnixTime(purchaseTime));
@@ -2753,8 +2753,8 @@ namespace ACE.Server.Command.Handlers
                         msg += $"GeneratorEvent: {(!string.IsNullOrWhiteSpace(wo.GeneratorEvent) ? wo.GeneratorEvent : "Undef")}\n";
                     if (wo.GeneratorTimeType == GeneratorTimeType.RealTime)
                     {
-                        msg += $"GeneratorStartTime: {wo.GeneratorStartTime} ({Time.GetDateTimeFromTimestamp(wo.GeneratorStartTime).ToLocalTime()})\n";
-                        msg += $"GeneratorEndTime: {wo.GeneratorEndTime} ({Time.GetDateTimeFromTimestamp(wo.GeneratorEndTime).ToLocalTime()})\n";
+                        msg += $"GeneratorStartTime: {wo.GeneratorStartTime} ({Time.GetDateTimeFromTimestamp(wo.GeneratorStartTime).ToLocalTime().ToCommonString()})\n";
+                        msg += $"GeneratorEndTime: {wo.GeneratorEndTime} ({Time.GetDateTimeFromTimestamp(wo.GeneratorEndTime).ToLocalTime().ToCommonString()})\n";
                     }
                     msg += $"GeneratorEndDestructionType: {wo.GeneratorEndDestructionType.ToString()}\n";
                     msg += $"GeneratorDestructionType: {wo.GeneratorDestructionType.ToString()}\n";
@@ -2763,10 +2763,10 @@ namespace ACE.Server.Command.Handlers
                     msg += $"MaxGeneratedObjects: {wo.MaxGeneratedObjects}\n";
                     msg += $"GeneratorInitialDelay: {wo.GeneratorInitialDelay}\n";
                     msg += $"RegenerationInterval: {wo.RegenerationInterval}\n";
-                    msg += $"GeneratorUpdateTimestamp: {wo.GeneratorUpdateTimestamp} ({Time.GetDateTimeFromTimestamp(wo.GeneratorUpdateTimestamp).ToLocalTime()})\n";
-                    msg += $"NextGeneratorUpdateTime: {wo.NextGeneratorUpdateTime} ({((wo.NextGeneratorUpdateTime == double.MaxValue) ? "Disabled" : Time.GetDateTimeFromTimestamp(wo.NextGeneratorUpdateTime).ToLocalTime().ToString())})\n";
-                    msg += $"RegenerationTimestamp: {wo.RegenerationTimestamp} ({Time.GetDateTimeFromTimestamp(wo.RegenerationTimestamp).ToLocalTime()})\n";
-                    msg += $"NextGeneratorRegenerationTime: {wo.NextGeneratorRegenerationTime} ({((wo.NextGeneratorRegenerationTime == double.MaxValue) ? "On Demand" : Time.GetDateTimeFromTimestamp(wo.NextGeneratorRegenerationTime).ToLocalTime().ToString())})\n";
+                    msg += $"GeneratorUpdateTimestamp: {wo.GeneratorUpdateTimestamp} ({Time.GetDateTimeFromTimestamp(wo.GeneratorUpdateTimestamp).ToLocalTime().ToCommonString()})\n";
+                    msg += $"NextGeneratorUpdateTime: {wo.NextGeneratorUpdateTime} ({((wo.NextGeneratorUpdateTime == double.MaxValue) ? "Disabled" : Time.GetDateTimeFromTimestamp(wo.NextGeneratorUpdateTime).ToLocalTime().ToCommonString())})\n";
+                    msg += $"RegenerationTimestamp: {wo.RegenerationTimestamp} ({Time.GetDateTimeFromTimestamp(wo.RegenerationTimestamp).ToLocalTime().ToCommonString()})\n";
+                    msg += $"NextGeneratorRegenerationTime: {wo.NextGeneratorRegenerationTime} ({((wo.NextGeneratorRegenerationTime == double.MaxValue) ? "On Demand" : Time.GetDateTimeFromTimestamp(wo.NextGeneratorRegenerationTime).ToLocalTime().ToCommonString())})\n";
 
                     msg += $"GeneratorProfiles.Count: {wo.GeneratorProfiles.Count(g => !g.IsPlaceholder)}\n";
                     msg += $"GeneratorActiveProfiles.Count: {wo.GeneratorActiveProfiles.Count}\n";
@@ -2786,7 +2786,7 @@ namespace ACE.Server.Command.Handlers
                         msg += $"GeneratedTreasureItem: {profile.GeneratedTreasureItem}\n";
                         msg += $"IsMaxed: {profile.IsMaxed}\n";
                         if (!profile.IsMaxed)
-                            msg += $"IsAvailable: {profile.IsAvailable}{(profile.IsAvailable ? "" : $", NextAvailable: {profile.NextAvailable.ToLocalTime()}")}\n";
+                            msg += $"IsAvailable: {profile.IsAvailable}{(profile.IsAvailable ? "" : $", NextAvailable: {profile.NextAvailable.ToLocalTime().ToCommonString()}")}\n";
                         msg += $"--====--\n";
                         if (profile.Spawned.Count > 0)
                         {
@@ -2817,7 +2817,7 @@ namespace ACE.Server.Command.Handlers
                             msg += "Pending Spawn Times:\n";
                             foreach (var spawn in profile.SpawnQueue)
                             {
-                                msg += $"{spawn.ToLocalTime()}\n";
+                                msg += $"{spawn.ToLocalTime().ToCommonString()}\n";
                             }
                             msg += $"--====--\n";
                         }
@@ -3829,9 +3829,9 @@ namespace ACE.Server.Command.Handlers
                             msg += $"{shopItem.Name} (0x{shopItem.Guid} | {shopItem.WeenieClassId} | {shopItem.WeenieClassName} | {shopItem.WeenieType})\n";
                             msg += $"StackSize: {shopItem.StackSize ?? 1} | PaletteTemplate: {(PaletteTemplate)shopItem.PaletteTemplate} ({shopItem.PaletteTemplate}) | Shade: {shopItem.Shade:F3}\n";
                             var soldTimestamp = Time.GetDateTimeFromTimestamp(shopItem.SoldTimestamp ?? 0);
-                            msg += $"SoldTimestamp: {soldTimestamp.ToLocalTime()} ({(shopItem.SoldTimestamp.HasValue ? $"{shopItem.SoldTimestamp}" : "NULL")})\n";
+                            msg += $"SoldTimestamp: {soldTimestamp.ToLocalTime().ToCommonString()} ({(shopItem.SoldTimestamp.HasValue ? $"{shopItem.SoldTimestamp}" : "NULL")})\n";
                             var rotTime = soldTimestamp.AddSeconds(PropertyManager.GetDouble("vendor_unique_rot_time").Item);
-                            msg += $"RotTimestamp: {rotTime.ToLocalTime()}\n";
+                            msg += $"RotTimestamp: {rotTime.ToLocalTime().ToCommonString()}\n";
                             var payout = vendor.GetBuyCost(shopItem);
                             msg += $"Paid: {payout:N0} {(payout == 1 ? currencyWeenie.GetName() : currencyWeenie.GetPluralName())}\n";
                             var cost = vendor.GetSellCost(shopItem);
