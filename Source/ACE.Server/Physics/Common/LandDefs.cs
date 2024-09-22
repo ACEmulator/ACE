@@ -83,31 +83,31 @@ namespace ACE.Server.Physics.Common
             RoadType = 0x20
         };
 
-        public static readonly int BlockCellID = 0x0000FFFF;
-        public static readonly int FirstEnvCellID = 0x100;
-        public static readonly int LastEnvCellID = 0xFFFD;
-        public static readonly int FirstLandCellID = 1;
-        public static readonly int LastLandCellID = 64;
+        public const int BlockCellID = 0x0000FFFF;
+        public const int FirstEnvCellID = 0x100;
+        public const int LastEnvCellID = 0xFFFD;
+        public const int FirstLandCellID = 1;
+        public const int LastLandCellID = 64;
 
-        public static readonly uint BlockMask = 0xFFFF0000;
-        public static readonly int BlockX_Mask = 0xFF00;
-        public static readonly int BlockY_Mask = 0x00FF;
-        public static readonly int CellID_Mask = 0x0000FFFF;
-        public static readonly int LandblockMask = 7;
+        public const uint BlockMask = 0xFFFF0000;
+        public const int BlockX_Mask = 0xFF00;
+        public const int BlockY_Mask = 0x00FF;
+        public const int CellID_Mask = 0x0000FFFF;
+        public const int LandblockMask = 7;
 
-        public static readonly int BlockPartShift = 16;
-        public static readonly int LandblockShift = 3;
-        public static readonly int MaxBlockShift = 8;
+        public const int BlockPartShift = 16;
+        public const int LandblockShift = 3;
+        public const int MaxBlockShift = 8;
 
-        public static readonly int BlockLength = 192;
-        public static readonly int CellLength = 24;
-        public static readonly int LandLength = 2040;
-        public static readonly int VertexDim = 9;
+        public const int BlockLength = 192;
+        public const int CellLength = 24;
+        public const int LandLength = 2040;
+        public const int VertexDim = 9;
 
-        public static readonly int BlockSide = 8;
-        public static readonly int VertexPerCell = 1;
-        public static readonly int HalfSquareLength = 12;
-        public static readonly int SquareLength = 24;
+        public const int BlockSide = 8;
+        public const int VertexPerCell = 1;
+        public const int HalfSquareLength = 12;
+        public const int SquareLength = 24;
 
         public static List<float> LandHeightTable;
 

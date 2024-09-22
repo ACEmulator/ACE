@@ -10,7 +10,7 @@ namespace ACE.Server.Factories.Entity
     public class ChanceTable<T> : List<(T result, float chance)>
     {
         private bool verified;
-        private static readonly decimal threshold = 0.0000001M;
+        private const decimal threshold = 0.0000001M;
 
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 

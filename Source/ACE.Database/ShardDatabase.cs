@@ -94,8 +94,11 @@ namespace ACE.Database
                       "  JOIN biota"                                                                    + Environment.NewLine +
                       "  WHERE id > " + min                                                             + Environment.NewLine +
                       "  ORDER BY id"                                                                   + Environment.NewLine +
-                      " ) AS z"                                                                         + Environment.NewLine +
-                      "WHERE z.gap_ends_at_not_inclusive!=0 AND @available_ids<" + limitAvailableIDsReturned + "; ";
+                      " ) AS z" + Environment.NewLine;
+            if (limitAvailableIDsReturned != uint.MaxValue)
+                sql += "WHERE z.gap_ends_at_not_inclusive!=0 AND @available_ids<" + limitAvailableIDsReturned + "; ";
+            else
+                sql += "WHERE z.gap_ends_at_not_inclusive!=0;";
 
             using (var context = new ShardDbContext())
             {
