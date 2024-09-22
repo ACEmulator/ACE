@@ -12,9 +12,9 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             var target = message.Payload.ReadString16L();
             DateTime playerDOB = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
-            playerDOB = playerDOB.AddSeconds(session.Player.CreationTimestamp.Value).ToUniversalTime();
+            playerDOB = playerDOB.AddSeconds(session.Player.CreationTimestamp.Value).ToLocalTime();
 
-            var dobEvent = new GameMessages.Messages.GameMessageSystemChat($"You were born on {playerDOB:G}.", ChatMessageType.Broadcast);
+            var dobEvent = new GameMessages.Messages.GameMessageSystemChat($"You were born on {playerDOB:M/d/yyyy h:mm:ss tt}.", ChatMessageType.Broadcast);
 
             session.Network.EnqueueSend(dobEvent);
         }

@@ -319,7 +319,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        private static readonly float closeInterval = 1.5f;
+        private const float closeInterval = 1.5f;
 
         /// <summary>
         /// After a player approaches a vendor, this is called every closeInterval seconds

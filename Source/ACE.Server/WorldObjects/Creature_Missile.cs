@@ -142,7 +142,7 @@ namespace ACE.Server.WorldObjects
             return proj;
         }
 
-        public static readonly float ProjSpawnHeight = 0.8454f;
+        public const float ProjSpawnHeight = 0.8454f;
 
         /// <summary>
         /// Returns the origin to spawn the projectile in the attacker local space
@@ -205,7 +205,7 @@ namespace ACE.Server.WorldObjects
         }
 
         // lowest value found in data / for starter bows
-        public static readonly float DefaultProjectileSpeed = 20.0f;
+        public const float DefaultProjectileSpeed = 20.0f;
 
         public float GetProjectileSpeed()
         {
@@ -399,9 +399,9 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public static readonly float MetersToYards = 1.094f;    // 1.09361
-        public static readonly float MissileRangeCap = 85.0f / MetersToYards;   // 85 yards = ~77.697 meters w/ ac formula
-        public static readonly float DefaultMaxVelocity = 20.0f;    // ?
+        public const float MetersToYards = 1.094f;    // 1.09361
+        public const float MissileRangeCap = 85.0f / MetersToYards;   // 85 yards = ~77.697 meters w/ ac formula
+        public const float DefaultMaxVelocity = 20.0f;    // ?
 
         public float GetMaxMissileRange()
         {

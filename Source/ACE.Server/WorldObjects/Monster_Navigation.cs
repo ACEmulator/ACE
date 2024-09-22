@@ -18,21 +18,21 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Return to home if target distance exceeds this range
         /// </summary>
-        public static readonly float MaxChaseRange = 96.0f;
-        public static readonly float MaxChaseRangeSq = MaxChaseRange * MaxChaseRange;
+        public const float MaxChaseRange = 96.0f;
+        public const float MaxChaseRangeSq = MaxChaseRange * MaxChaseRange;
 
         /// <summary>
         /// Determines if a monster is within melee range of target
         /// </summary>
-        //public static readonly float MaxMeleeRange = 1.5f;
-        public static readonly float MaxMeleeRange = 0.75f;
-        //public static readonly float MaxMeleeRange = 1.5f + 0.6f + 0.1f;    // max melee range + distance from + buffer
+        //public const float MaxMeleeRange = 1.5f;
+        public const float MaxMeleeRange = 0.75f;
+        //public const float MaxMeleeRange = 1.5f + 0.6f + 0.1f;    // max melee range + distance from + buffer
 
         /// <summary>
         /// The maximum range for a monster missile attack
         /// </summary>
-        //public static readonly float MaxMissileRange = 80.0f;
-        //public static readonly float MaxMissileRange = 40.0f;   // for testing
+        //public const float MaxMissileRange = 80.0f;
+        //public const float MaxMissileRange = 40.0f;   // for testing
 
         /// <summary>
         /// The distance per second from running animation
