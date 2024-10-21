@@ -2278,14 +2278,25 @@ namespace ACE.Server.Command.Handlers.Processors
                     LandblockInstanceWriter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
                 }
 
-                var sqlFile = new StreamWriter(sql_folder + sql_filename);
+                using (StreamWriter sqlFile = new StreamWriter(sql_folder + sql_filename))
+                {
+                    // Check if the Landblock is empty
+                    if(instances.Count > 0)
+                        LandblockInstanceWriter.CreateSQLDELETEStatement(instances, sqlFile);
+                    else
+                    {
+                        // We'll just create a dummy list with a fake instance in our landblock so we don't anger CreateSQLDeleteStatement()
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Landblock {landblockId:X4} is empty.");
+                        List<LandblockInstance> dummyList = new List<LandblockInstance> ();
+                        LandblockInstance dummyInstance = new LandblockInstance();
+                        dummyInstance.ObjCellId = (uint)(landblockId << 16);
+                        dummyList.Add(dummyInstance);
+                        LandblockInstanceWriter.CreateSQLDELETEStatement(dummyList, sqlFile);
+                    }
+                    sqlFile.WriteLine();
 
-                LandblockInstanceWriter.CreateSQLDELETEStatement(instances, sqlFile);
-                sqlFile.WriteLine();
-
-                LandblockInstanceWriter.CreateSQLINSERTStatement(instances, sqlFile);
-
-                sqlFile.Close();
+                    LandblockInstanceWriter.CreateSQLINSERTStatement(instances, sqlFile);
+                }
             }
             catch (Exception e)
             {
