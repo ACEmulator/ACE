@@ -922,9 +922,14 @@ namespace ACE.Server.WorldObjects
                     //if (player != null && player.Fellowship != null)
                     //player.Fellowship.OnVitalUpdate(player);
                 }
+                else if(spell.DamageType != DamageType.Undef)
+                {
+                    // Handle rare case where some of these "Life Magic" spells do physical damage e.g. Hunter's Lash 2970 and Thorn Valley 6159
+                    damageType = spell.DamageType;
+                }
                 else
                 {
-                    log.Warn($"Unknown DamageType for LifeProjectile {spell.Name} - {spell.Id}");
+                    log.Warn($"Unknown DamageType ({spell.DamageType}) for LifeProjectile {spell.Name} - {spell.Id}");
                     return;
                 }
             }
