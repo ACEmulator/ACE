@@ -191,12 +191,17 @@ namespace ACE.Server.WorldObjects
 
             var slumlord = FindObject(slumlord_id, SearchLocations.Landblock) as SlumLord;
             if (slumlord == null)
+            {
+                log.Warn($"[HOUSE] {Name}.HandleActionRentHouse({slumlord_id:X8}): Could not find SlumLord in world.");
                 return;
+            }
 
             if (slumlord.IsRentPaid())
             {
                 //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.HouseRentFailed));  // WeenieError.HouseRentFailed == blank message
                 Session.Network.EnqueueSend(new GameMessageSystemChat("The maintenance has already been paid for this period.\nYou may not prepay next period's maintenance.", ChatMessageType.Broadcast));
+
+                log.Info($"[HOUSE] {Name}.HandleActionRentHouse({slumlord_id:X8}): The maintenance has already been paid for this period.");
                 return;
             }
 
@@ -211,6 +216,8 @@ namespace ACE.Server.WorldObjects
                 if (ownerHouses.Count() > 1)
                 {
                     Session.Network.EnqueueSend(new GameMessageSystemChat("The owner of this house currently owns multiple houses. Maintenance cannot be paid until they only own 1 house.", ChatMessageType.Broadcast));
+
+                    log.Info($"[HOUSE] {Name}.HandleActionRentHouse({slumlord_id:X8}): The owner of this house currently owns multiple houses. Maintenance cannot be paid until they only own 1 house.");
                     return;
                 }
             }
@@ -275,7 +282,10 @@ namespace ACE.Server.WorldObjects
             }
 
             if (consumeItems.Count == 0)
+            {
+                log.Warn($"[HOUSE] {Name}.HandleActionRentHouse({slumlord_id:X8}): Nothing sent could be transferred to slumlord for rent.");
                 return;
+            }
 
             foreach (var consumeItem in consumeItems)
                 TryConsumeItemForRent(slumlord, consumeItem);
@@ -292,7 +302,11 @@ namespace ACE.Server.WorldObjects
 
             HandleActionQueryHouse();
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"Maintenance {(slumlord.IsRentPaid() ? "" : "partially ")}paid.", ChatMessageType.Broadcast));
+            var maintenanceStatus = $"Maintenance {(slumlord.IsRentPaid() ? "" : "partially ")}paid.";
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat(maintenanceStatus, ChatMessageType.Broadcast));
+
+            log.Info($"[HOUSE] {Name}.HandleActionRentHouse({slumlord_id:X8}): {maintenanceStatus}");
         }
 
         /// <summary>
