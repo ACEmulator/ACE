@@ -400,6 +400,7 @@ namespace ACE.Server.Managers
 
             player.SaveBiotaToDatabase();
 
+            var clearedInventoryStatus = "";
             if (playerHouse.House.HouseStatus == HouseStatus.Active)
             {
                 // clear out slumlord inventory
@@ -407,9 +408,10 @@ namespace ACE.Server.Managers
                 slumlord.ClearInventory();
 
                 slumlord.SaveBiotaToDatabase();
+                clearedInventoryStatus = "and cleared ";
             }
 
-            log.InfoFormat("[HOUSE] HouseManager.HandleRentPaid({0}): rent payment successful!", playerHouse.PlayerName);
+            log.InfoFormat($"[HOUSE] HouseManager.HandleRentPaid({0}): rent payment successfully collected {clearedInventoryStatus}from SlumLord!", playerHouse.PlayerName);
 
             // re-add item to queue
             AddRentQueue(player, playerHouse.House);
@@ -450,7 +452,7 @@ namespace ACE.Server.Managers
                 var nextRentTime = house.GetRentDue(purchaseTime);
                 player.HouseRentTimestamp = (int)nextRentTime;
 
-                log.InfoFormat("[HOUSE] HouseManager.HandleRentPaid({0}): house rent disabled via config", player.Name);
+                log.InfoFormat("[HOUSE] HouseManager.HandleEviction({0}): house rent disabled via config", player.Name);
 
                 // re-add item to queue
                 AddRentQueue(player, house);
