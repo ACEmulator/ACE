@@ -571,21 +571,21 @@ namespace ACE.Server.Command.Handlers.Processors
                     output.LastModified = DateTime.UtcNow;
 
                 sqlFilename = WeenieSQLWriter.GetDefaultFileName(output);
-                var sqlFile = new StreamWriter(sqlFolder + sqlFilename);
-
-                WeenieSQLWriter.CreateSQLDELETEStatement(output, sqlFile);
-                sqlFile.WriteLine();
-
-                WeenieSQLWriter.CreateSQLINSERTStatement(output, sqlFile);
-
-                var metadata = new Adapter.GDLE.Models.Metadata(weenie);
-                if (metadata.HasInfo)
+                using (StreamWriter sqlFile = new StreamWriter(sqlFolder + sqlFilename))
                 {
-                    var jsonEx = JsonSerializer.Serialize(metadata, LifestonedConverter.SerializerSettings);
-                    sqlFile.WriteLine($"\n/* Lifestoned Changelog:\n{jsonEx}\n*/");
-                }
 
-                sqlFile.Close();
+                    WeenieSQLWriter.CreateSQLDELETEStatement(output, sqlFile);
+                    sqlFile.WriteLine();
+
+                    WeenieSQLWriter.CreateSQLINSERTStatement(output, sqlFile);
+
+                    var metadata = new Adapter.GDLE.Models.Metadata(weenie);
+                    if (metadata.HasInfo)
+                    {
+                        var jsonEx = JsonSerializer.Serialize(metadata, LifestonedConverter.SerializerSettings);
+                        sqlFile.WriteLine($"\n/* Lifestoned Changelog:\n{jsonEx}\n*/");
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -659,20 +659,18 @@ namespace ACE.Server.Command.Handlers.Processors
                 }
 
                 sqlFilename = RecipeSQLWriter.GetDefaultFileName(recipe, cookbooks);
-                var sqlFile = new StreamWriter(sqlFolder + sqlFilename);
+                using (StreamWriter sqlFile = new StreamWriter(sqlFolder + sqlFilename)) { 
+                    RecipeSQLWriter.CreateSQLDELETEStatement(recipe, sqlFile);
+                    sqlFile.WriteLine();
 
-                RecipeSQLWriter.CreateSQLDELETEStatement(recipe, sqlFile);
-                sqlFile.WriteLine();
+                    RecipeSQLWriter.CreateSQLINSERTStatement(recipe, sqlFile);
+                    sqlFile.WriteLine();
 
-                RecipeSQLWriter.CreateSQLINSERTStatement(recipe, sqlFile);
-                sqlFile.WriteLine();
+                    CookBookSQLWriter.CreateSQLDELETEStatement(cookbooks, sqlFile);
+                    sqlFile.WriteLine();
 
-                CookBookSQLWriter.CreateSQLDELETEStatement(cookbooks, sqlFile);
-                sqlFile.WriteLine();
-
-                CookBookSQLWriter.CreateSQLINSERTStatement(cookbooks, sqlFile);
-
-                sqlFile.Close();
+                    CookBookSQLWriter.CreateSQLINSERTStatement(cookbooks, sqlFile);
+                }
             }
             catch (Exception e)
             {
@@ -760,14 +758,14 @@ namespace ACE.Server.Command.Handlers.Processors
                 }
 
                 sqlFilename = LandblockInstanceWriter.GetDefaultFileName(landblockInstances[0]);
-                var sqlFile = new StreamWriter(sqlFolder + sqlFilename);
 
-                LandblockInstanceWriter.CreateSQLDELETEStatement(landblockInstances, sqlFile);
-                sqlFile.WriteLine();
+                using (StreamWriter sqlFile = new StreamWriter(sqlFolder + sqlFilename))
+                {
+                    LandblockInstanceWriter.CreateSQLDELETEStatement(landblockInstances, sqlFile);
+                    sqlFile.WriteLine();
 
-                LandblockInstanceWriter.CreateSQLINSERTStatement(landblockInstances, sqlFile);
-
-                sqlFile.Close();
+                    LandblockInstanceWriter.CreateSQLINSERTStatement(landblockInstances, sqlFile);
+                }
             }
             catch (Exception e)
             {
@@ -822,14 +820,13 @@ namespace ACE.Server.Command.Handlers.Processors
                 if (quest.LastModified == DateTime.MinValue)
                     quest.LastModified = DateTime.UtcNow;
 
-                var sqlFile = new StreamWriter(sqlFolder + sqlFilename);
+                using (StreamWriter sqlFile = new StreamWriter(sqlFolder + sqlFilename))
+                {
+                    QuestSQLWriter.CreateSQLDELETEStatement(quest, sqlFile);
+                    sqlFile.WriteLine();
 
-                QuestSQLWriter.CreateSQLDELETEStatement(quest, sqlFile);
-                sqlFile.WriteLine();
-
-                QuestSQLWriter.CreateSQLINSERTStatement(quest, sqlFile);
-
-                sqlFile.Close();
+                    QuestSQLWriter.CreateSQLINSERTStatement(quest, sqlFile);
+                }
             }
             catch (Exception e)
             {
@@ -2217,20 +2214,19 @@ namespace ACE.Server.Command.Handlers.Processors
 
             try
             {
-                var sqlFile = new StreamWriter(sql_folder + sql_filename);
+                using (StreamWriter sqlFile = new StreamWriter(sql_folder + sql_filename))
+                {
+                    RecipeSQLWriter.CreateSQLDELETEStatement(recipe, sqlFile);
+                    sqlFile.WriteLine();
 
-                RecipeSQLWriter.CreateSQLDELETEStatement(recipe, sqlFile);
-                sqlFile.WriteLine();
+                    RecipeSQLWriter.CreateSQLINSERTStatement(recipe, sqlFile);
+                    sqlFile.WriteLine();
 
-                RecipeSQLWriter.CreateSQLINSERTStatement(recipe, sqlFile);
-                sqlFile.WriteLine();
+                    CookBookSQLWriter.CreateSQLDELETEStatement(cookbooks, sqlFile);
+                    sqlFile.WriteLine();
 
-                CookBookSQLWriter.CreateSQLDELETEStatement(cookbooks, sqlFile);
-                sqlFile.WriteLine();
-
-                CookBookSQLWriter.CreateSQLINSERTStatement(cookbooks, sqlFile);
-
-                sqlFile.Close();
+                    CookBookSQLWriter.CreateSQLINSERTStatement(cookbooks, sqlFile);
+                }
             }
             catch (Exception e)
             {
@@ -2278,14 +2274,25 @@ namespace ACE.Server.Command.Handlers.Processors
                     LandblockInstanceWriter.WeenieNames = DatabaseManager.World.GetAllWeenieNames();
                 }
 
-                var sqlFile = new StreamWriter(sql_folder + sql_filename);
+                using (StreamWriter sqlFile = new StreamWriter(sql_folder + sql_filename))
+                {
+                    // Check if the Landblock is empty
+                    if(instances.Count > 0)
+                        LandblockInstanceWriter.CreateSQLDELETEStatement(instances, sqlFile);
+                    else
+                    {
+                        // We'll just create a dummy list with a fake instance in our landblock so we don't anger CreateSQLDeleteStatement()
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Landblock {landblockId:X4} is empty.");
+                        List<LandblockInstance> dummyList = new List<LandblockInstance> ();
+                        LandblockInstance dummyInstance = new LandblockInstance();
+                        dummyInstance.ObjCellId = (uint)(landblockId << 16);
+                        dummyList.Add(dummyInstance);
+                        LandblockInstanceWriter.CreateSQLDELETEStatement(dummyList, sqlFile);
+                    }
+                    sqlFile.WriteLine();
 
-                LandblockInstanceWriter.CreateSQLDELETEStatement(instances, sqlFile);
-                sqlFile.WriteLine();
-
-                LandblockInstanceWriter.CreateSQLINSERTStatement(instances, sqlFile);
-
-                sqlFile.Close();
+                    LandblockInstanceWriter.CreateSQLINSERTStatement(instances, sqlFile);
+                }
             }
             catch (Exception e)
             {
@@ -2325,14 +2332,14 @@ namespace ACE.Server.Command.Handlers.Processors
 
             try
             {
-                var sqlFile = new StreamWriter(sql_folder + sql_filename);
+                using (StreamWriter sqlFile = new StreamWriter(sql_folder + sql_filename))
+                {
 
-                QuestSQLWriter.CreateSQLDELETEStatement(quest, sqlFile);
-                sqlFile.WriteLine();
+                    QuestSQLWriter.CreateSQLDELETEStatement(quest, sqlFile);
+                    sqlFile.WriteLine();
 
-                QuestSQLWriter.CreateSQLINSERTStatement(quest, sqlFile);
-
-                sqlFile.Close();
+                    QuestSQLWriter.CreateSQLINSERTStatement(quest, sqlFile);
+                }
             }
             catch (Exception e)
             {
@@ -2379,14 +2386,13 @@ namespace ACE.Server.Command.Handlers.Processors
 
             try
             {
-                var sqlFile = new StreamWriter(sql_folder + sql_filename);
+                using (StreamWriter sqlFile = new StreamWriter(sql_folder + sql_filename))
+                {
+                    SpellSQLWriter.CreateSQLDELETEStatement(spell, sqlFile);
+                    sqlFile.WriteLine();
 
-                SpellSQLWriter.CreateSQLDELETEStatement(spell, sqlFile);
-                sqlFile.WriteLine();
-
-                SpellSQLWriter.CreateSQLINSERTStatement(spell, sqlFile);
-
-                sqlFile.Close();
+                    SpellSQLWriter.CreateSQLINSERTStatement(spell, sqlFile);
+                }
             }
             catch (Exception e)
             {
