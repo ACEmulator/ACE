@@ -1,5 +1,7 @@
 using System;
 
+using Microsoft.EntityFrameworkCore;
+
 using log4net;
 
 namespace ACE.Database
@@ -68,6 +70,44 @@ namespace ACE.Database
         {
             if (serializedShardDb != null)
                 serializedShardDb.Stop();
+        }
+
+        private static ServerVersion authServerVersion;
+        private static ServerVersion shardServerVersion;
+        private static ServerVersion worldServerVersion;
+        public static ServerVersion CachedServerVersionAutoDetect(int database, string connectionString)
+        {
+            var serverVersion = database switch
+            {
+                1 => authServerVersion,
+                2 => shardServerVersion,
+                _ => worldServerVersion,
+            };
+
+            if (serverVersion != null)
+                return serverVersion;
+
+            serverVersion = ServerVersion.AutoDetect(connectionString);
+
+            //using var connection = new MySqlConnection(
+            //    new MySqlConnectionStringBuilder(connectionString)
+            //    {
+            //        Database = string.Empty,
+            //        AutoEnlist = false,
+            //        //Pooling = false, 
+            //    }.ConnectionString);
+            //connection.Open();
+
+            //serverVersion = ServerVersion.Parse(connection.ServerVersion);
+
+            if (database == 1)
+                authServerVersion = serverVersion;
+            else if (database == 2)
+                shardServerVersion = serverVersion;
+            else
+                worldServerVersion = serverVersion;
+
+            return serverVersion;
         }
     }
 }

@@ -104,7 +104,7 @@ public partial class ShardDbContext : DbContext
 
             var connectionString = $"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database};{config.ConnectionOptions}";
 
-            optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), builder =>
+            optionsBuilder.UseMySql(connectionString, DatabaseManager.CachedServerVersionAutoDetect(2, connectionString), builder =>
             {
                 builder.EnableRetryOnFailure(10);
             });
