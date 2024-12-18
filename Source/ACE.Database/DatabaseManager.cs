@@ -77,13 +77,13 @@ namespace ACE.Database
 
         public static ServerVersion CachedServerVersionAutoDetect(string database, string connectionString)
         {
-            if (cachedServerVersions.TryGetValue(database, out ServerVersion serverVersion)) { return serverVersion; }
-
-            serverVersion = ServerVersion.AutoDetect(connectionString);
-
-            cachedServerVersions[database] = serverVersion;
-
+            if (!cachedServerVersions.TryGetValue(database, out ServerVersion serverVersion))
+            {
+                serverVersion = ServerVersion.AutoDetect(connectionString);
+                cachedServerVersions[database] = serverVersion;
+            }
             return serverVersion;
+
         }
     }
 }
