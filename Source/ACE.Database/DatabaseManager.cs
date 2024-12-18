@@ -83,7 +83,6 @@ namespace ACE.Database
                 cachedServerVersions[database] = serverVersion;
             }
             return serverVersion;
-
         }
     }
 }
