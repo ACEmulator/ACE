@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -73,7 +73,7 @@ namespace ACE.Database
                 serializedShardDb.Stop();
         }
 
-        private static readonly Dictionary<string, ServerVersion> cachedServerVersions = new();
+        private static readonly ConcurrentDictionary<string, ServerVersion> cachedServerVersions = new();
 
         public static ServerVersion CachedServerVersionAutoDetect(string database, string connectionString)
         {
