@@ -2,43 +2,32 @@ using System.ComponentModel;
 
 namespace ACE.Entity.Enum.Properties
 {
-    // properties marked as ServerOnly are properties we never saw in PCAPs, from here:
-    // http://ac.yotesfan.com/ace_object/not_used_enums.php
-    // source: @OptimShi
-    // description attributes are used by the weenie editor for a cleaner display name
+    // No properties are sent to the client unless they featured an atribute.
+    // SendOnLogin gets sent to players in the PlayerDescription event
+    // AssessmentProperty gets sent in successful appraisal
     public enum PropertyInt64 : ushort
     {
-        Undef               = 0,
+        Undef = 0,
         [SendOnLogin]
-        TotalExperience     = 1,
+        TotalExperience = 1,
         [SendOnLogin]
         AvailableExperience = 2,
-        AugmentationCost    = 3,
-        ItemTotalXp         = 4,
-        ItemBaseXp          = 5,
+        [AssessmentProperty]
+        AugmentationCost = 3,
+        [AssessmentProperty]
+        ItemTotalXp = 4,
+        [AssessmentProperty]
+        ItemBaseXp = 5,
         [SendOnLogin]
-        AvailableLuminance  = 6,
+        AvailableLuminance = 6,
         [SendOnLogin]
-        MaximumLuminance    = 7,
-        InteractionReqs     = 8,
+        MaximumLuminance = 7,
+        InteractionReqs = 8,
 
-        /* custom */
-        [ServerOnly]
-        AllegianceXPCached    = 9000,
-        [ServerOnly]
+        /* Custom */
+        AllegianceXPCached = 9000,
         AllegianceXPGenerated = 9001,
-        [ServerOnly]
-        AllegianceXPReceived  = 9002,
-        [ServerOnly]
-        VerifyXp              = 9003
-    }
-
-    public static class PropertyInt64Extensions
-    {
-        public static string GetDescription(this PropertyInt64 prop)
-        {
-            var description = prop.GetAttributeOfType<DescriptionAttribute>();
-            return description?.Description ?? prop.ToString();
-        }
+        AllegianceXPReceived = 9002,
+        VerifyXp = 9003,
     }
 }
