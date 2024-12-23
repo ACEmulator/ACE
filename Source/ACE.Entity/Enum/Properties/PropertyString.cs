@@ -12,7 +12,7 @@ namespace ACE.Entity.Enum.Properties
         Name = 1,
         /// <summary>
         /// default "Adventurer"
-        /// </summary>
+        /// </summary
         Title = 2,
         Sex = 3,
         HeritageGroup = 4,
@@ -83,7 +83,8 @@ namespace ACE.Entity.Enum.Properties
         UseSendsSignal = 51,
         [AssessmentProperty]
         GearPlatingName = 52,
-        
+
+        /* Custom Properties */
         PCAPRecordedCurrentMotionState = 8006,
         PCAPRecordedServerName = 8031,
         PCAPRecordedCharacterName = 8032,

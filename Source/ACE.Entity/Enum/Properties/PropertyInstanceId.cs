@@ -7,6 +7,7 @@ namespace ACE.Entity.Enum.Properties
     // AssessmentProperty gets sent in successful appraisal
     public enum PropertyInstanceId : ushort
     {
+        Undef = 0,
         Owner = 1,
         Container = 2,
         Wielder = 3,
@@ -48,6 +49,7 @@ namespace ACE.Entity.Enum.Properties
         CombatTarget = 27,
         [Ephemeral]
         HealthQueryTarget = 28,
+        [Ephemeral]
         LastUnlocker = 29,
         CrashAndTurnTarget = 30,
         AllowedActivator = 31,
@@ -64,13 +66,14 @@ namespace ACE.Entity.Enum.Properties
         LimboSource = 40,
         Snooper = 41,
         TeleportedCharacter = 42,
+        [Ephemeral]
         Pet = 43,
         PetOwner = 44,
+        [Ephemeral]
         PetDevice = 45,
 
-        /* Custom */
+        /* Custom Properties */
         PCAPRecordedObjectIID = 8000,
         PCAPRecordedParentIID = 8008,
-
     }
 }

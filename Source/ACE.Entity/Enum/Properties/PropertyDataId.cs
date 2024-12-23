@@ -79,6 +79,8 @@ namespace ACE.Entity.Enum.Properties
         YellowSurgeSpell = 59,
         RedSurgeSpell = 60,
         OlthoiDeathTreasureType = 61,
+
+        /* Custom Properties */
         PCAPRecordedWeenieHeader = 8001,
         PCAPRecordedWeenieHeader2 = 8002,
         PCAPRecordedObjectDesc = 8003,

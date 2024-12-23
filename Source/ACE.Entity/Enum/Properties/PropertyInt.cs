@@ -34,6 +34,7 @@ namespace ACE.Entity.Enum.Properties
         [AssessmentProperty]
         Value = 19,
         [SendOnLogin]
+        [Ephemeral]
         CoinValue = 20,
         TotalExperience = 21,
         AvailableCharacter = 22,
@@ -232,6 +233,7 @@ namespace ACE.Entity.Enum.Properties
         [AssessmentProperty]
         WieldDifficulty = 160,
         HouseMaxHooksUsable = 161,
+        [Ephemeral]
         HouseCurrentHooksUsable = 162,
         AllegianceMinLevel = 163,
         AllegianceMaxLevel = 164,
@@ -381,9 +383,9 @@ namespace ACE.Entity.Enum.Properties
         ItemAttributeLimit = 257,
         [AssessmentProperty]
         ItemAttributeLevelLimit = 258,
-        [AssessmentProperty] /* Client Source */
+        [AssessmentProperty]
         ItemAttribute2ndLimit = 259,
-        [AssessmentProperty] /* Client Source */
+        [AssessmentProperty]
         ItemAttribute2ndLevelLimit = 260,
         [AssessmentProperty]
         CharacterTitleId = 261,
@@ -657,37 +659,28 @@ namespace ACE.Entity.Enum.Properties
         [AssessmentProperty]
         Enlightenment = 390,
 
+        /* Custom Properties */
         PCAPRecordedAutonomousMovement = 8007,
         PCAPRecordedMaxVelocityEstimated = 8030,
         PCAPRecordedPlacement = 8041,
         PCAPRecordedAppraisalPages = 8042,
         PCAPRecordedAppraisalMaxPages = 8043,
 
-        //TotalLogins = 9001,
-        //DeletionTimestamp = 9002,
-        //CharacterOptions1 = 9003,
-        //CharacterOptions2 = 9004,
-        //LootTier = 9005,
-        //GeneratorProbability = 9006,
-        //WeenieType = 9007 // I don't think this property type is needed anymore. We don't store the weenie type in the property bags, we store it as a separate field in the base objects.,
+        // TotalLogins = 9001,
+        // DeletionTimestamp = 9002,
+        // CharacterOptions1 = 9003,
+        // CharacterOptions2 = 9004,
+        // LootTier = 9005,
+        // GeneratorProbability = 9006,
+        // WeenieType = 9007
         CurrentLoyaltyAtLastLogoff = 9008,
         CurrentLeadershipAtLastLogoff = 9009,
         AllegianceOfficerRank = 9010,
         HouseRentTimestamp = 9011,
-        /// <summary>
-        ///  Stores the player's selected hairstyle at creation or after a barber use. This is used only for Gear Knights and Olthoi characters who have more than a single part/texture for a "hairstyle" (BodyStyle)
-        /// </summary>
         Hairstyle = 9012,
-        /// <summary>
-        /// Used to store the calculated Clothing Priority for use with armor reduced items and items like Over-Robes.
-        /// </summary>
+        [Ephemeral]
         VisualClothingPriority = 9013,
         SquelchGlobal = 9014,
-
-        /// <summary>
-        /// TODO: This is a place holder for future use. See PlacementPosition
-        /// This is the sort order for items in a container
-        /// </summary>
         InventoryOrder = 9015,
     }
 

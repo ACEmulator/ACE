@@ -210,7 +210,7 @@ namespace ACE.Entity.Enum.Properties
         [SendOnLogin]
         WeaponAuraManaConv = 171,
 
-        /* Custom */
+        /* Custom Properties */
         PCAPRecordedWorkmanship = 8004,
         PCAPRecordedVelocityX = 8010,
         PCAPRecordedVelocityY = 8011,

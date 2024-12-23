@@ -8,6 +8,7 @@ namespace ACE.Entity.Enum.Properties
     public enum PropertyBool : ushort
     {
         Undef = 0,
+        [Ephemeral]
         Stuck = 1,
         [AssessmentProperty]
         [Ephemeral]
@@ -28,6 +29,7 @@ namespace ACE.Entity.Enum.Properties
         LightsStatus = 15,
         ScriptedCollision = 16,
         Inelastic = 17,
+        [Ephemeral]
         Visibility = 18,
         Attackable = 19,
         SafeSpellComponents = 20,
@@ -58,10 +60,13 @@ namespace ACE.Entity.Enum.Properties
         AllowEdgeSlide = 42,
         AdvocateQuest = 43,
         [SendOnLogin]
+        [Ephemeral]
         IsAdmin = 44,
         [SendOnLogin]
+        [Ephemeral]
         IsArch = 45,
         [SendOnLogin]
+        [Ephemeral]
         IsSentinel = 46,
         [SendOnLogin]
         IsAdvocate = 47,
@@ -124,6 +129,7 @@ namespace ACE.Entity.Enum.Properties
         ExistedBeforeAllegianceXpChanges = 95,
         IsDeaf = 96,
         [SendOnLogin]
+        [Ephemeral]
         IsPsr = 97,
         Invincible = 98,
         [AssessmentProperty]
@@ -170,10 +176,12 @@ namespace ACE.Entity.Enum.Properties
         AutowieldLeft = 130,
 
         /* Custom Properties */
+
         LinkedPortalOneSummon = 9001,
         LinkedPortalTwoSummon = 9002,
         HouseEvicted = 9003,
         UntrainedSkills = 9004,
+        [Ephemeral]
         IsEnvoy = 9005,
         UnspecializedSkills = 9006,
         FreeSkillResetRenewed = 9007,

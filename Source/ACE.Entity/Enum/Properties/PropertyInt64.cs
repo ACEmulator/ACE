@@ -24,7 +24,7 @@ namespace ACE.Entity.Enum.Properties
         MaximumLuminance = 7,
         InteractionReqs = 8,
 
-        /* Custom */
+        /* Custom Properties */
         AllegianceXPCached = 9000,
         AllegianceXPGenerated = 9001,
         AllegianceXPReceived = 9002,
