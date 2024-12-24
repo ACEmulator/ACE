@@ -7,73 +7,73 @@ namespace ACE.Entity.Enum.Properties
     // AssessmentProperty gets sent in successful appraisal
     public enum PropertyInstanceId : ushort
     {
-        Undef = 0,
-        Owner = 1,
-        Container = 2,
-        Wielder = 3,
-        Freezer = 4,
+        Undef                            = 0,
+        Owner                            = 1,
+        Container                        = 2,
+        Wielder                          = 3,
+        Freezer                          = 4,
         [Ephemeral]
-        Viewer = 5,
+        Viewer                           = 5,
         [Ephemeral]
-        Generator = 6,
-        Scribe = 7,
+        Generator                        = 6,
+        Scribe                           = 7,
         [Ephemeral]
-        CurrentCombatTarget = 8,
+        CurrentCombatTarget              = 8,
         [Ephemeral]
-        CurrentEnemy = 9,
-        ProjectileLauncher = 10,
+        CurrentEnemy                     = 9,
+        ProjectileLauncher               = 10,
         [Ephemeral]
-        CurrentAttacker = 11,
+        CurrentAttacker                  = 11,
         [Ephemeral]
-        CurrentDamager = 12,
+        CurrentDamager                   = 12,
         [Ephemeral]
-        CurrentFollowTarget = 13,
+        CurrentFollowTarget              = 13,
         [Ephemeral]
-        CurrentAppraisalTarget = 14,
+        CurrentAppraisalTarget           = 14,
         [Ephemeral]
         CurrentFellowshipAppraisalTarget = 15,
-        ActivationTarget = 16,
-        Creator = 17,
-        Victim = 18,
-        Killer = 19,
-        Vendor = 20,
-        Customer = 21,
-        Bonded = 22,
-        Wounder = 23,
+        ActivationTarget                 = 16,
+        Creator                          = 17,
+        Victim                           = 18,
+        Killer                           = 19,
+        Vendor                           = 20,
+        Customer                         = 21,
+        Bonded                           = 22,
+        Wounder                          = 23,
         [SendOnLogin]
-        Allegiance = 24,
+        Allegiance                       = 24,
         [SendOnLogin]
-        Patron = 25,
-        Monarch = 26,
+        Patron                           = 25,
+        Monarch                          = 26,
         [Ephemeral]
-        CombatTarget = 27,
+        CombatTarget                     = 27,
         [Ephemeral]
-        HealthQueryTarget = 28,
+        HealthQueryTarget                = 28,
         [Ephemeral]
-        LastUnlocker = 29,
-        CrashAndTurnTarget = 30,
-        AllowedActivator = 31,
-        HouseOwner = 32,
-        House = 33,
-        Slumlord = 34,
+        LastUnlocker                     = 29,
+        CrashAndTurnTarget               = 30,
+        AllowedActivator                 = 31,
+        HouseOwner                       = 32,
+        House                            = 33,
+        Slumlord                         = 34,
         [Ephemeral]
-        ManaQueryTarget = 35,
-        CurrentGame = 36,
+        ManaQueryTarget                  = 35,
+        CurrentGame                      = 36,
         [Ephemeral]
-        RequestedAppraisalTarget = 37,
-        AllowedWielder = 38,
-        AssignedTarget = 39,
-        LimboSource = 40,
-        Snooper = 41,
-        TeleportedCharacter = 42,
+        RequestedAppraisalTarget         = 37,
+        AllowedWielder                   = 38,
+        AssignedTarget                   = 39,
+        LimboSource                      = 40,
+        Snooper                          = 41,
+        TeleportedCharacter              = 42,
         [Ephemeral]
-        Pet = 43,
-        PetOwner = 44,
+        Pet                              = 43,
+        PetOwner                         = 44,
         [Ephemeral]
-        PetDevice = 45,
+        PetDevice                        = 45,
 
         /* Custom Properties */
-        PCAPRecordedObjectIID = 8000,
-        PCAPRecordedParentIID = 8008,
+        PCAPRecordedObjectIID            = 8000,
+        PCAPRecordedParentIID            = 8008,
     }
 }
