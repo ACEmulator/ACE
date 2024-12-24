@@ -2,7 +2,7 @@ using System.ComponentModel;
 
 namespace ACE.Entity.Enum.Properties
 {
-    // No properties are sent to the client unless they featured an atribute.
+    // No properties are sent to the client unless they featured an attribute.
     // SendOnLogin gets sent to players in the PlayerDescription event
     // AssessmentProperty gets sent in successful appraisal
     public enum PropertyString : ushort
