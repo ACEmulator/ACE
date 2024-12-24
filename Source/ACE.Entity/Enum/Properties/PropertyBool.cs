@@ -18,7 +18,7 @@ namespace ACE.Entity.Enum.Properties
         AllegianceUpdateRequest          = 5,
         AiUsesMana                       = 6,
         AiUseHumanMagicAnimations        = 7,
-        AllowGive                       = 8,
+        AllowGive                        = 8,
         CurrentlyAttacking               = 9,
         AttackerAi                       = 10,
         IgnoreCollisions                 = 11,
