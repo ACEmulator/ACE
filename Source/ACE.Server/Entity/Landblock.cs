@@ -884,10 +884,22 @@ namespace ACE.Server.Entity
                         if (log.IsDebugEnabled)
                             log.Debug($"AddWorldObjectInternal: couldn't spawn generator 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] at {wo.Location.ToLOCString()}");
                     }
-                    else if (wo.ProjectileTarget == null && !(wo is SpellProjectile))
-                        log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] at {wo.Location.ToLOCString()}");
+                    else if (wo.ProjectileTarget is null && wo is not SpellProjectile)
+                    {
+                        if (wo.Guid.IsDynamic() && PropertyManager.GetBool("dynamic_scatter_retry").Item)
+                        {
+                            wo.RetryEnterWorldWithScatter = true;
+                            wo.InitPhysicsObj();
+                            success = wo.AddPhysicsObj();
+                            if (!success)
+                                log.Warn($"Landblock.AddWorldObjectInternal: Could not spawn dynamic object!\n 0x{wo.Guid} - {wo.NameWithMaterial} (WCID: {wo.WeenieClassId} | WeenieType: {wo.WeenieType})\n at {wo.Location.ToLOCString()}");
+                        }
+                        else
+                            log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] at {wo.Location.ToLOCString()}");
+                    }
 
-                    return false;
+                    if (!success)
+                        return false;
                 }
             }
 
