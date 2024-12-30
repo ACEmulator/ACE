@@ -894,9 +894,11 @@ namespace ACE.Server.Entity
                             success = wo.AddPhysicsObj();
                             if (!success)
                                 log.Warn($"Landblock.AddWorldObjectInternal: Could not spawn dynamic object!\n 0x{wo.Guid} - {wo.NameWithMaterial} (WCID: {wo.WeenieClassId} | WeenieType: {wo.WeenieType})\n at {wo.Location.ToLOCString()}");
-                            else if (log.IsDebugEnabled)
-                                log.Debug($"Landblock.AddWorldObjectInternal: Successfully moved and spawned dynamic object!\n 0x{wo.Guid} - {wo.NameWithMaterial} (WCID: {wo.WeenieClassId} | WeenieType: {wo.WeenieType})\n from: {wo.Location.ToLOCString()}\n   to: {woFailedLocation.ToLOCString()}");
-
+                            else
+                            {
+                                if (log.IsDebugEnabled)
+                                    log.Debug($"Landblock.AddWorldObjectInternal: Successfully moved and spawned dynamic object!\n 0x{wo.Guid} - {wo.NameWithMaterial} (WCID: {wo.WeenieClassId} | WeenieType: {wo.WeenieType})\n from: {wo.Location.ToLOCString()}\n   to: {woFailedLocation.ToLOCString()}");
+                            }
                         }
                         else
                             log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] at {wo.Location.ToLOCString()}");
