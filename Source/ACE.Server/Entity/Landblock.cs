@@ -886,7 +886,7 @@ namespace ACE.Server.Entity
                     }
                     else if (wo.ProjectileTarget is null && wo is not SpellProjectile)
                     {
-                        if (wo.Guid.IsDynamic())
+                        if (wo.Guid.IsDynamic() && wo is not CombatPet && wo is not Pet && wo is not Portal)
                         {
                             if (PropertyManager.GetBool("dynamic_scatter_retry").Item)
                             {
