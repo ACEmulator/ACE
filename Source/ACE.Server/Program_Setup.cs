@@ -161,7 +161,7 @@ namespace ACE.Server
 
             Console.WriteLine();
             Console.WriteLine();
-            Console.Write("Typically, all three databases will be on the same SQL server, is this how you want to proceed? (Y/n) ");
+            Console.Write("Typically, all three databases will be using the same SQL server, is this how you want to proceed? (Y/n) ");
             if (!nonInteractiveSetup)
                 variable = Console.ReadLine();
             else
@@ -268,7 +268,7 @@ namespace ACE.Server
 
             Console.WriteLine();
             Console.WriteLine();
-            Console.Write("Typically, all three databases will be on the using the same SQL server credentials, is this how you want to proceed? (Y/n) ");
+            Console.Write("Typically, all three databases will be using the same SQL server credentials, is this how you want to proceed? (Y/n) ");
             if (!nonInteractiveSetup)
                 variable = Console.ReadLine();
             else
