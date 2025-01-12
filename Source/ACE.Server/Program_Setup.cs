@@ -161,7 +161,7 @@ namespace ACE.Server
 
             Console.WriteLine();
             Console.WriteLine();
-            Console.Write("Typically, all three databases will be using the same SQL server, is this how you want to proceed? (Y/n) ");
+            Console.Write("Typically, all three databases will be on the same SQL server, is this how you want to proceed? (Y/n) ");
             if (!nonInteractiveSetup)
                 variable = Console.ReadLine();
             else
@@ -357,7 +357,7 @@ namespace ACE.Server
             Console.WriteLine();
             Console.WriteLine();
             Console.WriteLine();
-            Console.Write("Do you want to ACEmulator to attempt to initialize your SQL databases? This will erase any existing ACEmulator specific databases that may already exist on the server (Y/n): ");
+            Console.Write("Do you want ACEmulator to attempt to initialize your SQL databases? This will erase any existing ACEmulator specific databases that may already exist on the server (Y/n): ");
             if (!nonInteractiveSetup)
                 variable = Console.ReadLine();
             var sqlConnectInfo = $"server={config.MySql.World.Host};port={config.MySql.World.Port};user={config.MySql.World.Username};password={config.MySql.World.Password};{config.MySql.World.ConnectionOptions}";
