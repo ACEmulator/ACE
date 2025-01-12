@@ -68,17 +68,22 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            // Apply Exp penalty for enlightened characters
+            // 50% penalty per enlightenment, but each enlightenment increments the enlightenment value by 5
+            var enlightenmentModifier = Math.Pow(0.5, this.Enlightenment / 5);
+            var m_amount = (long)Math.Round(amount * enlightenmentModifier);
+
             // Make sure UpdateXpAndLevel is done on this players thread
-            EnqueueAction(new ActionEventDelegate(() => UpdateXpAndLevel(amount, xpType)));
+            EnqueueAction(new ActionEventDelegate(() => UpdateXpAndLevel(m_amount, xpType)));
 
             // for passing XP up the allegiance chain,
             // this function is only called at the very beginning, to start the process.
             if (shareType.HasFlag(ShareType.Allegiance))
-                UpdateXpAllegiance(amount);
+                UpdateXpAllegiance(m_amount);
 
             // only certain types of XP are granted to items
             if (xpType == XpType.Kill || xpType == XpType.Quest)
-                GrantItemXP(amount);
+                GrantItemXP(m_amount);
         }
 
         /// <summary>

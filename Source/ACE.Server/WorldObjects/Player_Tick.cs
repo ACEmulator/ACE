@@ -636,7 +636,7 @@ namespace ACE.Server.WorldObjects
                 var burnRate = -item.ManaRate.Value;
 
                 if (LumAugItemManaUsage != 0)
-                    burnRate *= GetNegativeRatingMod(LumAugItemManaUsage * 5);
+                    burnRate *= GetNegativeRatingMod(LumAugItemManaUsage * 40);
 
                 item.ItemManaRateAccumulator += (float)(burnRate * CachedHeartbeatInterval);
 

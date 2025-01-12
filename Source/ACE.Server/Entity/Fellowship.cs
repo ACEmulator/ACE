@@ -23,7 +23,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// The maximum # of fellowship members
         /// </summary>
-        public static int MaxFellows = 9;
+        public static int MaxFellows = 15;
 
         public string FellowshipName;
         public uint FellowshipLeaderGuid;
@@ -484,12 +484,12 @@ namespace ACE.Server.Entity
             else if (maxLevelDiff <= 10)
             {
                 ShareXP = DesiredShareXP;
-                EvenShare = false;
+                EvenShare = true;
             }
             else
             {
-                ShareXP = false;
-                EvenShare = false;
+                ShareXP = DesiredShareXP;
+                EvenShare = true;
             }
         }
 
@@ -622,10 +622,23 @@ namespace ACE.Server.Entity
                 case 7:
                     return .4;
                 case 8:
-                    return .35;
+                    return .36;
                 case 9:
-                    return .3;
-                    // TODO: handle fellowship mods with > 9 players?
+                    return .33;
+                case 10:
+                    return .30;
+                case 11:
+                    return .28;
+                case 12:
+                    return .26;
+                case 13:
+                    return .25;
+                case 14:
+                    return .24;
+                case 15:
+                    return .23;
+
+                    // TODO: handle fellowship mods with > 9 players? 
             }
             return 1.0;
         }

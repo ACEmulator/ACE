@@ -46,7 +46,14 @@ namespace ACE.Server.WorldObjects
                 Fellowship.SplitLuminance((ulong)amount, xpType, shareType, this);
             }
             else
-                AddLuminance(amount, xpType);
+            {
+                // Apply Lum penalty for enlightened characters
+                // 50% penalty per enlightenment, but each enlightenment increments the enlightenment value by 5
+                var enlightenmentModifier = Math.Pow(0.5, this.Enlightenment / 5);
+                var m_amount = (long)Math.Round(amount * enlightenmentModifier);
+
+                AddLuminance(m_amount, xpType);
+            }
         }
 
         private void AddLuminance(long amount, XpType xpType)

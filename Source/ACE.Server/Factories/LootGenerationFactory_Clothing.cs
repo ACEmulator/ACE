@@ -1002,11 +1002,26 @@ namespace ACE.Server.Factories
 
             if (roll.HasArmorLevel(wo))
             {
+                var nextrng = ThreadSafeRandom.Next(0, 1);
                 // clothing w/ al, and crowns would be included in this group
                 if (rng == 0)
-                    wo.GearCritDamage = gearRating;
+                {
+                    gearRating = GearRatingChance.RollDDR(wo, profile, roll);
+                    if (gearRating == 0)
+                        return false;
+
+                    if (nextrng == 0)
+                        wo.GearDamageResist = gearRating;
+                    else
+                        wo.GearDamage = gearRating;
+                }
                 else
-                    wo.GearCritDamageResist = gearRating;
+                {
+                    if (nextrng == 0)
+                        wo.GearCritDamageResist = gearRating;
+                    else
+                        wo.GearCritDamage = gearRating;
+                }
             }
             else if (roll.IsClothing || roll.IsCloak)
             {

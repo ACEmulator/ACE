@@ -43,6 +43,14 @@ namespace ACE.Server.Network.GameAction.Actions
                     return;
                 }
 
+                if (message.Equals("xp", System.StringComparison.OrdinalIgnoreCase) && targetPlayer.Fellowship != null && targetPlayer.Fellowship.Open)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"[FSHIP]: Attempting to add you to {targetPlayer.Name}'s fellowship.", ChatMessageType.Broadcast));
+                    targetPlayer.FellowshipRecruit(session.Player);
+                    return;
+                }
+
+
                 var tell = new GameEventTell(targetPlayer.Session, message, session.Player.GetNameWithSuffix(), session.Player.Guid.Full, targetPlayer.Guid.Full, ChatMessageType.Tell);
                 targetPlayer.Session.Network.EnqueueSend(tell);
             }

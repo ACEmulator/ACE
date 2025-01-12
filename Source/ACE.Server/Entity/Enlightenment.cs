@@ -86,7 +86,7 @@ namespace ACE.Server.Entity
                 return false;
             }
 
-            if (player.Enlightenment >= 5)
+            if (player.Enlightenment >= 20)
             {
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have already reached the maximum enlightenment level!", ChatMessageType.Broadcast));
                 return false;
@@ -304,7 +304,7 @@ namespace ACE.Server.Entity
             //var enlightenment = player.Enlightenment + 1;
             //player.UpdateProperty(player, PropertyInt.Enlightenment, enlightenment);
 
-            player.Enlightenment += 1;
+            player.Enlightenment += 5;
             player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.Enlightenment, player.Enlightenment));
 
             player.SendMessage("You have become enlightened and view the world with new eyes.", ChatMessageType.Broadcast);
@@ -316,25 +316,25 @@ namespace ACE.Server.Entity
             // add title
             switch (player.Enlightenment)
             {
-                case 1:
-                    player.AddTitle(CharacterTitle.Awakened);
+                //case 1:
+                //    player.AddTitle(CharacterTitle.Awakened);
+                //    lvl = "1st";
+                //    break;
+                case 5:
+                    player.AddTitle(CharacterTitle.Enlightened);
                     lvl = "1st";
                     break;
-                case 2:
-                    player.AddTitle(CharacterTitle.Enlightened);
+                case 10:
+                    player.AddTitle(CharacterTitle.Illuminated);
                     lvl = "2nd";
                     break;
-                case 3:
-                    player.AddTitle(CharacterTitle.Illuminated);
+                case 15:
+                    player.AddTitle(CharacterTitle.Transcended);
                     lvl = "3rd";
                     break;
-                case 4:
-                    player.AddTitle(CharacterTitle.Transcended);
-                    lvl = "4th";
-                    break;
-                case 5:
+                case 20:
                     player.AddTitle(CharacterTitle.CosmicConscious);
-                    lvl = "5th";
+                    lvl = "4th";
                     break;
             }
 
