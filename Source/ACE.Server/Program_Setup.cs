@@ -218,7 +218,7 @@ namespace ACE.Server
                 Console.WriteLine();
 
                 Console.Write($"Enter the Host address for your shard database (default: \"{config.MySql.Shard.Host}\"): ");
-                if (!IsRunningInContainer)
+                if (!nonInteractiveSetup)
                     variable = Console.ReadLine();
                 else
                 {
