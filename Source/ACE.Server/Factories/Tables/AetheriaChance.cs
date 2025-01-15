@@ -9,37 +9,37 @@ namespace ACE.Server.Factories.Tables.Wcids
     {
         private static ChanceTable<int> T5_ItemMaxLevel = new ChanceTable<int>()
         {
-            ( 1, 0.60f ),
-            ( 2, 0.40f ),
+            ( 1, 0.4286f ),
+            ( 2, 0.2857f ),
+            ( 3, 0.2857f ),
         };
 
         private static ChanceTable<int> T6_ItemMaxLevel = new ChanceTable<int>()
         {
-            ( 1, 0.550f ),
-            ( 2, 0.345f ),
-            ( 3, 0.100f ),
-            ( 4, 0.005f ),
+            ( 1, 0.3428f ),
+            ( 2, 0.2286f ),
+            ( 3, 0.2286f ),
+            ( 4, 0.2000f ),
         };
 
         // lack of data samples here for 4+
         private static ChanceTable<int> T7_ItemMaxLevel = new ChanceTable<int>()
         {
-            ( 1, 0.55000f ),
-            ( 2, 0.34475f ),
-            ( 3, 0.10000f ),
-            ( 4, 0.00500f ),
-            ( 5, 0.00025f ),
+            ( 1, 0.2286f ),
+            ( 2, 0.2857f ),
+            ( 3, 0.2857f ),
+            ( 4, 0.1600f ),
+            ( 5, 0.0400f ),
         };
 
         // also lack of data samples for level 5,
         // there was possibly no indication it was more common than t7
         private static ChanceTable<int> T8_ItemMaxLevel = new ChanceTable<int>()
         {
-            ( 1, 0.0200f ),
-            ( 2, 0.5500f ),
-            ( 3, 0.4195f ),
-            ( 4, 0.0100f ),
-            ( 5, 0.0005f ),
+            ( 2, 0.4000f ),
+            ( 3, 0.4000f ),
+            ( 4, 0.1600f ),
+            ( 5, 0.0400f ),
         };
 
         private static readonly List<ChanceTable<int>> itemMaxLevels = new List<ChanceTable<int>>()
