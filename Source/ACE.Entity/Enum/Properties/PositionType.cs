@@ -182,7 +182,6 @@ namespace ACE.Entity.Enum.Properties
         /// </summary>
         TeleportedCharacter = 27,
 
-        [ServerOnly]
         PCAPRecordedLocation = 8040
     }
 }

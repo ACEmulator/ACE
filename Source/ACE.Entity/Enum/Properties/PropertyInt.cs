@@ -4,96 +4,88 @@ using System.Globalization;
 
 namespace ACE.Entity.Enum.Properties
 {
+    // No properties are sent to the client unless they featured an attribute.
+    // SendOnLogin gets sent to players in the PlayerDescription event
+    // AssessmentProperty gets sent in successful appraisal
     public enum PropertyInt : ushort
     {
-        // properties marked as ServerOnly are properties we never saw in PCAPs, from here:
-        // http://ac.yotesfan.com/ace_object/not_used_enums.php
-        // source: @OptimShi
-        // description attributes are used by the weenie editor for a cleaner display name
-
         Undef                                    = 0,
-        [ServerOnly]
         ItemType                                 = 1,
+        [AssessmentProperty]
         CreatureType                             = 2,
-        [ServerOnly]
         PaletteTemplate                          = 3,
         ClothingPriority                         = 4,
-        [SendOnLogin]
+        [AssessmentProperty][SendOnLogin]
         EncumbranceVal                           = 5, // ENCUMB_VAL_INT,
-        [SendOnLogin]
         ItemsCapacity                            = 6,
         [SendOnLogin]
         ContainersCapacity                       = 7,
-        [ServerOnly]
         Mass                                     = 8,
-        [ServerOnly]
-        ValidLocations                           = 9, // LOCATIONS_INT
-        [ServerOnly]
+        ValidLocations                           = 9, // LOCATIONS_INT,
         CurrentWieldedLocation                   = 10,
-        [ServerOnly]
         MaxStackSize                             = 11,
-        [ServerOnly]
         StackSize                                = 12,
-        [ServerOnly]
         StackUnitEncumbrance                     = 13,
-        [ServerOnly]
         StackUnitMass                            = 14,
-        [ServerOnly]
         StackUnitValue                           = 15,
-        [ServerOnly]
         ItemUseable                              = 16,
+        [AssessmentProperty]
         RareId                                   = 17,
-        [ServerOnly]
         UiEffects                                = 18,
+        [AssessmentProperty]
         Value                                    = 19,
-        [Ephemeral][SendOnLogin]
+        [SendOnLogin][Ephemeral]
         CoinValue                                = 20,
         TotalExperience                          = 21,
         AvailableCharacter                       = 22,
         TotalSkillCredits                        = 23,
         [SendOnLogin]
         AvailableSkillCredits                    = 24,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         Level                                    = 25,
+        [AssessmentProperty]
         AccountRequirements                      = 26,
         ArmorType                                = 27,
+        [AssessmentProperty]
         ArmorLevel                               = 28,
         AllegianceCpPool                         = 29,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         AllegianceRank                           = 30,
         ChannelsAllowed                          = 31,
         ChannelsActive                           = 32,
+        [AssessmentProperty]
         Bonded                                   = 33,
         MonarchsRank                             = 34,
+        [AssessmentProperty]
         AllegianceFollowers                      = 35,
+        [AssessmentProperty]
         ResistMagic                              = 36,
         ResistItemAppraisal                      = 37,
+        [AssessmentProperty]
         ResistLockpick                           = 38,
         DeprecatedResistRepair                   = 39,
         [SendOnLogin]
         CombatMode                               = 40,
         CurrentAttackHeight                      = 41,
         CombatCollisions                         = 42,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         NumDeaths                                = 43,
         Damage                                   = 44,
+        [AssessmentProperty]
         DamageType                               = 45,
-        [ServerOnly]
         DefaultCombatStyle                       = 46,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         AttackType                               = 47,
         WeaponSkill                              = 48,
         WeaponTime                               = 49,
         AmmoType                                 = 50,
         CombatUse                                = 51,
-        [ServerOnly]
         ParentLocation                           = 52,
         /// <summary>
         /// TODO: Migrate inventory order away from this and instead use the new InventoryOrder property
         /// TODO: PlacementPosition is used (very sparingly) in cache.bin, so it has (or had) a meaning at one point before we hijacked it
         /// TODO: and used it for our own inventory order
         /// </summary>
-        [ServerOnly]
         PlacementPosition                        = 53,
         WeaponEncumbrance                        = 54,
         WeaponMass                               = 55,
@@ -106,7 +98,6 @@ namespace ACE.Entity.Enum.Properties
         DefendersSkill                           = 62,
         AttackersSkillValue                      = 63,
         AttackersClass                           = 64,
-        [ServerOnly]
         Placement                                = 65,
         CheckpointStatus                         = 66,
         Tolerance                                = 67,
@@ -130,21 +121,25 @@ namespace ACE.Entity.Enum.Properties
         ActivationResponse                       = 83,
         OriginalValue                            = 84,
         NumMoveFailures                          = 85,
+        [AssessmentProperty]
         MinLevel                                 = 86,
+        [AssessmentProperty]
         MaxLevel                                 = 87,
         LockpickMod                              = 88,
+        [AssessmentProperty]
         BoosterEnum                              = 89,
+        [AssessmentProperty]
         BoostValue                               = 90,
+        [AssessmentProperty]
         MaxStructure                             = 91,
+        [AssessmentProperty]
         Structure                                = 92,
-        [ServerOnly]
         PhysicsState                             = 93,
-        [ServerOnly]
         TargetType                               = 94,
         RadarBlipColor                           = 95,
         EncumbranceCapacity                      = 96,
         LoginTimestamp                           = 97,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         CreationTimestamp                        = 98,
         PkLevelModifier                          = 99,
         GeneratorType                            = 100,
@@ -152,19 +147,29 @@ namespace ACE.Entity.Enum.Properties
         LogoffTimestamp                          = 102,
         GeneratorDestructionType                 = 103,
         ActivationCreateClass                    = 104,
+        [AssessmentProperty]
         ItemWorkmanship                          = 105,
+        [AssessmentProperty]
         ItemSpellcraft                           = 106,
+        [AssessmentProperty]
         ItemCurMana                              = 107,
+        [AssessmentProperty]
         ItemMaxMana                              = 108,
+        [AssessmentProperty]
         ItemDifficulty                           = 109,
+        [AssessmentProperty]
         ItemAllegianceRankLimit                  = 110,
+        [AssessmentProperty]
         PortalBitmask                            = 111,
         AdvocateLevel                            = 112,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         Gender                                   = 113,
+        [AssessmentProperty]
         Attuned                                  = 114,
+        [AssessmentProperty]
         ItemSkillLevelLimit                      = 115,
         GateLogic                                = 116,
+        [AssessmentProperty]
         ItemManaCost                             = 117,
         Logoff                                   = 118,
         Active                                   = 119,
@@ -173,7 +178,7 @@ namespace ACE.Entity.Enum.Properties
         AiCpThreshold                            = 122,
         AiAdvancementStrategy                    = 123,
         Version                                  = 124,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         Age                                      = 125,
         VendorHappyMean                          = 126,
         VendorHappyVariance                      = 127,
@@ -181,12 +186,13 @@ namespace ACE.Entity.Enum.Properties
         [SendOnLogin]
         VitaeCpPool                              = 129,
         NumServicesSold                          = 130,
+        [AssessmentProperty]
         MaterialType                             = 131,
         [SendOnLogin]
         NumAllegianceBreaks                      = 132,
         [Ephemeral]
         ShowableOnRadar                          = 133,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         PlayerKillerStatus                       = 134,
         VendorHappyMaxItems                      = 135,
         ScorePageNum                             = 136,
@@ -194,62 +200,63 @@ namespace ACE.Entity.Enum.Properties
         ScoreNumScores                           = 138,
         [SendOnLogin]
         DeathLevel                               = 139,
-        [ServerOnly]
         AiOptions                                = 140,
-        [ServerOnly]
         OpenToEveryone                           = 141,
-        [ServerOnly]
         GeneratorTimeType                        = 142,
-        [ServerOnly]
         GeneratorStartTime                       = 143,
-        [ServerOnly]
         GeneratorEndTime                         = 144,
-        [ServerOnly]
         GeneratorEndDestructionType              = 145,
-        [ServerOnly]
         XpOverride                               = 146,
         NumCrashAndTurns                         = 147,
         ComponentWarningThreshold                = 148,
         HouseStatus                              = 149,
-        [ServerOnly]
         HookPlacement                            = 150,
-        [ServerOnly]
         HookType                                 = 151,
-        [ServerOnly]
         HookItemType                             = 152,
         AiPpThreshold                            = 153,
         GeneratorVersion                         = 154,
         HouseType                                = 155,
         PickupEmoteOffset                        = 156,
         WeenieIteration                          = 157,
+        [AssessmentProperty]
         WieldRequirements                        = 158,
+        [AssessmentProperty]
         WieldSkillType                           = 159,
+        [AssessmentProperty]
         WieldDifficulty                          = 160,
-        [ServerOnly]
         HouseMaxHooksUsable                      = 161,
-        [ServerOnly][Ephemeral]
+        [Ephemeral]
         HouseCurrentHooksUsable                  = 162,
         AllegianceMinLevel                       = 163,
         AllegianceMaxLevel                       = 164,
         HouseRelinkHookCount                     = 165,
+        [AssessmentProperty]
         SlayerCreatureType                       = 166,
         ConfirmationInProgress                   = 167,
         ConfirmationTypeInProgress               = 168,
         TsysMutationData                         = 169,
+        [AssessmentProperty]
         NumItemsInMaterial                       = 170,
+        [AssessmentProperty]
         NumTimesTinkered                         = 171,
+        [AssessmentProperty]
         AppraisalLongDescDecoration              = 172,
+        [AssessmentProperty]
         AppraisalLockpickSuccessPercent          = 173,
-        [Ephemeral]
+        [AssessmentProperty][Ephemeral]
         AppraisalPages                           = 174,
-        [Ephemeral]
+        [AssessmentProperty][Ephemeral]
         AppraisalMaxPages                        = 175,
+        [AssessmentProperty]
         AppraisalItemSkill                       = 176,
+        [AssessmentProperty]
         GemCount                                 = 177,
+        [AssessmentProperty]
         GemType                                  = 178,
+        [AssessmentProperty]
         ImbuedEffect                             = 179,
         AttackersRawSkillValue                   = 180,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         ChessRank                                = 181,
         ChessTotalGames                          = 182,
         ChessGamesWon                            = 183,
@@ -257,18 +264,18 @@ namespace ACE.Entity.Enum.Properties
         TypeOfAlteration                         = 185,
         SkillToBeAltered                         = 186,
         SkillAlterationCount                     = 187,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         HeritageGroup                            = 188,
         TransferFromAttribute                    = 189,
         TransferToAttribute                      = 190,
         AttributeTransferCount                   = 191,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         FakeFishingSkill                         = 192,
+        [AssessmentProperty]
         NumKeys                                  = 193,
         DeathTimestamp                           = 194,
         PkTimestamp                              = 195,
         VictimTimestamp                          = 196,
-        [ServerOnly]
         HookGroup                                = 197,
         AllegianceSwearTimestamp                 = 198,
         [SendOnLogin]
@@ -277,6 +284,7 @@ namespace ACE.Entity.Enum.Properties
         MeleeDefenseImbuedEffectTypeCache        = 201,
         MissileDefenseImbuedEffectTypeCache      = 202,
         MagicDefenseImbuedEffectTypeCache        = 203,
+        [AssessmentProperty]
         ElementalDamageBonus                     = 204,
         ImbueAttempts                            = 205,
         ImbueSuccesses                           = 206,
@@ -288,11 +296,8 @@ namespace ACE.Entity.Enum.Properties
         RaresTierThree                           = 212,
         RaresTierFour                            = 213,
         RaresTierFive                            = 214,
-        [SendOnLogin]
         AugmentationStat                         = 215,
-        [SendOnLogin]
         AugmentationFamilyStat                   = 216,
-        [SendOnLogin]
         AugmentationInnateFamily                 = 217,
         [SendOnLogin]
         AugmentationInnateStrength               = 218,
@@ -336,7 +341,6 @@ namespace ACE.Entity.Enum.Properties
         AugmentationFasterRegen                  = 237,
         [SendOnLogin]
         AugmentationIncreasedSpellDuration       = 238,
-        [SendOnLogin]
         AugmentationResistanceFamily             = 239,
         [SendOnLogin]
         AugmentationResistanceSlash              = 240,
@@ -362,48 +366,68 @@ namespace ACE.Entity.Enum.Properties
         RaresTierSeven                           = 254,
         RaresTierSixLogin                        = 255,
         RaresTierSevenLogin                      = 256,
+        [AssessmentProperty]
         ItemAttributeLimit                       = 257,
+        [AssessmentProperty]
         ItemAttributeLevelLimit                  = 258,
+        [AssessmentProperty]
         ItemAttribute2ndLimit                    = 259,
+        [AssessmentProperty]
         ItemAttribute2ndLevelLimit               = 260,
+        [AssessmentProperty]
         CharacterTitleId                         = 261,
+        [AssessmentProperty]
         NumCharacterTitles                       = 262,
+        [AssessmentProperty]
         ResistanceModifierType                   = 263,
         FreeTinkersBitfield                      = 264,
+        [AssessmentProperty]
         EquipmentSetId                           = 265,
         PetClass                                 = 266,
+        [AssessmentProperty]
         Lifespan                                 = 267,
-        [Ephemeral]
+        [AssessmentProperty][Ephemeral]
         RemainingLifespan                        = 268,
         UseCreateQuantity                        = 269,
+        [AssessmentProperty]
         WieldRequirements2                       = 270,
+        [AssessmentProperty]
         WieldSkillType2                          = 271,
+        [AssessmentProperty]
         WieldDifficulty2                         = 272,
+        [AssessmentProperty]
         WieldRequirements3                       = 273,
+        [AssessmentProperty]
         WieldSkillType3                          = 274,
+        [AssessmentProperty]
         WieldDifficulty3                         = 275,
+        [AssessmentProperty]
         WieldRequirements4                       = 276,
+        [AssessmentProperty]
         WieldSkillType4                          = 277,
+        [AssessmentProperty]
         WieldDifficulty4                         = 278,
+        [AssessmentProperty]
         Unique                                   = 279,
+        [AssessmentProperty]
         SharedCooldown                           = 280,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         Faction1Bits                             = 281,
         Faction2Bits                             = 282,
         Faction3Bits                             = 283,
         Hatred1Bits                              = 284,
         Hatred2Bits                              = 285,
         Hatred3Bits                              = 286,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         SocietyRankCelhan                        = 287,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         SocietyRankEldweb                        = 288,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         SocietyRankRadblo                        = 289,
         HearLocalSignals                         = 290,
         HearLocalSignalsRadius                   = 291,
+        [AssessmentProperty]
         Cleaving                                 = 292,
-        [SendOnLogin]
         AugmentationSpecializeGearcraft          = 293,
         [SendOnLogin]
         AugmentationInfusedCreatureMagic         = 294,
@@ -423,13 +447,17 @@ namespace ACE.Entity.Enum.Properties
         AugmentationSkilledMissile               = 301,
         [SendOnLogin]
         AugmentationSkilledMagic                 = 302,
+        [AssessmentProperty]
         ImbuedEffect2                            = 303,
+        [AssessmentProperty]
         ImbuedEffect3                            = 304,
+        [AssessmentProperty]
         ImbuedEffect4                            = 305,
+        [AssessmentProperty]
         ImbuedEffect5                            = 306,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         DamageRating                             = 307,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         DamageResistRating                       = 308,
         [SendOnLogin]
         AugmentationDamageBonus                  = 309,
@@ -438,30 +466,32 @@ namespace ACE.Entity.Enum.Properties
         ImbueStackingBits                        = 311,
         [SendOnLogin]
         HealOverTime                             = 312,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         CritRating                               = 313,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         CritDamageRating                         = 314,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         CritResistRating                         = 315,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         CritDamageResistRating                   = 316,
         [SendOnLogin]
         HealingResistRating                      = 317,
         [SendOnLogin]
         DamageOverTime                           = 318,
+        [AssessmentProperty]
         ItemMaxLevel                             = 319,
+        [AssessmentProperty]
         ItemXpStyle                              = 320,
         EquipmentSetExtra                        = 321,
         [SendOnLogin]
         AetheriaBitfield                         = 322,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         HealingBoostRating                       = 323,
+        [AssessmentProperty]
         HeritageSpecificArmor                    = 324,
         AlternateRacialSkills                    = 325,
         [SendOnLogin]
         AugmentationJackOfAllTrades              = 326,
-        [SendOnLogin]
         AugmentationResistanceNether             = 327,
         [SendOnLogin]
         AugmentationInfusedVoidMagic             = 328,
@@ -496,17 +526,19 @@ namespace ACE.Entity.Enum.Properties
         LumAugSkilledCraft                       = 343,
         [SendOnLogin]
         LumAugSkilledSpec                        = 344,
-        [SendOnLogin]
         LumAugNoDestroyCraft                     = 345,
         RestrictInteraction                      = 346,
+        [SendOnLogin]
         OlthoiLootTimestamp                      = 347,
         OlthoiLootStep                           = 348,
         UseCreatesContractId                     = 349,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         DotResistRating                          = 350,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         LifeResistRating                         = 351,
+        [AssessmentProperty]
         CloakWeaveProc                           = 352,
+        [AssessmentProperty]
         WeaponType                               = 353,
         [SendOnLogin]
         MeleeMastery                             = 354,
@@ -526,119 +558,88 @@ namespace ACE.Entity.Enum.Properties
         UseLevelRequirement                      = 364,
         [SendOnLogin]
         LumAugAllSkills                          = 365,
+        [AssessmentProperty]
         UseRequiresSkill                         = 366,
+        [AssessmentProperty]
         UseRequiresSkillLevel                    = 367,
+        [AssessmentProperty]
         UseRequiresSkillSpec                     = 368,
+        [AssessmentProperty]
         UseRequiresLevel                         = 369,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         GearDamage                               = 370,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         GearDamageResist                         = 371,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         GearCrit                                 = 372,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         GearCritResist                           = 373,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         GearCritDamage                           = 374,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         GearCritDamageResist                     = 375,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         GearHealingBoost                         = 376,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         GearNetherResist                         = 377,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         GearLifeResist                           = 378,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         GearMaxHealth                            = 379,
         Unknown380                               = 380,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         PKDamageRating                           = 381,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         PKDamageResistRating                     = 382,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         GearPKDamageRating                       = 383,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         GearPKDamageResistRating                 = 384,
         Unknown385                               = 385,
         /// <summary>
         /// Overpower chance % for endgame creatures.
         /// </summary>
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         Overpower                                = 386,
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         OverpowerResist                          = 387,
         // Client does not display accurately
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         GearOverpower                            = 388,
         // Client does not display accurately
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         GearOverpowerResist                      = 389,
         // Number of times a character has enlightened
-        [SendOnLogin]
+        [SendOnLogin][AssessmentProperty]
         Enlightenment                            = 390,
 
-        [ServerOnly]
+        /* Custom Properties */
         PCAPRecordedAutonomousMovement           = 8007,
-        [ServerOnly]
         PCAPRecordedMaxVelocityEstimated         = 8030,
-        [ServerOnly]
         PCAPRecordedPlacement                    = 8041,
-        [ServerOnly]
         PCAPRecordedAppraisalPages               = 8042,
-        [ServerOnly]
         PCAPRecordedAppraisalMaxPages            = 8043,
 
-        //[ServerOnly]
-        //TotalLogins                              = 9001,
-        //[ServerOnly]
-        //DeletionTimestamp                        = 9002,
-        //[ServerOnly]
-        //CharacterOptions1                        = 9003,
-        //[ServerOnly]
-        //CharacterOptions2                        = 9004,
-        //[ServerOnly]
-        //LootTier                                 = 9005,
-        //[ServerOnly]
-        //GeneratorProbability                     = 9006,
-        //[ServerOnly]
-        //WeenieType                               = 9007 // I don't think this property type is needed anymore. We don't store the weenie type in the property bags, we store it as a separate field in the base objects.
-        [ServerOnly]
-        CurrentLoyaltyAtLastLogoff              = 9008,
-        [ServerOnly]
-        CurrentLeadershipAtLastLogoff           = 9009,
-        [ServerOnly]
-        AllegianceOfficerRank                   = 9010,
-        [ServerOnly]
-        HouseRentTimestamp                      = 9011,
-        /// <summary>
-        ///  Stores the player's selected hairstyle at creation or after a barber use. This is used only for Gear Knights and Olthoi characters who have more than a single part/texture for a "hairstyle" (BodyStyle)
-        /// </summary>
-        [ServerOnly]
-        Hairstyle                               = 9012,
-        /// <summary>
-        /// Used to store the calculated Clothing Priority for use with armor reduced items and items like Over-Robes.
-        /// </summary>
-        [Ephemeral][ServerOnly]
-        VisualClothingPriority                  = 9013,
-        [ServerOnly]
-        SquelchGlobal                           = 9014,
-
-        /// <summary>
-        /// TODO: This is a place holder for future use. See PlacementPosition
-        /// This is the sort order for items in a container
-        /// </summary>
-        [ServerOnly]
-        InventoryOrder                          = 9015,
+        // TotalLogins                           = 9001,
+        // DeletionTimestamp                     = 9002,
+        // CharacterOptions1                     = 9003,
+        // CharacterOptions2                     = 9004,
+        // LootTier                              = 9005,
+        // GeneratorProbability                  = 9006,
+        // WeenieType                            = 9007
+        CurrentLoyaltyAtLastLogoff               = 9008,
+        CurrentLeadershipAtLastLogoff            = 9009,
+        AllegianceOfficerRank                    = 9010,
+        HouseRentTimestamp                       = 9011,
+        Hairstyle                                = 9012,
+        [Ephemeral]
+        VisualClothingPriority                   = 9013,
+        SquelchGlobal                            = 9014,
+        InventoryOrder                           = 9015,
     }
 
     public static class PropertyIntExtensions
     {
-        public static string GetDescription(this PropertyInt prop)
-        {
-            var description = prop.GetAttributeOfType<DescriptionAttribute>();
-            return description?.Description ?? prop.ToString();
-        }
-
         public static string GetValueEnumName(this PropertyInt property, int value)
         {
             switch (property)
