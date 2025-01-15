@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 using log4net;
@@ -3606,9 +3607,18 @@ namespace ACE.Server.Command.Handlers
 
                     var quests = creature.QuestManager.GetQuests();
 
+                    var filter = string.Empty;
+                    if (parameters.Length >= 2)
+                    {
+                        filter = parameters[1].ToString();
+
+                        if (!string.IsNullOrWhiteSpace(filter))
+                            quests = quests.Where(q => Regex.IsMatch(q.QuestName, filter.WildCardToRegular(), RegexOptions.IgnoreCase)).ToList();
+                    }
+
                     if (quests.Count == 0)
                     {
-                        session.Player.SendMessage("No quests found.");
+                        session.Player.SendMessage($"No quests found{(!string.IsNullOrWhiteSpace(filter) ? $" with filter {filter}" : "")}.");
                         return;
                     }
 
@@ -3876,9 +3886,18 @@ namespace ACE.Server.Command.Handlers
 
                             var quests = fellowship.QuestManager.GetQuests();
 
+                            var filter = string.Empty;
+                            if (parameters.Length >= 2)
+                            {
+                                filter = parameters[1].ToString();
+
+                                if (!string.IsNullOrWhiteSpace(filter))
+                                    quests = quests.Where(q => Regex.IsMatch(q.QuestName, filter.WildCardToRegular(), RegexOptions.IgnoreCase)).ToList();
+                            }
+
                             if (quests.Count == 0)
                             {
-                                session.Player.SendMessage("No quests found.");
+                                session.Player.SendMessage($"No quests found{(!string.IsNullOrWhiteSpace(filter) ? $" with filter {filter}" : "")}.");
                                 return;
                             }
 
