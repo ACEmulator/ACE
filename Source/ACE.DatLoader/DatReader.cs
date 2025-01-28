@@ -35,7 +35,7 @@ namespace ACE.DatLoader
 
             while (size > 0)
             {
-                if (size < blockSize)
+                if (nextAddress == 0)
                 {
                     stream.Read(buffer, bufferOffset, Convert.ToInt32(size));
                     size = 0; // We know we've read the only/last sector, so just set this to zero to proceed.
