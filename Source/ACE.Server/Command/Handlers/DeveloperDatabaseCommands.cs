@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 
 using Microsoft.EntityFrameworkCore;
@@ -8,15 +9,11 @@ using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Server.Command.Handlers.Processors;
+using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 
 using log4net;
-using System.Runtime.CompilerServices;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using System.Data;
-using System.Security.Cryptography.X509Certificates;
-using ACE.Server.Entity;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -343,7 +340,7 @@ namespace ACE.Server.Command.Handlers
 
                             // Check if the name matches what it should. Note this wi
                             string newGearPlatingName = CorePlating.GetGearPlatingName((EquipMask)locations);
-                            if(newGearPlatingName != gearPlatingName)
+                            if (newGearPlatingName != gearPlatingName)
                             {
                                 string updateSQL = $"UPDATE `biota_properties_string` SET `value` = '{newGearPlatingName}' WHERE `biota_properties_string`.`object_Id` = {object_Id} AND `biota_properties_string`.`type` = 52;";
                                 sqlCommands.Add(updateSQL);
