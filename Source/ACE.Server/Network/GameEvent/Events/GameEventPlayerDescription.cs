@@ -81,7 +81,7 @@ namespace ACE.Server.Network.GameEvent.Events
                 }
             }
 
-            var _propertiesInt64 = Session.Player.GetAllPropertyInt64Where(ClientProperties.PropertiesInt64);
+            var _propertiesInt64 = Session.Player.GetAllPropertyInt64Where(SendOnLoginProperties.PropertiesInt64);
 
             if (_propertiesInt64.Count != 0)
             {

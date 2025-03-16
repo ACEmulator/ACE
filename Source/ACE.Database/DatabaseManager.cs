@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Concurrent;
+
+using Microsoft.EntityFrameworkCore;
 
 using log4net;
 
@@ -68,6 +71,18 @@ namespace ACE.Database
         {
             if (serializedShardDb != null)
                 serializedShardDb.Stop();
+        }
+
+        private static readonly ConcurrentDictionary<string, ServerVersion> cachedServerVersions = new();
+
+        public static ServerVersion CachedServerVersionAutoDetect(string database, string connectionString)
+        {
+            if (!cachedServerVersions.TryGetValue(database, out ServerVersion serverVersion))
+            {
+                serverVersion = ServerVersion.AutoDetect(connectionString);
+                cachedServerVersions[database] = serverVersion;
+            }
+            return serverVersion;
         }
     }
 }

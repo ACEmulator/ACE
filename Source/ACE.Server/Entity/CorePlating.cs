@@ -179,77 +179,12 @@ namespace ACE.Server.Entity
             if (target.IconOverlayId != 0)
                 target.IconOverlaySecondary = target.IconOverlayId;
 
-            var slotName = "";
-            switch (target.ValidLocations)
-            {
-                case EquipMask.HeadWear:
-                    slotName = " Helm ";
-                    break;
-                case EquipMask.ChestWear:
-                case EquipMask.ChestArmor:
-                case EquipMask.ChestWear | EquipMask.AbdomenWear | EquipMask.UpperArmWear:
-                case EquipMask.ChestArmor | EquipMask.AbdomenArmor | EquipMask.UpperArmArmor:
-                    slotName = " Chest ";
-                    break;
-                case EquipMask.ChestWear | EquipMask.AbdomenWear | EquipMask.UpperArmWear | EquipMask.LowerArmWear:
-                case EquipMask.ChestArmor | EquipMask.AbdomenArmor | EquipMask.UpperArmArmor | EquipMask.LowerArmArmor:
-                    slotName = " Hauberk ";
-                    break;
-                // no pcaps for "shirts" found
-                //case EquipMask.ChestWear | EquipMask.AbdomenWear | EquipMask.UpperArmWear:
-                //case EquipMask.ChestArmor | EquipMask.AbdomenArmor | EquipMask.UpperArmArmor:
-                //    slotName = " Shirt ";
-                //    break;
-                case EquipMask.AbdomenWear:
-                case EquipMask.AbdomenArmor:
-                    slotName = " Girth ";
-                    break;
-                case EquipMask.UpperArmWear:
-                case EquipMask.UpperArmArmor:
-                    slotName = " Pauldron ";
-                    break;
-                case EquipMask.LowerArmWear:
-                case EquipMask.LowerArmArmor:
-                    slotName = " Bracer ";
-                    break;
-                case EquipMask.UpperArmWear | EquipMask.LowerArmWear:
-                case EquipMask.UpperArmArmor  | EquipMask.LowerArmArmor:
-                    slotName = " Sleeve ";
-                    break;
-                case EquipMask.HandWear:
-                    slotName = " Gauntlet ";
-                    break;
-                case EquipMask.UpperLegWear:
-                case EquipMask.UpperLegArmor:
-                    slotName = " Tasset ";
-                    break;
-                case EquipMask.LowerLegWear:
-                case EquipMask.LowerLegArmor:
-                    slotName = " Greaves ";
-                    break;
-                case EquipMask.UpperLegWear | EquipMask.LowerLegWear:
-                case EquipMask.UpperLegArmor | EquipMask.LowerLegArmor:
-                case EquipMask.AbdomenWear | EquipMask.UpperLegWear | EquipMask.LowerLegWear:
-                case EquipMask.AbdomenArmor | EquipMask.UpperLegArmor | EquipMask.LowerLegArmor:
-                    slotName = " Leg ";
-                    break;                
-                case EquipMask.FootWear:
-                case EquipMask.LowerLegWear | EquipMask.FootWear:
-                    slotName = " Solleret ";
-                    break;
-                // pcap showed boots were called solleret as well
-                //case EquipMask.LowerLegWear | EquipMask.FootWear:
-                //    slotName = " Boot ";
-                //    break;
-                case EquipMask.Armor:
-                case EquipMask.HeadWear | EquipMask.Armor:
-                    slotName = " Body ";
-                    break;
-            }
+            // ValidLocations has already been verified prior to this, so we can be safe casting it -- it won't null
+            string gearPlatingName = GetGearPlatingName((EquipMask)target.ValidLocations);
 
             player.UpdateProperty(target, PropertyInt.HeritageSpecificArmor, (int)HeritageGroup.Gearknight);
             player.UpdateProperty(target, PropertyDataId.IconOverlay, CorePlatingGearOverlay);
-            player.UpdateProperty(target, PropertyString.GearPlatingName, $"Core{slotName}Plating");
+            player.UpdateProperty(target, PropertyString.GearPlatingName, gearPlatingName);
             player.UpdateProperty(target, PropertyString.Use, "This Aetherium core plating installs into the frame of a Gear Knight to strengthen it.");
 
             target.SaveBiotaToDatabase();
@@ -257,6 +192,99 @@ namespace ACE.Server.Entity
             player.SendUseDoneEvent();
         }
 
+        public static string GetGearPlatingName(EquipMask locations)
+        {
+            var slotName = ""; 
+            string platingType;
+
+            // Underoos are called "Underplating". Just make sure we ignore shoes.
+            if ((locations & (EquipMask.ChestWear | EquipMask.AbdomenWear | EquipMask.UpperArmWear | EquipMask.LowerArmWear | EquipMask.UpperLegWear | EquipMask.LowerLegWear)) != 0
+                && (locations & EquipMask.FootWear) == 0)
+            {
+                platingType = "Underplating";
+
+                if ((locations & EquipMask.ChestWear) != 0)
+                {
+                    slotName = " Upper Body ";
+                }
+                else
+                {
+                    slotName = " Lower Body ";
+                }
+            }
+            else
+            {
+                platingType = "Plating";
+
+                switch (locations)
+                {
+                    case EquipMask.HeadWear:
+                        slotName = " Helm ";
+                        break;
+                    case EquipMask.ChestArmor | EquipMask.AbdomenArmor:
+                        slotName = " Cuirass ";
+                        break;
+                    case EquipMask.ChestArmor:
+                    case EquipMask.ChestArmor | EquipMask.AbdomenArmor | EquipMask.UpperArmArmor:
+                        slotName = " Chest ";
+                        break;
+                    case EquipMask.ChestArmor | EquipMask.UpperArmArmor: // No logs found for this exact combo, but "Shirt Mesh" was used for Chainmail Shirts, which falls under "Coat" now
+                    case EquipMask.HeadWear | EquipMask.ChestArmor | EquipMask.UpperArmArmor: // No logs found for this exact combo, but "Shirt Mesh" was used for Chainmail Shirts, which falls under "Coat" now
+                        slotName = " Shirt ";
+                        platingType = "Mesh";
+                        break;
+                    case EquipMask.ChestArmor | EquipMask.AbdomenArmor | EquipMask.UpperArmArmor | EquipMask.LowerArmArmor:
+                        slotName = " Hauberk ";
+                        break;
+                    case EquipMask.ChestArmor | EquipMask.LowerArmArmor | EquipMask.UpperArmArmor | EquipMask.HeadWear: // No logs found for this combo
+                    case EquipMask.ChestArmor | EquipMask.UpperArmArmor | EquipMask.LowerArmArmor:
+                        slotName = " Coat ";
+                        break;
+                    case EquipMask.AbdomenArmor:
+                    case EquipMask.AbdomenArmor | EquipMask.UpperLegArmor: // No logs found for this combo, only currently applies to "Leather Shorts" WCID 25650, which appears to be a bug in the data
+                        slotName = " Girth ";
+                        break;
+                    case EquipMask.UpperArmArmor:
+                        slotName = " Pauldron ";
+                        break;
+                    case EquipMask.LowerArmArmor:
+                        slotName = " Bracer ";
+                        break;
+                    case EquipMask.UpperArmArmor | EquipMask.LowerArmArmor:
+                        slotName = " Sleeve ";
+                        break;
+                    case EquipMask.HandWear:
+                        slotName = " Gauntlet ";
+                        break;
+                    case EquipMask.UpperLegArmor:
+                        slotName = " Tasset ";
+                        break;
+                    case EquipMask.LowerLegArmor:
+                        slotName = " Greaves ";
+                        break;
+                    case EquipMask.UpperLegArmor | EquipMask.LowerLegArmor:
+                        slotName = " Leg ";
+                        break;
+                    case EquipMask.AbdomenArmor | EquipMask.UpperLegArmor | EquipMask.LowerLegArmor:
+                        slotName = " Pants ";
+                        platingType = "Mesh";
+                        break;
+                    case EquipMask.FootWear:
+                    case EquipMask.LowerLegWear | EquipMask.FootWear:
+                        slotName = " Solleret ";
+                        break;
+                    case EquipMask.Armor:
+                    case EquipMask.Armor | EquipMask.HandWear: // No logs found for this combo, only Ursuin Guise
+                    case EquipMask.Armor | EquipMask.HeadWear | EquipMask.HandWear: // No logs found for this combo, Guises/Costumes
+                    case EquipMask.ChestArmor | EquipMask.UpperArmArmor | EquipMask.LowerArmArmor | EquipMask.UpperLegArmor | EquipMask.LowerLegArmor: // Swamp Lord's War Pain, WCID 27889
+                    case EquipMask.HeadWear | EquipMask.Armor:
+                        slotName = " Body ";
+                        break;
+                }
+            }
+
+            return $"Core{slotName}{platingType}";
+        }
         public static void Deintegrate(Player player, WorldObject source, WorldObject target)
         {
             player.SendMessage("Your deintegrator restores the original form of this piece of gear.");
