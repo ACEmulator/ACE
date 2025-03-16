@@ -38,9 +38,13 @@
 
   <logger name="Packets">
     <level value="INFO" />
-  </logger> 
+  </logger>
 
-  <appender name="asyncForwarder" type="Log4Net.Async.AsyncForwardingAppender,Log4Net.Async">
+  <appender name="asyncForwarder" type="Easy.Logger.AsyncBufferingForwardingAppender, Easy.Logger">
+    <lossy value="false" />
+    <bufferSize value="512" />
+    <idleTime value="1" />
+    <fix value="Message, ThreadName, Exception" />
     <appender-ref ref="Console" />
     <appender-ref ref="RollingFileAppender" />
   </appender>
