@@ -1299,7 +1299,7 @@ namespace ACE.Server.WorldObjects.Managers
                 creature.DamageHistory.Add(creature, DamageType.Health, (uint)-healAmount);
 
             if (creature is Player player)
-                player.SendMessage($"You receive {healAmount} points of periodic healing.", PropertyManager.GetBool("aetheria_heal_color").Item ? ChatMessageType.Broadcast : ChatMessageType.Combat);
+                player.SendMessage($"You receive {Math.Abs(healAmount)} points of periodic {((healAmount >= 0) ? "healing" : "harm")}.", PropertyManager.GetBool("aetheria_heal_color").Item ? ChatMessageType.Broadcast : ChatMessageType.Combat);
 
             if (creature.IsDead)
             {
