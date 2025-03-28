@@ -60,12 +60,69 @@ namespace ACE.Server.WorldObjects
 
             ClearRetaliateTargets();
             
-            // Heal to full health when returning home
+            // Start fast health regeneration when monster returns home
             if (Health.Current < Health.MaxValue)
             {
-                Health.Current = Health.MaxValue;
+                // Set a high regeneration rate (much higher than normal)
+                var originalHealthRate = GetProperty(PropertyFloat.HealthRate) ?? 0;
+                
+                // Ensure a minimum regen rate regardless of original value
+                // Using an extremely high value to ensure quick healing
+                var fastHealthRate = Math.Max(10.0f, originalHealthRate * 50.0f);
+                
+                SetProperty(PropertyFloat.HealthRate, fastHealthRate);
+                
+                // Create a heartbeat action to monitor health and reset regen rate and damage history when fully healed
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(0.5f);  // Check more frequently
+                
+                actionChain.AddAction(this, () =>
+                {
+                    // Direct healing - add 15% of missing health per tick
+                    if (Health.Current < Health.MaxValue)
+                    {
+                        var missingHealth = Health.MaxValue - Health.Current;
+                        var healAmount = (uint)(missingHealth * 0.15f);
+                        
+                        // Ensure we heal at least 10% of max health per tick
+                        healAmount = Math.Max(healAmount, (uint)(Health.MaxValue * 0.10f));
+                        
+                        // Apply direct healing
+                        UpdateVitalDelta(Health, (int)healAmount);
+                        
+                        if (DebugMove)
+                            Console.WriteLine($"{Name} ({Guid}).Sleep() - Direct healing for {healAmount} points");
+                    }
+                
+                    // If monster is at full health, reset regeneration rate and damage history
+                    if (Health.Current >= Health.MaxValue)
+                    {
+                        // Reset health rate to original value
+                        if (originalHealthRate > 0)
+                            SetProperty(PropertyFloat.HealthRate, originalHealthRate);
+                        else
+                            RemoveProperty(PropertyFloat.HealthRate);
+                            
+                        // Reset damage history
+                        DamageHistory.Reset();
+                        
+                        if (DebugMove)
+                            Console.WriteLine($"{Name} ({Guid}).Sleep() - Fully healed and damage history cleared");
+                    }
+                    else
+                    {
+                        // Still healing, check again
+                        var newChain = new ActionChain();
+                        newChain.AddDelaySeconds(0.5f);  // Check more frequently
+                        newChain.AddAction(this, () => Sleep());
+                        newChain.EnqueueChain();
+                    }
+                });
+                
+                actionChain.EnqueueChain();
+                
                 if (DebugMove)
-                    Console.WriteLine($"{Name} ({Guid}).Sleep() - Healed to full health");
+                    Console.WriteLine($"{Name} ({Guid}).Sleep() - Started fast health regeneration");
             }
         }
 
@@ -462,10 +519,22 @@ namespace ACE.Server.WorldObjects
             foreach (var obj in visibleObjs)
             {
                 var nearbyCreature = obj.WeenieObj.WorldObject as Creature;
-                if (nearbyCreature == null || nearbyCreature.IsAwake || !nearbyCreature.Attackable && nearbyCreature.TargetingTactic == TargetingTactic.None)
+                
+                // Skip creatures that can't be alerted:
+                // - null creatures
+                // - creatures with tolerance exclusions
+                if (nearbyCreature == null || (nearbyCreature.Tolerance & AlertExclude) != 0)
                     continue;
-
-                if ((nearbyCreature.Tolerance & AlertExclude) != 0)
+                    
+                // Original condition modified to allow monsters in Return state to hear distress calls
+                // Old condition: if (nearbyCreature == null || nearbyCreature.IsAwake || !nearbyCreature.Attackable && nearbyCreature.TargetingTactic == TargetingTactic.None)
+                //     continue;
+                
+                // Modified checks:
+                // - skip already awake monsters UNLESS they're returning home
+                // - skip non-attackable monsters with no targeting tactic
+                if ((nearbyCreature.IsAwake && nearbyCreature.MonsterState != State.Return) || 
+                    (!nearbyCreature.Attackable && nearbyCreature.TargetingTactic == TargetingTactic.None))
                     continue;
 
                 if (CreatureType != null && CreatureType == nearbyCreature.CreatureType ||
@@ -496,6 +565,15 @@ namespace ACE.Server.WorldObjects
                     }
 
                     alerted = true;
+
+                    // If monster was returning home, cancel that and respond to the distress call
+                    if (nearbyCreature.MonsterState == State.Return)
+                    {
+                        if (nearbyCreature.DebugMove)
+                            Console.WriteLine($"{nearbyCreature.Name} ({nearbyCreature.Guid}) - Interrupting return home to respond to distress call");
+                            
+                        nearbyCreature.CancelMoveTo();
+                    }
 
                     nearbyCreature.AttackTarget = AttackTarget;
                     nearbyCreature.WakeUp(false);
