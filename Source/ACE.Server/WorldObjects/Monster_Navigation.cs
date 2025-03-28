@@ -65,6 +65,13 @@ namespace ACE.Server.WorldObjects
         public double NextCancelTime;
 
         /// <summary>
+        /// Fields for enhanced stuck detection
+        /// </summary>
+        public Vector3 LastStuckCheckPosition;
+        public int StuckCounter = 0;
+        public double LastStuckCheckTime;
+
+        /// <summary>
         /// Starts the process of monster turning towards target
         /// </summary>
         public void StartTurn()
@@ -248,8 +255,64 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            // Standard stuck check from MoveToManager
             if (PhysicsObj.MovementManager.MoveToManager.FailProgressCount > 0 && Timers.RunningTime > NextCancelTime)
+            {
+                // Instead of just canceling, also increment stuck counter
+                StuckCounter++;
                 CancelMoveTo();
+                
+                // If stuck multiple times, force return home - about 15 seconds (5 detections with ~3 seconds each)
+                if (StuckCounter >= 5)
+                {
+                    if (DebugMove)
+                        Console.WriteLine($"{Name} ({Guid}) - Stuck multiple times, returning home");
+                        
+                    StuckCounter = 0;
+                    MoveToHome();
+                }
+                return;
+            }
+            
+            // Additional stuck detection - check if position hasn't changed much over time
+            if (Timers.RunningTime - LastStuckCheckTime >= 5.0) // Check every 5 seconds
+            {
+                var currentPos = Location.ToGlobal();
+                
+                if (LastStuckCheckPosition != Vector3.Zero)
+                {
+                    var distMoved = Vector3.Distance(currentPos, LastStuckCheckPosition);
+                    
+                    // If barely moved in the last 5 seconds but still trying to move
+                    if (distMoved < 1.5f && IsMoving)
+                    {
+                        StuckCounter++;
+                        
+                        if (DebugMove)
+                            Console.WriteLine($"{Name} ({Guid}) - Barely moved ({distMoved:F2} units), StuckCounter={StuckCounter}");
+                        
+                        // If stuck in place multiple times, force return home - about 15 seconds (3 detections of 5 seconds each)
+                        if (StuckCounter >= 3)
+                        {
+                            if (DebugMove)
+                                Console.WriteLine($"{Name} ({Guid}) - Stuck in place for ~15 seconds, returning home");
+                                
+                            StuckCounter = 0;
+                            CancelMoveTo();
+                            MoveToHome();
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        // Reset counter if making good progress
+                        StuckCounter = 0;
+                    }
+                }
+                
+                LastStuckCheckPosition = currentPos;
+                LastStuckCheckTime = Timers.RunningTime;
+            }
         }
 
         public void UpdatePosition(bool netsend = true)

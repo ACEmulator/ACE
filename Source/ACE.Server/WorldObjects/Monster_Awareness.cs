@@ -59,6 +59,14 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.CachedVelocity = Vector3.Zero;
 
             ClearRetaliateTargets();
+            
+            // Heal to full health when returning home
+            if (Health.Current < Health.MaxValue)
+            {
+                Health.Current = Health.MaxValue;
+                if (DebugMove)
+                    Console.WriteLine($"{Name} ({Guid}).Sleep() - Healed to full health");
+            }
         }
 
         public Tolerance Tolerance
