@@ -884,10 +884,33 @@ namespace ACE.Server.Entity
                         if (log.IsDebugEnabled)
                             log.Debug($"AddWorldObjectInternal: couldn't spawn generator 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] at {wo.Location.ToLOCString()}");
                     }
-                    else if (wo.ProjectileTarget == null && !(wo is SpellProjectile))
-                        log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] at {wo.Location.ToLOCString()}");
+                    else if (wo.ProjectileTarget is null && wo is not SpellProjectile)
+                    {
+                        if (wo.Guid.IsDynamic() && wo is not CombatPet && wo is not Pet && wo is not Portal)
+                        {
+                            if (PropertyManager.GetBool("dynamic_scatter_retry").Item)
+                            {
+                                var woFailedLocation = new Position(wo.Location);
+                                wo.RetryEnterWorldWithScatter = true;
+                                wo.InitPhysicsObj();
+                                success = wo.AddPhysicsObj();
+                                if (!success)
+                                    log.Warn($"Landblock.AddWorldObjectInternal: Could not spawn dynamic object!\n 0x{wo.Guid} - {wo.NameWithMaterial} (WCID: {wo.WeenieClassId} | WeenieType: {wo.WeenieType})\n at {wo.Location.ToLOCString()}");
+                                else
+                                {
+                                    if (log.IsDebugEnabled)
+                                        log.Debug($"Landblock.AddWorldObjectInternal: Successfully moved and spawned dynamic object!\n 0x{wo.Guid} - {wo.NameWithMaterial} (WCID: {wo.WeenieClassId} | WeenieType: {wo.WeenieType})\n from: {wo.Location.ToLOCString()}\n   to: {woFailedLocation.ToLOCString()}");
+                                }
+                            }
+                            else
+                                log.Warn($"Landblock.AddWorldObjectInternal: Could not spawn dynamic object!\n 0x{wo.Guid} - {wo.NameWithMaterial} (WCID: {wo.WeenieClassId} | WeenieType: {wo.WeenieType})\n at {wo.Location.ToLOCString()}");
+                        }
+                        else
+                            log.Warn($"AddWorldObjectInternal: couldn't spawn 0x{wo.Guid}:{wo.Name} [{wo.WeenieClassId} - {wo.WeenieType}] at {wo.Location.ToLOCString()}");
+                    }
 
-                    return false;
+                    if (!success)
+                        return false;
                 }
             }
 

@@ -1097,5 +1097,13 @@ namespace ACE.Server.WorldObjects
                 return Math.Max(0, structureUnitValue);
             }
         }
+
+        /// <summary>
+        /// Retry PhysicsObj.enter_world with added Scatter position flag and options
+        /// </summary>
+        /// <remarks>
+        /// Used by Landblock, this lets the physics system attempt to adjust failed position slightly with scatter to allow object to successfully enter the world.
+        /// </remarks>
+        public bool RetryEnterWorldWithScatter;
     }
 }

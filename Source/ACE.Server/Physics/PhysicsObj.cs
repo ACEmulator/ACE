@@ -2430,6 +2430,14 @@ namespace ACE.Server.Physics
             if (slide)
                 setPos.Flags |= SetPositionFlags.Slide;
 
+            if (WeenieObj.WorldObject.RetryEnterWorldWithScatter)
+            {
+                setPos.Flags |= SetPositionFlags.Scatter;
+                setPos.NumTries = (int)PropertyManager.GetLong("dynamic_scatter_num_retries").Item;
+                setPos.RadX = (float)PropertyManager.GetDouble("dynamic_scatter_retry_radius").Item;
+                setPos.RadY = (float)PropertyManager.GetDouble("dynamic_scatter_retry_radius").Item;
+            }    
+
             var result = SetPosition(setPos);
             if (result != SetPositionError.OK)
                 return false;
