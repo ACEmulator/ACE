@@ -245,13 +245,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void Movement()
         {
-            // Skip stuck checks for intentionally immobile/stuck monsters
-            if ((GetProperty(PropertyBool.Stuck) ?? false) || (GetProperty(PropertyBool.AiImmobile) ?? false))
-            {
-                 // Optionally, ensure they aren't trying to move if immobile
-                 if (IsMoving) CancelMoveTo();
-                 return;
-            }
 
             //if (!IsRanged)
                 UpdatePosition();

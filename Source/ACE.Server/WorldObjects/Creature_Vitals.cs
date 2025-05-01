@@ -211,7 +211,7 @@ namespace ACE.Server.WorldObjects
             {
                 // Only boost Health/Stamina, not Mana (consistent with player logic)
                 if (vital.Vital != PropertyAttribute2nd.MaxMana && MonsterState == State.Idle)
-                    return 50.0f;   // Large multiplier for fast regen
+                    return 250.0f;   // Large multiplier for fast regen
 
                 return 1.0f; // Default for monsters not idle
             }
