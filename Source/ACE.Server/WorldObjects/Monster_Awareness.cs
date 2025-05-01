@@ -23,9 +23,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool IsAwake = false;
 
-        private float? _originalHealthRate = null; // Store original health rate before fast heal
-        private bool _isFastHealingActive = false; // Flag to control the fast healing action chain
-
         /// <summary>
         /// Transitions a monster from idle to awake state
         /// </summary>
@@ -62,90 +59,9 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.CachedVelocity = Vector3.Zero;
 
             ClearRetaliateTargets();
-            
-            // Start fast health regeneration when monster returns home
-            if (Health.Current < Health.MaxValue)
-            {
-                // Store the original rate before potentially modifying it
-                _originalHealthRate = (float?)GetProperty(PropertyFloat.HealthRate);
-                _isFastHealingActive = true; // Activate fast healing
 
-                // Set a high regeneration rate (much higher than normal)
-                var originalHealthRateValue = _originalHealthRate ?? 0; // Use 0 if null
-                
-                // Ensure a minimum regen rate regardless of original value
-                // Using an extremely high value to ensure quick healing
-                var fastHealthRate = Math.Max(10.0f, originalHealthRateValue * 50.0f);
-                
-                SetProperty(PropertyFloat.HealthRate, fastHealthRate);
-                
-                // Create a heartbeat action to monitor health and reset regen rate and damage history when fully healed
-                var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds(0.5f);  // Check more frequently
-                
-                actionChain.AddAction(this, ProcessFastHealingTick);
-                
-                actionChain.EnqueueChain();
-                
-                if (DebugMove)
-                    Console.WriteLine($"{Name} ({Guid}).Sleep() - Started fast health regeneration");
-            }
-        }
-
-        /// <summary>
-        /// Handles a single tick of the fast healing process initiated by Sleep().
-        /// </summary>
-        private void ProcessFastHealingTick()
-        {
-            // Exit if fast healing was cancelled externally (e.g., by taking damage)
-            if (!_isFastHealingActive) return;
-
-            // Direct healing - add 15% of missing health per tick
-            if (Health.Current < Health.MaxValue)
-            {
-                var missingHealth = Health.MaxValue - Health.Current;
-                var healAmount = (uint)(missingHealth * 0.15f);
-                
-                // Ensure we heal at least 10% of max health per tick
-                healAmount = Math.Max(healAmount, (uint)(Health.MaxValue * 0.10f));
-                
-                // Apply direct healing
-                UpdateVitalDelta(Health, (int)healAmount);
-                
-                if (DebugMove)
-                    Console.WriteLine($"{Name} ({Guid}).ProcessFastHealingTick() - Direct healing for {healAmount} points");
-            }
-        
-            // If monster is at full health, stop the process
-            if (Health.Current >= Health.MaxValue)
-            {
-                _isFastHealingActive = false; // Deactivate flag
-
-                // Reset health rate to original value using the stored value
-                if (_originalHealthRate.HasValue)
-                    SetProperty(PropertyFloat.HealthRate, _originalHealthRate.Value);
-                else
-                    RemoveProperty(PropertyFloat.HealthRate);
-
-                _originalHealthRate = null; // Clear the stored value
-
-                // Reset damage history
-                DamageHistory.Reset();
-                
-                if (DebugMove)
-                    Console.WriteLine($"{Name} ({Guid}).ProcessFastHealingTick() - Fully healed, stopping fast heal.");
-            }
-            else
-            {
-                // Still healing, schedule the next tick if still active
-                if (_isFastHealingActive)
-                {
-                     var nextTickChain = new ActionChain();
-                     nextTickChain.AddDelaySeconds(0.5f);  // Check more frequently
-                     nextTickChain.AddAction(this, ProcessFastHealingTick); // Schedule this function again
-                     nextTickChain.EnqueueChain();
-                }
-            }
+            // Reset damage history when going to sleep/idle
+            DamageHistory.Reset();
         }
 
         public Tolerance Tolerance

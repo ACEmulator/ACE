@@ -388,21 +388,6 @@ namespace ACE.Server.WorldObjects
                     DamageHistory.OnHeal((uint)-damage);
             }
 
-            // Step 1: Stop fast healing if it's active when damage is taken
-            bool wasFastHealing = _isFastHealingActive;
-            if (_isFastHealingActive)
-            {
-                 if (DebugMove)
-                    Console.WriteLine($"{Name} ({Guid}) - Interrupting fast healing due to taking damage.");
-
-                _isFastHealingActive = false;
-                if (_originalHealthRate.HasValue)
-                {
-                    SetProperty(PropertyFloat.HealthRate, _originalHealthRate.Value);
-                    _originalHealthRate = null;
-                }
-            }
-
             // Step 2: React to the damage source if needed (wake up, target attacker, stop returning)
             if (source is Creature attacker)
             {
