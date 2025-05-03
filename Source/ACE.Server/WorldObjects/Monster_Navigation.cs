@@ -245,9 +245,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void Movement()
         {
-
-            //if (!IsRanged)
-                UpdatePosition();
+            UpdatePosition();
 
             if (MonsterState == State.Awake && GetDistanceToTarget() >= MaxChaseRange)
             {
@@ -257,7 +255,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // Standard stuck check from MoveToManager
-            if (PhysicsObj.MovementManager.MoveToManager.FailProgressCount > 0 && Timers.RunningTime > NextCancelTime)
+            if (!AiImmobile && PhysicsObj.MovementManager.MoveToManager.FailProgressCount > 0 && Timers.RunningTime > NextCancelTime)
             {
                 // Instead of just canceling, also increment stuck counter
                 StuckCounter++;
@@ -276,7 +274,7 @@ namespace ACE.Server.WorldObjects
             }
             
             // Additional stuck detection - check if position hasn't changed much over time
-            if (Timers.RunningTime - LastStuckCheckTime >= 5.0) // Check every 5 seconds
+            if (!AiImmobile && Timers.RunningTime - LastStuckCheckTime >= 5.0) // Check every 5 seconds
             {
                 var currentPos = Location.ToGlobal();
                 
