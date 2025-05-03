@@ -243,9 +243,9 @@ namespace ACE.Server.Factories.Entity
             return chanceTable;
         }
 
-        public static ChanceTable<TreasureItemType_Orig> ParseChanceTable_ItemType(string[] lines, int startLine)
+        public static ChanceTable<TreasureItemType> ParseChanceTable_ItemType(string[] lines, int startLine)
         {
-            var chanceTable = new ChanceTable<TreasureItemType_Orig>();
+            var chanceTable = new ChanceTable<TreasureItemType>();
 
             for (var i = startLine + 1; i < lines.Length; i++)
             {
@@ -262,7 +262,7 @@ namespace ACE.Server.Factories.Entity
 
                 var match = Regex.Match(line, @"TreasureItemType_Orig.([^,]+),\s+([\d.]+)");
 
-                if (!match.Success || !System.Enum.TryParse(match.Groups[1].Value, out TreasureItemType_Orig itemType) || !float.TryParse(match.Groups[2].Value, out var chance))
+                if (!match.Success || !System.Enum.TryParse(match.Groups[1].Value, out TreasureItemType itemType) || !float.TryParse(match.Groups[2].Value, out var chance))
                 {
                     Console.WriteLine($"Couldn't parse {line}");
                     continue;

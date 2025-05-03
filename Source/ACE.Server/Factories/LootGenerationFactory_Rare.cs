@@ -9,7 +9,7 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        public static Dictionary<int, int> RareChances = new Dictionary<int, int>()
+        public static Dictionary<int, int> RareChances { get; } = new Dictionary<int, int>()
         {
             { 1, 2500 },
             { 2, 25000 },
@@ -19,9 +19,9 @@ namespace ACE.Server.Factories
             { 6, 8750000 }
         };
 
-        public static Dictionary<int, HashSet<int>> RareWCIDs;
+        private static Dictionary<int, HashSet<int>> RareWCIDs { get; set; }
 
-        public static void InitRares()
+        private static void InitRares()
         {
             RareWCIDs = new Dictionary<int, HashSet<int>>();
 
