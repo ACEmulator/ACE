@@ -11,7 +11,7 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        public static readonly WeenieClassName slagWcid = WeenieClassName.coinolthoi;
+        private static readonly WeenieClassName slagWcid = WeenieClassName.coinolthoi;
 
         // https://asheron.fandom.com/wiki/Pitted_Slag
 
@@ -157,7 +157,7 @@ namespace ACE.Server.Factories
         /// <summary>
         /// Returns an approximate tier for level
         /// </summary>
-        public static int GetTierHeuristic(int level)
+        private static int GetTierHeuristic(int level)
         {
             // based on http://acpedia.org/wiki/Loot
 
@@ -174,7 +174,7 @@ namespace ACE.Server.Factories
             }
         }
 
-        public static readonly WeenieClassName glandWcid = WeenieClassName.olthoipvpcurrency;
+        private static readonly WeenieClassName glandWcid = WeenieClassName.olthoipvpcurrency;
 
         /// <summary>
         /// Rolls to generate a gland for a player that killed an OlthoiPlayer

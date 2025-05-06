@@ -15,16 +15,12 @@ namespace ACE.Server.Factories
 {
     public partial class LootGenerationFactory
     {
-        private static bool AssignMagic_New(WorldObject wo, TreasureDeath profile, TreasureRoll roll, out int numSpells)
+        private static void AssignSpells(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
         {
             var spells = RollSpells(wo, profile, roll);
 
             foreach (var spell in spells)
-            {
                 wo.Biota.GetOrAddKnownSpell((int)spell, wo.BiotaDatabaseLock, out _);
-            }
-            numSpells = spells.Count;
-            return true;
         }
 
         private static List<SpellId> RollSpells(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
@@ -259,7 +255,7 @@ namespace ACE.Server.Factories
         private static List<SpellId> RollCantrips(WorldObject wo, TreasureDeath profile, TreasureRoll roll)
         {
             // no cantrips on dinnerware?
-            if (roll.ItemType == TreasureItemType_Orig.ArtObject)
+            if (roll.ItemType == TreasureItemType.ArtObject)
                 return null;
 
             var numCantrips = CantripChance.RollNumCantrips(profile);
@@ -438,7 +434,7 @@ namespace ACE.Server.Factories
             {
                 return 1;
             }
-            else if (roll.ItemType == TreasureItemType_Orig.Jewelry)
+            else if (roll.ItemType == TreasureItemType.Jewelry)
             {
                 if (!roll.HasArmorLevel(wo))
                     return 2;

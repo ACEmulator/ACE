@@ -67,6 +67,33 @@ namespace ACE.Server.Factories.Tables
                                                                 // and not deeper in WeaponWcids.cs
         };
 
+        /// <summary>
+        /// Even chance for all melee weapon types
+        /// Only used for test methods
+        /// </summary>
+        public static ChanceTable<TreasureWeaponType> MeleeChances = new ChanceTable<TreasureWeaponType>()
+        {
+            ( TreasureWeaponType.Sword,           0.125f ),
+            ( TreasureWeaponType.Mace,            0.125f ),
+            ( TreasureWeaponType.Axe,             0.125f ),
+            ( TreasureWeaponType.Spear,           0.125f ),
+            ( TreasureWeaponType.Unarmed,         0.125f ),
+            ( TreasureWeaponType.Staff,           0.125f ),
+            ( TreasureWeaponType.Dagger,          0.125f ),
+            ( TreasureWeaponType.TwoHandedWeapon, 0.125f ),
+        };
+
+        /// <summary>
+        /// Roughly even chance for all missile weapon types
+        /// Only used for test methods
+        /// </summary>
+        public static ChanceTable<TreasureWeaponType> MissileChances = new ChanceTable<TreasureWeaponType>()
+        {
+            ( TreasureWeaponType.Bow,             0.334f ),
+            ( TreasureWeaponType.Crossbow,        0.333f ),
+            ( TreasureWeaponType.Atlatl,          0.333f ),
+        };
+
         private static readonly List<ChanceTable<TreasureWeaponType>> weaponTiers = new List<ChanceTable<TreasureWeaponType>>()
         {
             T1_T4_Chances,

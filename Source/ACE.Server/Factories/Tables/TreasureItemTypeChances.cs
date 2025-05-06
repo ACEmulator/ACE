@@ -3,6 +3,10 @@ using ACE.Server.Factories.Enum;
 
 namespace ACE.Server.Factories.Tables
 {
+    /// <summary>
+    /// This entire file is only used by the /testlootgen command
+    /// TODO: switch these over to TreasureProfile_* ?
+    /// </summary>
     public static class TreasureItemTypeChances
     {
         // converting to a percentage base roll for items (to better align with retail drop rate data from Magnus) - HarliQ 11/11/19
@@ -15,7 +19,7 @@ namespace ACE.Server.Factories.Tables
         // - jewelry - 10%
         // - last 8% - is magical, more jewelry, else dinnerware
 
-        public static readonly ChanceTable<TreasureItemType> DefaultMagical = new ChanceTable<TreasureItemType>()
+        public static ChanceTable<TreasureItemType> DefaultMagical { get; } = new ChanceTable<TreasureItemType>()
         {
             ( TreasureItemType.Gem,        0.14f ),
             ( TreasureItemType.Armor,      0.24f ),
@@ -25,7 +29,7 @@ namespace ACE.Server.Factories.Tables
             ( TreasureItemType.Jewelry,    0.18f )
         };
 
-        public static readonly ChanceTable<TreasureItemType> DefaultNonMagical = new ChanceTable<TreasureItemType>()
+        public static ChanceTable<TreasureItemType> DefaultNonMagical { get; } = new ChanceTable<TreasureItemType>()
         {
             ( TreasureItemType.Gem,        0.14f ),
             ( TreasureItemType.Armor,      0.24f ),
@@ -33,23 +37,23 @@ namespace ACE.Server.Factories.Tables
             ( TreasureItemType.Clothing,   0.13f ),
             ( TreasureItemType.Cloak,      0.01f ),
             ( TreasureItemType.Jewelry,    0.10f ),
-            ( TreasureItemType.Dinnerware, 0.08f )
+            ( TreasureItemType.ArtObject,  0.08f )
         };
 
         // LootBias.Armor
-        public static readonly ChanceTable<TreasureItemType> Armor = new ChanceTable<TreasureItemType>()
+        public static ChanceTable<TreasureItemType> Armor { get; } = new ChanceTable<TreasureItemType>()
         {
             ( TreasureItemType.Armor,   1.0f )
         };
 
         // LootBias.Weapons
-        public static readonly ChanceTable<TreasureItemType> Weapons = new ChanceTable<TreasureItemType>()
+        public static ChanceTable<TreasureItemType> Weapons { get; } = new ChanceTable<TreasureItemType>()
         {
             ( TreasureItemType.Weapon,  1.0f)
         };
 
         // LootBias.Jewelry
-        public static readonly ChanceTable<TreasureItemType> Jewelry = new ChanceTable<TreasureItemType>()
+        public static ChanceTable<TreasureItemType> Jewelry { get; } = new ChanceTable<TreasureItemType>()
         {
             ( TreasureItemType.Jewelry, 1.0f)
         };
@@ -59,7 +63,7 @@ namespace ACE.Server.Factories.Tables
 
         // LootBias.MixedEquipment
         // LootBias.MagicEquipment
-        /*public static readonly ChanceTable<TreasureItemType> MixedMagicEquipment = new ChanceTable<TreasureItemType>()
+       /*public static ChanceTable<TreasureItemType> MixedMagicEquipment { get; } = new ChanceTable<TreasureItemType>()
         {
             ( TreasureItemType.Weapon,     0.36f ),
             ( TreasureItemType.Armor,      0.40f ),
@@ -70,7 +74,7 @@ namespace ACE.Server.Factories.Tables
             ( TreasureItemType.Cloak,      0.01f ),
         };*/
 
-        public static readonly ChanceTable<TreasureItemType> MixedMagicEquipment = new ChanceTable<TreasureItemType>()
+        public static ChanceTable<TreasureItemType> MixedMagicEquipment { get; } = new ChanceTable<TreasureItemType>()
         {
             ( TreasureItemType.Armor,      0.30f ),
             ( TreasureItemType.Weapon,     0.35f ),

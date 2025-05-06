@@ -166,7 +166,7 @@ namespace ACE.Server.Factories
                                 MeleeWeapons.Add($"{testItem.WeaponSkill},{wield},{testItem.Damage.Value},{strikeType},{testItem.DamageVariance.Value},{testItem.WeaponDefense.Value},{magicDefMod},{missileDefMod},{cantrip},{value},{testItem.EncumbranceVal},{testItem.Name}");
                             }
                             else
-                                MeleeWeapons.Add($"{testItem.WeaponSkill}\t {wield}\t {testItem.Damage.Value}\t\t {strikeType} \t\t {testItem.DamageVariance.Value}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {cantrip}\t{value}\t{testItem.EncumbranceVal} \t {testItem.Name}");
+                                MeleeWeapons.Add($"{testItem.WeaponSkill}\t\t {wield}\t {testItem.Damage.Value}\t\t {strikeType} \t\t {testItem.DamageVariance.Value}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod:G4}\t\t {missileDefMod:G4}\t\t {cantrip}\t {value}\t {testItem.EncumbranceVal} \t {testItem.Name}");
                         }
                         else
                         {
@@ -183,7 +183,7 @@ namespace ACE.Server.Factories
                                 MeleeWeapons.Add($"{testItem.WeaponSkill},{wield},{testItem.Damage.Value},{strikeType},{testItem.DamageVariance.Value},{testItem.WeaponDefense.Value},{magicDefMod},{missileDefMod},{cantrip},{value},{testItem.EncumbranceVal},{testItem.Name}");
                             }
                             else
-                                MeleeWeapons.Add($" {testItem.WeaponSkill}\t\t {wield}\t {testItem.Damage.Value}\t\t {strikeType}\t\t {testItem.DamageVariance.Value}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {cantrip}\t{value}\t{testItem.EncumbranceVal} \t {testItem.Name}");
+                                MeleeWeapons.Add($" {testItem.WeaponSkill}\t\t {wield}\t {testItem.Damage.Value}\t\t {strikeType}\t\t {testItem.DamageVariance.Value}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod:G4}\t\t {missileDefMod:G4}\t\t {cantrip}\t {value}\t {testItem.EncumbranceVal} \t {testItem.Name}");
                         }
                         break;
                     case ItemType.Armor:
@@ -206,7 +206,7 @@ namespace ACE.Server.Factories
                             Armor.Add($"{testItem.ArmorLevel},{testItem.ItemDifficulty},{testItem.Value.Value},{testItem.EncumbranceVal},{testItem.EpicCantrips.Count},{testItem.LegendaryCantrips.Count},{equipmentSet},{testItem.Name}");
                         }
                         else
-                            Armor.Add($" {testItem.ArmorLevel}\t{testItem.ItemDifficulty}\t{testItem.Value.Value}\t{testItem.EncumbranceVal}\t{testItem.EpicCantrips.Count}\t{testItem.LegendaryCantrips.Count}\t{equipmentSet}\t\t\t{testItem.Name}");
+                            Armor.Add($" {testItem.ArmorLevel}\t{testItem.ItemDifficulty}\t{testItem.Value.Value}\t{testItem.EncumbranceVal}\t{testItem.EpicCantrips.Count}\t{testItem.LegendaryCantrips.Count}\t{equipmentSet.PadRight(8)}\t\t\t{testItem.Name}");
                         if (testItem.Name.Contains("Sheild"))   // typo?
                             break;
                         if (testItem.ArmorLevel > MaxAL)
@@ -461,7 +461,7 @@ namespace ACE.Server.Factories
                                 MissileWeapons.Add($"{missileType},{wield},{damageMod},{eleBonus},{testItem.WeaponDefense.Value},{magicDefMod},{missileDefMod},{value},{testItem.EncumbranceVal}");
                             }
                             else
-                                MissileWeapons.Add($"{missileType}\t {wield}\t {damageMod}\t\t{eleBonus}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {testItem.EncumbranceVal}");
+                                MissileWeapons.Add($"{missileType}\t {wield}\t {damageMod}\t\t{eleBonus}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod:G4}\t\t {missileDefMod:G4}\t\t {value}\t {testItem.EncumbranceVal}");
                         }
 
                         break;
@@ -525,7 +525,7 @@ namespace ACE.Server.Factories
                             CasterWeapons.Add($"{wield},{testItem.Name},{eleMod},{testItem.WeaponDefense.Value},{magicDefMod},{missileDefMod},{value},{testItem.EncumbranceVal},{ItemMaxMana}");
                         }
                         else
-                            CasterWeapons.Add($" {wield}\t {testItem.Name}\t {eleMod}\t\t {testItem.WeaponDefense.Value}\t\t  {magicDefMod}\t\t {missileDefMod}\t\t {value}\t {testItem.EncumbranceVal} \t {ItemMaxMana}");
+                            CasterWeapons.Add($" {wield}\t {testItem.Name.PadRight(16)}{eleMod}\t\t {testItem.WeaponDefense.Value}\t\t {magicDefMod:G4}\t\t {missileDefMod:G4}\t\t {value}\t {testItem.EncumbranceVal} \t {ItemMaxMana}");
                         break;
                     case ItemType.Portal:
                         break;

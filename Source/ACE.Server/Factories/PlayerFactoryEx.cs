@@ -13,6 +13,8 @@ using ACE.Server.Factories.Enum;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 
+using WeenieClassName = ACE.Server.Factories.Enum.WeenieClassName;
+
 namespace ACE.Server.Factories
 {
     public static class PlayerFactoryEx
@@ -486,13 +488,17 @@ namespace ACE.Server.Factories
                 LootQualityMod = 0
             };
 
-            for (int i = 0; i < 12; i++)
+            // create 12 heavy weapons. this isn't the most efficient method, but should suffice for unreferenced test method
+            var created = 0;
+            while (created < 12)
             {
-                var item = LootGenerationFactory.CreateMeleeWeapon(profile, true, MeleeWeaponSkill.HeavyWeapons);
+                var item = LootGenerationFactory.CreateMeleeWeapon(profile, true);
+                if (item.WeaponSkill != Skill.HeavyWeapons)
+                    continue;
                 AddRend(item);
                 player.TryAddToInventory(item);
+                created++;
             }
-
             return player;
         }
 
@@ -589,13 +595,17 @@ namespace ACE.Server.Factories
                 LootQualityMod = 0
             };
 
-            for (int i = 0; i < 12; i++)
+            // create 12 war elemental wands. this isn't the most efficient method, but should suffice for unreferenced test method
+            var created = 0;
+            while (created < 12)
             {
-                var item = LootGenerationFactory.CreateCaster(profile, true, 1, true);
+                var item = LootGenerationFactory.CreateCaster(profile, true);
+                if (item.WeenieClassId < (uint)WeenieClassName.wandacid || item.WeenieClassId > (uint)WeenieClassName.wandslashing)
+                    continue;
                 AddRend(item);
                 player.TryAddToInventory(item);
+                created++;
             }
-
             return player;
         }
 

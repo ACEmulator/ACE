@@ -62,7 +62,7 @@ namespace ACE.Server.Factories.Tables.Wcids
             RadiantBloodWcids,
         };
 
-        public static WeenieClassName Roll(TreasureDeath profile, TreasureItemType_Orig treasureItemType)
+        public static WeenieClassName Roll(TreasureDeath profile, TreasureItemType treasureItemType)
         {
             // get society from extended heritage chances
             var society = GetSociety(profile);
