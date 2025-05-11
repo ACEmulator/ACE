@@ -9,63 +9,63 @@ namespace ACE.Server.Factories.Tables
     {
         // indexed by TreasureDeath.MundaneItemTypeSelectionChances
 
-        private static ChanceTable<TreasureItemType_Orig> mundaneProfile1 = new ChanceTable<TreasureItemType_Orig>()
+        private static ChanceTable<TreasureItemType> mundaneProfile1 = new ChanceTable<TreasureItemType>()
         {
-            ( TreasureItemType_Orig.Consumable,     1.0f ),
+            ( TreasureItemType.Consumable,     1.0f ),
         };
 
-        private static ChanceTable<TreasureItemType_Orig> mundaneProfile2 = new ChanceTable<TreasureItemType_Orig>()
+        private static ChanceTable<TreasureItemType> mundaneProfile2 = new ChanceTable<TreasureItemType>()
         {
-            ( TreasureItemType_Orig.HealKit,        1.0f ),
+            ( TreasureItemType.HealKit,        1.0f ),
         };
 
-        private static ChanceTable<TreasureItemType_Orig> mundaneProfile3 = new ChanceTable<TreasureItemType_Orig>()
+        private static ChanceTable<TreasureItemType> mundaneProfile3 = new ChanceTable<TreasureItemType>()
         {
-            ( TreasureItemType_Orig.Lockpick,       1.0f ),
+            ( TreasureItemType.Lockpick,       1.0f ),
         };
 
-        private static ChanceTable<TreasureItemType_Orig> mundaneProfile4 = new ChanceTable<TreasureItemType_Orig>()
+        private static ChanceTable<TreasureItemType> mundaneProfile4 = new ChanceTable<TreasureItemType>()
         {
-            ( TreasureItemType_Orig.SpellComponent, 1.0f ),
+            ( TreasureItemType.SpellComponent, 1.0f ),
         };
 
-        private static ChanceTable<TreasureItemType_Orig> mundaneProfile5 = new ChanceTable<TreasureItemType_Orig>()
+        private static ChanceTable<TreasureItemType> mundaneProfile5 = new ChanceTable<TreasureItemType>()
         {
-            ( TreasureItemType_Orig.ManaStone,      1.0f ),
+            ( TreasureItemType.ManaStone,      1.0f ),
         };
 
-        private static ChanceTable<TreasureItemType_Orig> mundaneProfile6 = new ChanceTable<TreasureItemType_Orig>()
+        private static ChanceTable<TreasureItemType> mundaneProfile6 = new ChanceTable<TreasureItemType>()
         {
-            ( TreasureItemType_Orig.Pyreal,         1.0f ),
+            ( TreasureItemType.Pyreal,         1.0f ),
         };
 
         /// <summary>
         /// The most common MundaneItem profile
         /// </summary>
-        private static ChanceTable<TreasureItemType_Orig> mundaneProfile7 = new ChanceTable<TreasureItemType_Orig>()
+        private static ChanceTable<TreasureItemType> mundaneProfile7 = new ChanceTable<TreasureItemType>()
         {
-            ( TreasureItemType_Orig.Pyreal,         0.17f ),
-            ( TreasureItemType_Orig.Consumable,     0.17f ),
-            ( TreasureItemType_Orig.HealKit,        0.16f ),
-            ( TreasureItemType_Orig.Lockpick,       0.16f ),
-            ( TreasureItemType_Orig.SpellComponent, 0.17f ),
-            ( TreasureItemType_Orig.ManaStone,      0.17f ),
+            ( TreasureItemType.Pyreal,         0.17f ),
+            ( TreasureItemType.Consumable,     0.17f ),
+            ( TreasureItemType.HealKit,        0.16f ),
+            ( TreasureItemType.Lockpick,       0.16f ),
+            ( TreasureItemType.SpellComponent, 0.17f ),
+            ( TreasureItemType.ManaStone,      0.17f ),
         };
 
         /// <summary>
         /// The second most common MundaneItem profile
         /// </summary>
-        private static ChanceTable<TreasureItemType_Orig> mundaneProfile8 = new ChanceTable<TreasureItemType_Orig>()
+        private static ChanceTable<TreasureItemType> mundaneProfile8 = new ChanceTable<TreasureItemType>()
         {
-            ( TreasureItemType_Orig.Pyreal,         0.34f ),
-            ( TreasureItemType_Orig.SpellComponent, 0.33f ),
-            ( TreasureItemType_Orig.ManaStone,      0.33f ),
+            ( TreasureItemType.Pyreal,         0.34f ),
+            ( TreasureItemType.SpellComponent, 0.33f ),
+            ( TreasureItemType.ManaStone,      0.33f ),
         };
 
         /// <summary>
         /// TreasureDeath.MundaneItemTypeSelectionChances indexes into these profiles
         /// </summary>
-        public static List<ChanceTable<TreasureItemType_Orig>> mundaneProfiles = new List<ChanceTable<TreasureItemType_Orig>>()
+        public static List<ChanceTable<TreasureItemType>> mundaneProfiles = new List<ChanceTable<TreasureItemType>>()
         {
             mundaneProfile1,
             mundaneProfile2,
@@ -81,10 +81,10 @@ namespace ACE.Server.Factories.Tables
         /// Rolls for a TreasureItemType for a TreasureItemCategory.MundaneItem
         /// </summary>
         /// <param name="mundaneProfile">From TreasureDeath.MundaneItemTypeSelectionChances</param>
-        public static TreasureItemType_Orig Roll(int mundaneProfile)
+        public static TreasureItemType Roll(int mundaneProfile)
         {
             if (mundaneProfile < 1 || mundaneProfile > mundaneProfiles.Count)
-                return TreasureItemType_Orig.Undef;
+                return TreasureItemType.Undef;
 
             return mundaneProfiles[mundaneProfile - 1].Roll();
         }

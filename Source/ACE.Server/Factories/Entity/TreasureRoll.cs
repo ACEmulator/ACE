@@ -5,7 +5,7 @@ namespace ACE.Server.Factories.Entity
 {
     public class TreasureRoll
     {
-        public TreasureItemType_Orig ItemType;
+        public TreasureItemType ItemType;
         public TreasureArmorType ArmorType;
         public TreasureWeaponType WeaponType;
 
@@ -20,7 +20,7 @@ namespace ACE.Server.Factories.Entity
 
         public TreasureRoll() { }
 
-        public TreasureRoll(TreasureItemType_Orig itemType)
+        public TreasureRoll(TreasureItemType itemType)
         {
             ItemType = itemType;
         }
@@ -29,9 +29,9 @@ namespace ACE.Server.Factories.Entity
         {
             switch (ItemType)
             {
-                case TreasureItemType_Orig.Armor:
+                case TreasureItemType.Armor:
                     return ArmorType.ToString();
-                case TreasureItemType_Orig.Weapon:
+                case TreasureItemType.Weapon:
                     return WeaponType.ToString();
             }
             return ItemType.ToString();
@@ -54,9 +54,9 @@ namespace ACE.Server.Factories.Entity
         /// </summary>
         public bool IsArmor => ArmorType != TreasureArmorType.Undef;
 
-        public bool IsClothing => ItemType == TreasureItemType_Orig.Clothing;
+        public bool IsClothing => ItemType == TreasureItemType.Clothing;
 
-        public bool IsCloak => ItemType == TreasureItemType_Orig.Cloak;
+        public bool IsCloak => ItemType == TreasureItemType.Cloak;
 
         /// <summary>
         /// Returns TRUE if wo has an ArmorLevel > 0
@@ -66,10 +66,10 @@ namespace ACE.Server.Factories.Entity
             return (wo.ArmorLevel ?? 0) > 0;
         }
 
-        public bool IsGem => ItemType == TreasureItemType_Orig.Gem;
+        public bool IsGem => ItemType == TreasureItemType.Gem;
 
-        public bool IsJewelry => ItemType == TreasureItemType_Orig.Jewelry;
+        public bool IsJewelry => ItemType == TreasureItemType.Jewelry;
 
-        public bool IsDinnerware => ItemType == TreasureItemType_Orig.ArtObject;
+        public bool IsDinnerware => ItemType == TreasureItemType.ArtObject;
     }
 }
