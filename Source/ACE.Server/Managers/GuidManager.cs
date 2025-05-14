@@ -31,12 +31,14 @@ namespace ACE.Server.Managers
 
         private class PlayerGuidAllocator
         {
+            private readonly uint min;
             private readonly uint max;
             private uint current;
             private readonly string name;
 
             public PlayerGuidAllocator(uint min, uint max, string name)
             {
+                this.min = min;
                 this.max = max;
 
                 // Read current value out of ShardDatabase
@@ -99,6 +101,16 @@ namespace ACE.Server.Managers
             {
                 return current;
             }
+
+            public uint Min()
+            {
+                return min;
+            }
+
+            public uint Max()
+            {
+                return max;
+            }
         }
 
         /// <summary>
@@ -106,6 +118,7 @@ namespace ACE.Server.Managers
         /// </summary>
         private class DynamicGuidAllocator
         {
+            private readonly uint min;
             private readonly uint max;
             private uint current;
             private readonly string name;
@@ -129,6 +142,7 @@ namespace ACE.Server.Managers
 
             public DynamicGuidAllocator(uint min, uint max, string name, bool unlimitedGaps)
             {
+                this.min = min;
                 this.max = max;
 
                 // Read current value out of ShardDatabase
@@ -249,6 +263,32 @@ namespace ACE.Server.Managers
                 return current;
             }
 
+            public uint Min()
+            {
+                return min;
+            }
+
+            public uint Max()
+            {
+                return max;
+            }
+
+            public int SequenceGapPairsTotal => availableIDs.Count;
+
+            public uint SequenceGapTotalAvailable()
+            {
+                lock (this)
+                {
+                    uint total = 0;
+                    foreach (var (start, end) in availableIDs)
+                        total += end - start + 1;
+
+                    return total;
+                }
+            }
+
+            public int RecycledGuidsTotal => recycledGuids.Count;
+
             public void Recycle(uint guid)
             {
                 lock (this)
@@ -352,5 +392,14 @@ namespace ACE.Server.Managers
 
             return message;
         }
+
+        public static uint PlayerMin => playerAlloc?.Min() ?? 0;
+        public static uint PlayerCurrent => playerAlloc?.Current() ?? 0;
+        public static uint PlayerMax => playerAlloc?.Max() ?? 0;
+        public static uint DynamicMin => dynamicAlloc?.Min() ?? 0;
+        public static uint DynamicCurrent => dynamicAlloc?.Current() ?? 0;
+        public static uint DynamicMax => dynamicAlloc?.Max() ?? 0;
+        public static int SequenceGapPairsTotal => dynamicAlloc?.SequenceGapPairsTotal ?? 0;
+        public static int RecycledGuidsTotal => dynamicAlloc?.RecycledGuidsTotal ?? 0;
     }
 }

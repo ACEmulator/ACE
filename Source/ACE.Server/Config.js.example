@@ -230,5 +230,28 @@
 
     // Upon server startup, precache all DAT files that would be sent as compressed data
     "PrecacheCompressedDATFiles": false
+  },
+  // This section configures Prometheus metrics server
+  "Metrics": {
+    // Allow server to publish Prometheus metrics
+    "EnableMetricsServer": false,
+
+    // Host, default: 127.0.0.1
+    // Probably best to leave this as is, and use reverse proxy which can be secured better.
+    "Host": "127.0.0.1",
+
+    // Port, default: 9200
+    // Probably best to leave this as is, and use reverse proxy which can be secured better.
+    "Port": 9200,
+
+    // Url, default: metrics/
+    // Probably best to leave this as is, and use reverse proxy which can be secured better.
+    // If above is default, the full url becomes http://127.0.0.1:9200/metrics/ to access
+    "Url": "metrics/",
+
+    // UseHTTPs, default: false
+    // Probably best to leave this as is, and use reverse proxy which can be secured better.
+    // If above is default, the full url becomes https://127.0.0.1:9200/metrics to access
+    "UseHTTPs": false
   }
 }
