@@ -222,11 +222,10 @@ namespace ACE.Server.Mods
                 try
                 {
                     //Get a stream.  OpenRead only allows read share
-                    StreamReader reader = new(file.OpenRead());
+                    using var reader = new StreamReader(file.OpenRead());
 
                     //Return stream if there's no problem
                     var content = await reader.ReadToEndAsync();
-                    reader.Close();
                     return content;
                 }
                 //https://learn.microsoft.com/en-us/dotnet/standard/io/handling-io-errors
