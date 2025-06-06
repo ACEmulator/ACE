@@ -454,7 +454,7 @@ namespace ACE.Server.Command.Handlers
             var w = "";
             var g = "";
 
-            if (cg == "creature" || cg == "npc"|| cg == "item" || cg == "item")
+            if (ReportbugCategoryRequiresObject(cg))
             {
                 var objectId = new ObjectGuid();
                 if (session.Player.HealthQueryTarget.HasValue || session.Player.ManaQueryTarget.HasValue || session.Player.CurrentAppraisalTarget.HasValue)
@@ -522,6 +522,12 @@ namespace ACE.Server.Command.Handlers
             msg += "\n\n\n\n";
 
             session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.AdminTell));
+        }
+
+        public static bool ReportbugCategoryRequiresObject(string category)
+        {
+            var cg = category.ToLower();
+            return cg == "creature" || cg == "npc" || cg == "item";
         }
     }
 }
