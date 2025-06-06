@@ -169,8 +169,17 @@ namespace ACE.Database
                 var result = new List<string>();
                 foreach (var account in results)
                 {
-                    var bannedbyAccount = account.BannedByAccountId.Value > 0 ? $"account {GetAccountById(account.BannedByAccountId.Value).AccountName}" : "CONSOLE";
-                    result.Add($"{account.AccountName} -- banned by {bannedbyAccount} until server time {account.BanExpireTime.Value.ToLocalTime():MMM dd yyyy  h:mmtt}{(!string.IsNullOrWhiteSpace(account.BanReason) ? $" -- Reason: {account.BanReason}" : "")}");
+                    string bannedByAccountName;
+                    if (account.BannedByAccountId.HasValue && account.BannedByAccountId.Value > 0)
+                    {
+                        var banningAccount = GetAccountById(account.BannedByAccountId.Value);
+                        bannedByAccountName = banningAccount != null ? banningAccount.AccountName : "CONSOLE";
+                    }
+                    else
+                        bannedByAccountName = "CONSOLE";
+
+                    var bannedByText = $"account {bannedByAccountName}";
+                    result.Add($"{account.AccountName} -- banned by {bannedByText} until server time {account.BanExpireTime.Value.ToLocalTime():MMM dd yyyy  h:mmtt}{(!string.IsNullOrWhiteSpace(account.BanReason) ? $" -- Reason: {account.BanReason}" : "")}");
                 }
 
                 return result;

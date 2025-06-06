@@ -87,5 +87,19 @@ namespace ACE.Database.Tests
             var result = authDb.UpdateAccountAccessLevel(uint.MaxValue, AccessLevel.Player);
             Assert.IsFalse(result);
         }
+
+        [TestMethod]
+        public void GetListofBannedAccounts_MissingBanningAccount_DoesNotThrow()
+        {
+            var account = authDb.CreateAccount("bannedaccount1", "password", AccessLevel.Player, IPAddress.Parse("127.0.0.1"));
+
+            account.BanExpireTime = DateTime.UtcNow.AddMinutes(5);
+            account.BannedByAccountId = uint.MaxValue; // non-existent account
+            authDb.UpdateAccount(account);
+
+            var list = authDb.GetListofBannedAccounts();
+            Assert.IsTrue(list.Count > 0);
+            Assert.IsTrue(list[0].Contains("CONSOLE"));
+        }
     }
 }
