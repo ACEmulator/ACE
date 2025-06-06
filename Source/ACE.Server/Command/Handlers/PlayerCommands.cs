@@ -419,7 +419,7 @@ namespace ACE.Server.Command.Handlers
             for (var i = 1; i < parameters.Length; i++)
                 description += parameters[i] + " ";
 
-            description.Trim();
+            description = NormalizeBugDescription(description);
 
             switch (category.ToLower())
             {
@@ -528,6 +528,11 @@ namespace ACE.Server.Command.Handlers
         {
             var cg = category.ToLower();
             return cg == "creature" || cg == "npc" || cg == "item";
+        }
+
+        public static string NormalizeBugDescription(string description)
+        {
+            return description.Trim();
         }
     }
 }

@@ -14,5 +14,13 @@ namespace ACE.Server.Tests.Command
             Assert.IsTrue(PlayerCommands.ReportbugCategoryRequiresObject("item"));
             Assert.IsFalse(PlayerCommands.ReportbugCategoryRequiresObject("quest"));
         }
+
+        [TestMethod]
+        public void NormalizeBugDescription_TrimsWhitespace()
+        {
+            const string description = "test bug description   ";
+            var normalized = PlayerCommands.NormalizeBugDescription(description);
+            Assert.AreEqual("test bug description", normalized);
+        }
     }
 }
