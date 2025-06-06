@@ -406,7 +406,7 @@ namespace ACE.Server.Physics.Common
         public static ObjCell get_visible(uint cellID)
         {
             var cell = (EnvCell)LScape.get_landcell(cellID);
-            return cell.VisibleCells.Values.First();
+            return cell.VisibleCells.Values.FirstOrDefault();
         }
 
         public void grab_visible(List<uint> stabs)
