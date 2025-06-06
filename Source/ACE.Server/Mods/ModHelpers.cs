@@ -150,11 +150,11 @@ namespace ACE.Server.Mods
         /// Attempts every second for a number of tries to write to a file.
         /// </summary>
         /// <returns>True if content was successfully written to file</returns>
-        public static bool RetryWrite(this FileInfo file, string content, int retryCount = 5)
+        public static async Task<bool> RetryWrite(this FileInfo file, string content, int retryCount = 5)
         {
             try
             {
-                Task.Run(async () => await file.WriteWithRetryAsync(TimeSpan.FromSeconds(1), content, retryCount));
+                await file.WriteWithRetryAsync(TimeSpan.FromSeconds(1), content, retryCount);
             }
             catch (Exception)
             {

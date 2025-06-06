@@ -123,22 +123,22 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Disable Mod and save choice in Metadata
         /// </summary>
-        private static void DisableMod(Session session, ModContainer match)
+        private static async void DisableMod(Session session, ModContainer match)
         {
             Log($"Disabling {match.Meta.Name}", session);
             match.Meta.Enabled = false;
-            match.SaveMetadata();
+            await match.SaveMetadata();
             match.Disable();
         }
 
         /// <summary>
         /// Enable Mod and save choice in Metadata
         /// </summary>
-        private static void EnableMod(Session session, ModContainer match)
+        private static async void EnableMod(Session session, ModContainer match)
         {
             Log($"Enabling {match.Meta.Name}", session);
             match.Meta.Enabled = true;
-            match.SaveMetadata();
+            await match.SaveMetadata();
             match.Enable();
         }
 
