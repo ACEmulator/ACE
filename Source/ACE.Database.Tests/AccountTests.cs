@@ -80,5 +80,12 @@ namespace ACE.Database.Tests
             Assert.IsNotNull(results);
             Assert.IsFalse(results.PasswordMatches("testpassword2"));
         }
+
+        [TestMethod]
+        public void UpdateAccountAccessLevel_InvalidId_ReturnsFalse()
+        {
+            var result = authDb.UpdateAccountAccessLevel(uint.MaxValue, AccessLevel.Player);
+            Assert.IsFalse(result);
+        }
     }
 }

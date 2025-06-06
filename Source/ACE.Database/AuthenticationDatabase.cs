@@ -129,7 +129,7 @@ namespace ACE.Database
             using (var context = new AuthDbContext())
             {
                 var account = context.Account
-                    .First(r => r.AccountId == accountId);
+                    .FirstOrDefault(r => r.AccountId == accountId);
 
                 if (account == null)
                     return false;
