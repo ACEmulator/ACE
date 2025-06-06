@@ -60,7 +60,7 @@ namespace ACE.Common
         /// <summary>
         /// When AutoApplyWorldCustomizations is set to true, the auto apply process will search for
         /// all .sql files in the following directories.
-        /// This process will still use ./Content by default, or the the config_properties_string
+        /// This process will still use ./Content by default, or the config_properties_string
         /// value for 'content_folder' if it exists
         /// </summary>
         public string[] WorldCustomizationAddedPaths { get; set; } = { };
