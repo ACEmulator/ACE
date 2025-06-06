@@ -9,6 +9,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace ACE.Server.Mods
 {
@@ -211,12 +212,12 @@ namespace ACE.Server.Mods
             return true;
         }
 
-        public void SaveMetadata()
+        public async Task SaveMetadata()
         {
             var json = JsonSerializer.Serialize(Meta, ConfigManager.SerializerOptions);
             var info = new FileInfo(MetadataPath);
 
-            if (!info.RetryWrite(json))
+            if (!await info.RetryWrite(json))
                 log.Error($"Saving metadata failed: {MetadataPath}");
         }
 
