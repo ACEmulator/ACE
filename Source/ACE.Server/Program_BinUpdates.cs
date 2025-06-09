@@ -1,11 +1,12 @@
 using System;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace ACE.Server
 {
     partial class Program
     {
-        private static void CheckForServerUpdate()
+        private static async Task CheckForServerUpdate()
         {
             log.Info($"Automatic Server version check started...");
             try
@@ -16,7 +17,7 @@ namespace ACE.Server
 
                 var url = "https://api.github.com/repos/ACEmulator/ACE/releases/latest";
                 using var client = new WebClient();
-                var html = client.GetStringFromURL(url).Result;
+                var html = await client.GetStringFromURL(url);
 
                 var json = JsonSerializer.Deserialize<JsonElement>(html);
 

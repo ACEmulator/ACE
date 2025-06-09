@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 
 using ACE.Common;
 
@@ -12,7 +13,7 @@ namespace ACE.Server
 {
     partial class Program
     {
-        private static void CheckForWorldDatabaseUpdate()
+        private static async Task CheckForWorldDatabaseUpdate()
         {
             log.Info($"Automatic World Database Update started...");
             try
@@ -24,7 +25,9 @@ namespace ACE.Server
                 var url = "https://api.github.com/repos/ACEmulator/ACE-World-16PY-Patches/releases/latest";
 
                 using var client = new WebClient();
-                var html = client.GetStringFromURL(url).Result;
+                // Await the HTTP request so network errors are propagated
+                // asynchronously instead of blocking on Result.
+                var html = await client.GetStringFromURL(url);
                 var json = JsonSerializer.Deserialize<JsonElement>(html);
                 string tag = json.GetProperty("tag_name").GetString();
                 string dbURL = json.GetProperty("assets")[0].GetProperty("browser_download_url").GetString();
@@ -46,7 +49,8 @@ namespace ACE.Server
                     if (tagMajor > patchMajor || tagMinor > patchMinor || (tagBuild > patchBuild && patchBuild != 0))
                     {
                         log.Info($"Latest patch version is {tag} -- Update Required!");
-                        UpdateToLatestWorldDatabase(dbURL, dbFileName);
+                        // Await database patch download and import before continuing
+                        await UpdateToLatestWorldDatabase(dbURL, dbFileName);
                         var newVersion = worldDb.GetVersion();
                         log.Info($"Updated World Database version: Base - {newVersion.BaseVersion} | Patch - {newVersion.PatchVersion}");
                     }
@@ -67,7 +71,7 @@ namespace ACE.Server
             log.Info($"Automatic World Database Update complete.");
         }
 
-        private static void UpdateToLatestWorldDatabase(string dbURL, string dbFileName)
+        private static async Task UpdateToLatestWorldDatabase(string dbURL, string dbFileName)
         {
             Console.WriteLine();
 
@@ -82,8 +86,9 @@ namespace ACE.Server
             using var client = new WebClient();
             try
             {
-                var dlTask = client.DownloadFile(dbURL, dbFileName);
-                dlTask.Wait();
+                // Asynchronously download the database patch file. Awaiting
+                // ensures we don't block while still handling network errors.
+                await client.DownloadFile(dbURL, dbFileName);
             }
             catch
             {

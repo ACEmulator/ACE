@@ -240,8 +240,27 @@ namespace ACE.Database
 
         public void SetCharacterAccessLevelByName(string name, AccessLevel accessLevel, Action<uint> callback)
         {
-            // TODO
-            throw new NotImplementedException();
+            // Queue the operation so the database work happens on the background thread.
+            // This keeps the caller responsive while the database update executes.
+            _queue.Add(new Task(() =>
+            {
+                // Look up a lightweight character record by name so we can get
+                // its account id without loading the full character data set.
+                var character = BaseDatabase.GetCharacterStubByName(name);
+
+                if (character != null)
+                {
+                    // Update the account's access level and return the character ID
+                    // to signal success to the caller.
+                    DatabaseManager.Authentication.UpdateAccountAccessLevel(character.AccountId, accessLevel);
+                    callback?.Invoke(character.Id);
+                }
+                else
+                {
+                    // Character not found. Invoke the callback with 0 to signal failure.
+                    callback?.Invoke(0);
+                }
+            }));
         }
 
 

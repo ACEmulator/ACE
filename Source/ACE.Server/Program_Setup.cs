@@ -4,6 +4,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 
 using ACE.Common;
 
@@ -11,8 +12,11 @@ namespace ACE.Server
 {
     partial class Program
     {
-        private static void DoOutOfBoxSetup(string configFile)
+        private static async Task DoOutOfBoxSetup(string configFile)
         {
+            // This setup routine performs several network operations. Declaring
+            // it async allows us to await those operations without blocking the
+            // main startup thread.
             MasterConfiguration config;
 
             var exeLocation = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
@@ -483,7 +487,9 @@ namespace ACE.Server
 
                 var url = "https://api.github.com/repos/ACEmulator/ACE-World-16PY-Patches/releases/latest";
                 using var client = new WebClient();
-                var html = client.GetStringFromURL(url).Result;
+                // Await the asynchronous download to avoid blocking a thread and
+                // to ensure any network errors surface correctly.
+                var html = await client.GetStringFromURL(url);
 
                 var json = JsonSerializer.Deserialize<JsonElement>(html);
                 string tag = json.GetProperty("tag_name").GetString();
@@ -493,8 +499,9 @@ namespace ACE.Server
                 Console.WriteLine($"Found {tag} !");
 
                 Console.Write($"Downloading {dbFileName} .... ");
-                var dlTask = client.DownloadFile(dbURL, dbFileName);
-                dlTask.Wait();
+                // Download the file asynchronously so we don't block the setup
+                // thread while waiting for network I/O.
+                await client.DownloadFile(dbURL, dbFileName);
                 Console.WriteLine("download complete!");
 
                 Console.Write($"Extracting {dbFileName} .... ");
