@@ -45,10 +45,12 @@ namespace ACE.DatLoader.Entity
             
             switch (Type)
             {
-                // These types will unpack the data completely, in their own classes
+                // These types will unpack the data completely in derived classes.
+                // Throw a specific exception here to make it clear which node
+                // type failed to unpack rather than relying on a generic Exception.
                 case "PORT":
                 case "LEAF":
-                    throw new Exception();
+                    throw new NotSupportedException($"Unsupported BSP node type '{Type}' in BSPNode.Unpack");
             }
 
             SplittingPlane = new Plane();

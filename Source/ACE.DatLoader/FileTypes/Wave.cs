@@ -37,9 +37,12 @@ namespace ACE.DatLoader.FileTypes
             // Good summary of the header for a WAV file and what all this means
             // http://www.topherlee.com/software/pcm-tut-wavformat.html
 
-            FileStream f = new FileStream(filename, FileMode.Create);
-            ReadData(f);
-            f.Close();
+            // Use a 'using' block so the FileStream is disposed automatically
+            // even if ReadData throws an exception, preventing file handle leaks.
+            using (var f = new FileStream(filename, FileMode.Create))
+            {
+                ReadData(f);
+            }
         }
 
         public void ReadData(Stream stream)

@@ -8,6 +8,8 @@ using ACE.Server.Mods;
 using HarmonyLib;
 using System.Text;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -49,10 +51,10 @@ namespace ACE.Server.Command.Handlers
             switch (verb)
             {
                 case ModCommand.Enable:
-                    EnableMod(session, match);
+                    EnableMod(session, match).GetAwaiter().GetResult();
                     return;
                 case ModCommand.Disable:
-                    DisableMod(session, match);
+                    DisableMod(session, match).GetAwaiter().GetResult();
                     return;
                 case ModCommand.Restart:
                     Log($"Restarting {match.Meta.Name}", session);
@@ -60,9 +62,9 @@ namespace ACE.Server.Command.Handlers
                     return;
                 case ModCommand.Toggle:
                     if (match.Status == ModStatus.Inactive || match.Status == ModStatus.Unloaded)
-                        EnableMod(session, match);
+                        EnableMod(session, match).GetAwaiter().GetResult();
                     else if (match.Status == ModStatus.Active)
-                        DisableMod(session, match);
+                        DisableMod(session, match).GetAwaiter().GetResult();
                     return;
 
                 //List mod status
@@ -108,11 +110,25 @@ namespace ACE.Server.Command.Handlers
                         return;
                     }
 
-                    using (var settings = new Process())
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
+                        // On Windows we use explorer.exe to open the settings file
+                        // because it automatically selects the file in the containing
+                        // folder, giving a familiar experience to users.
+                        using var settings = new Process();
                         settings.StartInfo.FileName = "explorer";
                         settings.StartInfo.Arguments = $"\"{settingsPath}\"";
                         settings.Start();
+                    }
+                    else
+                    {
+                        // For non-Windows platforms we fall back to Process.Start with
+                        // UseShellExecute to let the OS decide how to open the file.
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = settingsPath,
+                            UseShellExecute = true
+                        });
                     }
                     return;
             }
@@ -123,8 +139,11 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Disable Mod and save choice in Metadata
         /// </summary>
-        private static async void DisableMod(Session session, ModContainer match)
+        private static async Task DisableMod(Session session, ModContainer match)
         {
+            // Returning Task instead of using 'async void' allows the caller to
+            // await completion and observe any exceptions that occur during
+            // disabling.
             Log($"Disabling {match.Meta.Name}", session);
             match.Meta.Enabled = false;
             await match.SaveMetadata();
@@ -134,8 +153,10 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Enable Mod and save choice in Metadata
         /// </summary>
-        private static async void EnableMod(Session session, ModContainer match)
+        private static async Task EnableMod(Session session, ModContainer match)
         {
+            // Same reasoning as DisableMod: return Task so callers can await and
+            // handle failures when enabling a mod.
             Log($"Enabling {match.Meta.Name}", session);
             match.Meta.Enabled = true;
             await match.SaveMetadata();

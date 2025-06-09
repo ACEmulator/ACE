@@ -138,12 +138,15 @@ namespace ACE.Server
             if (!File.Exists(configFile))
             {
                 if (!IsRunningInContainer)
-                    DoOutOfBoxSetup(configFile);
+                    // Run the out-of-box setup synchronously at startup. We
+                    // call GetAwaiter().GetResult() because Main cannot be
+                    // declared async.
+                    DoOutOfBoxSetup(configFile).GetAwaiter().GetResult();
                 else
                 {
                     if (!File.Exists(configConfigContainer))
                     {
-                        DoOutOfBoxSetup(configFile);
+                        DoOutOfBoxSetup(configFile).GetAwaiter().GetResult();
                         File.Copy(configFile, configConfigContainer);
                     }
                     else
@@ -199,13 +202,16 @@ namespace ACE.Server
             }
 
             if (ConfigManager.Config.Offline.AutoServerUpdateCheck)
-                CheckForServerUpdate();
+                // Run server update check synchronously since Main is not async.
+                CheckForServerUpdate().GetAwaiter().GetResult();
             else
                 log.Info($"AutoServerVersionCheck is disabled...");
 
             if (ConfigManager.Config.Offline.AutoUpdateWorldDatabase)
             {
-                CheckForWorldDatabaseUpdate();
+                // World database update is asynchronous; run it synchronously
+                // during startup so we don't proceed until the update completes.
+                CheckForWorldDatabaseUpdate().GetAwaiter().GetResult();
 
                 if (ConfigManager.Config.Offline.AutoApplyWorldCustomizations)
                     AutoApplyWorldCustomizations();
