@@ -10,8 +10,8 @@
       - You can also change it from menu Test, Test Settings, Default Processor Architecture -->
     <TargetPlatform>x64</TargetPlatform>
 
-    <!-- Framework35 | [Framework40] | Framework45 -->
-    <TargetFrameworkVersion>Framework45</TargetFrameworkVersion>
+    <!-- Target .NET framework for test execution -->
+    <TargetFramework>net8.0</TargetFramework>
 
   </RunConfiguration>
   
