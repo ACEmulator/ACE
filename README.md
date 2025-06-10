@@ -27,6 +27,9 @@ Extended documentation can be found on the project [Wiki](https://github.com/ACE
 * [Content Creation](https://github.com/ACEmulator/ACE/wiki/Content-Creation)
 * After building, run `start_server.bat` from the output directory (e.g. `bin\x64\Debug\net8.0\`) to launch the server using `dotnet ACE.Server.dll`.
 
+Run the server using `start_server.bat` on Windows or `start_server.sh` on
+Linux/macOS.
+
 ## Contributions
 * Contributions in the form of issues and pull requests are welcomed and encouraged.
 * The preferred way to contribute is to fork the repo and submit a pull request on GitHub.
