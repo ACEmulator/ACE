@@ -65,6 +65,14 @@ namespace ACE.Server.Api
 
             _app = builder.Build();
 
+            _app.MapGet("/", () => Results.Json(new[]
+            {
+                "/api/status",
+                "/api/stats/players",
+                "/api/stats/character/{name}",
+                "/api/stats/performance"
+            }));
+
             if (ConfigManager.Config.Server.Api.RequireApiKey && !string.IsNullOrEmpty(ConfigManager.ConfigPath))
             {
                 var dir = Path.GetDirectoryName(ConfigManager.ConfigPath);
