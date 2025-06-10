@@ -94,7 +94,7 @@ namespace ACE.Common
         /// <summary>
         /// Reloads API keys from the configuration file when <see cref="Config.Server.Api.RequireApiKey"/> is true.
         /// </summary>
-        public static void ReloadApiKeys(log4net.ILog? logger = null)
+        public static void ReloadApiKeys(log4net.ILog logger = null)
         {
             if (!Config.Server.Api.RequireApiKey)
                 return;
