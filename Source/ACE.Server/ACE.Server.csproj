@@ -243,6 +243,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ACE.Adapter\ACE.Adapter.csproj" />
     <ProjectReference Include="..\ACE.Common\ACE.Common.csproj" />
     <ProjectReference Include="..\ACE.Database\ACE.Database.csproj" />

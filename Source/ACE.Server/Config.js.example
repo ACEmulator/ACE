@@ -41,6 +41,43 @@
         // The folder that contains Harmony mods
         "ModsDirectory": "c:\\ACE\\Mods\\",
 
+        // Settings for the optional HTTP status API
+        // Enable this to access endpoints such as /api/status, /api/stats/players,
+        // /api/stats/character/{name}, or /api/stats/performance
+        // The performance endpoint includes CPU usage, memory consumption, and
+        // other metrics when the server performance monitor is running.
+        // Host determines what interface to bind to. The default is "127.0.0.1"
+        // which restricts access to the local machine only. Use "0.0.0.0" to
+        // listen on all interfaces.
+        // Port is the listening port for the API. You may need to forward this
+        // port through your router/firewall if you want external access.
+        // Set UseHttps to true to serve HTTPS directly. When false, all API traffic
+        // is plain HTTP and should be protected by a reverse proxy or firewall if exposed
+        // to the internet. CertificatePath should point to a .pfx file and
+        // CertificatePassword is the password for that certificate.
+        // RequestsPerMinute limits how many requests each IP can send per minute.
+        // Stale rate limit entries are removed after 10 minutes of inactivity.
+        // Set to 0 to disable rate limiting. Remember to forward the API port
+        // through your router/firewall if you want external access.
+        // When RequireApiKey is true, each request must include one of the
+        // configured ApiKeys in the X-API-Key header or "apikey" query string.
+        // ApiKeys reload automatically when this file changes.
+        // Example header request:
+        //   curl -H "X-API-Key: <key>" http://localhost:5000/api/status
+        // Example query string request:
+        //   curl http://localhost:5000/api/status?apikey=<key>
+        "Api": {
+            "Enabled": false,
+            "Host": "127.0.0.1",
+            "Port": 5000,
+            "UseHttps": false,
+            "CertificatePath": "",
+            "CertificatePassword": "",
+            "RequestsPerMinute": 60,
+            "RequireApiKey": false,
+            "ApiKeys": []
+        },
+
         // ShutdownInterval, default: 60
         // Default time it will take for a server to wait before shutting down after shutdown is called from console or in game admin.
         "ShutdownInterval": "60",

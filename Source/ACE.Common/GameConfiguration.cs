@@ -14,6 +14,8 @@ namespace ACE.Common
 
         public string ModsDirectory { get; set; }
 
+        public ApiSettings Api { get; set; } = new ApiSettings();
+
         /// <summary>
         /// The amount of seconds to wait before turning off the server. Default value is 60 (for 1 minute).
         /// </summary>
