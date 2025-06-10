@@ -9,7 +9,7 @@ namespace ACE.Common
         /// <remarks>
         /// In just about all cases, you will not need to change this setting from the default. Special networking conditions, or multiple network adapters would possibly be examples of times where you might need to change this.
         /// </remarks>
-        public string Host { get; set; } = "0.0.0.0";
+        public string Host { get; set; } = "127.0.0.1";
 
         /// <summary>
         /// Port for World to listen on. This also opens the next port up, 9001, for server to client communications. When changed, it will open the port specified and +1 of that port.

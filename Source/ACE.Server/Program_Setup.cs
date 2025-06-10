@@ -77,7 +77,7 @@ namespace ACE.Server
                 variable = Console.ReadLine();
             else
             {
-                variable = "0.0.0.0";
+                variable = "127.0.0.1";
                 Console.WriteLine($"{variable}");
             }
             if (!string.IsNullOrWhiteSpace(variable))
