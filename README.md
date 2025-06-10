@@ -26,6 +26,9 @@ Extended documentation can be found on the project [Wiki](https://github.com/ACE
 * [Hosting ACE](https://github.com/ACEmulator/ACE/wiki/ACE-Hosting)
 * [Content Creation](https://github.com/ACEmulator/ACE/wiki/Content-Creation)
 
+Run the server using `start_server.bat` on Windows or `start_server.sh` on
+Linux/macOS.
+
 ## Contributions
 * Contributions in the form of issues and pull requests are welcomed and encouraged.
 * The preferred way to contribute is to fork the repo and submit a pull request on GitHub.
