@@ -42,6 +42,8 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 
 ## Status API
 When enabled in `Config.js`, the server exposes a lightweight HTTP API.
+The base configuration is provided in `Config.js.example`; copy this file to
+`Config.js` and edit it before enabling the API.
 
 Enable the API with:
 
