@@ -45,9 +45,7 @@ namespace ACE.Server.Api
         private static DateTime _lastCleanup = DateTime.UtcNow;
 
         private static FileSystemWatcher? _watcher;
-        private static readonly ILog log =
-            LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()?.DeclaringType
-                                 ?? typeof(StatusApiServer));
+        private static readonly ILog log = LogManager.GetLogger(typeof(StatusApiServer));
 
         public static void Start()
         {
