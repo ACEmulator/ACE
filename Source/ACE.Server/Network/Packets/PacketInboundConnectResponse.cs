@@ -1,4 +1,4 @@
-﻿namespace ACE.Server.Network.Packets
+namespace ACE.Server.Network.Packets
 {
     public class PacketInboundConnectResponse
     {
