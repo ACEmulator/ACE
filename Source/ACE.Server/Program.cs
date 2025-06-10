@@ -8,6 +8,7 @@ using System.Threading;
 
 using log4net;
 using log4net.Config;
+using ACE.Server.Api;
 
 using ACE.Common;
 using ACE.Common.Extensions;
@@ -346,6 +347,13 @@ namespace ACE.Server
             if (!PropertyManager.GetBool("world_closed", false).Item)
             {
                 WorldManager.Open(null);
+
+                if (ConfigManager.Config.Server.Api.Enabled)
+                {
+                    var scheme = ConfigManager.Config.Server.Api.UseHttps ? "https" : "http";
+                    log.Info($"Starting StatusApiServer on {scheme}://{ConfigManager.Config.Server.Api.Host}:{ConfigManager.Config.Server.Api.Port}...");
+                    StatusApiServer.Start();
+                }
             }
         }
 
@@ -363,6 +371,7 @@ namespace ACE.Server
 
                 PropertyManager.StopUpdating();
                 DatabaseManager.Stop();
+                StatusApiServer.StopAsync().GetAwaiter().GetResult();
 
                 // Do system specific cleanup here
                 try
@@ -381,6 +390,7 @@ namespace ACE.Server
             {
                 ServerManager.DoShutdownNow();
                 DatabaseManager.Stop();
+                StatusApiServer.StopAsync().GetAwaiter().GetResult();
             }
         }
     }

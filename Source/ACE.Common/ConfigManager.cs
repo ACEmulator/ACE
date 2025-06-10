@@ -11,6 +11,13 @@ namespace ACE.Common
         public static MasterConfiguration Config { get; private set; }
 
         /// <summary>
+        /// Full path to the configuration file used during initialization.
+        /// </summary>
+        public static string ConfigPath { get; private set; } = string.Empty;
+
+        private static readonly object ApiKeyLock = new();
+
+        /// <summary>
         /// initializes from a preloaded configuration
         /// </summary>
         public static void Initialize(MasterConfiguration configuration)
@@ -52,6 +59,8 @@ namespace ACE.Common
                 pathToUse = path;
             }
 
+            ConfigPath = pathToUse;
+
             try
             {
                 if (!File.Exists(pathToUse))
@@ -76,10 +85,46 @@ namespace ACE.Common
 
         public static JsonSerializerOptions SerializerOptions = new JsonSerializerOptions
         {
-            AllowTrailingCommas = true,            
+            AllowTrailingCommas = true,
             NumberHandling = JsonNumberHandling.AllowReadingFromString,
             ReadCommentHandling = JsonCommentHandling.Skip,
             WriteIndented = true
         };
+
+        /// <summary>
+        /// Reloads API keys from the configuration file when <see cref="Config.Server.Api.RequireApiKey"/> is true.
+        /// </summary>
+        public static void ReloadApiKeys(log4net.ILog? logger = null)
+        {
+            if (!Config.Server.Api.RequireApiKey)
+                return;
+
+            if (string.IsNullOrEmpty(ConfigPath) || !File.Exists(ConfigPath))
+                return;
+
+            try
+            {
+                var fileText = File.ReadAllText(ConfigPath);
+                var temp = JsonSerializer.Deserialize<MasterConfiguration>(fileText, SerializerOptions);
+                if (temp == null)
+                    return;
+
+                var newKeys = temp.Server.Api.ApiKeys ?? Array.Empty<string>();
+
+                lock (ApiKeyLock)
+                {
+                    if (newKeys.SequenceEqual(Config.Server.Api.ApiKeys))
+                        return;
+
+                    Config.Server.Api.ApiKeys = newKeys;
+                }
+
+                logger?.Info($"Reloaded {newKeys.Length} API keys from configuration");
+            }
+            catch (Exception ex)
+            {
+                logger?.Warn($"Failed to reload API keys: {ex.Message}");
+            }
+        }
     }
 }

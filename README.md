@@ -39,3 +39,96 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 
 ## Contact
 * [Discord Channel](https://discord.gg/C2WzhP9)
+
+## Status API
+When enabled in `Config.js`, the server exposes a lightweight HTTP API.
+
+Enable the API with:
+
+```json
+"Api": {
+    "Enabled": true,
+    "Host": "127.0.0.1",
+    "Port": 5000,
+    "UseHttps": false,
+    "CertificatePath": "",
+    "CertificatePassword": "",
+    "RequestsPerMinute": 60,
+    "RequireApiKey": false,
+    "ApiKeys": []
+}
+```
+
+Set `UseHttps` to `true` and provide a valid `.pfx` certificate to serve the API
+over HTTPS directly. When `UseHttps` is `false`, traffic is unencrypted HTTP and
+should be protected behind a reverse proxy or firewall if exposed to the
+internet. `RequestsPerMinute` limits how many API calls a single IP address may
+make per minute; set to `0` to disable rate limiting. Rate limiter entries are
+automatically removed after ten minutes of inactivity to free memory. When
+`RequireApiKey` is `true`, each request must include one of the configured
+keys in the `X-API-Key` header or `apikey` query string. Updates to `ApiKeys`
+in `Config.js` are detected automatically and loaded without restarting the
+server.
+
+### Example
+`GET /api/stats/players` returns a JSON list of online players:
+
+```bash
+curl http://localhost:5000/api/stats/players
+```
+
+Add `-H "X-API-Key: <key>"` if `RequireApiKey` is enabled.
+You can also supply the key in the query string.
+
+```bash
+# header example
+curl -H "X-API-Key: <key>" http://localhost:5000/api/stats/players
+# query string example
+curl http://localhost:5000/api/stats/players?apikey=<key>
+```
+
+```json
+{ "onlineCount": 1, "players": ["Admin"] }
+```
+
+`GET /api/stats/character/{name}` returns details about a specific character:
+
+```bash
+curl http://localhost:5000/api/stats/character/Admin
+```
+
+```json
+{ "allegiance_name": "Example", "level": 200 }
+```
+
+`GET /api/stats/performance` returns server metrics and performance data when the monitor is running:
+
+```bash
+curl http://localhost:5000/api/stats/performance
+```
+
+Include the `X-API-Key` header or `apikey` query string if required.
+
+```json
+{
+  "uptimeSeconds": 123.4,
+  "cpuUsagePercent": 5.2,
+  "privateMemoryMB": 200.0,
+  "gcMemoryMB": 150.0,
+  "monitor": "Monitoring Durations: ..."
+}
+```
+
+`GET /api/status` returns server uptime and build information:
+
+```bash
+curl http://localhost:5000/api/status
+```
+
+Include the `X-API-Key` header or `apikey` query string if required.
+
+```json
+{ "uptimeSeconds": 123.4, "version": "1.0.0", "startTime": "2025-05-11T02:21:11Z" }
+```
+
+If `UseHttps` is enabled, replace `http` with `https` in the above commands.
