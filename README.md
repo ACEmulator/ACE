@@ -70,6 +70,21 @@ keys in the `X-API-Key` header or `apikey` query string. Updates to `ApiKeys`
 in `Config.js` are detected automatically and loaded without restarting the
 server.
 
+### Endpoints
+`GET /` returns a JSON array with the paths of available status routes:
+
+```json
+[
+  "/api/status",
+  "/api/stats/players",
+  "/api/stats/character/{name}",
+  "/api/stats/performance"
+]
+```
+
+These endpoints provide build and performance information about the server. For
+full details see the [Wiki](https://github.com/ACEmulator/ACE/wiki/Status-API).
+
 ### Example
 `GET /api/stats/players` returns a JSON list of online players:
 
