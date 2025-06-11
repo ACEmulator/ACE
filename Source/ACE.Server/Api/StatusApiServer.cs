@@ -21,6 +21,7 @@ using ACE.Server;
 using ACE.Server.Entity;
 using log4net;
 using System.IO;
+using Microsoft.Extensions.Logging;
 
 namespace ACE.Server.Api
 {
@@ -78,6 +79,7 @@ namespace ACE.Server.Api
         public static void Start()
         {
             var builder = WebApplication.CreateBuilder();
+            builder.Logging.ClearProviders();
             builder.WebHost.ConfigureKestrel(options =>
             {
                 options.Listen(IPAddress.Parse(ConfigManager.Config.Server.Api.Host), (int)ConfigManager.Config.Server.Api.Port, listenOptions =>
