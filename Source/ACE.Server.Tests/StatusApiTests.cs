@@ -23,7 +23,7 @@ namespace ACE.Server.Tests
             {
                 Server = new GameConfiguration
                 {
-                    Api = new ApiSettings { Enabled = true, Host = "127.0.0.1", Port = 5000, RequestsPerMinute = 0 }
+                    Api = new ApiSettings { Enabled = true, Host = "127.0.0.1", Port = 5000, RequestsPerMinute = 0, CacheSeconds = 5 }
                 }
             };
 
@@ -76,6 +76,17 @@ namespace ACE.Server.Tests
             Assert.IsTrue(json.TryGetProperty("cpuUsagePercent", out _));
             Assert.IsTrue(json.TryGetProperty("privateMemoryMB", out _));
             Assert.IsTrue(json.TryGetProperty("gcMemoryMB", out _));
+        }
+
+        [TestMethod]
+        public async Task StatusEndpoint_CachesWithinTtl()
+        {
+            var json1 = await _http.GetFromJsonAsync<JsonElement>(BaseUrl + "/api/status");
+            var uptime1 = json1.GetProperty("uptimeSeconds").GetDouble();
+            await Task.Delay(500);
+            var json2 = await _http.GetFromJsonAsync<JsonElement>(BaseUrl + "/api/status");
+            var uptime2 = json2.GetProperty("uptimeSeconds").GetDouble();
+            Assert.AreEqual(uptime1, uptime2);
         }
     }
 }

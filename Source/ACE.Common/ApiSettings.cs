@@ -18,6 +18,12 @@ namespace ACE.Common
         public uint RequestsPerMinute { get; set; } = 60;
 
         /// <summary>
+        /// Number of seconds to cache responses from the status API.
+        /// Set to 0 to disable caching.
+        /// </summary>
+        public uint CacheSeconds { get; set; } = 0;
+
+        /// <summary>
         /// When true, all API requests must include a valid API key in the
         /// <c>X-API-Key</c> header or <c>apikey</c> query string parameter.
         /// </summary>

@@ -60,6 +60,7 @@ Enable the API with:
     "CertificatePath": "",
     "CertificatePassword": "",
     "RequestsPerMinute": 60,
+    "CacheSeconds": 0,
     "RequireApiKey": false,
     "ApiKeys": []
 }
@@ -74,7 +75,8 @@ automatically removed after ten minutes of inactivity to free memory. When
 `RequireApiKey` is `true`, each request must include one of the configured
 keys in the `X-API-Key` header or `apikey` query string. Updates to `ApiKeys`
 in `Config.js` are detected automatically and loaded without restarting the
-server.
+server. `CacheSeconds` controls how long responses are cached in memory; set it
+to `0` to disable caching.
 
 ### Endpoints
 `GET /` returns a JSON array with the paths of available status routes:
