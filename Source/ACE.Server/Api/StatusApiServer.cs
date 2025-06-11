@@ -99,7 +99,7 @@ namespace ACE.Server.Api
                 "/api/stats/players",
                 "/api/stats/character/{name}",
                 "/api/stats/performance"
-            }));
+            })));
 
             if (ConfigManager.Config.Server.Api.RequireApiKey && !string.IsNullOrEmpty(ConfigManager.ConfigPath))
             {
