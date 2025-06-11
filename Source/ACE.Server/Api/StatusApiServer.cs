@@ -232,6 +232,7 @@ namespace ACE.Server.Api
         {
             if (_app != null && _cts != null)
             {
+                log.Info("Stopping StatusApiServer...");
                 _cts.Cancel();
                 await _app.StopAsync();
                 _watcher?.Dispose();
