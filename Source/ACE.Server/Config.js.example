@@ -62,6 +62,8 @@
         // When RequireApiKey is true, each request must include one of the
         // configured ApiKeys in the X-API-Key header or "apikey" query string.
         // ApiKeys reload automatically when this file changes.
+        // CacheSeconds determines how long status responses are cached in memory.
+        // Set to 0 to disable caching.
         // Example header request:
         //   curl -H "X-API-Key: <key>" http://localhost:5000/api/status
         // Example query string request:
@@ -74,6 +76,7 @@
             "CertificatePath": "",
             "CertificatePassword": "",
             "RequestsPerMinute": 60,
+            "CacheSeconds": 0,
             "RequireApiKey": false,
             "ApiKeys": []
         },

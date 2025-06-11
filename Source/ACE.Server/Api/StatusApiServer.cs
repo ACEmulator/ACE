@@ -44,8 +44,36 @@ namespace ACE.Server.Api
         private static readonly TimeSpan LimiterExpiration = TimeSpan.FromMinutes(10);
         private static DateTime _lastCleanup = DateTime.UtcNow;
 
+        private static readonly ConcurrentDictionary<string, (IResult Value, DateTime Expire)> _cache = new();
+
         private static FileSystemWatcher? _watcher;
         private static readonly ILog log = LogManager.GetLogger(typeof(StatusApiServer));
+
+        private static IResult GetCached(string key, Func<IResult> factory)
+        {
+            var ttl = ConfigManager.Config.Server.Api.CacheSeconds;
+            if (ttl == 0)
+                return factory();
+
+            CleanupCache();
+
+            if (_cache.TryGetValue(key, out var entry) && entry.Expire > DateTime.UtcNow)
+                return entry.Value;
+
+            var value = factory();
+            _cache[key] = (value, DateTime.UtcNow.AddSeconds(ttl));
+            return value;
+        }
+
+        private static void CleanupCache()
+        {
+            var now = DateTime.UtcNow;
+            foreach (var kvp in _cache)
+            {
+                if (kvp.Value.Expire <= now)
+                    _cache.TryRemove(kvp.Key, out _);
+            }
+        }
 
         public static void Start()
         {
@@ -65,7 +93,7 @@ namespace ACE.Server.Api
 
             _app = builder.Build();
 
-            _app.MapGet("/", () => Results.Json(new[]
+            _app.MapGet("/", () => GetCached("/", () => Results.Json(new[]
             {
                 "/api/status",
                 "/api/stats/players",
@@ -126,7 +154,7 @@ namespace ACE.Server.Api
                 await next();
             });
 
-            _app.MapGet("/api/stats/players", () =>
+            _app.MapGet("/api/stats/players", () => GetCached("/api/stats/players", () =>
             {
                 var result = new
                 {
@@ -135,9 +163,9 @@ namespace ACE.Server.Api
                 };
 
                 return Results.Json(result);
-            });
+            }));
 
-            _app.MapGet("/api/stats/character/{name}", (string name) =>
+            _app.MapGet("/api/stats/character/{name}", (string name) => GetCached($"/api/stats/character/{name}", () =>
             {
                 var player = PlayerManager.FindByName(name, out _);
                 if (player == null)
@@ -160,9 +188,9 @@ namespace ACE.Server.Api
                 };
 
                 return Results.Json(result);
-            });
+            }));
 
-            _app.MapGet("/api/stats/performance", () =>
+            _app.MapGet("/api/stats/performance", () => GetCached("/api/stats/performance", () =>
             {
                 var proc = Process.GetCurrentProcess();
                 var uptimeSeconds = Timers.RunningTime;
@@ -186,15 +214,15 @@ namespace ACE.Server.Api
                 };
 
                 return Results.Json(result);
-            });
+            }));
 
-            _app.MapGet("/api/status", () =>
+            _app.MapGet("/api/status", () => GetCached("/api/status", () =>
             {
                 var uptimeSeconds = Timers.RunningTime;
                 var version = ServerBuildInfo.FullVersion;
                 var startTime = Timers.WorldStartTime;
                 return Results.Json(new { uptimeSeconds, version, startTime });
-            });
+            }));
 
             _cts = new CancellationTokenSource();
             Task.Run(() => _app.RunAsync(_cts.Token));
@@ -208,6 +236,8 @@ namespace ACE.Server.Api
                 await _app.StopAsync();
                 _watcher?.Dispose();
                 _watcher = null;
+                _cache.Clear();
+                _rateLimiters.Clear();
             }
         }
 
