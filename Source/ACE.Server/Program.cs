@@ -213,9 +213,6 @@ namespace ACE.Server
                 // World database update is asynchronous; run it synchronously
                 // during startup so we don't proceed until the update completes.
                 CheckForWorldDatabaseUpdate().GetAwaiter().GetResult();
-
-                if (ConfigManager.Config.Offline.AutoApplyWorldCustomizations)
-                    AutoApplyWorldCustomizations();
             }
             else
                 log.Info($"AutoUpdateWorldDatabase is disabled...");
@@ -224,6 +221,10 @@ namespace ACE.Server
                 AutoApplyDatabaseUpdates();
             else
                 log.Info($"AutoApplyDatabaseUpdates is disabled...");
+
+            if (ConfigManager.Config.Offline.AutoUpdateWorldDatabase &&
+                ConfigManager.Config.Offline.AutoApplyWorldCustomizations)
+                AutoApplyWorldCustomizations();
 
             // This should only be enabled manually. To enable it, simply uncomment this line
             //ACE.Database.OfflineTools.Shard.BiotaGuidConsolidator.ConsolidateBiotaGuids(0xA0000000, true, false, out int numberOfBiotasConsolidated, out int numberOfBiotasSkipped, out int numberOfErrors);
