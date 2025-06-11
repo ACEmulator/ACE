@@ -3,9 +3,9 @@
     "WorldName": "ACEmulator",
 
     "Network": {
-      // Host, default: "127.0.0.1"
+      // Host, default: "0.0.0.0"
       // In most cases, you will not need to change this setting. Special networking conditions, or multiple network adapters would be examples of times where you might need to change this.
-      "Host": "127.0.0.1",
+      "Host": "0.0.0.0",
 
       // Port, default: 9000
       // This also opens the next port up, 9001, for server to client communications. When changed, it will open the port specified and +1 of that port.
