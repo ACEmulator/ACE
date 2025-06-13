@@ -79,7 +79,10 @@
             "RequestsPerMinute": 60,
             "CacheSeconds": 0,
             "RequireApiKey": false,
-            "ApiKeys": []
+            "ApiKeys": [],
+            // AllowedOrigins specifies which origins may access the API.
+            // An empty list permits any origin.
+            "AllowedOrigins": []
         },
 
         // ShutdownInterval, default: 60

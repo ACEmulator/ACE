@@ -34,5 +34,10 @@ namespace ACE.Common
         /// <see cref="RequireApiKey"/> is enabled.
         /// </summary>
         public string[] ApiKeys { get; set; } = Array.Empty<string>();
+
+        /// <summary>
+        /// List of allowed CORS origins. When empty, any origin is permitted.
+        /// </summary>
+        public string[] AllowedOrigins { get; set; } = Array.Empty<string>();
     }
 }
