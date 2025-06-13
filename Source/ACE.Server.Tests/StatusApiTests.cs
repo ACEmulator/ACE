@@ -88,5 +88,15 @@ namespace ACE.Server.Tests
             var uptime2 = json2.GetProperty("uptimeSeconds").GetDouble();
             Assert.AreEqual(uptime1, uptime2);
         }
+
+        [TestMethod]
+        public async Task Responses_IncludeCorsHeader()
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, BaseUrl + "/api/status");
+            request.Headers.Add("Origin", "http://example.com");
+            var response = await _http.SendAsync(request);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+            Assert.IsTrue(response.Headers.Contains("Access-Control-Allow-Origin"));
+        }
     }
 }

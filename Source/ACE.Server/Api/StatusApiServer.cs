@@ -22,6 +22,7 @@ using ACE.Server.Entity;
 using log4net;
 using System.IO;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ACE.Server.Api
 {
@@ -80,6 +81,19 @@ namespace ACE.Server.Api
         {
             var builder = WebApplication.CreateBuilder();
             builder.Logging.ClearProviders();
+            builder.Services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(policy =>
+                {
+                    var origins = ConfigManager.Config.Server.Api.AllowedOrigins ?? Array.Empty<string>();
+                    if (origins.Length == 0)
+                        policy.AllowAnyOrigin();
+                    else
+                        policy.WithOrigins(origins);
+
+                    policy.AllowAnyHeader().AllowAnyMethod();
+                });
+            });
             builder.WebHost.ConfigureKestrel(options =>
             {
                 options.Listen(IPAddress.Parse(ConfigManager.Config.Server.Api.Host), (int)ConfigManager.Config.Server.Api.Port, listenOptions =>
@@ -94,6 +108,7 @@ namespace ACE.Server.Api
 
 
             _app = builder.Build();
+            _app.UseCors();
 
             _app.MapGet("/", () => GetCached("/", () => Results.Json(new[]
             {
