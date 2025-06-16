@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using System.Net;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -102,6 +103,10 @@ namespace ACE.Server.Api
                     {
                         listenOptions.UseHttps(ConfigManager.Config.Server.Api.CertificatePath,
                                               ConfigManager.Config.Server.Api.CertificatePassword);
+                    }
+                    else
+                    {
+                        listenOptions.Protocols = HttpProtocols.Http1;
                     }
                 });
             });
