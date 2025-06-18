@@ -41,49 +41,61 @@
         // The folder that contains Harmony mods
         "ModsDirectory": "c:\\ACE\\Mods\\",
 
-        // Settings for the optional HTTP status API
-        // Enable this to access endpoints such as /api/status, /api/stats/players,
-        // /api/stats/character/{name}, or /api/stats/performance
-        // The performance endpoint includes CPU usage, memory consumption, and
-        // other metrics when the server performance monitor is running.
-        // Host determines what interface to bind to. The default is "127.0.0.1"
-        // which restricts access to the local machine only. Use "0.0.0.0" to
-        // listen on all interfaces.
-        // Port is the listening port for the API. You may need to forward this
-        // port through your router/firewall if you want external access.
-        // Set UseHttps to true to serve HTTPS directly. When false, all API traffic
-        // is plain HTTP and should be protected by a reverse proxy or firewall if exposed
-        // to the internet. CertificatePath should point to a .pfx file and
-        // CertificatePassword is the password for that certificate.
-        // RequestsPerMinute limits how many requests each IP can send per minute.
-        // Stale rate limit entries are removed after 10 minutes of inactivity.
-        // Set to 0 to disable rate limiting. Remember to forward the API port
-        // through your router/firewall if you want external access.
-        // When RequireApiKey is true, each request must include one of the
-        // configured ApiKeys in the X-API-Key header or "apikey" query string.
-        // ApiKeys reload automatically when this file changes.
-        // CacheSeconds determines how long status responses are cached in memory.
-        // Set to 0 to disable caching. If you enable caching, suggested initial setting
-        // to be set to 10 seconds.
-        // Example header request:
-        //   curl -H "X-API-Key: <key>" http://localhost:5000/api/status
-        // Example query string request:
-        //   curl http://localhost:5000/api/status?apikey=<key>
-        "Api": {
-            "Enabled": false,
-            "Host": "127.0.0.1",
-            "Port": 5000,
-            "UseHttps": false,
-            "CertificatePath": "",
-            "CertificatePassword": "",
-            "RequestsPerMinute": 60,
-            "CacheSeconds": 0,
-            "RequireApiKey": false,
-            "ApiKeys": [],
-            // AllowedOrigins specifies which origins may access the API.
-            // An empty list permits any origin.
-            "AllowedOrigins": []
-        },
+    // Settings for the optional HTTP status API
+    // Enables API endpoints such as:
+    //   - /api/status
+    //   - /api/stats/players
+    //   - /api/stats/character/{name}
+    //   - /api/stats/performance
+    // The performance endpoint includes metrics like CPU usage and memory consumption
+    // when the server performance monitor is running.
+
+    "Api": {
+    // Enables the HTTP API server
+    "Enabled": false,
+
+    // IP address to bind to:
+    //   - "127.0.0.1" restricts access to localhost only (default)
+    //   - "0.0.0.0" listens on all network interfaces
+    "Host": "127.0.0.1",
+
+    // Port to listen on for API requests.
+    // You may need to forward this port through your router/firewall
+    // for external access.
+    // NOTE: Some ISPs block inbound traffic on custom ports for residential users.
+    // In such cases, tools like Ngrok (https://ngrok.com) can be used to tunnel
+    // your local API endpoint to a publicly accessible URL.
+    "Port": 5050,
+
+    // Use HTTPS for the API.
+    // If false, the API uses plain HTTP and should be protected externally.
+    "UseHttps": false,
+
+    // Full path to the HTTPS certificate (.pfx format)
+    "CertificatePath": "", // e.g., "C:\\Ash4Fun\\Certs\\asheron4fun.com.pfx"
+
+    // Password for the HTTPS certificate
+    "CertificatePassword": "", // e.g., "SomeRando_PW_1"
+
+    // Rate limit: Max number of requests per minute per IP
+    // Set to 0 to disable rate limiting
+    // Stale entries are cleared after 10 minutes of inactivity
+    "RequestsPerMinute": 60,
+
+    // Duration (in seconds) to cache API responses
+    "CacheSeconds": 10,
+
+    // If true, API requests must include a valid API key
+    // Keys can be sent via:
+    //   - HTTP header: "X-API-Key: <key>"
+    //   - Query string: ?apikey=<key>
+    // API keys reload automatically when this file changes
+    "RequireApiKey": false,
+
+    // List of valid API keys
+    "ApiKeys": []
+     },
+
 
         // ShutdownInterval, default: 60
         // Default time it will take for a server to wait before shutting down after shutdown is called from console or in game admin.
