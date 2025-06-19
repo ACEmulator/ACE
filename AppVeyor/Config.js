@@ -1,4 +1,5 @@
-﻿{
+// UTF-8 BOM removed to ensure consistent encoding
+{
   "Server": {
     "WorldName": "ACEmulator",
     "Welcome": "Welcome to this ACE server!\nFor more information visit https://emulator.ac",

@@ -1,4 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- UTF-8 BOM removed to ensure consistent encoding -->
 <RunSettings>
   <!-- Configurations that affect the Test Framework -->
   <RunConfiguration>

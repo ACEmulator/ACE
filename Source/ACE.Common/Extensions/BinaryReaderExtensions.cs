@@ -1,4 +1,5 @@
-﻿using System.IO;
+// UTF-8 BOM removed to ensure consistent encoding
+using System.IO;
 
 namespace ACE.Common.Extensions
 {

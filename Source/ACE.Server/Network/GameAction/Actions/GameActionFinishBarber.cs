@@ -1,4 +1,5 @@
-﻿namespace ACE.Server.Network.GameAction.Actions
+// UTF-8 BOM removed to ensure consistent encoding
+namespace ACE.Server.Network.GameAction.Actions
 {
     public static class GameActionFinishBarber
     {

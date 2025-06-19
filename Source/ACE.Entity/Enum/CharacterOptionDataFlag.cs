@@ -1,4 +1,5 @@
-﻿using System;
+// UTF-8 BOM removed to ensure consistent encoding
+using System;
 namespace ACE.Entity.Enum
 {
     // Thanks to tfarley (aclogview) for these enums

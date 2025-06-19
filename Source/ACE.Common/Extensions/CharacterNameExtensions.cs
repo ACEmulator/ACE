@@ -1,4 +1,5 @@
-﻿namespace ACE.Common.Extensions
+// UTF-8 BOM removed to ensure consistent encoding
+namespace ACE.Common.Extensions
 {
     /// <summary>
     /// This is a Helper Extension to service common String functions for Names

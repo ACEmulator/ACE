@@ -1,4 +1,5 @@
-﻿namespace ACE.Entity
+// UTF-8 BOM removed to ensure consistent encoding
+namespace ACE.Entity
 {
     public class PageData
     {

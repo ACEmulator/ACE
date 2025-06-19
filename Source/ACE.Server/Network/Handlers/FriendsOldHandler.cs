@@ -1,4 +1,5 @@
-﻿using ACE.Entity.Enum;
+// UTF-8 BOM removed to ensure consistent encoding
+using ACE.Entity.Enum;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages;
 

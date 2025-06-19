@@ -1,4 +1,5 @@
-﻿namespace ACE.Server.Entity
+// UTF-8 BOM removed to ensure consistent encoding
+namespace ACE.Server.Entity
 {
     /// <summary>
     /// Used to replace model objects with other model objects.

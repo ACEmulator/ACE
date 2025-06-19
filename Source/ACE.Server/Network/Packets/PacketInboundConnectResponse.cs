@@ -1,4 +1,5 @@
-﻿namespace ACE.Server.Network.Packets
+// UTF-8 BOM removed to ensure consistent encoding
+namespace ACE.Server.Network.Packets
 {
     public class PacketInboundConnectResponse
     {
