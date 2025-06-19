@@ -1,4 +1,4 @@
-﻿namespace ACE.Server.Network
+namespace ACE.Server.Network
 {
     public enum PacketDirection
     {

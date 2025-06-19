@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ACE.Entity;
 
 namespace ACE.Server.Entity.Events

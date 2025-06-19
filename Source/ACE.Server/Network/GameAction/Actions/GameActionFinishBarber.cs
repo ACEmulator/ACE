@@ -1,4 +1,4 @@
-﻿namespace ACE.Server.Network.GameAction.Actions
+namespace ACE.Server.Network.GameAction.Actions
 {
     public static class GameActionFinishBarber
     {

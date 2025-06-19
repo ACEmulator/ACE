@@ -1,4 +1,4 @@
-﻿namespace ACE.Server.Entity
+namespace ACE.Server.Entity
 {
     public class Landcell
     {

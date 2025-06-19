@@ -1,4 +1,4 @@
-﻿using ACE.Entity.Enum;
+using ACE.Entity.Enum;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.Network

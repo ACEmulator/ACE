@@ -1,4 +1,4 @@
-﻿namespace ACE.Server.Command
+namespace ACE.Server.Command
 {
     public enum CommandHandlerResponse
     {

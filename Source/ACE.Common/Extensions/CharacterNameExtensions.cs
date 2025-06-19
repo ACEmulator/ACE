@@ -1,4 +1,4 @@
-﻿namespace ACE.Common.Extensions
+namespace ACE.Common.Extensions
 {
     /// <summary>
     /// This is a Helper Extension to service common String functions for Names

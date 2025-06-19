@@ -1,4 +1,4 @@
-﻿namespace ACE.Server.Entity
+namespace ACE.Server.Entity
 {
     /// <summary>
     /// Used to replace default Palette colors / not required

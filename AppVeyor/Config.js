@@ -1,4 +1,4 @@
-﻿{
+{
   "Server": {
     "WorldName": "ACEmulator",
     "Welcome": "Welcome to this ACE server!\nFor more information visit https://emulator.ac",

@@ -1,4 +1,4 @@
-﻿namespace ACE.Server.Network.Sequence
+namespace ACE.Server.Network.Sequence
 {
     public interface ISequence
     {
