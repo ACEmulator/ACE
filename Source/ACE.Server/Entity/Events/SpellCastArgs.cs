@@ -1,4 +1,5 @@
-﻿using System;
+// UTF-8 BOM removed to ensure consistent encoding
+using System;
 using ACE.Entity;
 
 namespace ACE.Server.Entity.Events

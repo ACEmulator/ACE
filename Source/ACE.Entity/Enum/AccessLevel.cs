@@ -1,4 +1,5 @@
-﻿namespace ACE.Entity.Enum
+// UTF-8 BOM removed to ensure consistent encoding
+namespace ACE.Entity.Enum
 {
     public enum AccessLevel
     {

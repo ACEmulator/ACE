@@ -1,4 +1,5 @@
-﻿using System;
+// UTF-8 BOM removed to ensure consistent encoding
+using System;
 using System.Collections.Generic;
 
 namespace ACE.Database.Models.World;

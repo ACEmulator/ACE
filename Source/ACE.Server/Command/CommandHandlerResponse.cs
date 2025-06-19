@@ -1,4 +1,5 @@
-﻿namespace ACE.Server.Command
+// UTF-8 BOM removed to ensure consistent encoding
+namespace ACE.Server.Command
 {
     public enum CommandHandlerResponse
     {

@@ -1,4 +1,5 @@
-﻿namespace ACE.Entity.Enum
+// UTF-8 BOM removed to ensure consistent encoding
+namespace ACE.Entity.Enum
 {
     /// <summary>
     /// The ChatDisplayMask identifies that types of chat that are displayed in each chat window.<para />
