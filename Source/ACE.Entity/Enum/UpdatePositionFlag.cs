@@ -1,4 +1,3 @@
-// UTF-8 BOM removed to ensure consistent encoding
 namespace ACE.Entity.Enum
 {
     using System.Diagnostics.CodeAnalysis;

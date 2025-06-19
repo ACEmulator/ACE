@@ -1,4 +1,3 @@
-// UTF-8 BOM removed to ensure consistent encoding
 using System;
 using ACE.Server.Network.Enum;
 
