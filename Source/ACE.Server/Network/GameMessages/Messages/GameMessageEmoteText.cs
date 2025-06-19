@@ -1,4 +1,3 @@
-// UTF-8 BOM removed to ensure consistent encoding
 namespace ACE.Server.Network.GameMessages.Messages
 {
     public class GameMessageEmoteText : GameMessage

@@ -1,4 +1,3 @@
-// UTF-8 BOM removed to ensure consistent encoding
 using ACE.Server.Network.GameEvent.Events;
 
 namespace ACE.Server.Network.GameAction.Actions

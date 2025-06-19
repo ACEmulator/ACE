@@ -1,4 +1,3 @@
-// UTF-8 BOM removed to ensure consistent encoding
 using System;
 using System.Collections.Generic;
 using System.Linq;
