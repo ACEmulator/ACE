@@ -341,13 +341,13 @@ namespace ACE.Server.Network.Structure
 
         private void BuildProperties(WorldObject wo)
         {
-            PropertiesInt = wo.GetAllPropertyIntWhere(ClientProperties.PropertiesInt);
-            PropertiesInt64 = wo.GetAllPropertyInt64Where(ClientProperties.PropertiesInt64);
-            PropertiesBool = wo.GetAllPropertyBoolsWhere(ClientProperties.PropertiesBool);
-            PropertiesFloat = wo.GetAllPropertyFloatWhere(ClientProperties.PropertiesDouble);
-            PropertiesString = wo.GetAllPropertyStringWhere(ClientProperties.PropertiesString);
-            PropertiesDID = wo.GetAllPropertyDataIdWhere(ClientProperties.PropertiesDataId);
-            PropertiesIID = wo.GetAllPropertyInstanceIdWhere(ClientProperties.PropertiesInstanceId);
+            PropertiesInt = wo.GetAllPropertyIntWhere(AssessmentProperties.PropertiesInt);
+            PropertiesInt64 = wo.GetAllPropertyInt64Where(AssessmentProperties.PropertiesInt64);
+            PropertiesBool = wo.GetAllPropertyBoolsWhere(AssessmentProperties.PropertiesBool);
+            PropertiesFloat = wo.GetAllPropertyFloatWhere(AssessmentProperties.PropertiesDouble);
+            PropertiesString = wo.GetAllPropertyStringWhere(AssessmentProperties.PropertiesString);
+            PropertiesDID = wo.GetAllPropertyDataIdWhere(AssessmentProperties.PropertiesDataId);
+            PropertiesIID = wo.GetAllPropertyInstanceIdWhere(AssessmentProperties.PropertiesInstanceId);
 
             if (wo is Player player)
             {

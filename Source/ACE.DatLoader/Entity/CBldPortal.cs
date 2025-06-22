@@ -10,7 +10,7 @@ namespace ACE.DatLoader.Entity
 
         // Not sure what these do. They are both calculated from the flags.
         public bool ExactMatch => Flags.HasFlag(PortalFlags.ExactMatch);
-        public bool PortalSide => Flags.HasFlag(PortalFlags.PortalSide);
+        public bool PortalSide => !Flags.HasFlag(PortalFlags.PortalSide);       // this->portal_side = ((unsigned __int8)~(_BYTE)v5 >> 1) & 1;
 
         // Basically the cells that connect both sides of the portal
         public ushort OtherCellId { get; private set; }

@@ -1,5 +1,6 @@
 using ACE.Common;
 using ACE.Database.Models.World;
+using ACE.Server.Factories.Enum;
 using ACE.Server.Factories.Tables;
 using ACE.Server.WorldObjects;
 
@@ -7,21 +8,20 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
+        /// <summary>
+        /// This is only called by /testlootgen command
+        /// The actual lootgen system doesn't use this.
+        /// </summary>
         private static WorldObject CreateWeapon(TreasureDeath profile, bool isMagical)
         {
-            int chance = ThreadSafeRandom.Next(1, 100);
+            var weaponType = WeaponTypeChance.Roll(profile.Tier);
 
-            // Aligning drop ratio to better align with retail - HarliQ 11/11/19
-            // Melee - 42%
-            // Missile - 36%
-            // Casters - 22%
-
-            return chance switch
-            {
-                var rate when (rate < 43) => CreateMeleeWeapon(profile, isMagical),
-                var rate when (rate > 42 && rate < 79) => CreateMissileWeapon(profile, isMagical),
-                _ => CreateCaster(profile, isMagical),
-            };
+            if (weaponType.IsMeleeWeapon())
+                return CreateMeleeWeapon(profile, isMagical);
+            else if (weaponType.IsMissileWeapon())
+                return CreateMissileWeapon(profile, isMagical);
+            else
+                return CreateCaster(profile, isMagical);
         }
 
         private static float RollWeaponSpeedMod(TreasureDeath treasureDeath)

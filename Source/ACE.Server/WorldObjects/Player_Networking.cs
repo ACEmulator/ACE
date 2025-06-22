@@ -24,7 +24,7 @@ namespace ACE.Server.WorldObjects
             PlayerManager.SwitchPlayerFromOfflineToOnline(this);
             Teleporting = true;
 
-            // Save the the LoginTimestamp
+            // Save the LoginTimestamp
             var lastLoginTimestamp = Time.GetUnixTime();
 
             LoginTimestamp = lastLoginTimestamp;

@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 
 namespace ACE.Common.Extensions
 {
@@ -51,6 +52,11 @@ namespace ACE.Common.Extensions
                 result = result.Substring(0, result.Length - trimEnd.Length);
 
             return result;
+        }
+
+        public static string WildCardToRegular(this string value)
+        {
+            return "^" + Regex.Escape(value).Replace("\\*", ".*") + "$";
         }
     }
 }
