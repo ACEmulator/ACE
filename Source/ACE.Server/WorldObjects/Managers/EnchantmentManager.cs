@@ -1291,10 +1291,21 @@ namespace ACE.Server.WorldObjects.Managers
 
             // do healing
             var healAmount = creature.UpdateVitalDelta(creature.Health, (int)Math.Round(tickAmountTotal));
-            creature.DamageHistory.OnHeal((uint)healAmount);
+
+            // account for negative HealOverTime spells, such as 5172 - Spectral Fountain Sip
+            if (healAmount >= 0)
+                creature.DamageHistory.OnHeal((uint)healAmount);
+            else
+                creature.DamageHistory.Add(creature, DamageType.Health, (uint)-healAmount);
 
             if (creature is Player player)
-                player.SendMessage($"You receive {healAmount} points of periodic healing.", PropertyManager.GetBool("aetheria_heal_color").Item ? ChatMessageType.Broadcast : ChatMessageType.Combat);
+                player.SendMessage($"You receive {Math.Abs(healAmount)} points of periodic {((healAmount >= 0) ? "healing" : "harm")}.", PropertyManager.GetBool("aetheria_heal_color").Item ? ChatMessageType.Broadcast : ChatMessageType.Combat);
+
+            if (creature.IsDead)
+            {
+                creature.OnDeath(creature.DamageHistory.LastDamager, DamageType.Health, false);
+                creature.Die();
+            }
         }
 
         /// <summary>

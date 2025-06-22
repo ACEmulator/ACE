@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 namespace ACE.Entity.Enum
 {
     // Thanks to tfarley (aclogview) for these enums
