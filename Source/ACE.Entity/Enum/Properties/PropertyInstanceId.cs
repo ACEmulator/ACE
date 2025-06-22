@@ -2,15 +2,12 @@ using System.ComponentModel;
 
 namespace ACE.Entity.Enum.Properties
 {
+    // No properties are sent to the client unless they featured an attribute.
+    // SendOnLogin gets sent to players in the PlayerDescription event
+    // AssessmentProperty gets sent in successful appraisal
     public enum PropertyInstanceId : ushort
     {
-        // properties marked as ServerOnly are properties we never saw in PCAPs, from here:
-        // http://ac.yotesfan.com/ace_object/not_used_enums.php
-        // source: @OptimShi
-
-        // description attributes are used by the weenie editor for a cleaner display name
-
-        Undef = 0,
+        Undef                            = 0,
         Owner                            = 1,
         Container                        = 2,
         Wielder                          = 3,
@@ -52,7 +49,7 @@ namespace ACE.Entity.Enum.Properties
         CombatTarget                     = 27,
         [Ephemeral]
         HealthQueryTarget                = 28,
-        [ServerOnly][Ephemeral]
+        [Ephemeral]
         LastUnlocker                     = 29,
         CrashAndTurnTarget               = 30,
         AllowedActivator                 = 31,
@@ -69,24 +66,14 @@ namespace ACE.Entity.Enum.Properties
         LimboSource                      = 40,
         Snooper                          = 41,
         TeleportedCharacter              = 42,
-        [ServerOnly][Ephemeral]
+        [Ephemeral]
         Pet                              = 43,
         PetOwner                         = 44,
-        [ServerOnly][Ephemeral]
+        [Ephemeral]
         PetDevice                        = 45,
 
-        [ServerOnly]
+        /* Custom Properties */
         PCAPRecordedObjectIID            = 8000,
-        [ServerOnly]
-        PCAPRecordedParentIID            = 8008
-    }
-
-    public static class PropertyInstanceIdExtensions
-    {
-        public static string GetDescription(this PropertyInstanceId prop)
-        {
-            var description = prop.GetAttributeOfType<DescriptionAttribute>();
-            return description?.Description ?? prop.ToString();
-        }
+        PCAPRecordedParentIID            = 8008,
     }
 }

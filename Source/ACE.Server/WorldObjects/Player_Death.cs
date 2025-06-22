@@ -333,6 +333,8 @@ namespace ACE.Server.WorldObjects
             {
                 EnqueueBroadcast(new GameMessageHearSpeech(SuicideMessages[step], GetNameWithSuffix(), Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
 
+                OnTalk(SuicideMessages[step]);
+
                 var suicideChain = new ActionChain();
                 suicideChain.AddDelaySeconds(3.0f);
                 suicideChain.AddAction(this, () => HandleSuicide(numDeaths, step + 1));
