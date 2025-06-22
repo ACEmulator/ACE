@@ -1,4 +1,4 @@
-﻿using ACE.DatLoader.Entity;
+using ACE.DatLoader.Entity;
 
 namespace ACE.Server.Physics.Common
 {
