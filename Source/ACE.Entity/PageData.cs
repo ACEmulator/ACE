@@ -1,4 +1,4 @@
-﻿namespace ACE.Entity
+namespace ACE.Entity
 {
     public class PageData
     {
