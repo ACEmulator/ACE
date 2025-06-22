@@ -1153,7 +1153,27 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public uint WeenieClassId => Biota.WeenieClassId;
 
-        public string WeenieClassName => DatabaseManager.World.GetCachedWeenie(WeenieClassId).ClassName;
+        public string WeenieClassName
+        {
+            // Check if there is a cached weenie to prevent a crash. This can happen if a weenie no longer exists in ACE_WORLD, but instances of it still exist in ACE_SHARD.
+            get
+            {
+                if (DatabaseManager.World.GetCachedWeenie(WeenieClassId) is not null)
+                    return DatabaseManager.World.GetCachedWeenie(WeenieClassId).ClassName;
+                else
+                {
+                    log.Warn($"WorldObject.WeenieClassName -- No cached weenie found for WCID {WeenieClassId}");
+                    return "WeenieClassName_NOT_FOUND";
+                }
+            }
+            set
+            {
+                if (DatabaseManager.World.GetCachedWeenie(WeenieClassId) is not null)
+                    DatabaseManager.World.GetCachedWeenie(WeenieClassId).ClassName = value;
+                else
+                    log.Error($"WorldObject.WeenieClassName setter -- No cached weenie found for WCID {WeenieClassId}");
+            }
+        }
 
         public WeenieType WeenieType => (WeenieType)Biota.WeenieType;
 

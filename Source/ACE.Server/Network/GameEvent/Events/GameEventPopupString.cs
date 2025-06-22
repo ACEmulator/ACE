@@ -1,4 +1,4 @@
-﻿namespace ACE.Server.Network.GameEvent.Events
+namespace ACE.Server.Network.GameEvent.Events
 {
     public class GameEventPopupString : GameEventMessage
     {

@@ -2,18 +2,17 @@ using System.ComponentModel;
 
 namespace ACE.Entity.Enum.Properties
 {
+    // No properties are sent to the client unless they featured an attribute.
+    // SendOnLogin gets sent to players in the PlayerDescription event
+    // AssessmentProperty gets sent in successful appraisal
     public enum PropertyBool : ushort
     {
-        // properties marked as ServerOnly are properties we never saw in PCAPs, from here:
-        // http://ac.yotesfan.com/ace_object/not_used_enums.php
-        // source: @OptimShi
-        // description attributes are used by the weenie editor for a cleaner display name
-
         Undef                            = 0,
-        [Ephemeral][ServerOnly]
-        Stuck                            = 1,
         [Ephemeral]
+        Stuck                            = 1,
+        [AssessmentProperty][Ephemeral]
         Open                             = 2,
+        [AssessmentProperty]
         Locked                           = 3,
         RotProof                         = 4,
         AllegianceUpdateRequest          = 5,
@@ -22,25 +21,18 @@ namespace ACE.Entity.Enum.Properties
         AllowGive                        = 8,
         CurrentlyAttacking               = 9,
         AttackerAi                       = 10,
-        [ServerOnly]
         IgnoreCollisions                 = 11,
-        [ServerOnly]
         ReportCollisions                 = 12,
-        [ServerOnly]
         Ethereal                         = 13,
-        [ServerOnly]
         GravityStatus                    = 14,
-        [ServerOnly]
         LightsStatus                     = 15,
-        [ServerOnly]
         ScriptedCollision                = 16,
-        [ServerOnly]
         Inelastic                        = 17,
-        [ServerOnly][Ephemeral]
+        [Ephemeral]
         Visibility                       = 18,
-        [ServerOnly]
         Attackable                       = 19,
         SafeSpellComponents              = 20,
+        [SendOnLogin]
         AdvocateState                    = 21,
         Inscribable                      = 22,
         DestroyOnSell                    = 23,
@@ -66,11 +58,11 @@ namespace ACE.Entity.Enum.Properties
         ReportCollisionsAsEnvironment    = 41,
         AllowEdgeSlide                   = 42,
         AdvocateQuest                    = 43,
-        [Ephemeral][SendOnLogin]
+        [SendOnLogin][Ephemeral]
         IsAdmin                          = 44,
-        [Ephemeral][SendOnLogin]
+        [SendOnLogin][Ephemeral]
         IsArch                           = 45,
-        [Ephemeral][SendOnLogin]
+        [SendOnLogin][Ephemeral]
         IsSentinel                       = 46,
         [SendOnLogin]
         IsAdvocate                       = 47,
@@ -91,6 +83,7 @@ namespace ACE.Entity.Enum.Properties
         IsAcceptingTells                 = 60,
         LoggingChannel                   = 61,
         OpensAnyLock                     = 62,
+        [AssessmentProperty]
         UnlimitedUse                     = 63,
         GeneratedTreasureItem            = 64,
         IgnoreMagicResist                = 65,
@@ -98,6 +91,7 @@ namespace ACE.Entity.Enum.Properties
         AiAllowTrade                     = 67,
         [SendOnLogin]
         SpellComponentsRequired          = 68,
+        [AssessmentProperty]
         IsSellable                       = 69,
         IgnoreShieldsBySkill             = 70,
         NoDraw                           = 71,
@@ -113,25 +107,29 @@ namespace ACE.Entity.Enum.Properties
         IgnorePortalRestrictions         = 80,
         RequiresBackpackSlot             = 81,
         DontTurnOrMoveWhenGiving         = 82,
-        [ServerOnly]
         NpcLooksLikeObject               = 83,
         IgnoreCloIcons                   = 84,
+        [AssessmentProperty]
         AppraisalHasAllowedWielder       = 85,
         ChestRegenOnClose                = 86,
         LogoffInMinigame                 = 87,
         PortalShowDestination            = 88,
         PortalIgnoresPkAttackTimer       = 89,
         NpcInteractsSilently             = 90,
+        [AssessmentProperty]
         Retained                         = 91,
         IgnoreAuthor                     = 92,
         Limbo                            = 93,
+        [AssessmentProperty]
         AppraisalHasAllowedActivator     = 94,
         ExistedBeforeAllegianceXpChanges = 95,
         IsDeaf                           = 96,
-        [Ephemeral][SendOnLogin]
+        [SendOnLogin][Ephemeral]
         IsPsr                            = 97,
         Invincible                       = 98,
+        [AssessmentProperty]
         Ivoryable                        = 99,
+        [AssessmentProperty]
         Dyable                           = 100,
         CanGenerateRare                  = 101,
         CorpseGeneratedRare              = 102,
@@ -142,6 +140,7 @@ namespace ACE.Entity.Enum.Properties
         [Ephemeral]
         FirstEnterWorldDone              = 106,
         RecallsDisabled                  = 107,
+        [AssessmentProperty]
         RareUsesTimer                    = 108,
         ActdPreorderReceivedItems        = 109,
         [Ephemeral]
@@ -167,39 +166,21 @@ namespace ACE.Entity.Enum.Properties
         [SendOnLogin]
         Account15Days                    = 127,
         HadNoVitae                       = 128,
-        [SendOnLogin]
         NoOlthoiTalk                     = 129,
+        [AssessmentProperty]
         AutowieldLeft                    = 130,
 
-        /* custom */
-        [ServerOnly]
+        /* Custom Properties */
         LinkedPortalOneSummon            = 9001,
-        [ServerOnly]
         LinkedPortalTwoSummon            = 9002,
-        [ServerOnly]
         HouseEvicted                     = 9003,
-        [ServerOnly]
         UntrainedSkills                  = 9004,
-        [Ephemeral][ServerOnly]
+        [Ephemeral]
         IsEnvoy                          = 9005,
-        [ServerOnly]
         UnspecializedSkills              = 9006,
-        [ServerOnly]
         FreeSkillResetRenewed            = 9007,
-        [ServerOnly]
         FreeAttributeResetRenewed        = 9008,
-        [ServerOnly]
         SkillTemplesTimerReset           = 9009,
-        [ServerOnly]
         FreeMasteryResetRenewed          = 9010,
-    }
-
-    public static class PropertyBoolExtensions
-    {
-        public static string GetDescription(this PropertyBool prop)
-        {
-            var description = prop.GetAttributeOfType<DescriptionAttribute>();
-            return description?.Description ?? prop.ToString();
-        }
     }
 }

@@ -273,6 +273,16 @@ namespace ACE.Server.WorldObjects
                         HandleActionChangeCombatMode(CombatMode.Magic);
                         break;
 
+                    case EquipMask.Shield:
+
+                        var weapon = GetEquippedWeapon(true);
+
+                        if (weapon != null && weapon.DefaultCombatStyle == CombatStyle.ThrownWeapon)
+                            HandleActionChangeCombatMode(CombatMode.Missile);
+                        else
+                            HandleActionChangeCombatMode(CombatMode.Melee);
+                        break;
+
                     default:
                         HandleActionChangeCombatMode(CombatMode.Melee);
                         break;
@@ -431,6 +441,11 @@ namespace ACE.Server.WorldObjects
 
                     if (CombatMode == CombatMode.Missile && wieldedLocation == EquipMask.MissileAmmo)
                         newCombatMode = CombatMode.NonCombat;
+
+                    var weapon = GetEquippedWeapon(true);
+
+                    if (weapon != null && weapon.DefaultCombatStyle == CombatStyle.ThrownWeapon)
+                        newCombatMode = CombatMode.Missile;
 
                     HandleActionChangeCombatMode(newCombatMode);
                 }

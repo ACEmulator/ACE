@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 using log4net;
@@ -429,7 +430,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("limbo", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
         public static void HandleLimbo(Session session, params string[] parameters)
         {
-            // @limbo[on / off] - Puts the targeted player in 'limbo' which means that the player cannot damage anything or be damaged by anything.The player will not recieve direct tells, or channel messages, such as fellowship messages and allegiance chat.  The player will be unable to salvage.This status times out after 15 minutes, use '@limbo on' again on the player to reset the timer. You and the player will be notifed when limbo wears off.If neither on or off are specified, on is assumed.
+            // @limbo[on / off] - Puts the targeted player in 'limbo' which means that the player cannot damage anything or be damaged by anything.The player will not receive direct tells, or channel messages, such as fellowship messages and allegiance chat.  The player will be unable to salvage.This status times out after 15 minutes, use '@limbo on' again on the player to reset the timer. You and the player will be notifed when limbo wears off.If neither on or off are specified, on is assumed.
             // @limbo - Puts the selected target in limbo.
 
             // TODO: output
@@ -3541,12 +3542,25 @@ namespace ACE.Server.Command.Handlers
                 foreach (var possession in possessions)
                     possessedBiotas.Add((possession.Biota, possession.BiotaDatabaseLock));
 
-                DatabaseManager.Shard.AddCharacterInParallel(player.Biota, player.BiotaDatabaseLock, possessedBiotas, player.Character, player.CharacterDatabaseLock, null);
+                // We must await here -- 
+                DatabaseManager.Shard.AddCharacterInParallel(player.Biota, player.BiotaDatabaseLock, possessedBiotas, player.Character, player.CharacterDatabaseLock, saveSuccess =>
+                {
+                    if (!saveSuccess)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Failed to create a morph based on {weenie.ClassName} to a new character \"{player.Name}\" for the account \"{player.Account.AccountName}\"!", ChatMessageType.Broadcast);
+                        return;
+                    }
 
-                PlayerManager.AddOfflinePlayer(player);
-                session.Characters.Add(player.Character);
+                    PlayerManager.AddOfflinePlayer(player);
 
-                session.LogOffPlayer();
+                    session.Characters.Add(player.Character);
+
+                    var msg = $"Successfully created a morph based on {weenie.ClassName} to a new character \"{player.Name}\" for the account \"{player.Account.AccountName}\".";
+                    CommandHandlerHelper.WriteOutputInfo(session, msg, ChatMessageType.Broadcast);
+                    PlayerManager.BroadcastToAuditChannel(session.Player, msg);
+
+                    session.LogOffPlayer();
+                });
             });
         }
 
@@ -3593,9 +3607,18 @@ namespace ACE.Server.Command.Handlers
 
                     var quests = creature.QuestManager.GetQuests();
 
+                    var filter = string.Empty;
+                    if (parameters.Length >= 2)
+                    {
+                        filter = parameters[1].ToString();
+
+                        if (!string.IsNullOrWhiteSpace(filter))
+                            quests = quests.Where(q => Regex.IsMatch(q.QuestName, filter.WildCardToRegular(), RegexOptions.IgnoreCase)).ToList();
+                    }
+
                     if (quests.Count == 0)
                     {
-                        session.Player.SendMessage("No quests found.");
+                        session.Player.SendMessage($"No quests found{(!string.IsNullOrWhiteSpace(filter) ? $" with filter {filter}" : "")}.");
                         return;
                     }
 
@@ -3863,9 +3886,18 @@ namespace ACE.Server.Command.Handlers
 
                             var quests = fellowship.QuestManager.GetQuests();
 
+                            var filter = string.Empty;
+                            if (parameters.Length >= 2)
+                            {
+                                filter = parameters[1].ToString();
+
+                                if (!string.IsNullOrWhiteSpace(filter))
+                                    quests = quests.Where(q => Regex.IsMatch(q.QuestName, filter.WildCardToRegular(), RegexOptions.IgnoreCase)).ToList();
+                            }
+
                             if (quests.Count == 0)
                             {
-                                session.Player.SendMessage("No quests found.");
+                                session.Player.SendMessage($"No quests found{(!string.IsNullOrWhiteSpace(filter) ? $" with filter {filter}" : "")}.");
                                 return;
                             }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +9,7 @@ using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Server.Command.Handlers.Processors;
+using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 
@@ -292,5 +294,78 @@ namespace ACE.Server.Command.Handlers
                 }
             }
         }
+
+        /**
+         * Will display and optionally rename Gear Plated items that have an incorrect PropertyString.GearPlatingName value. 
+         * The logic to deduce the GearPlatingName was updated in early 2025. This should only be needed to be run once, if at all.
+         */
+        [CommandHandler("fix-gear-plating", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, "Corrects the name on Gear Plating.", "<execute>")]
+        public static void HandleFixGearPlating(Session session, params string[] parameters)
+        {
+            Console.WriteLine();
+
+            Console.WriteLine("This command will attempt to correct the names on Gear Plated items. Unless explictly indicated, command will dry run only.");
+
+            Console.WriteLine();
+
+            var execute = false;
+
+            if (parameters.Length < 1)
+                Console.WriteLine("This will be a dry run and show which characters that would be affected. To perform fix, please use command: \"fix-gear-plating execute\"");
+            else if (parameters[0].ToLower() == "execute")
+                execute = true;
+            else
+                Console.WriteLine("Please use command \"fix-gear-plating execute\"");
+
+            Console.WriteLine();
+            var sqlCommands = new List<string>();
+
+            using (var ctx = new ShardDbContext())
+            {
+                string query = "SELECT s.object_Id, c.name, s.value as itemName, s2.value as gearPlatingName, i.value as locations from `character` as c, biota_properties_i_i_d as iid, biota_properties_int as i, biota_properties_string as s, biota_properties_string as s2 where c.id = iid.value and iid.`type` = 1 and s.type = 1 and s2.type = 52 and i.`type` = 9 and s.object_Id = s2.object_Id and iid.object_Id = s.object_Id and i.object_Id = s.object_Id;";
+                using (var command = ctx.Database.GetDbConnection().CreateCommand()) {
+                    command.CommandText = query;
+                    command.CommandType = CommandType.Text;
+                    ctx.Database.OpenConnection();
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            uint object_Id = reader.GetFieldValue<uint>(reader.GetOrdinal("object_Id"));
+                            var characterName = reader.GetString(reader.GetOrdinal("name"));
+                            var itemName = reader.GetString(reader.GetOrdinal("itemName"));
+                            var gearPlatingName = reader.GetString(reader.GetOrdinal("gearPlatingName"));
+                            var locations = reader.GetInt32(reader.GetOrdinal("locations"));
+
+                            // Check if the name matches what it should. Note this wi
+                            string newGearPlatingName = CorePlating.GetGearPlatingName((EquipMask)locations);
+                            if (newGearPlatingName != gearPlatingName)
+                            {
+                                string updateSQL = $"UPDATE `biota_properties_string` SET `value` = '{newGearPlatingName}' WHERE `biota_properties_string`.`object_Id` = {object_Id} AND `biota_properties_string`.`type` = 52;";
+                                sqlCommands.Add(updateSQL);
+                                Console.WriteLine($"Char: {characterName} - Change `{itemName}` from \"{gearPlatingName}\" to \"{newGearPlatingName}\"");
+                            }
+                        }
+                    }
+                }
+                Console.WriteLine();
+                Console.WriteLine($" -- There are {sqlCommands.Count} items that have incorrect Gear Plating Name values. --");
+                Console.WriteLine();
+
+                if (execute)
+                {
+                    Console.WriteLine("Executing changes...");
+
+                    foreach (var cmd in sqlCommands)
+                        ctx.Database.ExecuteSqlRaw(cmd);
+
+                    Console.WriteLine("Finished.");
+                }
+                else
+                    Console.WriteLine("Dry run completed. Use \"fix-gear-plating execute\" to actually run command");
+            }
+        }
+
     }
 }

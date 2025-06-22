@@ -51,8 +51,8 @@ namespace ACE.Server.Command.Handlers
                     case "caster":
                     case "jewelry":
                     case "armor":
-                    case "pet":
-                    case "aetheria":
+                    case "pet":         // it appears TestLootGen -> CreateRandomLootObjects profiles do not contain any PetDevices, not sure if this is a bug?
+                    case "aetheria":    // it appears TestLootGen -> CreateRandomLootObjects profiles do not contain any Aetheria, not sure if this is a bug?
                     case "all":
                     case "cloak":
                         displayTable = parameters[2].ToLower();
