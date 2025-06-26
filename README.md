@@ -39,3 +39,10 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 
 ## Contact
 * [Discord Channel](https://discord.gg/C2WzhP9)
+
+## Database Management Scripts
+Database export and rebase utilities are located in `Database/tools`.
+Windows users can run the existing `*.bat` files, while Linux/macOS users can use
+the new `*.sh` equivalents such as `ExportShardBase.sh` and
+`RebaseWorldBase.sh`. These scripts call `mysqldump` and `mysql` from the
+standard system paths.
