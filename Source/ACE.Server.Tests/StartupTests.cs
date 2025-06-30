@@ -16,7 +16,14 @@ namespace ACE.Server.Tests
         public static void TestSetup(TestContext context)
         {
             // copy config.js and initialize configuration
-            File.Copy(Path.Combine(Environment.CurrentDirectory, "..\\..\\..\\..\\..\\ACE.Server\\Config.js"), ".\\Config.js", true);
+            var testDir = AppContext.BaseDirectory;
+            var serverDir = Path.GetFullPath(Path.Combine(testDir, "..", "..", "..", "..", "ACE.Server"));
+            var configSource = Path.Combine(serverDir, "Config.js");
+
+            if (!File.Exists(configSource))
+                configSource = Path.Combine(serverDir, "Config.js.example");
+
+            File.Copy(configSource, Path.Combine(testDir, "Config.js"), true);
             ConfigManager.Initialize();
         }
 
