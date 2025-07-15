@@ -22,6 +22,10 @@ updates:
       # Ignore major version updates for the following
       - dependency-name: "System.*"
         update-types: ["version-update:semver-major"]
+      - dependency-name: "Microsoft.EntityFrameworkCore"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "log4net"
+        update-types: ["version-update:semver-major"]
 
   # Maintain dependencies for Docker
   - package-ecosystem: "docker"
