@@ -18,7 +18,6 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 15
-    allow-grouped-updates: false
 
   # Maintain dependencies for Docker
   - package-ecosystem: "docker"
