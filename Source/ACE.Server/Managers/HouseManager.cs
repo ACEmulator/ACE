@@ -48,6 +48,11 @@ namespace ACE.Server.Managers
 
         public static void Initialize()
         {
+            TotalOwnedHousingByType[HouseType.Apartment] = 0;
+            TotalOwnedHousingByType[HouseType.Cottage] = 0;
+            TotalOwnedHousingByType[HouseType.Villa] = 0;
+            TotalOwnedHousingByType[HouseType.Mansion] = 0;
+
             BuildHouseIdToGuid();
 
             BuildRentQueue();
@@ -198,6 +203,8 @@ namespace ACE.Server.Managers
             var playerHouse = new PlayerHouse(player, house);
 
             RentQueue.Add(playerHouse);
+
+            TotalOwnedHousingByType[playerHouse.House.HouseType]++;
         }
 
         /// <summary>
@@ -336,6 +343,7 @@ namespace ACE.Server.Managers
             while (currentTime > nextEntry.RentDue)
             {
                 RentQueue.Remove(nextEntry);
+                DecrementTotalOwnedHousingByType(nextEntry.House.HouseType);
 
                 ProcessRent(nextEntry);
 
@@ -507,6 +515,7 @@ namespace ACE.Server.Managers
             if (multihouse)
             {
                 RemoveRentQueue(house.Guid.Full);
+                DecrementTotalOwnedHousingByType(house.HouseType);
 
                 player.SaveBiotaToDatabase();
 
@@ -621,7 +630,7 @@ namespace ACE.Server.Managers
         }
 
         // This function is called from a database callback.
-        // We must add thread safety to prevent AllegianceManager corruption
+        // We must add thread safety to prevent HouseManager corruption
         public static void HandlePlayerDelete(uint playerGuid)
         {
             WorldManager.EnqueueAction(new ActionEventDelegate(() => DoHandlePlayerDelete(playerGuid)));
@@ -654,6 +663,7 @@ namespace ACE.Server.Managers
                 HandleEviction(playerHouse, true);
 
                 RemoveRentQueue(house.Guid.Full);
+                DecrementTotalOwnedHousingByType(house.HouseType);
             });
         }
 
@@ -921,5 +931,13 @@ namespace ACE.Server.Managers
                 PayRent(house);
             }
         }
+
+        public static int TotalOwnedHousing => RentQueue?.Count ?? 0;
+
+        public static Dictionary<HouseType, int> TotalOwnedHousingByType = new Dictionary<HouseType, int>();
+
+        public static void IncrementTotalOwnedHousingByType(HouseType houseType) => TotalOwnedHousingByType[houseType]++;
+
+        public static void DecrementTotalOwnedHousingByType(HouseType houseType) => TotalOwnedHousingByType[houseType]--;
     }
 }

@@ -531,6 +531,7 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameMessageSystemChat("You abandon your house!", ChatMessageType.Broadcast));
 
             HouseManager.RemoveRentQueue(house.Guid.Full);
+            HouseManager.DecrementTotalOwnedHousingByType(house.HouseType);
 
             house.ClearRestrictions();
 
