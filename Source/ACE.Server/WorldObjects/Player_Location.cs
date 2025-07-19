@@ -450,7 +450,7 @@ namespace ACE.Server.WorldObjects
                 return null;
             }
 
-            if (allegianceHouse.HouseType < HouseType.Villa)
+            if (allegianceHouse.HouseType != HouseType.Villa && allegianceHouse.HouseType != HouseType.Mansion)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourMonarchsHouseIsNotAMansionOrVilla));
                 return null;
