@@ -36,56 +36,66 @@ namespace ACE.Server.WorldObjects
 
         public override void SetLinkProperties(WorldObject wo)
         {
-            if (House == null)
+            try
             {
-                log.Warn($"[HOUSE] HousePortal.SetLinkProperties({(wo != null ? $"{wo.Name}:0x{wo.Guid}:{wo.WeenieClassId}" : "null")}): House is null for HousePortal 0x{Guid} at {Location.ToLOCString()}");
-                return;
-            }
-
-            if (wo == null)
-            {
-                log.Warn($"[HOUSE] HousePortal.SetLinkProperties(null): WorldObject is null for HousePortal 0x{Guid} at {Location.ToLOCString()} | {(House != null ? $"House = {House.Name}:0x{House.Guid}:{House.WeenieClassId}" : "House is null")}");
-                return;
-            }
-
-            // get properties from parent?
-            wo.HouseId = House.HouseId;
-            wo.HouseOwner = House.HouseOwner;
-            wo.HouseInstance = House.HouseInstance;
-
-            if (wo.IsLinkSpot)
-            {
-                var housePortals = House.GetHousePortals();
-                if (housePortals.Count == 0)
+                if (House == null)
                 {
-                    Console.WriteLine($"{Name}.SetLinkProperties({wo.Name}): found LinkSpot, but empty HousePortals");
+                    log.Warn($"[HOUSE] HousePortal.SetLinkProperties({(wo != null ? $"{wo.Name}:0x{wo.Guid}:{wo.WeenieClassId}" : "null")}): House is null for HousePortal 0x{Guid} at {Location.ToLOCString()}");
                     return;
                 }
-                var i = housePortals[0];
 
-                if (i.ObjCellId == Location.Cell)
+                if (wo == null)
                 {
-                    if (housePortals.Count > 1)
-                        i = housePortals[1];
-                    else
-                    { // there are some houses that for some reason, don't have return locations, so we'll fake the entry with a reference to the root house portal location mimicking other database entries.
-                        i = new Database.Models.World.HousePortal { ObjCellId = House.RootHouse.HousePortal.Location.Cell,
-                                                                      OriginX = House.RootHouse.HousePortal.Location.PositionX,
-                                                                      OriginY = House.RootHouse.HousePortal.Location.PositionY,
-                                                                      OriginZ = House.RootHouse.HousePortal.Location.PositionZ,
-                                                                      AnglesX = House.RootHouse.HousePortal.Location.RotationX,
-                                                                      AnglesY = House.RootHouse.HousePortal.Location.RotationY,
-                                                                      AnglesZ = House.RootHouse.HousePortal.Location.RotationZ,
-                                                                      AnglesW = House.RootHouse.HousePortal.Location.RotationW };
-                    }
+                    log.Warn($"[HOUSE] HousePortal.SetLinkProperties(null): WorldObject is null for HousePortal 0x{Guid} at {Location.ToLOCString()} | {(House != null ? $"House = {House.Name}:0x{House.Guid}:{House.WeenieClassId}" : "House is null")}");
+                    return;
                 }
 
-                var destination = new Position(i.ObjCellId, new Vector3(i.OriginX, i.OriginY, i.OriginZ), new Quaternion(i.AnglesX, i.AnglesY, i.AnglesZ, i.AnglesW));
+                // get properties from parent?
+                wo.HouseId = House.HouseId;
+                wo.HouseOwner = House.HouseOwner;
+                wo.HouseInstance = House.HouseInstance;
 
-                wo.SetPosition(PositionType.Destination, destination);
+                if (wo.IsLinkSpot)
+                {
+                    var housePortals = House.GetHousePortals();
+                    if (housePortals.Count == 0)
+                    {
+                        Console.WriteLine($"{Name}.SetLinkProperties({wo.Name}): found LinkSpot, but empty HousePortals");
+                        return;
+                    }
+                    var i = housePortals[0];
 
-                // set portal destination directly?
-                SetPosition(PositionType.Destination, destination);
+                    if (i.ObjCellId == Location.Cell)
+                    {
+                        if (housePortals.Count > 1)
+                            i = housePortals[1];
+                        else
+                        { // there are some houses that for some reason, don't have return locations, so we'll fake the entry with a reference to the root house portal location mimicking other database entries.
+                            i = new Database.Models.World.HousePortal
+                            {
+                                ObjCellId = House.RootHouse.HousePortal.Location.Cell,
+                                OriginX = House.RootHouse.HousePortal.Location.PositionX,
+                                OriginY = House.RootHouse.HousePortal.Location.PositionY,
+                                OriginZ = House.RootHouse.HousePortal.Location.PositionZ,
+                                AnglesX = House.RootHouse.HousePortal.Location.RotationX,
+                                AnglesY = House.RootHouse.HousePortal.Location.RotationY,
+                                AnglesZ = House.RootHouse.HousePortal.Location.RotationZ,
+                                AnglesW = House.RootHouse.HousePortal.Location.RotationW
+                            };
+                        }
+                    }
+
+                    var destination = new Position(i.ObjCellId, new Vector3(i.OriginX, i.OriginY, i.OriginZ), new Quaternion(i.AnglesX, i.AnglesY, i.AnglesZ, i.AnglesW));
+
+                    wo.SetPosition(PositionType.Destination, destination);
+
+                    // set portal destination directly?
+                    SetPosition(PositionType.Destination, destination);
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error($"[HOUSE] HousePortal.SetLinkProperties({(wo != null ? $"{wo.Name}:0x{wo.Guid}:{wo.WeenieClassId}" : "null")}): {(ParentLink != null ? $"ParentLink = {ParentLink.Name}:0x{ParentLink.Guid}:{ParentLink.WeenieClassId}" : "ParentLink is null")} {(House != null ? $"House = {House.Name}:0x{House.Guid}:{House.WeenieClassId}" : "House is null")} for HousePortal 0x{Guid} at {Location.ToLOCString()}\n Exception: {ex}");
             }
         }
 
