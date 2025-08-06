@@ -469,6 +469,12 @@ namespace ACE.Server.Entity
             // get cached body parts table
             var bodyParts = Creature.GetBodyParts(defender.WeenieClassId);
 
+            if (bodyParts == null)
+            {
+                Evaded = true;
+                return;
+            }
+
             // rng roll for body part
             var bodyPart = bodyParts.RollBodyPart(quadrant);
 

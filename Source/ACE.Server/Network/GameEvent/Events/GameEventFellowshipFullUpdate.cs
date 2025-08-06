@@ -15,6 +15,9 @@ namespace ACE.Server.Network.GameEvent.Events
         {
             var fellowship = session.Player.Fellowship;
 
+            if (fellowship == null)
+                return;
+            
             var fellows = fellowship.GetFellowshipMembers();
 
             PackableHashTable.WriteHeader(Writer, fellows.Count, FellowComparer.NumBuckets);

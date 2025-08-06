@@ -394,6 +394,8 @@ namespace ACE.Entity
         /// </summary>
         public float SquaredDistanceTo(Position p)
         {
+            if (p == null) return float.MaxValue;
+
             if (p.LandblockId == this.LandblockId)
             {
                 var dx = this.PositionX - p.PositionX;
@@ -417,6 +419,8 @@ namespace ACE.Entity
         /// </summary>
         public float Distance2D(Position p)
         {
+            if (p == null) return float.MaxValue;
+
             // originally this returned the offset instead of distance...
             if (p.LandblockId == this.LandblockId)
             {
@@ -439,6 +443,8 @@ namespace ACE.Entity
         /// </summary>
         public float Distance2DSquared(Position p)
         {
+            if (p == null) return float.MaxValue;
+
             // originally this returned the offset instead of distance...
             if (p.LandblockId == this.LandblockId)
             {
@@ -461,6 +467,8 @@ namespace ACE.Entity
         /// </summary>
         public float DistanceTo(Position p)
         {
+            if (p == null) return float.MaxValue;
+
             // originally this returned the offset instead of distance...
             if (p.LandblockId == this.LandblockId)
             {
@@ -486,6 +494,8 @@ namespace ACE.Entity
         /// </summary>
         public Vector3 GetOffset(Position p)
         {
+            if (p == null) return new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+
             var dx = (p.LandblockId.LandblockX - LandblockId.LandblockX) * 192 + p.PositionX - PositionX;
             var dy = (p.LandblockId.LandblockY - LandblockId.LandblockY) * 192 + p.PositionY - PositionY;
             var dz = p.PositionZ - PositionZ;
@@ -509,7 +519,7 @@ namespace ACE.Entity
 
         public bool Equals(Position p)
         {
-            return Cell == p.Cell && Pos.Equals(p.Pos) && Rotation.Equals(p.Rotation);
+            return p != null && Cell == p.Cell && Pos.Equals(p.Pos) && Rotation.Equals(p.Rotation);
         }
     }
 }
