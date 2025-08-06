@@ -530,7 +530,7 @@ namespace ACE.Server.WorldObjects
 
             if (!BodyParts.Indices.TryGetValue(bodyPart, out var iDamageLocation))
             {
-                log.Error($"{Name}.TakeDamage({source.Name}, {damageType}, {amount}, {bodyPart}, {crit}): avoided crash for bad damage location");
+                log.Warn($"{Name}.TakeDamage({source.Name}, {damageType}, {amount}, {bodyPart}, {crit}): avoided crash for bad damage location");
                 return 0;
             }
             var damageLocation = (DamageLocation)iDamageLocation;

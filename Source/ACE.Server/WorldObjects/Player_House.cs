@@ -401,7 +401,7 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            log.DebugFormat("[HOUSE] {0}.TryMoveItemForRent({1} ({2}), {3}{4} ({5})) - Successfully moved to Slumlord.", Name, slumlord.Name, slumlord.Guid, ((item.StackSize ?? 1) > 1 ? $"{item.StackSize}x " : ""), item.Name, item.Guid);
+            log.InfoFormat("[HOUSE] {0}.TryMoveItemForRent({1} ({2}), {3}{4} ({5})) - Successfully moved to Slumlord.", Name, slumlord.Name, slumlord.Guid, ((item.StackSize ?? 1) > 1 ? $"{item.StackSize}x " : ""), item.Name, item.Guid);
             return true;
         }
 
@@ -455,8 +455,7 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            if (log.IsDebugEnabled)
-                log.Debug($"[HOUSE] {Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - Created new item {((newItem.StackSize ?? 1) > 1 ? $"{newItem.StackSize}x " : "")}{newItem.Name} ({newItem.Guid}) and moved to Slumlord.");
+            log.Info($"[HOUSE] {Name}.TrySplitItemForRent({slumlord.Name} ({slumlord.Guid}), {item.Name} ({item.Guid}), {amount}) - Created new item {((newItem.StackSize ?? 1) > 1 ? $"{newItem.StackSize}x " : "")}{newItem.Name} ({newItem.Guid}) and moved to Slumlord.");
 
             // force save of new slumlord stack
             newItem.SaveBiotaToDatabase();

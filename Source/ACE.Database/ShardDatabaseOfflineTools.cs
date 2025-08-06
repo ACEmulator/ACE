@@ -131,7 +131,7 @@ namespace ACE.Database
             if (!string.IsNullOrWhiteSpace(reason))
                 message += $" Reason: {reason}.";
 
-            log.Debug(message);
+            log.Info(message);
 
             try
             {
@@ -246,7 +246,7 @@ namespace ACE.Database
             if (!string.IsNullOrWhiteSpace(reason))
                 message += $" Reason: {reason}.";
 
-            log.Debug(message);
+            log.Info(message);
 
             try
             {
@@ -302,7 +302,7 @@ namespace ACE.Database
                 if (!string.IsNullOrWhiteSpace(reason))
                     message += $" Reason: {reason}.";
 
-                log.Debug(message);
+                log.Info(message);
 
                 context.Biota.Remove(biota);
 
@@ -1040,7 +1040,7 @@ namespace ACE.Database
 
                 foreach (var invalidFriend in invalidFriends)
                 {
-                    log.DebugFormat("[PRUNE] Character 0x{0:X8} had 0x{1:X8} for a friend, which is not found in database, and has been removed from their friends list.", invalidFriend.CharacterId, invalidFriend.FriendId);
+                    log.InfoFormat("[PRUNE] Character 0x{0:X8} had 0x{1:X8} for a friend, which is not found in database, and has been removed from their friends list.", invalidFriend.CharacterId, invalidFriend.FriendId);
                     context.CharacterPropertiesFriendList.Remove(invalidFriend);
                     numberOfRecordsFixed++;
                 }
@@ -1076,7 +1076,7 @@ namespace ACE.Database
 
                 foreach (var invalidShortcut in invalidShortcuts)
                 {
-                    log.DebugFormat("[PRUNE] Character 0x{0:X8} had 0x{1:X8} as a shortcut (in position {2}), which is not found in database, and has been removed from their shortcut bar.", invalidShortcut.CharacterId, invalidShortcut.ShortcutObjectId, invalidShortcut.ShortcutBarIndex);
+                    log.InfoFormat("[PRUNE] Character 0x{0:X8} had 0x{1:X8} as a shortcut (in position {2}), which is not found in database, and has been removed from their shortcut bar.", invalidShortcut.CharacterId, invalidShortcut.ShortcutObjectId, invalidShortcut.ShortcutBarIndex);
                     context.CharacterPropertiesShortcutBar.Remove(invalidShortcut);
                     numberOfRecordsFixed++;
                 }
@@ -1115,7 +1115,7 @@ namespace ACE.Database
 
                 foreach (var invalidSquelchCharacter in invalidSquelchCharacters)
                 {
-                    log.DebugFormat("[PRUNE] Character 0x{0:X8} had 0x{1:X8} squelched, which is not found in database, and has been removed from their squelch list.", invalidSquelchCharacter.CharacterId, invalidSquelchCharacter.SquelchCharacterId);
+                    log.InfoFormat("[PRUNE] Character 0x{0:X8} had 0x{1:X8} squelched, which is not found in database, and has been removed from their squelch list.", invalidSquelchCharacter.CharacterId, invalidSquelchCharacter.SquelchCharacterId);
                     context.CharacterPropertiesSquelch.Remove(invalidSquelchCharacter);
                     numberOfRecordsFixed++;
                 }

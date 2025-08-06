@@ -54,7 +54,7 @@ namespace ACE.Server.WorldObjects
 
             if (CombatMode != CombatMode.Melee)
             {
-                log.Error($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {attackHeight}, {powerLevel}) - CombatMode mismatch {CombatMode}, LastCombatMode {LastCombatMode}");
+                log.Warn($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {attackHeight}, {powerLevel}) - CombatMode mismatch {CombatMode}, LastCombatMode {LastCombatMode}");
 
                 if (LastCombatMode == CombatMode.Melee)
                     CombatMode = CombatMode.Melee;

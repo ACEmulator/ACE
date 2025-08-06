@@ -29,7 +29,7 @@ namespace ACE.Database
                 {
                     if (((RelationalDatabaseCreator)context.Database.GetService<IDatabaseCreator>()).Exists())
                     {
-                        log.DebugFormat("Successfully connected to {0} database on {1}:{2}.", config.Database, config.Host, config.Port);
+                        log.InfoFormat("Successfully connected to {0} database on {1}:{2}.", config.Database, config.Host, config.Port);
                         return true;
                     }
                 }
