@@ -2803,9 +2803,9 @@ namespace ACE.Server.Physics
             if (CurCell == null || obj.CurCell == null)
             {
                 if (CurCell == null)
-                    log.Error($"{Name}.handle_visible_obj({obj.Name}): CurCell null");
+                    log.Warn($"{Name}.handle_visible_obj({obj.Name}): CurCell null");
                 else
-                    log.Error($"{Name}.handle_visible_obj({obj.Name}): obj.CurCell null");
+                    log.Warn($"{Name}.handle_visible_obj({obj.Name}): obj.CurCell null");
 
                 return false;
             }

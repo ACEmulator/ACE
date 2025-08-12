@@ -363,7 +363,7 @@ namespace ACE.Server.Managers
                 var isInActiveOrDisabled = playerHouse.House.HouseStatus <= HouseStatus.InActive;
                 var isPaid = IsRentPaid(playerHouse);
                 var hasRequirements = HasRequirements(playerHouse);
-                log.DebugFormat("[HOUSE] {0}.ProcessRent(): isPaid = {1} | HasRequirements = {2} | MaintenanceFree = {3}", playerHouse.PlayerName, isPaid, hasRequirements, (house.HouseStatus == HouseStatus.InActive));
+                log.InfoFormat("[HOUSE] {0}.ProcessRent(): isPaid = {1} | HasRequirements = {2} | MaintenanceFree = {3}", playerHouse.PlayerName, isPaid, hasRequirements, (house.HouseStatus == HouseStatus.InActive));
 
                 if (isInActiveOrDisabled || (isPaid && hasRequirements))
                     HandleRentPaid(playerHouse);
@@ -411,7 +411,7 @@ namespace ACE.Server.Managers
                 clearedInventoryStatus = "and cleared ";
             }
 
-            log.DebugFormat($"[HOUSE] HouseManager.HandleRentPaid({0}): rent payment successfully collected {clearedInventoryStatus}from SlumLord!", playerHouse.PlayerName);
+            log.InfoFormat($"[HOUSE] HouseManager.HandleRentPaid({0}): rent payment successfully collected {clearedInventoryStatus}from SlumLord!", playerHouse.PlayerName);
 
             // re-add item to queue
             AddRentQueue(player, playerHouse.House);
@@ -452,7 +452,7 @@ namespace ACE.Server.Managers
                 var nextRentTime = house.GetRentDue(purchaseTime);
                 player.HouseRentTimestamp = (int)nextRentTime;
 
-                log.DebugFormat("[HOUSE] HouseManager.HandleEviction({0}): house rent disabled via config", player.Name);
+                log.InfoFormat("[HOUSE] HouseManager.HandleEviction({0}): house rent disabled via config", player.Name);
 
                 // re-add item to queue
                 AddRentQueue(player, house);
@@ -502,7 +502,7 @@ namespace ACE.Server.Managers
 
             house.ClearRestrictions();
 
-            log.DebugFormat("[HOUSE] HouseManager.HandleRentEviction({0})", player.Name);
+            log.InfoFormat("[HOUSE] HouseManager.HandleRentEviction({0})", player.Name);
 
             if (multihouse)
             {
@@ -555,8 +555,7 @@ namespace ACE.Server.Managers
             {
                 if (rentItem.Paid < rentItem.Num)
                 {
-                    if (log.IsDebugEnabled)
-                        log.Debug($"[HOUSE] {playerHouse.PlayerName}.IsRentPaid() - required {rentItem.Num:N0}x {(rentItem.Num > 1 ? $"{rentItem.PluralName}" : $"{rentItem.Name}")} ({rentItem.WeenieID}), found {rentItem.Paid:N0}");
+                    log.Info($"[HOUSE] {playerHouse.PlayerName}.IsRentPaid() - required {rentItem.Num:N0}x {(rentItem.Num > 1 ? $"{rentItem.PluralName}" : $"{rentItem.Name}")} ({rentItem.WeenieID}), found {rentItem.Paid:N0}");
                     return false;
                 }
             }
@@ -598,7 +597,7 @@ namespace ACE.Server.Managers
 
             if (allegianceMinLevel > 0 && (allegiance == null || rank < allegianceMinLevel))
             {
-                log.DebugFormat("[HOUSE] {0}.HasRequirements() - allegiance rank {1} < {2}", playerHouse.PlayerName, rank, allegianceMinLevel);
+                log.InfoFormat("[HOUSE] {0}.HasRequirements() - allegiance rank {1} < {2}", playerHouse.PlayerName, rank, allegianceMinLevel);
                 return false;
             }
             return true;
@@ -891,7 +890,7 @@ namespace ACE.Server.Managers
                         actionChain.EnqueueChain();
                     }
 
-                    log.DebugFormat("[HOUSE] HouseManager.PayRent({0}): fully paid rent into SlumLord.", house.Guid);
+                    log.InfoFormat("[HOUSE] HouseManager.PayRent({0}): fully paid rent into SlumLord.", house.Guid);
                 }
             });
         }
