@@ -56,7 +56,7 @@ namespace ACE.Server.Command.Handlers
                 var quest = DatabaseManager.World.GetCachedQuest(questName);
                 if (quest == null)
                 {
-                    Console.WriteLine($"Couldn't find quest {playerQuest.QuestName}");
+                    //Console.WriteLine($"Couldn't find quest {playerQuest.QuestName}");
                     continue;
                 }
 
