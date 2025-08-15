@@ -32,6 +32,12 @@ public partial class AuthDbContext : DbContext
             {
                 builder.EnableRetryOnFailure(10);
             });
+
+            if (config.EnableDetailedErrors)
+                optionsBuilder.EnableDetailedErrors();
+
+            if (config.EnableSensitiveDataLogging)
+                optionsBuilder.EnableSensitiveDataLogging();
         }
     }
 
