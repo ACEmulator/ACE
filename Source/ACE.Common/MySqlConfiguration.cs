@@ -14,6 +14,10 @@ namespace ACE.Common
 
         public string Password { get; set; } = "";
 
+        public bool EnableDetailedErrors { get; set; } = false;
+
+        public bool EnableSensitiveDataLogging { get; set; } = false;
+
         /// <summary>
         /// Common connection options used when connecting to SQL database engine.
         /// </summary>
