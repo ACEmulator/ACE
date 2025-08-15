@@ -206,9 +206,17 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public float GetStanceMod(CreatureVital vital)
         {
-            // only applies to players
-            if ((this as Player) == null) return 1.0f;
+            // Apply monster fast vital regen if idle (typically after returning home)
+            if (!(this is Player))
+            {
+                // Only boost Health/Stamina, not Mana (consistent with player logic)
+                if (vital.Vital != PropertyAttribute2nd.MaxMana && MonsterState == State.Idle)
+                    return 250.0f;   // Large multiplier for fast regen
 
+                return 1.0f; // Default for monsters not idle
+            }
+
+            // Player-specific logic below
             // does not apply for mana?
             if (vital.Vital == PropertyAttribute2nd.MaxMana) return 1.0f;
 
