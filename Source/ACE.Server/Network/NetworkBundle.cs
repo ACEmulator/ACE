@@ -9,7 +9,7 @@ namespace ACE.Server.Network
         private bool propChanged;
 
         public bool NeedsSending => propChanged || messages.Count > 0;
-
+        public int MessageCount => messages.Count;
         public bool HasMoreMessages => messages.Count > 0;
 
         private Queue<GameMessage> messages = new Queue<GameMessage>();
