@@ -51,7 +51,8 @@ if (!$SkipBackup) {
                 exit 1
             }
         }
-    } catch {
+    }
+    catch {
         Write-Host "❌ PRODUCTION backup failed!" -ForegroundColor Red
         if (!$Emergency) {
             Write-Host "❌ Aborting deployment - backup is required for production" -ForegroundColor Red
@@ -103,7 +104,8 @@ do {
             $serverHealthy = $true
             break
         }
-    } catch {
+    }
+    catch {
         # Server not ready yet
     }
 

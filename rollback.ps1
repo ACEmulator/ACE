@@ -49,7 +49,8 @@ try {
     Get-Content $BackupFile | docker exec -i ace-db-prod mysql -u acedockeruser -p2020acEmulator2017
     Write-Host "✅ Database restored successfully!" -ForegroundColor Green
 
-} catch {
+}
+catch {
     Write-Host "❌ Database restore failed!" -ForegroundColor Red
     Write-Host "Error: $_" -ForegroundColor Red
     exit 1
@@ -75,7 +76,8 @@ do {
             $serverHealthy = $true
             break
         }
-    } catch {
+    }
+catch {
         # Server not ready yet
     }
 

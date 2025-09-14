@@ -66,7 +66,8 @@ try {
         Write-Host "⚠️ Server may still be starting up..." -ForegroundColor Yellow
         Write-Host "📋 Check logs with: docker-compose -f docker-compose.dev.yml logs -f ace-server-dev" -ForegroundColor Cyan
     }
-} catch {
+}
+catch {
     Write-Host "⚠️ Unable to check server status - may still be starting" -ForegroundColor Yellow
 }
 
