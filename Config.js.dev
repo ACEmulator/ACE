@@ -112,7 +112,7 @@
     "AutoApplyDatabaseUpdates": true,
     "AutoUpdateWorldDatabase": true,
     "AutoApplyWorldCustomizations": true,
-    "WorldCustomizationAddedPaths": [],
+    "WorldCustomizationAddedPaths": [ "/ace/Content/SQL/Custom", "/ace/Content/SQL/Quests" ],
     "RecurseWorldCustomizationPaths": true
   }
 }

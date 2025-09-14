@@ -9,7 +9,6 @@ services:
       - MYSQL_ROOT_PASSWORD=1999asheron2017
       - MYSQL_USER=acedockeruser
       - MYSQL_PASSWORD=2020acEmulator2017
-      - MYSQL_DATABASE=ace%
       - TZ=America/New_York
     volumes:
       - C:\ACE\db-data-prod:/var/lib/mysql
