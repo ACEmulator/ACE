@@ -1,0 +1,137 @@
+{
+  "Server": {
+    "WorldName": "Thresholme",
+
+    "Network": {
+      // Host, default: "0.0.0.0"
+      // In most cases, you will not need to change this setting. Special networking conditions, or multiple network adapters would be examples of times where you might need to change this.
+      "Host": "0.0.0.0",
+
+      // Port, default: 9000
+      // This also opens the next port up, 9001, for server to client communications. When changed, it will open the port specified and +1 of that port.
+      // For firewalls, you would need to include opening both ports (9000 and 9001) for communications to work correctly.
+      "Port": 9000,
+
+      "MaximumAllowedSessions": 256,
+      "DefaultSessionTimeout": 60,
+
+      // MaximumAllowedSessionsPerIPAddress, default: -1
+      // -1 means unlimited connections per IP Address.
+      "MaximumAllowedSessionsPerIPAddress": 5,
+
+     // AllowUlimitedSessionsFromIPs, default []
+     // Will allow the given IP addresses to have unlimited sessions - recommend only use this for Admins/Devs
+     // Example: [ "127.0.0.1", "8.8.8.8" ]
+     "AllowUnlimitedSessionsFromIPAddresses": [ "100.105.32.14", "127.0.0.1" ]
+    },
+
+    "Accounts": {
+      "OverrideCharacterPermissions": true,
+      "DefaultAccessLevel": 0,
+      "AllowAutoAccountCreation": true,
+      "PasswordHashWorkFactor": 12,
+      "ForceWorkFactorMigration": true
+    },
+
+    // The folder that contains AC DAT files (client_cell_1.dat, client_portal.dat, client_highres.dat, client_local_English.dat)
+    "DatFilesDirectory": "/ace/Dats",
+
+	// The folder that contains Harmony mods
+	"ModsDirectory": "/ace/Mods",
+
+    // ShutdownInterval, default: 60
+    "ShutdownInterval": "60",
+
+    // ServerPerformanceMonitorAutoStart - PRODUCTION: Enable for monitoring
+    "ServerPerformanceMonitorAutoStart": true,
+
+    "Threading": {
+      // With 20 cores, optimize for production load
+      "WorldThreadCountMultiplier": 0.5,
+      "DatabaseThreadCountMultiplier": 0.5,
+      "MultiThreadedLandblockGroupPhysicsTicking": true,
+      "MultiThreadedLandblockGroupTicking": true
+    },
+
+    "ShardPlayerBiotaCacheTime": "31",
+    "ShardNonPlayerBiotaCacheTime": "11",
+
+    // WorldDatabasePrecaching - PRODUCTION: Enable for performance
+    "WorldDatabasePrecaching": true,
+
+    "LandblockPreloading": true,
+
+    "PreloadedLandblocks": [
+        {
+            "Id": "E74EFFFF",
+            "Description": "Hebian-To (Global Events)",
+            "Permaload": true,
+            "IncludeAdjacents": false,
+            "Enabled": true
+        },
+        {
+            "Id": "A9B4FFFF",
+            "Description": "Holtburg",
+            "Permaload": true,
+            "IncludeAdjacents": true,
+            "Enabled": true
+        },
+        {
+            "Id": "DA55FFFF",
+            "Description": "Shoushi",
+            "Permaload": true,
+            "IncludeAdjacents": true,
+            "Enabled": true
+        },
+        {
+            "Id": "7D64FFFF",
+            "Description": "Yaraq",
+            "Permaload": true,
+            "IncludeAdjacents": true,
+            "Enabled": true
+        }
+    ]
+  },
+  "MySql": {
+    "Authentication": {
+      "Host": "ace-db-prod",
+      "Port": 3306,
+      "Database": "ace_auth",
+      "Username": "acedockeruser",
+      "Password": "2020acEmulator2017",
+      "EnableDetailedErrors": false,
+      "EnableSensitiveDataLogging": false
+    },
+    "Shard": {
+      "Host": "ace-db-prod",
+      "Port": 3306,
+      "Database": "ace_shard",
+      "Username": "acedockeruser",
+      "Password": "2020acEmulator2017",
+      "EnableDetailedErrors": false,
+      "EnableSensitiveDataLogging": false
+    },
+    "World": {
+      "Host": "ace-db-prod",
+      "Port": 3306,
+      "Database": "ace_world",
+      "Username": "acedockeruser",
+      "Password": "2020acEmulator2017",
+      "EnableDetailedErrors": false,
+      "EnableSensitiveDataLogging": false
+    }
+  },
+  "Offline": {
+    "PurgeDeletedCharacters": true,
+    "PurgeDeletedCharactersDays": 30,
+    "PurgeOrphanedBiotas": false,
+    "PruneDeletedCharactersFromFriendLists": true,
+    "PruneDeletedObjectsFromShortcutBars": true,
+    "PruneDeletedCharactersFromSquelchLists": true,
+    "AutoApplyDatabaseUpdates": true,
+    "AutoUpdateWorldDatabase": true,
+    "AutoApplyWorldCustomizations": true,
+    "WorldCustomizationAddedPaths": [],
+    "RecurseWorldCustomizationPaths": true
+  }
+}

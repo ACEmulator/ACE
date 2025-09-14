@@ -1,0 +1,118 @@
+{
+  "Server": {
+    "WorldName": "Thresholme-Dev",
+
+    "Network": {
+      // Host, default: "0.0.0.0"
+      "Host": "0.0.0.0",
+
+      // Port for DEV environment - maps to 9002-9003 externally
+      "Port": 9000,
+
+      "MaximumAllowedSessions": 32,
+      "DefaultSessionTimeout": 60,
+
+      // MaximumAllowedSessionsPerIPAddress, default: -1
+      "MaximumAllowedSessionsPerIPAddress": -1,
+
+     // AllowUlimitedSessionsFromIPs - DEV: Allow unlimited for testing
+     "AllowUnlimitedSessionsFromIPAddresses": [ "100.105.32.14", "127.0.0.1" ]
+    },
+
+    "Accounts": {
+      "OverrideCharacterPermissions": true,
+      "DefaultAccessLevel": 5,  // DEV: Higher default access for testing
+      "AllowAutoAccountCreation": true,
+      "PasswordHashWorkFactor": 8,  // DEV: Lower work factor for faster testing
+      "ForceWorkFactorMigration": false
+    },
+
+    // The folder that contains AC DAT files
+    "DatFilesDirectory": "/ace/Dats",
+
+	// The folder that contains Harmony mods
+	"ModsDirectory": "/ace/Mods",
+
+    // ShutdownInterval, default: 60
+    "ShutdownInterval": "10",  // DEV: Faster shutdown for testing
+
+    // ServerPerformanceMonitorAutoStart - DEV: Enable for debugging
+    "ServerPerformanceMonitorAutoStart": true,
+
+    "Threading": {
+      // DEV: Conservative threading for easier debugging
+      "WorldThreadCountMultiplier": 0.34,
+      "DatabaseThreadCountMultiplier": 0.66,
+      "MultiThreadedLandblockGroupPhysicsTicking": true,
+      "MultiThreadedLandblockGroupTicking": true
+    },
+
+    "ShardPlayerBiotaCacheTime": "5",   // DEV: Shorter cache for testing
+    "ShardNonPlayerBiotaCacheTime": "5", // DEV: Shorter cache for testing
+
+    // WorldDatabasePrecaching - DEV: Disable for faster startup
+    "WorldDatabasePrecaching": false,
+
+    "LandblockPreloading": true,
+
+    // DEV: Only load essential landblocks for faster startup
+    "PreloadedLandblocks": [
+        {
+            "Id": "E74EFFFF",
+            "Description": "Hebian-To (Global Events)",
+            "Permaload": true,
+            "IncludeAdjacents": false,
+            "Enabled": true
+        },
+        {
+            "Id": "A9B4FFFF",
+            "Description": "Holtburg",
+            "Permaload": false,
+            "IncludeAdjacents": false,
+            "Enabled": true
+        }
+    ]
+  },
+  "MySql": {
+    "Authentication": {
+      "Host": "ace-db-dev",
+      "Port": 3306,
+      "Database": "ace_auth",
+      "Username": "acedockeruser",
+      "Password": "2020acEmulator2017",
+      "EnableDetailedErrors": true,   // DEV: Enable for debugging
+      "EnableSensitiveDataLogging": true  // DEV: Enable for debugging
+    },
+    "Shard": {
+      "Host": "ace-db-dev",
+      "Port": 3306,
+      "Database": "ace_shard",
+      "Username": "acedockeruser",
+      "Password": "2020acEmulator2017",
+      "EnableDetailedErrors": true,   // DEV: Enable for debugging
+      "EnableSensitiveDataLogging": true  // DEV: Enable for debugging
+    },
+    "World": {
+      "Host": "ace-db-dev",
+      "Port": 3306,
+      "Database": "ace_world",
+      "Username": "acedockeruser",
+      "Password": "2020acEmulator2017",
+      "EnableDetailedErrors": true,   // DEV: Enable for debugging
+      "EnableSensitiveDataLogging": true  // DEV: Enable for debugging
+    }
+  },
+  "Offline": {
+    "PurgeDeletedCharacters": false,  // DEV: Don't purge for testing
+    "PurgeDeletedCharactersDays": 1,
+    "PurgeOrphanedBiotas": false,
+    "PruneDeletedCharactersFromFriendLists": false,
+    "PruneDeletedObjectsFromShortcutBars": false,
+    "PruneDeletedCharactersFromSquelchLists": false,
+    "AutoApplyDatabaseUpdates": true,
+    "AutoUpdateWorldDatabase": true,
+    "AutoApplyWorldCustomizations": true,
+    "WorldCustomizationAddedPaths": [],
+    "RecurseWorldCustomizationPaths": true
+  }
+}
