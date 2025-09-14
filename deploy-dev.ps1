@@ -29,7 +29,8 @@ if (!$SkipBackup) {
         } else {
             Write-Host "ℹ️ Database not running, skipping backup" -ForegroundColor Cyan
         }
-    } catch {
+    }
+    catch {
         Write-Host "⚠️ Backup failed, but continuing deployment..." -ForegroundColor Yellow
     }
 }
