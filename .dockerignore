@@ -12,6 +12,9 @@
 **/Dats/
 **/Logs/
 **/db-data/
+**/db-data-dev/
+**/db-data-prod/
+**/Backups/
 
 # files
 Dockerfile*
