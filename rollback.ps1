@@ -1,99 +1,124 @@
-# ACE Production Rollback Script
+# ACE Safe World Rollback Script - Rolls Back World Data While Preserving Player Data
 param(
     [Parameter(Mandatory=$true)]
-    [string]$BackupFile,
-    [switch]$Force = $false
+    [string]$BackupDir,
+    [string]$Environment = "prod",
+    [switch]$Force = $false,
+    [switch]$WorldOnly = $true
 )
 
-Write-Host "🔄 ACE Production Rollback Starting..." -ForegroundColor Red
+Write-Host "ACE Safe World Rollback Starting..." -ForegroundColor Red
 
 # Safety check
 if (!$Force) {
-    Write-Host "⚠️ This will ROLLBACK PRODUCTION to backup: $BackupFile" -ForegroundColor Red
-    $confirm = Read-Host "Are you absolutely sure? (yes/no)"
+    Write-Host "WARNING: This will rollback $Environment world data to: $BackupDir" -ForegroundColor Red
+    Write-Host "PLAYER DATA WILL BE PRESERVED (ace_shard/ace_auth)" -ForegroundColor Green
+    $confirm = Read-Host "Continue? (yes/no)"
     if ($confirm -ne "yes") {
-        Write-Host "❌ Rollback cancelled." -ForegroundColor Red
+        Write-Host "Rollback cancelled." -ForegroundColor Red
         exit 1
     }
 }
 
-# Ensure we're in the right directory
-Set-Location "C:\ACE"
-
-# Check if backup file exists
-if (!(Test-Path $BackupFile)) {
-    Write-Host "❌ Backup file not found: $BackupFile" -ForegroundColor Red
-    Write-Host "📋 Available backups:" -ForegroundColor Cyan
-    Get-ChildItem "Backups\*.sql" | Sort-Object LastWriteTime -Descending | Select-Object Name, LastWriteTime
+# Validate backup directory exists
+if (!(Test-Path $BackupDir)) {
+    Write-Host "ERROR: Backup directory not found: $BackupDir" -ForegroundColor Red
+    Write-Host "Available backups:" -ForegroundColor Cyan
+    Get-ChildItem "Backups" | Where-Object { $_.PSIsContainer } | Sort-Object LastWriteTime -Descending | Select-Object Name, LastWriteTime
     exit 1
 }
 
-Write-Host "💾 Using backup: $BackupFile" -ForegroundColor Yellow
+# Set container names
+if ($Environment -eq "prod") {
+    $dbContainer = "ace-db-prod"
+    $serverContainer = "ace-server-prod"
+} else {
+    $dbContainer = "ace-db-dev"
+    $serverContainer = "ace-server-dev"
+}
 
-# Stop production server (keep database running)
-Write-Host "🛑 Stopping production server..." -ForegroundColor Yellow
-docker stop ace-server-prod
+# Validate backup files exist
+$worldBackup = "$BackupDir\ace_world.sql"
+if (!(Test-Path $worldBackup)) {
+    Write-Host "ERROR: World backup not found: $worldBackup" -ForegroundColor Red
+    Write-Host "Available files in backup:" -ForegroundColor Cyan
+    Get-ChildItem $BackupDir
+    exit 1
+}
 
-# Restore database
-Write-Host "📥 Restoring database from backup..." -ForegroundColor Yellow
+Write-Host "Using world backup: $worldBackup" -ForegroundColor Yellow
+
+# Create emergency backup before rollback
+Write-Host "Creating emergency backup before rollback..." -ForegroundColor Yellow
+.\backup-safe.ps1 -Environment $Environment -WorldDataOnly
+
+# Stop ACE server (keep database running)
+Write-Host "Stopping ACE server for rollback..." -ForegroundColor Yellow
+docker stop $serverContainer
+
+# Restore ONLY world data (preserve player data)
+Write-Host "Restoring world data (preserving player data)..." -ForegroundColor Yellow
+Write-Host "IMPORTANT: Player data (ace_shard/ace_auth) will NOT be affected" -ForegroundColor Green
+
 try {
-    # Check if database is running
-    $dbRunning = docker ps --filter "name=ace-db-prod" --filter "status=running" --quiet
-    if (!$dbRunning) {
-        Write-Host "🚀 Starting database container..." -ForegroundColor Yellow
-        docker start ace-db-prod
-        Start-Sleep -Seconds 30
-    }
-
-    # Restore the backup
-    Get-Content $BackupFile | docker exec -i ace-db-prod mysql -u acedockeruser -p2020acEmulator2017
-    Write-Host "✅ Database restored successfully!" -ForegroundColor Green
-
+    # Only restore ace_world database
+    Get-Content $worldBackup | docker exec -i $dbContainer mysql -u acedockeruser -p2020acEmulator2017 ace_world
+    Write-Host "World data rollback completed!" -ForegroundColor Green
 }
 catch {
-    Write-Host "❌ Database restore failed!" -ForegroundColor Red
+    Write-Host "ERROR: World rollback failed!" -ForegroundColor Red
     Write-Host "Error: $_" -ForegroundColor Red
+
+    # Restart server even if rollback failed
+    Write-Host "Restarting server..." -ForegroundColor Yellow
+    docker start $serverContainer
     exit 1
 }
 
-# Restart production server
-Write-Host "🚀 Restarting production server..." -ForegroundColor Yellow
-docker start ace-server-prod
+# Restart ACE server
+Write-Host "Restarting ACE server..." -ForegroundColor Yellow
+docker start $serverContainer
 
 # Wait for server to be ready
-Write-Host "⏳ Waiting for server to be ready..." -ForegroundColor Yellow
-Start-Sleep -Seconds 60
+Write-Host "Waiting for server to start..." -ForegroundColor Yellow
+Start-Sleep -Seconds 30
 
-# Check if server is responding
+# Verify server is responding
 $attempts = 0
 $maxAttempts = 12
 $serverHealthy = $false
 
 do {
     try {
-        $serverCheck = docker exec ace-server-prod netstat -an | Select-String ":9000"
+        $serverCheck = docker exec $serverContainer netstat -an 2>$null | Select-String ":9000"
         if ($serverCheck) {
             $serverHealthy = $true
             break
         }
     }
-catch {
+    catch {
         # Server not ready yet
     }
 
     $attempts++
     if ($attempts -lt $maxAttempts) {
-        Write-Host "⏳ Server still starting... ($attempts/$maxAttempts)" -ForegroundColor Yellow
+        Write-Host "Server still starting... ($attempts/$maxAttempts)" -ForegroundColor Yellow
         Start-Sleep -Seconds 10
     }
 } while ($attempts -lt $maxAttempts)
 
 if ($serverHealthy) {
-    Write-Host "✅ PRODUCTION rollback successful!" -ForegroundColor Green
-    Write-Host "🌐 Server is live at: play.thresholme.online:9000" -ForegroundColor Green
+    Write-Host "SUCCESS: World rollback completed and server is running!" -ForegroundColor Green
+    Write-Host "Player data was preserved during rollback" -ForegroundColor Green
+
+    if ($Environment -eq "prod") {
+        Write-Host "Production server: play.thresholme.online:9000" -ForegroundColor Cyan
+    } else {
+        Write-Host "Development server: dev.thresholme.online:9002" -ForegroundColor Cyan
+    }
 } else {
-    Write-Host "❌ Rollback completed but server health check failed!" -ForegroundColor Red
-    Write-Host "📋 Check logs: docker-compose -f docker-compose.prod.yml logs ace-server-prod" -ForegroundColor Red
+    Write-Host "WARNING: Rollback completed but server health check failed!" -ForegroundColor Yellow
+    Write-Host "Check server logs for issues" -ForegroundColor Yellow
 }
 
-Write-Host "🎉 Rollback complete!" -ForegroundColor Green
+Write-Host "Safe world rollback complete!" -ForegroundColor Green
