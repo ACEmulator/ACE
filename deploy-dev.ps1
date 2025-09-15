@@ -30,10 +30,27 @@ if (!$SkipBackup) {
     }
 }
 
-# Pull latest code
-Write-Host "Pulling latest development code..." -ForegroundColor Yellow
+# Check current branch and pull latest code
+Write-Host "=== Git Operations ===" -ForegroundColor Cyan
+Write-Host "Current branch:" -ForegroundColor Yellow
+git branch --show-current
+
+Write-Host "Switching to dev branch..." -ForegroundColor Yellow
 git checkout dev
-git pull origin dev
+
+Write-Host "Current branch after switch:" -ForegroundColor Yellow
+git branch --show-current
+
+Write-Host "Fetching latest changes from origin..." -ForegroundColor Yellow
+$fetchResult = git fetch origin 2>&1
+Write-Host "Fetch result: $fetchResult" -ForegroundColor Cyan
+
+Write-Host "Pulling latest changes from origin/dev..." -ForegroundColor Yellow
+$pullResult = git pull origin dev 2>&1
+Write-Host "Pull result: $pullResult" -ForegroundColor Green
+
+Write-Host "Latest commit:" -ForegroundColor Yellow
+git log --oneline -1
 
 # Stop existing containers
 Write-Host "Stopping existing containers..." -ForegroundColor Yellow
