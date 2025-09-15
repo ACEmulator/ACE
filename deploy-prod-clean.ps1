@@ -33,9 +33,9 @@ if (!$SkipBackup) {
     # Check if production database is running
     $dbRunning = docker ps --filter "name=ace-db-prod" --filter "status=running" --quiet
     if ($dbRunning) {
-        Write-Host "Backing up production database..." -ForegroundColor Yellow
-        docker exec ace-db-prod mysqldump -u acedockeruser -p2020acEmulator2017 --all-databases > $backupFile
-        Write-Host "PRODUCTION backup created: $backupFile" -ForegroundColor Green
+        Write-Host "Creating SAFE production backup (preserves player data)..." -ForegroundColor Yellow
+        .\backup-safe.ps1 -Environment prod -FullBackup
+        Write-Host "SAFE production backup completed" -ForegroundColor Green
 
         # Keep only last 10 backups
         $backups = Get-ChildItem "Backups\prod-backup-*.sql" | Sort-Object LastWriteTime -Descending
