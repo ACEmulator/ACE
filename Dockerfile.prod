@@ -38,8 +38,10 @@ RUN apt-get update && \
 # add app from build
 COPY --from=build /ace .
 
-# PRODUCTION: Copy production config as Config.js
+# PRODUCTION: Create Config directory and copy production config
+RUN mkdir -p /ace/Config
 COPY Config.js.prod /ace/Config.js
+RUN touch /ace/Config/Shard_applied_updates.txt /ace/Config/World_applied_updates.txt /ace/Config/Authentication_applied_updates.txt
 
 # run app
 ENTRYPOINT ["dotnet", "ACE.Server.dll"]
