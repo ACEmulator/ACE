@@ -7,8 +7,9 @@ param(
 
 Write-Host "ACE Production Deployment Starting..." -ForegroundColor Red
 
-# Safety check - require confirmation for production
+# Safety check - require confirmation for production (only if not forced)
 if (!$Force -and !$Emergency) {
+    Write-Host "Use -Force to skip this confirmation" -ForegroundColor Cyan
     $confirm = Read-Host "This will deploy to PRODUCTION. Are you sure? (yes/no)"
     if ($confirm -ne "yes") {
         Write-Host "Production deployment cancelled." -ForegroundColor Red
@@ -74,13 +75,22 @@ Write-Host "Pull result: $pullResult" -ForegroundColor Green
 Write-Host "Latest commit:" -ForegroundColor Yellow
 git log --oneline -1
 
-# Check for any uncommitted changes
-$gitStatus = git status --porcelain
+# Check for any uncommitted changes to SOURCE CODE (ignore data/log files)
+$gitStatus = git status --porcelain | Where-Object {
+    $_ -notlike "*Database-Install/*" -and
+    $_ -notlike "*Logs-*" -and
+    $_ -notlike "*db-data-*" -and
+    $_ -notlike "*Backups/*" -and
+    $_ -notlike "*ace_*.sql" -and
+    $_ -notlike "*backup*.sql"
+}
 if ($gitStatus -and !$Emergency) {
-    Write-Host "Uncommitted changes detected:" -ForegroundColor Red
+    Write-Host "SOURCE CODE changes detected (data/log files ignored):" -ForegroundColor Red
     Write-Host $gitStatus -ForegroundColor Red
     Write-Host "Clean your git workspace before production deployment" -ForegroundColor Red
     exit 1
+} else {
+    Write-Host "Git workspace clean (ignoring data/log files)" -ForegroundColor Green
 }
 
 # Stop existing production containers gracefully
