@@ -309,8 +309,8 @@ namespace ACE.Server.Factories.Tables.Wcids
             ( WeenieClassName.ace37198_olthoikoujiakabuton,     0.17f ),
             ( WeenieClassName.ace37203_olthoikoujialeggings,    0.17f ),
             ( WeenieClassName.ace37206_olthoikoujiasleeves,     0.17f ),
-            ( WeenieClassName.ace37215_olthoikoujiabreastplate, 0.17f ),
             ( WeenieClassName.ace37210_olthoikoujiasollerets,   0.16f ),
+            ( WeenieClassName.ace37215_olthoikoujiabreastplate, 0.17f ),
         };
 
         private static ChanceTable<WeenieClassName> OlthoiAlduressaWcids = new ChanceTable<WeenieClassName>()
