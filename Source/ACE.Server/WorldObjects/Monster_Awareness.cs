@@ -59,6 +59,9 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.CachedVelocity = Vector3.Zero;
 
             ClearRetaliateTargets();
+
+            // Reset damage history when going to sleep/idle
+            DamageHistory.Reset();
         }
 
         public Tolerance Tolerance
@@ -454,10 +457,22 @@ namespace ACE.Server.WorldObjects
             foreach (var obj in visibleObjs)
             {
                 var nearbyCreature = obj.WeenieObj.WorldObject as Creature;
-                if (nearbyCreature == null || nearbyCreature.IsAwake || !nearbyCreature.Attackable && nearbyCreature.TargetingTactic == TargetingTactic.None)
+                
+                // Skip creatures that can't be alerted:
+                // - null creatures
+                // - creatures with tolerance exclusions
+                if (nearbyCreature == null || (nearbyCreature.Tolerance & AlertExclude) != 0)
                     continue;
-
-                if ((nearbyCreature.Tolerance & AlertExclude) != 0)
+                    
+                // Original condition modified to allow monsters in Return state to hear distress calls
+                // Old condition: if (nearbyCreature == null || nearbyCreature.IsAwake || !nearbyCreature.Attackable && nearbyCreature.TargetingTactic == TargetingTactic.None)
+                //     continue;
+                
+                // Modified checks:
+                // - skip already awake monsters UNLESS they're returning home
+                // - skip non-attackable monsters with no targeting tactic
+                if ((nearbyCreature.IsAwake && nearbyCreature.MonsterState != State.Return) || 
+                    (!nearbyCreature.Attackable && nearbyCreature.TargetingTactic == TargetingTactic.None))
                     continue;
 
                 if (CreatureType != null && CreatureType == nearbyCreature.CreatureType ||
@@ -488,6 +503,15 @@ namespace ACE.Server.WorldObjects
                     }
 
                     alerted = true;
+
+                    // If monster was returning home, cancel that and respond to the distress call
+                    if (nearbyCreature.MonsterState == State.Return)
+                    {
+                        if (nearbyCreature.DebugMove)
+                            Console.WriteLine($"{nearbyCreature.Name} ({nearbyCreature.Guid}) - Interrupting return home to respond to distress call");
+                            
+                        nearbyCreature.CancelMoveTo();
+                    }
 
                     nearbyCreature.AttackTarget = AttackTarget;
                     nearbyCreature.WakeUp(false);
