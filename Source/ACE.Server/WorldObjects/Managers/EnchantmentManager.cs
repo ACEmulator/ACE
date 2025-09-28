@@ -182,8 +182,15 @@ namespace ACE.Server.WorldObjects.Managers
                 // should be update the StatModVal here?
 
                 var duration = spell.Duration;
-                if (caster is Player player && player.AugmentationIncreasedSpellDuration > 0 && !isWeaponSpell && spell.DotDuration == 0)
-                    duration *= 1.0f + player.AugmentationIncreasedSpellDuration * 0.2f;
+                if (caster is Player player && !isWeaponSpell && spell.DotDuration == 0)
+                {
+                    var spellDurationModifier = Math.Max(PropertyManager.GetDouble("spell_duration_modifier").Item, 0);
+                    var moddedDuration = duration * spellDurationModifier;
+
+                    duration = Math.Max(moddedDuration, 1);
+                    if(player.AugmentationIncreasedSpellDuration > 0)
+                        duration *= 1.0f + player.AugmentationIncreasedSpellDuration * 0.2f;
+                }
 
                 var timeRemaining = refreshSpell.Duration + refreshSpell.StartTime;
 
@@ -219,8 +226,16 @@ namespace ACE.Server.WorldObjects.Managers
             {
                 entry.Duration = spell.Duration;
 
-                if (caster is Player player && player.AugmentationIncreasedSpellDuration > 0 && !isWeaponSpell && spell.DotDuration == 0)
-                    entry.Duration *= 1.0f + player.AugmentationIncreasedSpellDuration * 0.2f;
+                if (caster is Player player && !isWeaponSpell && spell.DotDuration == 0)
+                {
+                    var spellDurationModifier = Math.Max(PropertyManager.GetDouble("spell_duration_modifier").Item, 0);
+                    var moddedDuration = entry.Duration * spellDurationModifier;
+
+                    entry.Duration = Math.Max(moddedDuration, 1);
+
+                    if(player.AugmentationIncreasedSpellDuration > 0)
+                        entry.Duration *= 1.0f + player.AugmentationIncreasedSpellDuration * 0.2f;
+                }
             }
             else
             {
