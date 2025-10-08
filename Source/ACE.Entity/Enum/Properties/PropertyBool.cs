@@ -182,5 +182,6 @@ namespace ACE.Entity.Enum.Properties
         FreeAttributeResetRenewed        = 9008,
         SkillTemplesTimerReset           = 9009,
         FreeMasteryResetRenewed          = 9010,
+        Hardcore                         = 9011,
     }
 }
