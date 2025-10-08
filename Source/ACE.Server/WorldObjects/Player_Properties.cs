@@ -18,15 +18,18 @@ namespace ACE.Server.WorldObjects
 
         public string GetNameWithSuffix()
         {
-            if (!IsOlthoiPlayer)
-                return Name;
-            else
-            {
-                if (NoOlthoiTalk)
-                    return Name + "^";
-                else
-                    return Name + "&";
-            }
+            // Start with the base display name (already includes + via overridden Name getter if applicable)
+            var displayName = Name;
+
+            // Preserve Olthoi speech markers
+            if (IsOlthoiPlayer)
+                displayName += NoOlthoiTalk ? "^" : "&";
+
+            // Add Hardcore suffix (option A: no radar color change, just a textual marker)
+            if (Hardcore)
+                displayName += " {HC}";
+
+            return displayName;
         }
 
         // ========================================
