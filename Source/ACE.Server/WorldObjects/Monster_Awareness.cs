@@ -284,11 +284,40 @@ namespace ACE.Server.WorldObjects
             var targetDistance = new List<TargetDistance>();
 
             foreach (var target in targets)
-                //targetDistance.Add(new TargetDistance(target, distSq ? Location.SquaredDistanceTo(target.Location) : Location.DistanceTo(target.Location)));
-                targetDistance.Add(new TargetDistance(target, distSq ? (float)PhysicsObj.get_distance_sq_to_object(target.PhysicsObj, true) : (float)PhysicsObj.get_distance_to_object(target.PhysicsObj, true)));
+            {
+                // compute raw distance (either squared or linear)
+                var rawDist = distSq ? (float)PhysicsObj.get_distance_sq_to_object(target.PhysicsObj, true) : (float)PhysicsObj.get_distance_to_object(target.PhysicsObj, true);
 
-            return targetDistance.OrderBy(i => i.Distance).ToList();
-        }
+                // bias targets that have shields equipped so monsters are more likely to select them.
+                // This is done by reducing their effective distance by a configurable factor < 1.0.
+                try
+                {
+                    if (target is Player player)
+                    {
+                        var shield = player.GetEquippedShield();
+                        if (shield != null)
+                        {
+                            var factor = 0.9; // default factor
+                            try
+                            {
+                                factor = PropertyManager.GetDouble("mob_shield_aggro_distance_factor").Item;
+                            }
+                            catch { }
+
+                            if (distSq)
+                                rawDist *= (float)(factor * factor);
+                            else
+                                rawDist *= (float)factor;
+                        }
+                    }
+                }
+                catch { /* defensive: don't fail target building if any issue occurs */ }
+
+                targetDistance.Add(new TargetDistance(target, rawDist));
+             }
+
+             return targetDistance.OrderBy(i => i.Distance).ToList();
+         }
 
         /// <summary>
         /// Uses weighted RNG selection by distance to select a target
