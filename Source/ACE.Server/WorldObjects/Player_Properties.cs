@@ -69,6 +69,69 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.IsAdvocate); else SetProperty(PropertyBool.IsAdvocate, value); }
         }
 
+        public bool Hardcore
+        {
+            get => GetProperty(PropertyBool.Hardcore) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.Hardcore); else SetProperty(PropertyBool.Hardcore, value); }
+        }
+
+        // ========================================
+        // ======== Custom Bool Properties ========
+        // ========================================
+        public bool LinkedPortalOneSummon
+        {
+            get => GetProperty(PropertyBool.LinkedPortalOneSummon) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.LinkedPortalOneSummon); else SetProperty(PropertyBool.LinkedPortalOneSummon, value); }
+        }
+
+        public bool LinkedPortalTwoSummon
+        {
+            get => GetProperty(PropertyBool.LinkedPortalTwoSummon) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.LinkedPortalTwoSummon); else SetProperty(PropertyBool.LinkedPortalTwoSummon, value); }
+        }
+
+        public bool HouseEvicted
+        {
+            get => GetProperty(PropertyBool.HouseEvicted) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.HouseEvicted); else SetProperty(PropertyBool.HouseEvicted, value); }
+        }
+
+        public bool UntrainedSkills
+        {
+            get => GetProperty(PropertyBool.UntrainedSkills) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.UntrainedSkills); else SetProperty(PropertyBool.UntrainedSkills, value); }
+        }
+
+        public bool UnspecializedSkills
+        {
+            get => GetProperty(PropertyBool.UnspecializedSkills) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.UnspecializedSkills); else SetProperty(PropertyBool.UnspecializedSkills, value); }
+        }
+
+        public bool FreeSkillResetRenewed
+        {
+            get => GetProperty(PropertyBool.FreeSkillResetRenewed) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.FreeSkillResetRenewed); else SetProperty(PropertyBool.FreeSkillResetRenewed, value); }
+        }
+
+        public bool FreeAttributeResetRenewed
+        {
+            get => GetProperty(PropertyBool.FreeAttributeResetRenewed) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.FreeAttributeResetRenewed); else SetProperty(PropertyBool.FreeAttributeResetRenewed, value); }
+        }
+
+        public bool SkillTemplesTimerReset
+        {
+            get => GetProperty(PropertyBool.SkillTemplesTimerReset) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.SkillTemplesTimerReset); else SetProperty(PropertyBool.SkillTemplesTimerReset, value); }
+        }
+
+        public bool FreeMasteryResetRenewed
+        {
+            get => GetProperty(PropertyBool.FreeMasteryResetRenewed) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.FreeMasteryResetRenewed); else SetProperty(PropertyBool.FreeMasteryResetRenewed, value); }
+        }
+
         public bool IsPlussed
         {
             get => (Character != null && Character.IsPlussed) || (Session != null && ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && Session.AccessLevel > AccessLevel.Advocate);

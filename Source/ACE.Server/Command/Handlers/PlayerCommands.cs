@@ -14,10 +14,13 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
+using ACE.Entity.Enum.Properties;
 
 
 namespace ACE.Server.Command.Handlers
 {
+    public static partial class PlayerCommandsExtensions { }
+
     public static class PlayerCommands
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -69,6 +72,54 @@ namespace ACE.Server.Command.Handlers
 
                 session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
             }
+        }
+
+        // =====================================
+        // Hardcore mode command
+        // =====================================
+        [CommandHandler("hardcore", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Convert a fresh level 1 character into Hardcore mode (permanent). Must be level 1 and not already Hardcore.")]
+        public static void HandleHardcore(Session session, params string[] parameters)
+        {
+            var player = session.Player;
+
+            if (player == null)
+                return;
+
+            if (player.Hardcore)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("You are already a Hardcore character.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (player.Level != 1)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("You must be level 1 to become a Hardcore character.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            // confirmation dialog
+            var msg = "Are you sure you want to become a Hardcore character? This choice is permanent.";
+            var confirm = new Confirmation_Custom(player.Guid, () => ApplyHardcore(player));
+            if (!player.ConfirmationManager.EnqueueSend(confirm, msg))
+                player.SendWeenieError(WeenieError.ConfirmationInProgress);
+        }
+
+        private static void ApplyHardcore(Player player)
+        {
+            if (player.Hardcore)
+                return; // already applied
+
+            player.Hardcore = true;
+
+            // send property update to player (private) and save
+            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyBool(player, PropertyBool.Hardcore, true));
+
+            player.SaveBiotaToDatabase();
+
+            player.SendMessage("You have embraced the Hardcore path!", ChatMessageType.Broadcast);
+            player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} has become a Hardcore character!", ChatMessageType.Broadcast));
+
+            // TODO: Set radar blip teal - requires client-supported flag. This may need additional implementation in Player description packet if custom coloring desired.
         }
 
         /// <summary>

@@ -170,7 +170,7 @@ namespace ACE.Entity.Enum.Properties
         [AssessmentProperty]
         AutowieldLeft                    = 130,
 
-        /* Custom Properties */
+        /* Custom Properties 1 */
         LinkedPortalOneSummon            = 9001,
         LinkedPortalTwoSummon            = 9002,
         HouseEvicted                     = 9003,
@@ -182,5 +182,6 @@ namespace ACE.Entity.Enum.Properties
         FreeAttributeResetRenewed        = 9008,
         SkillTemplesTimerReset           = 9009,
         FreeMasteryResetRenewed          = 9010,
+        Hardcore                         = 9011,
     }
 }
