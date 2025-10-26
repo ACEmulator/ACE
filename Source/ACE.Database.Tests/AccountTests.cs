@@ -8,6 +8,8 @@ using ACE.Database.Models.Auth;
 using ACE.Entity.Enum;
 using System.Net;
 
+[assembly: DoNotParallelize]
+
 namespace ACE.Database.Tests
 {
     [TestClass]
@@ -32,7 +34,7 @@ namespace ACE.Database.Tests
 
             var results = authDb.GetAccountByName(newAccount.AccountName);
             Assert.IsNotNull(results);
-            Assert.IsTrue(results.AccessLevel == (uint)AccessLevel.Player);
+            Assert.AreEqual((uint)AccessLevel.Player, results.AccessLevel);
         }
 
         [TestMethod]
@@ -44,12 +46,12 @@ namespace ACE.Database.Tests
             authDb.UpdateAccountAccessLevel(1, AccessLevel.Sentinel);
             var results = authDb.GetAccountByName(newAccount.AccountName);
             Assert.IsNotNull(results);
-            Assert.IsTrue(results.AccessLevel == (uint)AccessLevel.Sentinel);
+            Assert.AreEqual((uint)AccessLevel.Sentinel, results.AccessLevel);
 
             authDb.UpdateAccountAccessLevel(1, AccessLevel.Player);
             var results2 = authDb.GetAccountByName(newAccount.AccountName);
             Assert.IsNotNull(results2);
-            Assert.IsTrue(results2.AccessLevel == (uint)AccessLevel.Player);
+            Assert.AreEqual((uint)AccessLevel.Player, results2.AccessLevel);
         }
 
         [TestMethod]
@@ -61,8 +63,8 @@ namespace ACE.Database.Tests
             var id = authDb.GetAccountIdByName(newAccount.AccountName);
             var results = authDb.GetAccountById(id);
             Assert.IsNotNull(results);
-            Assert.IsTrue(results.AccountId == id);
-            Assert.IsTrue(results.AccountName == newAccount.AccountName);
+            Assert.AreEqual(id, results.AccountId);
+            Assert.AreEqual(newAccount.AccountName, results.AccountName);
         }
 
         [TestMethod]

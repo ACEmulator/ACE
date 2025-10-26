@@ -33,8 +33,8 @@ namespace ACE.Database.Tests
             var stringName = result.WeeniePropertiesString.FirstOrDefault(x => x.Type == (ushort)PropertyString.Name)?.Value;
 
             Assert.IsNotNull(result);
-            Assert.IsTrue(stringName == "Pyreal");
-            Assert.IsTrue(result.GetProperty(PropertyString.Name) == "Pyreal");
+            Assert.AreEqual("Pyreal", stringName);
+            Assert.AreEqual("Pyreal", result.GetProperty(PropertyString.Name));
         }
 
         [TestMethod]
@@ -45,8 +45,8 @@ namespace ACE.Database.Tests
             var stringName = result.WeeniePropertiesString.FirstOrDefault(x => x.Type == (ushort)PropertyString.Name)?.Value;
 
             Assert.IsNotNull(result);
-            Assert.IsTrue(stringName == "Pyreal");
-            Assert.IsTrue(result.GetProperty(PropertyString.Name) == "Pyreal");
+            Assert.AreEqual("Pyreal", stringName);
+            Assert.AreEqual("Pyreal", result.GetProperty(PropertyString.Name));
         }
     }
 }

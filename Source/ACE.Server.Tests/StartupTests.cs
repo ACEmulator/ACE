@@ -7,6 +7,8 @@ using ACE.Common;
 using ACE.Database;
 using ACE.Server.Managers;
 
+[assembly: DoNotParallelize]
+
 namespace ACE.Server.Tests
 {
     [TestClass]
@@ -17,7 +19,7 @@ namespace ACE.Server.Tests
         {
             // copy config.js and initialize configuration
             var testDir = AppContext.BaseDirectory;
-            var serverDir = Path.GetFullPath(Path.Combine(testDir, "..", "..", "..", "..", "ACE.Server"));
+            var serverDir = Path.GetFullPath(Path.Combine(testDir, "..", "..", "..", "..", "..", "ACE.Server"));
             var configSource = Path.Combine(serverDir, "Config.js");
 
             if (!File.Exists(configSource))
