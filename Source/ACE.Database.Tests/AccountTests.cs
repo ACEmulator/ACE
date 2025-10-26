@@ -8,7 +8,7 @@ using ACE.Database.Models.Auth;
 using ACE.Entity.Enum;
 using System.Net;
 
-[assembly: Parallelize]
+[assembly: DoNotParallelize]
 
 namespace ACE.Database.Tests
 {
