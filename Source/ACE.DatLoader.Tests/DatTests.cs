@@ -5,6 +5,8 @@ using System.Reflection;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+[assembly: Parallelize]
+
 namespace ACE.DatLoader.Tests
 {
     [TestClass]
@@ -28,7 +30,7 @@ namespace ACE.DatLoader.Tests
             DatDatabase dat = new DatDatabase(cellDatLocation);
             int count = dat.AllFiles.Count;
             //Assert.AreEqual(ExpectedCellDatFileCount, count);
-            Assert.IsTrue(expectedCellDatFileCount <= count, $"Insufficient files parsed from .dat. Expected: >= {expectedCellDatFileCount}, Actual: {count}");
+            Assert.AreEqual(expectedCellDatFileCount, count, "Insufficient files parsed from .dat.", $"{expectedCellDatFileCount}", $"{count}");
         }
 
         [TestMethod]
@@ -40,7 +42,7 @@ namespace ACE.DatLoader.Tests
             DatDatabase dat = new DatDatabase(portalDatLocation);
             int count = dat.AllFiles.Count;
             //Assert.AreEqual(expectedPortalDatFileCount, count);
-            Assert.IsTrue(expectedPortalDatFileCount <= count, $"Insufficient files parsed from .dat. Expected: >= {expectedPortalDatFileCount}, Actual: {count}");
+            Assert.AreEqual(expectedPortalDatFileCount, count, "Insufficient files parsed from .dat.", $"{expectedPortalDatFileCount}", $"{count}");
         }
 
         [TestMethod]
@@ -52,7 +54,7 @@ namespace ACE.DatLoader.Tests
             DatDatabase dat = new DatDatabase(localEnglishDatLocation);
             int count = dat.AllFiles.Count;
             //Assert.AreEqual(expectedPortalDatFileCount, count);
-            Assert.IsTrue(expectedLocalEnglishDatFileCount <= count, $"Insufficient files parsed from .dat. Expected: >= {expectedLocalEnglishDatFileCount}, Actual: {count}");
+            Assert.AreEqual(expectedLocalEnglishDatFileCount, count, "Insufficient files parsed from .dat.", $"{expectedLocalEnglishDatFileCount}", $"{count}");
         }
 
 

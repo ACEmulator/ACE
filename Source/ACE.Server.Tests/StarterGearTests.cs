@@ -16,7 +16,7 @@ namespace ACE.Server.Tests
         public void CanParseStarterGearJson()
         {
             var testDir = AppContext.BaseDirectory;
-            var starterGearPath = Path.GetFullPath(Path.Combine(testDir, "..", "..", "..", "ACE.Server", "starterGear.json"));
+            var starterGearPath = Path.GetFullPath(Path.Combine(testDir, "..", "..", "..", "..", "..", "ACE.Server", "starterGear.json"));
             string contents = File.ReadAllText(starterGearPath);
 
             StarterGearConfiguration config = JsonConvert.DeserializeObject<StarterGearConfiguration>(contents);
