@@ -22,9 +22,9 @@ namespace ACE.Server.Tests.Physics
             var sphereInside = new Sphere(new Vector3(1, 1, 1), 1.0f);
 
             Assert.IsTrue(sphere.Intersects(sphereCollide));
-            Assert.IsTrue(sphere.Intersects(sphereCloseCall));
-            Assert.IsTrue(sphere.Intersects(sphereTouching));
-            Assert.IsTrue(sphere.Intersects(sphereNonCollide));
+            Assert.IsFalse(sphere.Intersects(sphereCloseCall));
+            Assert.IsFalse(sphere.Intersects(sphereTouching));
+            Assert.IsFalse(sphere.Intersects(sphereNonCollide));
             Assert.IsTrue(sphere.Intersects(sphereInside));
         }
 
