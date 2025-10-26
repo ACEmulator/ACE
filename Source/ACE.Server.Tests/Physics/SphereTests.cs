@@ -37,11 +37,11 @@ namespace ACE.Server.Tests.Physics
             var radSum = 20.0f;
 
             var time = Sphere.FindTimeOfCollision(movement, otherSpherePosition, radSum);
-            Assert.IsLessThan(time - 0.38452994616207481f, PhysicsGlobals.EPSILON);
+            Assert.IsLessThan(PhysicsGlobals.EPSILON, time - 0.38452994616207481f);
 
             otherSpherePosition = new Vector3(50, 60, 60);
             time = Sphere.FindTimeOfCollision(movement, otherSpherePosition, radSum);
-            Assert.IsLessThan(time - 0.46125741132772069f, PhysicsGlobals.EPSILON);
+            Assert.IsLessThan(PhysicsGlobals.EPSILON, time - 0.46125741132772069f);
 
             otherSpherePosition = new Vector3(30, 42, 63);
             time = Sphere.FindTimeOfCollision(movement, otherSpherePosition, radSum);
