@@ -5,7 +5,7 @@ skip_tags: true
 branches:
   except:
     - /dependabot/
-image: Visual Studio 2022
+image: Visual Studio 2026
 configuration: Release
 platform: x64
 init:
