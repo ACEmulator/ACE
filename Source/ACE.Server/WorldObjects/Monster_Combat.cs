@@ -388,6 +388,26 @@ namespace ACE.Server.WorldObjects
                     DamageHistory.OnHeal((uint)-damage);
             }
 
+            // Step 2: React to the damage source if needed (wake up, target attacker, stop returning)
+            if (source is Creature attacker)
+            {
+                // React if not already awake/fighting OR if was returning home (even if fast healing wasn't active yet)
+                if (!IsAwake || MonsterState == State.Return)
+                {
+                    if (DebugMove)
+                        Console.WriteLine($"{Name} ({Guid}) - Reacting to damage from {attacker.Name} ({attacker.Guid}). Current State: {MonsterState}, IsAwake: {IsAwake}");
+                        
+                    // Stop returning home if that's what we were doing
+                    if (MonsterState == State.Return)
+                    {
+                         CancelMoveTo(); 
+                    }
+
+                    AttackTarget = attacker;
+                    WakeUp(false); // Wake up, set state to Awake
+                }
+            }
+
             if (Health.Current <= 0)
             {
                 OnDeath(DamageHistory.LastDamager, damageType, crit);
