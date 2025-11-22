@@ -463,6 +463,20 @@ namespace ACE.Entity.Enum.Properties
         AugmentationDamageBonus                  = 309,
         [SendOnLogin]
         AugmentationDamageReduction              = 310,
+        /// <summary>
+        /// Used for crafting / tinkering augmentation stacking
+        ///
+        /// https://acpedia.org/wiki/Weapon_Augmentations#Weapon_Augmentation_Stacking
+        /// https://acpedia.org/wiki/Armor_Augmentations
+        /// https://asheron.fandom.com/wiki/Category:Upgrade_Items#Weapon_Augmentation_Stacking
+        /// 
+        /// 1  == Class B weapon augmentations
+        /// 2  == Class A weapon augmentations
+        /// 4  == Class C weapon augmentations / Gauntlet Amplifications
+        /// 8  == Corrupted Amber weapon augmentations
+        /// 16 == Purchased Armor Augmentations
+        ///
+        /// </summary>
         ImbueStackingBits                        = 311,
         [SendOnLogin]
         HealOverTime                             = 312,
