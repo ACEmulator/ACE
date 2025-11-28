@@ -1010,17 +1010,38 @@ namespace ACE.Server.Command.Handlers.Processors
             ImportSQL(sql_folder + sql_file);
             CommandHandlerHelper.WriteOutputInfo(session, $"Imported {sql_file}");
 
-            // clear any cached encounters for this landblock
+            // clear cached event
             var eventName = sql_file.TrimEnd(".sql");
             DatabaseManager.World.ClearCachedEvent(eventName);
 
-            // load quest from db
+            if (EventManager.IsEventAvailable(eventName))
+            {
+                if (EventManager.IsEventStarted(eventName, null, null))
+                {
+                    EventManager.StopEvent(eventName, null, null);
+                    CommandHandlerHelper.WriteOutputInfo(session, $"-- Event {eventName} has been stopped.");
+                }
+                if (EventManager.Events.Remove(eventName))
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, $"-- Event {eventName} has been removed from EventManager.");
+                }
+            }
+
+            // load event from db
             var evt = DatabaseManager.World.GetCachedEvent(eventName);
+
+            if (EventManager.Events.TryAdd(evt.Name, evt))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"-- Event {eventName} has been added to EventManager.");
+            }
+
             // Start the event if it needs to be
             if (evt.State == (int)GameEventState.On)
             {
-                EventManager.StartEvent(evt.Name, null, null);
-                CommandHandlerHelper.WriteOutputInfo(session, $"-- Event {eventName} has been started.");
+                if (EventManager.StartEvent(evt.Name, null, null))
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, $"-- Event {eventName} has been started.");
+                }
             }
         }
 
