@@ -1125,9 +1125,13 @@ namespace ACE.Server.WorldObjects
                 innerChain.AddDelaySeconds(animTime);
                 innerChain.AddAction(this, () =>
                 {
+                    // TODO: missing logic for cancelling /pklite through animation break
+
                     IsBusy = false;
 
-                    if (PropertyManager.GetBool("allow_pkl_bump").Item)
+                    // this code didn't exist in retail
+                    // if an npk typed /pklite on top of an existing pkl, they would become "stuck" instead of getting bumped out of the way
+                    /*if (PropertyManager.GetBool("allow_pkl_bump").Item)
                     {
                         // check for collisions
                         PlayerKillerStatus = PlayerKillerStatus.PKLite;
@@ -1149,7 +1153,7 @@ namespace ACE.Server.WorldObjects
                                 SendUpdatePosition();
                             }
                         }
-                    }
+                    }*/
                     UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PKLite, true);
 
                     Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNowPKLite));
