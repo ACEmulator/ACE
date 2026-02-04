@@ -7,6 +7,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -173,16 +174,16 @@ namespace ACE.Server.WorldObjects
             {
                 default:
 
-                    if (creature.Invincible) return;
+                    if (creature.Invincible || creature.IsDead) return;
 
                     amount *= creature.GetResistanceMod(DamageType, this, null);
 
                     if (player != null)
-                        iAmount = player.TakeDamage(this, DamageType, amount, Server.Entity.BodyPart.Foot);
+                        iAmount = player.TakeDamage(this, DamageType, amount, BodyPart.Foot);
                     else
                         iAmount = (int)creature.TakeDamage(this, DamageType, amount);
 
-                    if (creature.IsDead && Creatures.Contains(creature.Guid))
+                    if (creature.IsDead)
                         Creatures.Remove(creature.Guid);
 
                     break;
@@ -196,6 +197,9 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case DamageType.Health:
+
+                    if (creature.Invincible || creature.IsDead) return;
+
                     iAmount = creature.UpdateVitalDelta(creature.Health, -iAmount);
 
                     if (iAmount > 0)
@@ -203,6 +207,13 @@ namespace ACE.Server.WorldObjects
                     else
                         creature.DamageHistory.Add(this, DamageType.Health, (uint)-iAmount);
 
+                    if (creature.IsDead)
+                    {
+                        creature.OnDeath(creature.DamageHistory.LastDamager, DamageType.Health, false);
+                        creature.Die();
+
+                        Creatures.Remove(creature.Guid);
+                    }
                     break;
             }
 
