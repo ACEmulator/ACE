@@ -4,8 +4,6 @@ using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-[assembly: Parallelize]
-
 namespace ACE.Server.Tests.Physics
 {
     [TestClass]
