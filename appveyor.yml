@@ -50,9 +50,9 @@ install:
   - ps: AppVeyor\AppVeyorInstall.ps1
 before_build:
 - cmd: AppVeyor\AppVeyorBeforeCompile.bat
-build:
-  project: Source\ACE.sln
-  verbosity: minimal
+#build:
+#  project: Source\ACE.sln
+#  verbosity: minimal
 build_script:
 - cmd: AppVeyor\AppVeyorBuild.bat
 after_build:
