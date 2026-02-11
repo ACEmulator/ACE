@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
 ARG TARGETARCH
 WORKDIR /Source
 
@@ -21,7 +21,7 @@ COPY . ../.
 RUN dotnet publish ./ACE.Server/ACE.Server.csproj -a $TARGETARCH -c release -o /ace --no-restore
 
 # final stage/image
-FROM mcr.microsoft.com/dotnet/runtime:8.0-jammy
+FROM mcr.microsoft.com/dotnet/runtime:10.0-noble
 ARG DEBIAN_FRONTEND="noninteractive"
 WORKDIR /ace
 
