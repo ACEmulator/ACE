@@ -55,10 +55,10 @@ build:
   verbosity: minimal
 build_script:
 - cmd: AppVeyor\AppVeyorBuild.bat
-before_package:
-- cmd: AppVeyor\AppVeyorBeforePackage.bat
 after_build:
 - cmd: AppVeyor\AppVeyorAfterCompile.bat
+before_package:
+- cmd: AppVeyor\AppVeyorBeforePackage.bat
 test_script:
 - cmd: AppVeyor\AppVeyorTestScript.bat
 artifacts:
