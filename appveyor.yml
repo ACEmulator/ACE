@@ -53,6 +53,8 @@ before_build:
 build:
   project: Source\ACE.sln
   verbosity: minimal
+build_script:
+- cmd: AppVeyor\AppVeyorBuild.bat
 before_package:
 - cmd: AppVeyor\AppVeyorBeforePackage.bat
 after_build:
