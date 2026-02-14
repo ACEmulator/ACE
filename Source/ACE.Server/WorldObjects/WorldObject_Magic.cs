@@ -358,7 +358,7 @@ namespace ACE.Server.WorldObjects
             if (spell.CasterEffect != 0 && (!spell.IsProjectile || !projectileHit))
                 caster.EnqueueBroadcast(new GameMessageScript(caster.Guid, spell.CasterEffect, spell.Formula.Scale));
 
-            if (spell.TargetEffect != 0 && (!spell.IsProjectile || projectileHit))
+            if (spell.TargetEffect != 0 && (!spell.IsProjectile || projectileHit) && target != null)
             {
                 var targetBroadcaster = target.Wielder ?? target;
 
