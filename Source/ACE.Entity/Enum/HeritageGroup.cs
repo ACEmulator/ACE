@@ -17,4 +17,22 @@ namespace ACE.Entity.Enum
          Olthoi      = 12,
          OlthoiAcid  = 13
      }
- }
+
+    public static class HeritageGroupExtensions
+    {
+        public static string ToSentence(this HeritageGroup heritageGroup)
+        {
+            switch (heritageGroup)
+            {
+                case HeritageGroup.Gharundim:
+                    return "Gharu'ndim";
+                case HeritageGroup.Shadowbound:
+                    return "Umbraen";
+                case HeritageGroup.OlthoiAcid:
+                    return "Olthoi";
+                default:
+                    return heritageGroup.ToString();
+            }
+        }
+    }
+}
