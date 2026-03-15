@@ -288,10 +288,13 @@ namespace ACE.Server.WorldObjects
             // verify heritage group
             if (HeritageGroup != HeritageGroup.Invalid)
             {
-                var playerHeritageGroup = player.HeritageGroup;
+                if (this is not Creature) // Creatures are not restricted to their own hertigage group
+                {
+                    var playerHeritageGroup = player.HeritageGroup;
 
-                if (playerHeritageGroup != HeritageGroup)
-                    return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouMustBe_ToUseItemMagic, HeritageGroup.ToSentence()));
+                    if (playerHeritageGroup != HeritageGroup)
+                        return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouMustBe_ToUseItemMagic, HeritageGroup.ToSentence()));
+                }
             }
 
             // Check for a cooldown
