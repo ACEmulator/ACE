@@ -135,18 +135,22 @@ namespace ACE.Server.Entity
         {
             get
             {
-                // turbine consistency
+                // some spells are missing SpellFlags.FellowshipSpell:
                 // 3043 - Kiss of the Grave
                 // 3320 - Lesser Corrosive Ward
                 // 3375 - Fungal Bloom
                 // 3470 - Lesser Endless Well
                 // 3474 - Lesser Soothing Wind
                 // 3478 - Lesser Golden Wind
-                // 3337 - Inferno Ward (1 | Enchantment)
-                // 3381 - Debilitating Spore(3 | Boost)
-                // 3382 - Diseased Air(3 | Boost)
-                // 3406 - Kivik Lir's Boon (1 | Enchantment)
-                return Flags.HasFlag(SpellFlags.FellowshipSpell) || MetaSpellType >= SpellType.FellowBoost && MetaSpellType <= SpellType.FellowDispel;
+
+                // some spells have SpellFlags.FellowshipSpell, but aren't an actual Fellow* MetaSpellType:
+                // 3337 - Inferno Ward (Enchantment)
+                // 3381 - Debilitating Spore (Boost)
+                // 3382 - Diseased Air (Boost)
+                // 3406 - Kivik Lir's Boon (Enchantment)
+
+                return Flags.HasFlag(SpellFlags.FellowshipSpell) ||
+                    MetaSpellType >= SpellType.FellowBoost && MetaSpellType <= SpellType.FellowDispel;
             }
         }
 
