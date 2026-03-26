@@ -29,7 +29,7 @@ namespace ACE.Server.WorldObjects
 
                 baseCost += spell.ManaMod * (uint)numTargetItems;
             }
-            else if ((spell.Flags & SpellFlags.FellowshipSpell) != 0)
+            else if (spell.IsFellowshipSpell)
             {
                 var numFellows = 1;
                 if (this is Player player && player.Fellowship != null)
