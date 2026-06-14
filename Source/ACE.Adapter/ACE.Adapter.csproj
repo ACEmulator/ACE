@@ -28,6 +28,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="MySqlConnector" Version="2.6.0" />
       <None Include="..\..\LICENSE">
         <Pack>True</Pack>
         <PackagePath></PackagePath>
