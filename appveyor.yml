@@ -5,7 +5,7 @@ skip_tags: true
 branches:
   except:
     - /dependabot/
-image: Visual Studio 2022
+image: Visual Studio 2026
 configuration: Release
 platform: x64
 init:
@@ -46,19 +46,19 @@ environment:
     secure: lGLpqex+Weod6ZiPw34RwTv999QvoSZ+imTcmYhiJWQL6XkfkVUYcqOO6pJDuAYt
 services:
   - mysql
-install:
-  - ps: AppVeyor\AppVeyorInstall.ps1
+#install:
+#  - ps: AppVeyor\AppVeyorInstall.ps1
 before_build:
 - cmd: AppVeyor\AppVeyorBeforeCompile.bat
-#build:
-#  project: Source\ACE.sln
-#  verbosity: minimal
-build_script:
-- cmd: AppVeyor\AppVeyorBuild.bat
+build:
+  project: Source\ACE.sln
+  verbosity: minimal
+#build_script:
+#- cmd: AppVeyor\AppVeyorBuild.bat
 after_build:
 - cmd: AppVeyor\AppVeyorAfterCompile.bat
-#before_package:
-#- cmd: AppVeyor\AppVeyorBeforePackage.bat
+before_package:
+- cmd: AppVeyor\AppVeyorBeforePackage.bat
 test_script:
 - cmd: AppVeyor\AppVeyorTestScript.bat
 artifacts:
