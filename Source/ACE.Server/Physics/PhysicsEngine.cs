@@ -93,7 +93,7 @@ namespace ACE.Server.Physics
             else
                 return false;
 
-            var isPlayer = obj.WeenieObj != null && !obj.WeenieObj.IsPlayer();
+            var isPlayer = obj.WeenieObj != null && !obj.WeenieObj.IsPlayer;
             if (!isPlayer || !autonomous)
             {
                 obj.LastMoveWasAutonomous = autonomous;
