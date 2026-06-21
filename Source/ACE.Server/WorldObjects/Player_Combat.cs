@@ -653,27 +653,27 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the damage rating modifier for an applicable Recklessness attack
+        /// Returns the damage rating increase for an applicable Recklessness attack
         /// </summary>
         /// <param name="powerAccuracyBar">The 0.0 - 1.0 power/accurary bar</param>
-        public float GetRecklessnessMod(/*float powerAccuracyBar*/)
+        public int GetRecklessRating(/*float powerAccuracyBar*/)
         {
             // ensure melee or missile combat mode
             if (CombatMode != CombatMode.Melee && CombatMode != CombatMode.Missile)
-                return 1.0f;
+                return 0;
 
             var skill = GetCreatureSkill(Skill.Recklessness);
 
             // recklessness skill must be either trained or specialized to use
             if (skill.AdvancementClass < SkillAdvancementClass.Trained)
-                return 1.0f;
+                return 0;
 
             // recklessness is active when attack bar is between 20% and 80% (according to wiki)
             // client attack bar range seems to indicate this might have been updated, between 10% and 90%?
             var powerAccuracyBar = GetPowerAccuracyBar();
             //if (powerAccuracyBar < 0.2f || powerAccuracyBar > 0.8f)
             if (powerAccuracyBar < 0.1f || powerAccuracyBar > 0.9f)
-                return 1.0f;
+                return 0;
 
             // recklessness only applies to non-critical hits,
             // which is handled outside of this method.
@@ -696,9 +696,11 @@ namespace ACE.Server.WorldObjects
             // The damage rating adjustment for incoming damage is also adjusted proportinally if your Recklessness skill
             // is lower than your active attack skill
 
-            var recklessnessMod = GetDamageRating(damageRating);    // trained DR 1.10 = 10% additional damage
-                                                                    // specialized DR 1.20 = 20% additional damage
-            return recklessnessMod;
+            //var recklessnessMod = GetDamageRating(damageRating);    // trained DR 1.10 = 10% additional damage
+                                                                      // specialized DR 1.20 = 20% additional damage
+
+            // return as rating here, instead of multiplier, for easier combination
+            return damageRating;
         }
 
         /// <summary>
