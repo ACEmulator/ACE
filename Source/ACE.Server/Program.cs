@@ -41,8 +41,14 @@ namespace ACE.Server
 
         public static readonly bool IsRunningInContainer = Convert.ToBoolean(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"));
 
+        private static ReadyFileSignal readyFileSignal;
+
         public static void Main(string[] args)
         {
+            var launchOptions = ServerLaunchOptions.Parse(args);
+            readyFileSignal = new ReadyFileSignal(launchOptions.ReadyFilePath);
+            readyFileSignal.DeleteStale();
+
             var consoleTitle = $"ACEmulator - v{ServerBuildInfo.FullVersion}";
 
             Console.Title = consoleTitle;
@@ -129,15 +135,17 @@ namespace ACE.Server
             if (IsRunningInContainer)
                 log.Info("ACEmulator is running in a container...");
 
-            var configFile = Path.Combine(exeLocation, "Config.js");
+            var configFile = launchOptions.ConfigPath ?? Path.Combine(exeLocation, "Config.js");
             var configConfigContainer = Path.Combine(containerConfigDirectory, "Config.js");
 
-            if (IsRunningInContainer && File.Exists(configConfigContainer))
+            if (launchOptions.ConfigPath == null && IsRunningInContainer && File.Exists(configConfigContainer))
                 File.Copy(configConfigContainer, configFile, true);
 
             if (!File.Exists(configFile))
             {
-                if (!IsRunningInContainer)
+                if (launchOptions.ConfigPath != null)
+                    throw new FileNotFoundException("The configuration supplied with --config does not exist.", configFile);
+                else if (!IsRunningInContainer)
                     DoOutOfBoxSetup(configFile);
                 else
                 {
@@ -152,7 +160,7 @@ namespace ACE.Server
             }
 
             log.Info("Initializing ConfigManager...");
-            ConfigManager.Initialize();
+            ConfigManager.Initialize(configFile);
 
             log.Info("Initializing ModManager...");
             ModManager.Initialize();
@@ -340,6 +348,7 @@ namespace ACE.Server
             if (!PropertyManager.GetBool("world_closed", false).Item)
             {
                 WorldManager.Open(null);
+                readyFileSignal.Write();
             }
         }
 
@@ -350,6 +359,8 @@ namespace ACE.Server
 
         private static void OnProcessExit(object sender, EventArgs e)
         {
+            readyFileSignal?.Delete();
+
             if (!IsRunningInContainer)
             {
                 if (!ServerManager.ShutdownInitiated)

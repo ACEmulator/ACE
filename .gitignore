@@ -302,3 +302,15 @@ Database/tools/password.txt
 docker.env
 docker-compose.yml
 docker-compose.arm64
+
+# Single-player local build/runtime artifacts (never commit secrets or proprietary files)
+.dotnet/
+.dotnet-install.ps1
+artifacts/
+Source/ACE.SinglePlayer/Runtime/
+Source/ACE.SinglePlayer/Logs/
+Source/ACE.SinglePlayer/Client/
+Source/ACE.SinglePlayer/Mods/
+**/ace-server.ready.json
+**/ace-server.process.json
+**/settings.json

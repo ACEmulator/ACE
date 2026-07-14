@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="ACE.Common/ACE.Common.csproj" />
+  <Project Path="ACE.Server/ACE.Server.csproj" />
+  <Project Path="ACE.Server.Tests/ACE.Server.Tests.csproj" />
+  <Project Path="ACE.SinglePlayer/ACE.SinglePlayer.csproj" />
+  <Project Path="ACE.SinglePlayer.DecalHost/ACE.SinglePlayer.DecalHost.csproj" />
+  <Project Path="ACE.SinglePlayer.TestHost/ACE.SinglePlayer.TestHost.csproj" />
+  <Project Path="ACE.SinglePlayer.Tests/ACE.SinglePlayer.Tests.csproj" />
+</Solution>

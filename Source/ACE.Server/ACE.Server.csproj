@@ -285,11 +285,37 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\Database\Archive\**" CopyToOutputDirectory="PreserveNewest" LinkBase="DatabaseSetupScripts\Archive\" />
-    <None Include="..\..\Database\Base\**" CopyToOutputDirectory="PreserveNewest" LinkBase="DatabaseSetupScripts\Base\" />
-    <None Include="..\..\Database\Updates\**" CopyToOutputDirectory="PreserveNewest" LinkBase="DatabaseSetupScripts\Updates\" />
-    <None Include="..\..\Database\Optional\**" CopyToOutputDirectory="PreserveNewest" LinkBase="DatabaseSetupScripts\Optional\" />
+    <!--
+      The .NET 10 publish pipeline can collapse linked files outside the project into
+      a single DestinationFiles entry. Keep the normal build behavior, exclude these
+      items from the SDK's publish copy, and copy them with the one-to-one target below.
+    -->
+    <None Include="..\..\Database\Archive\**\*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" Link="DatabaseSetupScripts\Archive\%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="..\..\Database\Base\**\*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" Link="DatabaseSetupScripts\Base\%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="..\..\Database\Updates\**\*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" Link="DatabaseSetupScripts\Updates\%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="..\..\Database\Optional\**\*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" Link="DatabaseSetupScripts\Optional\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
+
+  <Target Name="CopyDatabaseSetupScriptsToPublish" AfterTargets="Publish">
+    <ItemGroup>
+      <_DatabaseArchivePublish Include="..\..\Database\Archive\**\*" />
+      <_DatabaseBasePublish Include="..\..\Database\Base\**\*" />
+      <_DatabaseUpdatesPublish Include="..\..\Database\Updates\**\*" />
+      <_DatabaseOptionalPublish Include="..\..\Database\Optional\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_DatabaseArchivePublish)"
+          DestinationFiles="@(_DatabaseArchivePublish->'$(PublishDir)DatabaseSetupScripts\Archive\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_DatabaseBasePublish)"
+          DestinationFiles="@(_DatabaseBasePublish->'$(PublishDir)DatabaseSetupScripts\Base\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_DatabaseUpdatesPublish)"
+          DestinationFiles="@(_DatabaseUpdatesPublish->'$(PublishDir)DatabaseSetupScripts\Updates\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_DatabaseOptionalPublish)"
+          DestinationFiles="@(_DatabaseOptionalPublish->'$(PublishDir)DatabaseSetupScripts\Optional\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <Exec Command="if exist &quot;$(ProjectDir)Config.js&quot; copy &quot;$(ProjectDir)Config.js&quot; &quot;$(TargetDir)Config.js&quot;&#xD;&#xA;if not exist &quot;$(ProjectDir)log4net.config&quot; if exist &quot;$(TargetDir)log4net.config&quot; copy &quot;$(TargetDir)log4net.config&quot; &quot;$(ProjectDir)log4net.config&quot;&#xD;&#xA;if exist &quot;$(ProjectDir)log4net.config&quot; copy &quot;$(ProjectDir)log4net.config&quot; &quot;$(TargetDir)log4net.config&quot;" Condition="'$(OS)' == 'Windows_NT'" />
