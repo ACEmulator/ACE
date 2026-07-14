@@ -10,6 +10,7 @@ if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
     $OutputDirectory = Join-Path $repoRoot "artifacts\ACE-SinglePlayer"
 }
 $OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
+$outputPrefix = $OutputDirectory.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
 $artifactsRoot = [IO.Path]::GetFullPath((Join-Path $repoRoot "artifacts"))
 $artifactsPrefix = $artifactsRoot.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
 if ($OutputDirectory -ne $artifactsRoot -and -not $OutputDirectory.StartsWith($artifactsPrefix, [StringComparison]::OrdinalIgnoreCase)) {
@@ -67,18 +68,46 @@ foreach ($directory in @("Runtime", "Mods", "Logs", "Client", "Docs")) {
     New-Item -ItemType Directory -Path (Join-Path $OutputDirectory $directory) -Force | Out-Null
 }
 Copy-Item (Join-Path $repoRoot "docs\SINGLE_PLAYER_FIRST_RUN.md") (Join-Path $OutputDirectory "FIRST_RUN.md")
+Copy-Item (Join-Path $repoRoot "docs\SINGLE_PLAYER_INSTALL.md") (Join-Path $OutputDirectory "INSTALL.md")
 Copy-Item (Join-Path $repoRoot "docs\SINGLE_PLAYER_ARCHITECTURE.md") (Join-Path $OutputDirectory "Docs")
 Copy-Item (Join-Path $repoRoot "docs\AQUIFIR_MOD_COMPATIBILITY.md") (Join-Path $OutputDirectory "Docs")
 Copy-Item (Join-Path $repoRoot "docs\SINGLE_PLAYER_ROADMAP.md") (Join-Path $OutputDirectory "Docs")
 Copy-Item (Join-Path $repoRoot "docs\SINGLE_PLAYER_BUILD_AND_TEST.md") (Join-Path $OutputDirectory "Docs")
+Copy-Item (Join-Path $repoRoot "README.md") $OutputDirectory
+Copy-Item (Join-Path $repoRoot "LICENSE") $OutputDirectory
+
+# Portable public packages do not need debug symbols. Portable PDBs can contain
+# source document paths from the computer that produced the release.
+Get-ChildItem -LiteralPath $OutputDirectory -Recurse -Filter "*.pdb" -File | Remove-Item -Force
 
 $forbidden = Get-ChildItem -LiteralPath $OutputDirectory -Recurse -File | Where-Object {
+    $relativePath = if ($_.FullName.StartsWith($outputPrefix, [StringComparison]::OrdinalIgnoreCase)) {
+        $_.FullName.Substring($outputPrefix.Length)
+    } else {
+        $_.FullName
+    }
     $_.Name -in @("Config.js", "settings.json", "acclient.exe", "mariadbd.exe", "ace-server.ready.json", "ace-server.process.json") -or
-    $_.Name -like "client_*.dat" -or $_.Extension -eq ".log"
+    $_.Name -like "client_*.dat" -or $_.Extension -in @(".log", ".pdb") -or
+    $relativePath -match '^(Runtime|Logs|Client)[\\/]'
 }
 if ($forbidden) {
     throw "Packaging safety check found forbidden runtime/proprietary files: $($forbidden.FullName -join ', ')"
 }
 
+$textExtensions = @(".bat", ".config", ".example", ".js", ".json", ".md", ".ps1", ".sh", ".sql", ".txt", ".xml", ".yml", ".yaml")
+$personalPathMatches = Get-ChildItem -LiteralPath $OutputDirectory -Recurse -File | Where-Object {
+    $_.Extension -in $textExtensions
+} | Select-String -Pattern '(?i)(C:[\\/]Users[\\/][^\\/]+|/Users/[^/]+)' -List
+if ($personalPathMatches) {
+    throw "Packaging safety check found a personal user-profile path: $($personalPathMatches.Path -join ', ')"
+}
+
+$archivePath = "$OutputDirectory.zip"
+if (Test-Path -LiteralPath $archivePath) {
+    Remove-Item -LiteralPath $archivePath -Force
+}
+Compress-Archive -Path (Join-Path $OutputDirectory "*") -DestinationPath $archivePath -CompressionLevel Optimal
+
 Remove-Item -LiteralPath $stage -Recurse -Force
 Write-Host "ACE Single Player package created at: $OutputDirectory"
+Write-Host "Shareable ZIP created at: $archivePath"

@@ -27,7 +27,7 @@ Double-click `ACE.SinglePlayer.exe`.
 8. Choose **Vanilla** for the dependable direct-launch path. Choose **Decal** only when Decal and its `Inject.dll` are detected. Chorizite is displayed as future work and cannot be selected yet.
 9. Save setup.
 
-The private database lives at `Runtime\Database`. The launcher uses the `mariadb-install-db.exe` shipped beside the detected MariaDB program, initializes into a staging directory, and moves it into place only after initialization succeeds. It creates a dedicated `ace_singleplayer` database user; generated administrator and application passwords are protected with Windows DPAPI and are not displayed or logged. The existing MariaDB service and its `root` account are not changed.
+The private database lives at `%LOCALAPPDATA%\ACESinglePlayer\Database`. The launcher uses the `mariadb-install-db.exe` shipped beside the detected MariaDB program, initializes into a staging directory, and moves it into place only after initialization succeeds. It creates a dedicated `ace_singleplayer` database user; generated administrator and application passwords are protected with Windows DPAPI and are not displayed or logged. The existing MariaDB service and its `root` account are not changed.
 
 To use a separately administered server instead, choose **Existing MariaDB/MySQL (advanced)** and enter its host, port, username, password, and database names. Use **Test Connection** and **Initialize Missing Databases** as needed.
 
@@ -40,6 +40,6 @@ To use a separately administered server instead, choose **Existing MariaDB/MySQL
 
 Repeated Play clicks do not create duplicate processes. By default, closing the game gracefully stops the launcher-owned server. The Stop button requests ACE's `stop-now` console command and forces termination only if that verified child does not exit within 20 seconds.
 
-Characters live in `Runtime\Database\ace_shard` when private mode is selected, not in the launcher executable. Preserve the entire `Runtime\Database` directory across upgrades and back it up before replacing or resetting anything. Settings live at `%LOCALAPPDATA%\ACESinglePlayer\settings.json`; secrets there are DPAPI-protected. The generated Runtime `Config.js` necessarily contains the database password for ACE.Server and is restricted to the current Windows user.
+Characters live in `%LOCALAPPDATA%\ACESinglePlayer\Database\ace_shard` when private mode is selected, not in the launcher executable. Preserve the entire `%LOCALAPPDATA%\ACESinglePlayer` directory across upgrades and back it up before replacing or resetting anything. Settings live at `%LOCALAPPDATA%\ACESinglePlayer\settings.json`; secrets there are DPAPI-protected. The generated Runtime `Config.js` necessarily contains the database password for ACE.Server and is restricted to the current Windows user.
 
 Use **Open Logs** for startup errors. The launcher never writes account or database passwords to its log. The real client and a live ACE world database are required for an end-to-end character-screen test.
