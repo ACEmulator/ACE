@@ -74,6 +74,10 @@ public sealed class ConfigurationAndValidationTests
             DatFilesDirectory = root,
             ModsDirectory = Path.Combine(root, "Mods"),
             RuntimeDirectory = Path.Combine(root, "Runtime"),
+            DatabaseMode = DatabaseMode.External,
+            DatabaseHost = "127.0.0.1",
+            DatabasePort = 3306,
+            DatabaseUsername = "root",
             ProtectedAccountPassword = "protected",
             ProtectedDatabasePassword = "protected"
         };

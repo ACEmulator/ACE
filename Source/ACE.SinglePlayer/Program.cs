@@ -44,7 +44,7 @@ internal static class Program
         var protector = new SecretProtector();
         var connectionFactory = new DatabaseConnectionFactory(protector);
         var runtimeFactory = new DatabaseRuntimeFactory(connectionFactory, log);
-        var bootstrapper = new DatabaseBootstrapper(connectionFactory);
+        var bootstrapper = new DatabaseBootstrapper(connectionFactory, log);
 
         LauncherSettings settings;
         try
@@ -58,6 +58,10 @@ internal static class Program
                 "Settings error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             settings = LauncherSettings.CreateDefaults(AppContext.BaseDirectory);
         }
+
+        if (settings.DatabaseMode != DatabaseMode.External)
+            settings.ManagedDatabaseExePath = MariaDbInstallationLocator.FindServerExecutable(settings.ManagedDatabaseExePath)
+                ?? settings.ManagedDatabaseExePath;
 
         if (!store.Exists || !SetupValidator.Validate(settings).IsValid)
         {
@@ -74,7 +78,7 @@ internal static class Program
             new DecalClientLaunchProvider(log)
         }, log);
         var controller = new LauncherController(settings, new AceConfigurationWriter(protector), runtimeFactory,
-            serverManager, clientManager, new ReadyFileMonitor(new UdpPortProbe()), protector, log);
+            bootstrapper, store, serverManager, clientManager, new ReadyFileMonitor(new UdpPortProbe()), protector, log);
         using var main = new MainForm(controller, store, protector, runtimeFactory, bootstrapper, log);
         Application.Run(main);
         controller.DisposeAsync().AsTask().GetAwaiter().GetResult();

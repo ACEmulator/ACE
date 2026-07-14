@@ -48,12 +48,30 @@ public static class SetupValidator
             errors.Add("Enter a persistent local account name.");
         if (string.IsNullOrWhiteSpace(settings.ProtectedAccountPassword))
             errors.Add("The persistent local account password has not been generated.");
-        if (string.IsNullOrWhiteSpace(settings.DatabaseHost) || settings.DatabasePort == 0)
-            errors.Add("Enter valid MariaDB/MySQL connection information.");
-        if (string.IsNullOrWhiteSpace(settings.DatabaseUsername))
-            errors.Add("Enter the MariaDB/MySQL username.");
-        if (settings.DatabaseMode == DatabaseMode.ManagedExperimental && !File.Exists(settings.ManagedDatabaseExePath))
-            errors.Add("Select mariadbd.exe for experimental managed database mode.");
+        if (settings.DatabaseMode == DatabaseMode.External)
+        {
+            if (string.IsNullOrWhiteSpace(settings.DatabaseHost) || settings.DatabasePort == 0)
+                errors.Add("Enter valid MariaDB/MySQL connection information.");
+            if (string.IsNullOrWhiteSpace(settings.DatabaseUsername))
+                errors.Add("Enter the MariaDB/MySQL username.");
+        }
+        else
+        {
+            if (!string.Equals(settings.DatabaseHost, "127.0.0.1", StringComparison.Ordinal))
+                errors.Add("The automatic private database must use 127.0.0.1.");
+            if (!string.Equals(settings.DatabaseUsername, "ace_singleplayer", StringComparison.Ordinal))
+                errors.Add("The automatic private database must use its isolated ACE account.");
+            if (!File.Exists(settings.ManagedDatabaseExePath))
+                errors.Add("MariaDB was not detected. Install MariaDB or select its mariadbd.exe file.");
+            else if (Database.MariaDbInstallationLocator.FindInitializer(settings.ManagedDatabaseExePath) is null)
+                errors.Add("The MariaDB initializer is missing beside mariadbd.exe. Repair the MariaDB installation.");
+            if (string.IsNullOrWhiteSpace(settings.ProtectedDatabasePassword) ||
+                string.IsNullOrWhiteSpace(settings.ProtectedPrivateDatabaseAdminPassword))
+                errors.Add("The automatic private database credentials have not been generated.");
+            if (!Directory.Exists(Path.Combine(settings.PrivateDatabaseDirectory, "mysql")) &&
+                !File.Exists(settings.WorldDatabaseSqlPath))
+                errors.Add("Select an ACE world-database SQL package for the private database's first setup.");
+        }
 
         return new ValidationResult(errors.Count == 0, errors);
     }

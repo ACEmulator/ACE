@@ -37,6 +37,7 @@ public sealed class SettingsStore
         if (settings.SettingsVersion > LauncherSettings.CurrentVersion)
             throw new InvalidDataException($"Settings version {settings.SettingsVersion} is newer than this launcher supports.");
 
+        Migrate(settings);
         settings.SettingsVersion = LauncherSettings.CurrentVersion;
         return settings;
     }
@@ -60,5 +61,31 @@ public sealed class SettingsStore
             if (File.Exists(temporaryPath))
                 File.Delete(temporaryPath);
         }
+    }
+
+    private static void Migrate(LauncherSettings settings)
+    {
+        if (settings.SettingsVersion >= 2)
+            return;
+
+        var usedExperimentalManagedMode = settings.DatabaseMode == DatabaseMode.ManagedExperimental;
+        var usedLocalRoot = settings.DatabaseMode == DatabaseMode.External &&
+            string.Equals(settings.DatabaseHost, "127.0.0.1", StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(settings.DatabaseUsername, "root", StringComparison.OrdinalIgnoreCase);
+
+        if (!usedExperimentalManagedMode && !usedLocalRoot)
+            return;
+
+        var previousPassword = settings.ProtectedDatabasePassword;
+        var previousUserWasRoot = string.Equals(settings.DatabaseUsername, "root", StringComparison.OrdinalIgnoreCase);
+        settings.DatabaseMode = DatabaseMode.Private;
+        settings.DatabaseHost = "127.0.0.1";
+        settings.DatabasePort = 3307;
+        settings.DatabaseUsername = "ace_singleplayer";
+        if (usedExperimentalManagedMode && previousUserWasRoot)
+            settings.ProtectedPrivateDatabaseAdminPassword = previousPassword;
+        else
+            settings.ProtectedExternalDatabasePassword = previousPassword;
+        settings.ProtectedDatabasePassword = string.Empty;
     }
 }

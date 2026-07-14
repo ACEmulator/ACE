@@ -45,7 +45,14 @@ public sealed class ExternalMariaDbRuntime : IDatabaseRuntime
                     return new(false, $"Database '{database}' is only partially initialized; required table '{required.Table}' is missing.");
             }
 
-            return new(true, "MariaDB/MySQL is reachable and all three ACE databases contain their required core tables.");
+            if (!await RequiredHumanExistsAsync(connection, settings.WorldDatabaseName, cancellationToken))
+            {
+                return new(false,
+                    $"World database '{settings.WorldDatabaseName}' has tables but not the required Human world record (weenie 1). " +
+                    "Select the populated ACE-World-Database SQL package; Database\\Base\\WorldBase.sql contains only empty tables.");
+            }
+
+            return new(true, "MariaDB/MySQL is reachable and all three ACE databases contain the required ACE data.");
         }
         catch (MySqlException ex)
         {
@@ -75,6 +82,15 @@ public sealed class ExternalMariaDbRuntime : IDatabaseRuntime
             "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = @database AND table_name = @table", connection);
         command.Parameters.AddWithValue("@database", database);
         command.Parameters.AddWithValue("@table", table);
+        return Convert.ToInt32(await command.ExecuteScalarAsync(cancellationToken)) == 1;
+    }
+
+    internal static async Task<bool> RequiredHumanExistsAsync(MySqlConnection connection, string database,
+        CancellationToken cancellationToken)
+    {
+        var escapedDatabase = database.Replace("`", "``", StringComparison.Ordinal);
+        await using var command = new MySqlCommand(
+            $"SELECT COUNT(*) FROM `{escapedDatabase}`.`weenie` WHERE `class_Id` = 1 AND `class_Name` = 'human'", connection);
         return Convert.ToInt32(await command.ExecuteScalarAsync(cancellationToken)) == 1;
     }
 }

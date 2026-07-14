@@ -17,8 +17,8 @@ public sealed class DatabaseRuntimeFactory
     public IDatabaseRuntime Create(LauncherSettings settings)
     {
         var external = new ExternalMariaDbRuntime(connectionFactory);
-        return settings.DatabaseMode == DatabaseMode.ManagedExperimental
-            ? new ManagedMariaDbRuntime(external, log)
-            : external;
+        return settings.DatabaseMode == DatabaseMode.External
+            ? external
+            : new ManagedMariaDbRuntime(connectionFactory, external, log);
     }
 }

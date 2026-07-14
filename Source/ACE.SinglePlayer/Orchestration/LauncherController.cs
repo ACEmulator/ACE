@@ -13,6 +13,8 @@ public sealed class LauncherController : IAsyncDisposable
 {
     private readonly AceConfigurationWriter configurationWriter;
     private readonly DatabaseRuntimeFactory databaseRuntimeFactory;
+    private readonly DatabaseBootstrapper databaseBootstrapper;
+    private readonly SettingsStore settingsStore;
     private readonly AceServerProcessManager serverManager;
     private readonly ClientProcessManager clientManager;
     private readonly ReadyFileMonitor readyFileMonitor;
@@ -23,13 +25,16 @@ public sealed class LauncherController : IAsyncDisposable
     private IDatabaseRuntime? databaseRuntime;
 
     public LauncherController(LauncherSettings settings, AceConfigurationWriter configurationWriter,
-        DatabaseRuntimeFactory databaseRuntimeFactory, AceServerProcessManager serverManager,
+        DatabaseRuntimeFactory databaseRuntimeFactory, DatabaseBootstrapper databaseBootstrapper,
+        SettingsStore settingsStore, AceServerProcessManager serverManager,
         ClientProcessManager clientManager, ReadyFileMonitor readyFileMonitor,
         ISecretProtector secretProtector, LauncherLog log)
     {
         Settings = settings;
         this.configurationWriter = configurationWriter;
         this.databaseRuntimeFactory = databaseRuntimeFactory;
+        this.databaseBootstrapper = databaseBootstrapper;
+        this.settingsStore = settingsStore;
         this.serverManager = serverManager;
         this.clientManager = clientManager;
         this.readyFileMonitor = readyFileMonitor;
@@ -86,8 +91,17 @@ public sealed class LauncherController : IAsyncDisposable
             {
                 databaseRuntime = databaseRuntimeFactory.Create(Settings);
                 State.Set(databaseRuntime.IsManaged ? LauncherState.StartingDatabase : LauncherState.CheckingDatabase,
-                    databaseRuntime.IsManaged ? "Starting the launcher-managed MariaDB process..." : "Checking MariaDB/MySQL and ACE databases...");
+                    databaseRuntime.IsManaged ? "Preparing your private local database..." : "Checking MariaDB/MySQL and ACE databases...");
                 await databaseRuntime.StartAsync(Settings, token);
+
+                if (databaseRuntime.IsManaged)
+                {
+                    await databaseBootstrapper.BootstrapAsync(Settings, Settings.WorldDatabaseSqlPath, token);
+                    var databaseValidation = await databaseRuntime.ValidateAsync(Settings, token);
+                    if (!databaseValidation.IsValid)
+                        throw new InvalidOperationException(databaseValidation.Message);
+                    await settingsStore.SaveAsync(Settings, token);
+                }
 
                 await configurationWriter.WriteAsync(Settings, token);
                 State.Set(LauncherState.StartingServer, "Starting the local ACE world...");

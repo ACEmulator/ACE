@@ -16,12 +16,27 @@ public sealed class DatabaseConnectionFactory
 
     public MySqlConnection Create(LauncherSettings settings, string? database = null)
     {
+        return Create(settings, settings.DatabaseUsername,
+            secretProtector.Unprotect(settings.ProtectedDatabasePassword), database);
+    }
+
+    public MySqlConnection CreatePrivateAdministrator(LauncherSettings settings)
+    {
+        if (settings.DatabaseMode == DatabaseMode.External)
+            throw new InvalidOperationException("Private administrator credentials are not available in external database mode.");
+
+        return Create(settings, "root",
+            secretProtector.Unprotect(settings.ProtectedPrivateDatabaseAdminPassword), database: null);
+    }
+
+    private static MySqlConnection Create(LauncherSettings settings, string username, string password, string? database)
+    {
         var builder = new MySqlConnectionStringBuilder
         {
             Server = settings.DatabaseHost,
             Port = settings.DatabasePort,
-            UserID = settings.DatabaseUsername,
-            Password = secretProtector.Unprotect(settings.ProtectedDatabasePassword),
+            UserID = username,
+            Password = password,
             Database = database ?? string.Empty,
             SslMode = MySqlSslMode.None,
             AllowPublicKeyRetrieval = true,

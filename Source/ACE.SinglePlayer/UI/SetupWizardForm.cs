@@ -36,10 +36,20 @@ public sealed class SetupWizardForm : Form
     private readonly CheckBox minimize = new() { Text = "Minimize this launcher after the client starts", AutoSize = true };
     private readonly Label pageTitle = new() { AutoSize = true, Font = new Font(SystemFonts.MessageBoxFont!.FontFamily, 15, FontStyle.Bold) };
     private readonly Label databaseStatus = new() { AutoSize = true, MaximumSize = new Size(620, 0) };
+    private readonly Label privateDatabaseNote = new()
+    {
+        Text = "Recommended: the launcher creates an isolated database in your local Windows app-data folder (outside OneDrive), generates its credentials, binds it only to this PC, and leaves the Windows MariaDB service untouched. Select an extracted, populated ACE-World-Database-*.sql file; Database\\Base\\WorldBase.sql contains only empty tables.",
+        AutoSize = true,
+        MaximumSize = new Size(650, 0)
+    };
     private readonly Label decalStatus = new() { AutoSize = true, MaximumSize = new Size(620, 0) };
+    private readonly Button testDatabase = new() { Text = "Check Database", AutoSize = true };
+    private readonly Button initializeDatabase = new() { Text = "Prepare Private Database", AutoSize = true };
     private readonly Button back = new() { Text = "Back", AutoSize = true };
     private readonly Button next = new() { Text = "Next", AutoSize = true };
     private readonly Button finish = new() { Text = "Save Setup", AutoSize = true };
+    private readonly List<Control> externalDatabaseControls = new();
+    private readonly List<Control> privateDatabaseControls = new();
     private LauncherSettings settings;
 
     public SetupWizardForm(LauncherSettings settings, SettingsStore settingsStore, ISecretProtector secretProtector,
@@ -57,7 +67,7 @@ public sealed class SetupWizardForm : Form
         Size = new Size(820, 650);
         FormBorderStyle = FormBorderStyle.Sizable;
 
-        databaseMode.Items.AddRange(new object[] { "Already-running MariaDB/MySQL", "Launcher-managed MariaDB (experimental)" });
+        databaseMode.Items.AddRange(new object[] { "Automatic private database (recommended)", "Existing MariaDB/MySQL (advanced)" });
         clientMode.Items.AddRange(new object[] { "Vanilla", "Decal", "Chorizite (future)" });
 
         pages.TabPages.Add(CreateClientPage());
@@ -86,7 +96,7 @@ public sealed class SetupWizardForm : Form
         next.Click += (_, _) => { if (pages.SelectedIndex < pages.TabCount - 1) pages.SelectedIndex++; UpdateNavigation(); };
         finish.Click += async (_, _) => await SaveAsync();
         pages.SelectedIndexChanged += (_, _) => UpdateNavigation();
-        databaseMode.SelectedIndexChanged += (_, _) => managedDatabaseExe.Enabled = databaseMode.SelectedIndex == 1;
+        databaseMode.SelectedIndexChanged += (_, _) => UpdateDatabaseModeControls();
 
         LoadSettings();
         pages.SelectedIndex = 0;
@@ -137,27 +147,34 @@ public sealed class SetupWizardForm : Form
         var page = NewPage();
         var layout = NewFields();
         AddRow(layout, "Database mode", databaseMode, 0);
-        AddRow(layout, "Host", databaseHost, 1);
-        AddRow(layout, "Port", databasePort, 2);
-        AddRow(layout, "Username", databaseUser, 3);
-        AddRow(layout, "Password", databasePassword, 4);
-        AddRow(layout, "Authentication DB", authDatabase, 5);
-        AddRow(layout, "Shard DB", shardDatabase, 6);
-        AddRow(layout, "World DB", worldDatabase, 7);
-        AddPathRow(layout, "mariadbd.exe", managedDatabaseExe, "Only needed for experimental managed mode", () => BrowseFile(managedDatabaseExe, "MariaDB server|mariadbd.exe"), 8);
-        AddPathRow(layout, "World SQL package", worldSql, "Required only when the world database is missing", () => BrowseFile(worldSql, "SQL files|*.sql"), 9);
+        layout.Controls.Add(privateDatabaseNote, 0, 1);
+        layout.SetColumnSpan(privateDatabaseNote, 3);
+        privateDatabaseControls.Add(privateDatabaseNote);
+
+        TrackExternal(AddRow(layout, "Host", databaseHost, 2), databaseHost);
+        TrackExternal(AddRow(layout, "Port", databasePort, 3), databasePort);
+        TrackExternal(AddRow(layout, "Username", databaseUser, 4), databaseUser);
+        TrackExternal(AddRow(layout, "Password", databasePassword, 5), databasePassword);
+        TrackExternal(AddRow(layout, "Authentication DB", authDatabase, 6), authDatabase);
+        TrackExternal(AddRow(layout, "Shard DB", shardDatabase, 7), shardDatabase);
+        TrackExternal(AddRow(layout, "World DB", worldDatabase, 8), worldDatabase);
+        var mariaDbPathControls = AddPathRow(layout, "MariaDB program", managedDatabaseExe,
+            "Automatically detected; browse to mariadbd.exe only when needed",
+            () => BrowseFile(managedDatabaseExe, "MariaDB server|mariadbd.exe"), 9);
+        privateDatabaseControls.AddRange(new Control[] { mariaDbPathControls.Label, managedDatabaseExe, mariaDbPathControls.Button });
+        AddPathRow(layout, "World SQL package", worldSql,
+            "Select extracted ACE-World-Database-*.sql, not Database\\Base\\WorldBase.sql",
+            () => BrowseFile(worldSql, "SQL files|*.sql"), 10);
 
         var actions = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight };
-        var test = new Button { Text = "Test Connection", AutoSize = true };
-        var initialize = new Button { Text = "Initialize Missing Databases", AutoSize = true };
-        actions.Controls.Add(test);
-        actions.Controls.Add(initialize);
-        layout.Controls.Add(actions, 1, 10);
+        actions.Controls.Add(testDatabase);
+        actions.Controls.Add(initializeDatabase);
+        layout.Controls.Add(actions, 1, 11);
         layout.SetColumnSpan(actions, 2);
-        layout.Controls.Add(databaseStatus, 1, 11);
+        layout.Controls.Add(databaseStatus, 1, 12);
         layout.SetColumnSpan(databaseStatus, 2);
-        test.Click += async (_, _) => await TestDatabaseAsync(test);
-        initialize.Click += async (_, _) => await InitializeDatabaseAsync(initialize);
+        testDatabase.Click += async (_, _) => await TestDatabaseAsync(testDatabase);
+        initializeDatabase.Click += async (_, _) => await InitializeDatabaseAsync(initializeDatabase);
         page.Controls.Add(layout);
         return page;
     }
@@ -197,13 +214,16 @@ public sealed class SetupWizardForm : Form
         serverPath.Text = settings.ServerExePath;
         modsPath.Text = settings.ModsDirectory;
         runtimePath.Text = settings.RuntimeDirectory;
-        databaseMode.SelectedIndex = settings.DatabaseMode == DatabaseMode.External ? 0 : 1;
+        if (settings.DatabaseMode != DatabaseMode.External)
+            settings.ManagedDatabaseExePath = MariaDbInstallationLocator.FindServerExecutable(settings.ManagedDatabaseExePath)
+                ?? settings.ManagedDatabaseExePath;
+        databaseMode.SelectedIndex = settings.DatabaseMode == DatabaseMode.External ? 1 : 0;
         databaseHost.Text = settings.DatabaseHost;
         databasePort.Value = settings.DatabasePort;
         databaseUser.Text = settings.DatabaseUsername;
         try
         {
-            databasePassword.Text = string.IsNullOrEmpty(settings.ProtectedDatabasePassword)
+            databasePassword.Text = settings.DatabaseMode != DatabaseMode.External || string.IsNullOrEmpty(settings.ProtectedDatabasePassword)
                 ? string.Empty
                 : secretProtector.Unprotect(settings.ProtectedDatabasePassword);
         }
@@ -216,6 +236,7 @@ public sealed class SetupWizardForm : Form
         shardDatabase.Text = settings.ShardDatabaseName;
         worldDatabase.Text = settings.WorldDatabaseName;
         managedDatabaseExe.Text = settings.ManagedDatabaseExePath;
+        worldSql.Text = settings.WorldDatabaseSqlPath;
         accountName.Text = settings.AccountName;
         serverPort.Value = settings.Port;
         startupTimeout.Value = Math.Clamp(settings.ServerStartupTimeoutSeconds, (int)startupTimeout.Minimum, (int)startupTimeout.Maximum);
@@ -226,6 +247,7 @@ public sealed class SetupWizardForm : Form
         decalStatus.Text = DecalDetector.Detect() is null
             ? "Decal is not detected. Vanilla mode is fully supported; Chorizite is reserved for future work."
             : "Decal and Inject.dll were detected. Decal mode is optional; Vanilla remains available if injection fails.";
+        UpdateDatabaseModeControls();
     }
 
     private LauncherSettings BuildSettings()
@@ -242,15 +264,46 @@ public sealed class SetupWizardForm : Form
         result.AccountName = accountName.Text.Trim();
         if (string.IsNullOrWhiteSpace(result.ProtectedAccountPassword))
             result.ProtectedAccountPassword = secretProtector.Protect(SecretProtector.GeneratePassword());
-        result.DatabaseMode = databaseMode.SelectedIndex == 1 ? DatabaseMode.ManagedExperimental : DatabaseMode.External;
-        result.DatabaseHost = databaseHost.Text.Trim();
-        result.DatabasePort = (ushort)databasePort.Value;
-        result.DatabaseUsername = databaseUser.Text.Trim();
-        result.ProtectedDatabasePassword = secretProtector.Protect(databasePassword.Text);
+        var previousDatabaseMode = result.DatabaseMode;
+        var usePrivateDatabase = databaseMode.SelectedIndex != 1;
+        if (usePrivateDatabase)
+        {
+            if (previousDatabaseMode == DatabaseMode.External)
+            {
+                result.ProtectedExternalDatabasePassword = result.ProtectedDatabasePassword;
+                result.ProtectedDatabasePassword = result.ProtectedPrivateDatabasePassword;
+            }
+
+            result.DatabaseMode = DatabaseMode.Private;
+            result.DatabaseHost = "127.0.0.1";
+            if (previousDatabaseMode == DatabaseMode.External || result.DatabasePort == 3306)
+                result.DatabasePort = PrivateDatabasePortFinder.FindAvailablePort();
+            result.DatabaseUsername = "ace_singleplayer";
+            var privateDatabaseExists = Directory.Exists(Path.Combine(result.PrivateDatabaseDirectory, "mysql"));
+            if (string.IsNullOrWhiteSpace(result.ProtectedDatabasePassword))
+                result.ProtectedDatabasePassword = secretProtector.Protect(SecretProtector.GeneratePassword());
+            if (string.IsNullOrWhiteSpace(result.ProtectedPrivateDatabaseAdminPassword) && !privateDatabaseExists)
+                result.ProtectedPrivateDatabaseAdminPassword = secretProtector.Protect(SecretProtector.GeneratePassword());
+            result.ProtectedPrivateDatabasePassword = result.ProtectedDatabasePassword;
+            result.ManagedDatabaseExePath = MariaDbInstallationLocator.FindServerExecutable(managedDatabaseExe.Text.Trim())
+                ?? managedDatabaseExe.Text.Trim();
+        }
+        else
+        {
+            if (previousDatabaseMode != DatabaseMode.External)
+                result.ProtectedPrivateDatabasePassword = result.ProtectedDatabasePassword;
+            result.DatabaseMode = DatabaseMode.External;
+            result.DatabaseHost = databaseHost.Text.Trim();
+            result.DatabasePort = (ushort)databasePort.Value;
+            result.DatabaseUsername = databaseUser.Text.Trim();
+            result.ProtectedDatabasePassword = secretProtector.Protect(databasePassword.Text);
+            result.ProtectedExternalDatabasePassword = result.ProtectedDatabasePassword;
+            result.ManagedDatabaseExePath = managedDatabaseExe.Text.Trim();
+        }
         result.AuthenticationDatabaseName = authDatabase.Text.Trim();
         result.ShardDatabaseName = shardDatabase.Text.Trim();
         result.WorldDatabaseName = worldDatabase.Text.Trim();
-        result.ManagedDatabaseExePath = managedDatabaseExe.Text.Trim();
+        result.WorldDatabaseSqlPath = worldSql.Text.Trim();
         result.StopServerWhenGameExits = stopWithGame.Checked;
         result.StopManagedDatabaseWhenLauncherExits = stopManagedDatabase.Checked;
         result.MinimizeLauncherAfterClientStarts = minimize.Checked;
@@ -283,11 +336,31 @@ public sealed class SetupWizardForm : Form
             return;
         }
 
-        Directory.CreateDirectory(settings.RuntimeDirectory);
-        Directory.CreateDirectory(settings.ModsDirectory);
-        await settingsStore.SaveAsync(settings);
-        DialogResult = DialogResult.OK;
-        Close();
+        finish.Enabled = false;
+        try
+        {
+            Directory.CreateDirectory(settings.RuntimeDirectory);
+            Directory.CreateDirectory(settings.ModsDirectory);
+            if (settings.DatabaseMode != DatabaseMode.External)
+            {
+                pages.SelectedIndex = 2;
+                databaseStatus.Text = "Preparing the private database. The first world import can take several minutes...";
+                await PrepareDatabaseAsync(settings, CancellationToken.None);
+            }
+
+            await settingsStore.SaveAsync(settings);
+            DialogResult = DialogResult.OK;
+            Close();
+        }
+        catch (Exception ex)
+        {
+            databaseStatus.Text = ex.Message;
+            MessageBox.Show(this, ex.Message, "Database setup needs attention", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+        finally
+        {
+            finish.Enabled = true;
+        }
     }
 
     private async Task TestDatabaseAsync(Button button)
@@ -298,8 +371,10 @@ public sealed class SetupWizardForm : Form
         {
             var current = BuildSettings();
             await using var runtime = databaseRuntimeFactory.Create(current);
+            await runtime.StartAsync(current, CancellationToken.None);
             var result = await runtime.ValidateAsync(current, CancellationToken.None);
             databaseStatus.Text = result.Message;
+            await runtime.StopAsync(CancellationToken.None);
         }
         catch (Exception ex)
         {
@@ -314,16 +389,13 @@ public sealed class SetupWizardForm : Form
     private async Task InitializeDatabaseAsync(Button button)
     {
         button.Enabled = false;
-        databaseStatus.Text = "Initializing only databases that are completely missing...";
+        databaseStatus.Text = databaseMode.SelectedIndex == 0
+            ? "Preparing the private database. The first world import can take several minutes..."
+            : "Initializing only databases that are completely missing...";
         var current = BuildSettings();
-        await using var runtime = databaseRuntimeFactory.Create(current);
         try
         {
-            if (runtime.IsManaged)
-                await runtime.StartAsync(current, CancellationToken.None);
-            await databaseBootstrapper.BootstrapAsync(current, worldSql.Text.Trim(), CancellationToken.None);
-            var result = await runtime.ValidateAsync(current, CancellationToken.None);
-            databaseStatus.Text = result.Message;
+            databaseStatus.Text = await PrepareDatabaseAsync(current, CancellationToken.None);
         }
         catch (Exception ex)
         {
@@ -331,9 +403,46 @@ public sealed class SetupWizardForm : Form
         }
         finally
         {
-            await runtime.StopAsync(CancellationToken.None);
             button.Enabled = true;
         }
+    }
+
+    private async Task<string> PrepareDatabaseAsync(LauncherSettings current, CancellationToken cancellationToken)
+    {
+        await using var runtime = databaseRuntimeFactory.Create(current);
+        try
+        {
+            if (runtime.IsManaged)
+                await runtime.StartAsync(current, cancellationToken);
+            await databaseBootstrapper.BootstrapAsync(current, current.WorldDatabaseSqlPath, cancellationToken);
+            var result = await runtime.ValidateAsync(current, cancellationToken);
+            if (!result.IsValid)
+                throw new InvalidOperationException(result.Message);
+            return result.Message;
+        }
+        finally
+        {
+            await runtime.StopAsync(CancellationToken.None);
+        }
+    }
+
+    private void UpdateDatabaseModeControls()
+    {
+        var usePrivateDatabase = databaseMode.SelectedIndex != 1;
+        foreach (var control in externalDatabaseControls)
+            control.Visible = !usePrivateDatabase;
+        foreach (var control in privateDatabaseControls)
+            control.Visible = usePrivateDatabase;
+
+        testDatabase.Text = usePrivateDatabase ? "Check Private Database" : "Test Connection";
+        initializeDatabase.Text = usePrivateDatabase ? "Prepare Private Database" : "Initialize Missing Databases";
+        stopManagedDatabase.Visible = usePrivateDatabase;
+    }
+
+    private void TrackExternal(Label label, Control field)
+    {
+        externalDatabaseControls.Add(label);
+        externalDatabaseControls.Add(field);
     }
 
     private void BrowseFile(TextBox target, string filter)
@@ -383,22 +492,26 @@ public sealed class SetupWizardForm : Form
         }
     };
 
-    private static void AddRow(TableLayoutPanel layout, string label, Control control, int row)
+    private static Label AddRow(TableLayoutPanel layout, string label, Control control, int row)
     {
         control.Dock = DockStyle.Top;
-        layout.Controls.Add(new Label { Text = label, AutoSize = true, Padding = new Padding(0, 5, 0, 0) }, 0, row);
+        var labelControl = new Label { Text = label, AutoSize = true, Padding = new Padding(0, 5, 0, 0) };
+        layout.Controls.Add(labelControl, 0, row);
         layout.Controls.Add(control, 1, row);
         layout.SetColumnSpan(control, 2);
+        return labelControl;
     }
 
-    private static void AddPathRow(TableLayoutPanel layout, string label, TextBox textBox, string accessibleDescription, Action browse, int row)
+    private static (Label Label, Button Button) AddPathRow(TableLayoutPanel layout, string label, TextBox textBox, string accessibleDescription, Action browse, int row)
     {
         textBox.Dock = DockStyle.Top;
         textBox.AccessibleDescription = accessibleDescription;
         var button = new Button { Text = "Browse...", AutoSize = true, Dock = DockStyle.Top };
         button.Click += (_, _) => browse();
-        layout.Controls.Add(new Label { Text = label, AutoSize = true, Padding = new Padding(0, 5, 0, 0) }, 0, row);
+        var labelControl = new Label { Text = label, AutoSize = true, Padding = new Padding(0, 5, 0, 0) };
+        layout.Controls.Add(labelControl, 0, row);
         layout.Controls.Add(textBox, 1, row);
         layout.Controls.Add(button, 2, row);
+        return (labelControl, button);
     }
 }

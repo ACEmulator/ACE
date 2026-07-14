@@ -11,6 +11,15 @@ dotnet test .\Source\ACE.Server.Tests\ACE.Server.Tests.csproj -c Release --filte
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\publish-singleplayer.ps1 -Configuration Release
 ```
 
+The normal launcher test run does not require MariaDB. To additionally exercise real private initialization, isolated-user provisioning, schema bootstrap, validation, and shutdown against an installed MariaDB distribution:
+
+```powershell
+$env:ACE_TEST_MARIADBD = 'C:\Program Files\MariaDB 11.2\bin\mariadbd.exe'
+dotnet test .\Source\ACE.SinglePlayer.Tests\ACE.SinglePlayer.Tests.csproj -c Release --filter 'FullyQualifiedName~PrivateDatabaseTests'
+```
+
+The integration test uses a unique temporary data directory and does not modify the Windows MariaDB service. Set `ACE_TEST_WORLD_SQL` to an extracted official `ACE-World-Database-*.sql` file to exercise the full populated-world import and empty-world repair path; otherwise the test uses a minimal populated fixture.
+
 The clean package is written to `artifacts\ACE-SinglePlayer`. The packaging script stages publish output under the current user's temporary directory to avoid a .NET 10 publish-transform bug when the repository path contains an apostrophe. It then checks that the package contains no generated Config.js, settings, logs, database data, proprietary client/DAT files, or MariaDB executable.
 
 The normal ACE solution remains separate and can be verified with:
