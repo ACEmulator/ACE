@@ -37,7 +37,7 @@ public sealed class ClientLaunchTests
 
             CollectionAssert.AreEqual(new[]
             {
-                "-a", account, "-v", password, "-h", "127.0.0.1:9000", "-rodat", "off"
+                "-a", account, "-v", password, "-h", "127.0.0.1:9000", "-rodat", "on"
             }, arguments);
         }
         finally

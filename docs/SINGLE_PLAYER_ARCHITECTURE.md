@@ -34,7 +34,7 @@ Two random passwords are generated: a private administrator credential used only
 
 ## Client providers
 
-`IClientLaunchProvider` isolates client choices. `DirectClientLaunchProvider` uses `ProcessStartInfo.ArgumentList` for `-a`, `-v`, `-h`, and `-rodat off`; it has no Decal, Thwarg, Chorizite, or injection dependency.
+`IClientLaunchProvider` isolates client choices. `DirectClientLaunchProvider` uses `ProcessStartInfo.ArgumentList` for `-a`, `-v`, `-h`, and `-rodat on`; read-only DAT access allows ACE.Server and `acclient.exe` to use the same files concurrently. Vanilla mode has no Decal, Thwarg, Chorizite, or injection dependency.
 
 `DecalClientLaunchProvider` detects `SOFTWARE\Decal\Agent\AgentPath` in 32/64-bit HKLM/HKCU views and validates `Inject.dll`. A separately built, self-contained x86 helper creates the 32-bit client suspended, loads the installed `Inject.dll`, invokes its exported `DecalStartup`, resumes the client, and returns a diagnostic PID. It bundles no Decal or third-party injector binaries and does not use ThwargLauncher or ThwargFilter. Invocation is diagnosed, but actual in-game Decal/plugin loading was not end-to-end tested in this repository environment.
 
