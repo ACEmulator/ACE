@@ -24,7 +24,19 @@ public sealed class MainForm : Form
     private readonly Label title = new() { Text = "A C E   S I N G L E   P L A Y E R", AutoSize = false, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter };
     private readonly Label state = new() { AutoSize = false, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter };
     private readonly Button play = new() { Text = "PLAY", Width = 320, Height = 96 };
-    private readonly CheckBox useDecal = new() { Text = "Use Decal", AutoSize = true, Margin = new Padding(7, 7, 7, 11) };
+    private readonly CheckBox useDecal = new()
+    {
+        AutoSize = true,
+        Margin = new Padding(3, 5, 3, 5),
+        AccessibleName = "Use Decal"
+    };
+    private readonly Label useDecalLabel = new()
+    {
+        Text = "Use Decal",
+        AutoSize = true,
+        Margin = new Padding(2, 4, 4, 4),
+        Cursor = Cursors.Hand
+    };
     private readonly Button stop = new() { Text = "Stop", Width = 116, Height = 36, Margin = new Padding(4, 0, 4, 4) };
     private readonly TextBox diagnostics = new() { Dock = DockStyle.Fill, Multiline = true, ReadOnly = true, ScrollBars = ScrollBars.Vertical, Font = new Font(FontFamily.GenericMonospace, 9), BorderStyle = BorderStyle.None };
     private readonly Panel diagnosticPanel = new() { Dock = DockStyle.Fill, Visible = false, Padding = new Padding(12), BorderStyle = BorderStyle.FixedSingle };
@@ -68,9 +80,10 @@ public sealed class MainForm : Form
         play.FlatAppearance.MouseOverBackColor = Color.FromArgb(205, 126, 55);
         play.FlatAppearance.MouseDownBackColor = Color.FromArgb(151, 80, 37);
 
-        useDecal.ForeColor = Mist;
-        useDecal.BackColor = DeepSlate;
-        useDecal.Font = new Font(SystemFonts.MessageBoxFont!.FontFamily, 10, FontStyle.Bold);
+        useDecal.BackColor = Color.Transparent;
+        useDecalLabel.ForeColor = PaleGold;
+        useDecalLabel.BackColor = Color.Transparent;
+        useDecalLabel.Font = new Font(SystemFonts.MessageBoxFont!.FontFamily, 10, FontStyle.Bold);
         StyleSecondaryButton(stop);
 
         diagnostics.BackColor = Color.FromArgb(9, 17, 22);
@@ -101,7 +114,17 @@ public sealed class MainForm : Form
             Padding = new Padding(10),
             Margin = new Padding(12, 4, 0, 0)
         };
-        playOptions.Controls.Add(useDecal);
+        var decalOption = new FlowLayoutPanel
+        {
+            AutoSize = true,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = false,
+            BackColor = Color.Transparent,
+            Margin = new Padding(3, 3, 3, 8)
+        };
+        decalOption.Controls.Add(useDecal);
+        decalOption.Controls.Add(useDecalLabel);
+        playOptions.Controls.Add(decalOption);
         playOptions.Controls.Add(stop);
         playPanel.Controls.Add(playOptions);
         playHost.Controls.Add(playPanel, 1, 0);
@@ -127,10 +150,12 @@ public sealed class MainForm : Form
         var decalAvailable = IsDecalAvailable();
         useDecal.Checked = controller.Settings.ClientLaunchMode == ClientLaunchMode.Decal;
         useDecal.Enabled = decalAvailable;
-        useDecal.Text = decalAvailable ? "Use Decal" : "Use Decal (not detected)";
-        toolTip.SetToolTip(useDecal, decalAvailable
+        useDecalLabel.Text = decalAvailable ? "Use Decal" : "Use Decal (not detected)";
+        var decalToolTip = decalAvailable
             ? "Launch the game with your installed Decal and ThwargLauncher. Uncheck for Vanilla."
-            : "Install both Decal and ThwargLauncher to enable this option.");
+            : "Install both Decal and ThwargLauncher to enable this option.";
+        toolTip.SetToolTip(useDecal, decalToolTip);
+        toolTip.SetToolTip(useDecalLabel, decalToolTip);
 
         controller.State.Changed += UpdateState;
         log.MessageWritten += AppendDiagnostic;
@@ -144,6 +169,11 @@ public sealed class MainForm : Form
         };
         stop.Click += async (_, _) => await controller.StopAsync();
         useDecal.CheckedChanged += async (_, _) => await UpdateDecalPreferenceAsync();
+        useDecalLabel.Click += (_, _) =>
+        {
+            if (useDecal.Enabled)
+                useDecal.Checked = !useDecal.Checked;
+        };
         settings.Click += async (_, _) => await ShowSettingsAsync();
         mods.Click += (_, _) => new ModsForm(controller.Settings, () => controller.IsServerRunning).ShowDialog(this);
         logs.Click += (_, _) => Process.Start(new ProcessStartInfo { FileName = Path.GetDirectoryName(log.LogPath)!, UseShellExecute = true });

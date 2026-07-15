@@ -2,12 +2,22 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using ACE.SinglePlayer.UI;
 using ACE.SinglePlayer.Models;
+using ACE.SinglePlayer.Mods;
 
 namespace ACE.SinglePlayer.Tests;
 
 [TestClass]
 public sealed class UiLayoutTests
 {
+    [TestMethod]
+    public void ModLibraryDoesNotDisplayInstalledDecalComponents()
+    {
+        var providers = ModsForm.CreateDisplayedModProviders(Path.GetTempPath());
+
+        Assert.IsFalse(providers.Any(provider => provider.Type == ModType.DecalPlugin));
+        Assert.IsTrue(providers.Any(provider => provider.Type == ModType.AceServer));
+    }
+
     [TestMethod]
     public void ModLibraryCanBeConstructedBeforeWindowsCompletesLayout()
     {
