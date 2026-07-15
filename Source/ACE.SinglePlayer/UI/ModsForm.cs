@@ -77,11 +77,8 @@ public sealed class ModsForm : Form
         var split = new SplitContainer
         {
             Dock = DockStyle.Fill,
-            SplitterDistance = 730,
             SplitterWidth = 6,
-            BackColor = Night,
-            Panel1MinSize = 540,
-            Panel2MinSize = 360
+            BackColor = Night
         };
         split.Panel1.Padding = new Padding(14, 8, 6, 14);
         split.Panel2.Padding = new Padding(8, 8, 14, 14);
@@ -90,6 +87,11 @@ public sealed class ModsForm : Form
 
         Controls.Add(split);
         Controls.Add(heading);
+
+        // SplitContainer starts with a small design-time width. Setting a large
+        // distance or panel minimum in the initializer throws before the form has
+        // completed layout, especially with display scaling enabled.
+        Shown += (_, _) => ConfigureSplitter(split);
 
         grid.SelectionChanged += (_, _) => UpdateDetails();
         install.Click += async (_, _) => await InstallSelectedAsync();
@@ -100,6 +102,31 @@ public sealed class ModsForm : Form
 
         RefreshCatalog();
     }
+
+    private static void ConfigureSplitter(SplitContainer split)
+    {
+        var layout = CalculateSplitterLayout(split.ClientSize.Width, split.SplitterWidth);
+
+        // Clear the defaults first so every assignment is valid even on a narrow,
+        // scaled display. The calculated minimums are restored after the divider.
+        split.Panel1MinSize = 0;
+        split.Panel2MinSize = 0;
+        split.SplitterDistance = layout.Distance;
+        split.Panel1MinSize = layout.Panel1MinSize;
+        split.Panel2MinSize = layout.Panel2MinSize;
+    }
+
+    internal static SplitterLayout CalculateSplitterLayout(int controlWidth, int splitterWidth)
+    {
+        var available = Math.Max(0, controlWidth - splitterWidth);
+        var panel1Minimum = Math.Min(540, available);
+        var panel2Minimum = Math.Min(360, Math.Max(0, available - panel1Minimum));
+        var maximumDistance = Math.Max(panel1Minimum, available - panel2Minimum);
+        var distance = Math.Clamp(730, panel1Minimum, maximumDistance);
+        return new SplitterLayout(distance, panel1Minimum, panel2Minimum);
+    }
+
+    internal sealed record SplitterLayout(int Distance, int Panel1MinSize, int Panel2MinSize);
 
     private ModListItem? Selected => grid.CurrentRow?.DataBoundItem as ModListItem;
 
