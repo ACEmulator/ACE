@@ -66,6 +66,27 @@ public sealed class ModTests
     }
 
     [TestMethod]
+    public async Task ValidatedPackageCanBeInspectedBeforeImport()
+    {
+        var root = TestPaths.CreateTemporaryDirectory();
+        try
+        {
+            var package = Path.Combine(root, "test.zip");
+            CreatePackage(package);
+            var manifest = await new ModPackageInstaller().InspectAsync(package);
+
+            Assert.AreEqual("test.mod", manifest.Id);
+            Assert.AreEqual("Test Mod", manifest.Name);
+            Assert.AreEqual("1.0.0", manifest.Version);
+            Assert.AreEqual("TestMod.dll", manifest.EntryAssembly);
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
+    }
+
+    [TestMethod]
     public async Task PackageTraversalIsRejected()
     {
         var root = TestPaths.CreateTemporaryDirectory();

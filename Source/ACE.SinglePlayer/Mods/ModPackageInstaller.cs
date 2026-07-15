@@ -19,6 +19,23 @@ public sealed class ModPackageInstaller
     private const long MaximumExpandedSize = 100L * 1024 * 1024;
     private const int MaximumEntries = 500;
 
+    public async Task<ModPackageManifest> InspectAsync(
+        string packagePath,
+        CancellationToken cancellationToken = default)
+    {
+        packagePath = Path.GetFullPath(packagePath);
+        if (!File.Exists(packagePath))
+            throw new FileNotFoundException("The mod package is missing.", packagePath);
+
+        await VerifyHashSidecarAsync(packagePath, cancellationToken);
+        using var archive = ZipFile.OpenRead(packagePath);
+        ValidateArchiveSize(archive);
+        var manifestEntry = FindManifest(archive);
+        var manifest = await ReadManifestAsync(manifestEntry, cancellationToken);
+        ValidateManifest(manifest, expectedCatalogId: null);
+        return manifest;
+    }
+
     public async Task<string> InstallAsync(
         string packagePath,
         string expectedCatalogId,
@@ -41,14 +58,8 @@ public sealed class ModPackageInstaller
         try
         {
             using var archive = ZipFile.OpenRead(packagePath);
-            if (archive.Entries.Count > MaximumEntries)
-                throw new InvalidDataException("The mod package contains too many files.");
-            if (archive.Entries.Sum(entry => entry.Length) > MaximumExpandedSize)
-                throw new InvalidDataException("The expanded mod package is larger than 100 MB.");
-
-            var manifestEntry = archive.Entries.SingleOrDefault(entry =>
-                string.Equals(NormalizeEntry(entry.FullName), "ace-mod.json", StringComparison.OrdinalIgnoreCase))
-                ?? throw new InvalidDataException("The package has no ace-mod.json manifest.");
+            ValidateArchiveSize(archive);
+            var manifestEntry = FindManifest(archive);
             var manifest = await ReadManifestAsync(manifestEntry, cancellationToken);
             ValidateManifest(manifest, expectedCatalogId);
 
@@ -143,11 +154,27 @@ public sealed class ModPackageInstaller
         }, cancellationToken) ?? throw new InvalidDataException("The package manifest is empty.");
     }
 
-    private static void ValidateManifest(ModPackageManifest manifest, string expectedCatalogId)
+    private static ZipArchiveEntry FindManifest(ZipArchive archive) =>
+        archive.Entries.SingleOrDefault(entry =>
+            string.Equals(NormalizeEntry(entry.FullName), "ace-mod.json", StringComparison.OrdinalIgnoreCase))
+        ?? throw new InvalidDataException("The package has no ace-mod.json manifest.");
+
+    private static void ValidateArchiveSize(ZipArchive archive)
+    {
+        if (archive.Entries.Count > MaximumEntries)
+            throw new InvalidDataException("The mod package contains too many files.");
+        if (archive.Entries.Sum(entry => entry.Length) > MaximumExpandedSize)
+            throw new InvalidDataException("The expanded mod package is larger than 100 MB.");
+    }
+
+    private static void ValidateManifest(ModPackageManifest manifest, string? expectedCatalogId)
     {
         if (manifest.FormatVersion != 1)
             throw new InvalidDataException("The package manifest version is not supported.");
-        if (!string.Equals(manifest.Id, expectedCatalogId, StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(manifest.Id))
+            throw new InvalidDataException("The package identity is missing.");
+        if (!string.IsNullOrWhiteSpace(expectedCatalogId) &&
+            !string.Equals(manifest.Id, expectedCatalogId, StringComparison.OrdinalIgnoreCase))
             throw new InvalidDataException("The package identity does not match the selected catalog mod.");
         if (string.IsNullOrWhiteSpace(manifest.Name) || string.IsNullOrWhiteSpace(manifest.Version))
             throw new InvalidDataException("The package name or version is missing.");

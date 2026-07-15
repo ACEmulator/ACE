@@ -46,6 +46,7 @@ public sealed class ModsForm : Form
     private readonly Button toggle = new() { Text = "Turn off", AutoSize = true };
     private readonly Button remove = new() { Text = "Remove", AutoSize = true };
     private readonly Button openSettings = new() { Text = "Settings", AutoSize = true };
+    private readonly Button importPackage = new() { Text = "Import Mod Package...", AutoSize = true };
     private BindingList<ModListItem> items = new();
 
     public ModsForm(LauncherSettings settings, Func<bool> isServerRunning)
@@ -98,6 +99,7 @@ public sealed class ModsForm : Form
         toggle.Click += async (_, _) => await ToggleSelectedAsync();
         remove.Click += (_, _) => RemoveSelected();
         openSettings.Click += (_, _) => OpenSelectedSettings();
+        importPackage.Click += async (_, _) => await ImportPackageAsync();
         sourceLink.LinkClicked += (_, _) => OpenSelectedSource();
 
         RefreshCatalog();
@@ -146,15 +148,15 @@ public sealed class ModsForm : Form
         var actions = new FlowLayoutPanel
         {
             Dock = DockStyle.Bottom,
-            Height = 48,
+            Height = 84,
             FlowDirection = FlowDirection.LeftToRight,
-            WrapContents = false,
+            WrapContents = true,
             Padding = new Padding(0, 9, 0, 0),
             BackColor = Color.Transparent
         };
-        foreach (var button in new[] { install, toggle, remove, openSettings })
+        foreach (var button in new[] { install, toggle, remove, openSettings, importPackage })
             StyleButton(button);
-        actions.Controls.AddRange(new Control[] { install, toggle, remove, openSettings });
+        actions.Controls.AddRange(new Control[] { install, toggle, remove, openSettings, importPackage });
 
         var sourcePanel = new Panel { Dock = DockStyle.Bottom, Height = 38, Padding = new Padding(0, 8, 0, 0) };
         sourcePanel.Controls.Add(sourceLink);
@@ -219,10 +221,12 @@ public sealed class ModsForm : Form
             $"AUTHOR / VERSION TARGET\r\n{item.Author}  |  {item.Catalog.TargetFramework}  |  {item.Catalog.TargetAceVersion}";
 
         var installedRecord = item.Installed;
-        install.Text = "Install";
+        install.Text = item.CompatibilityStatus == CompatibilityStatus.Compatible
+            ? "Install"
+            : "Why unavailable?";
         toggle.Text = installedRecord?.Enabled == true ? "Turn off" : "Turn on";
         SetActions(
-            installEnabled: installedRecord is null && item.CompatibilityStatus == CompatibilityStatus.Compatible,
+            installEnabled: installedRecord is null,
             toggleEnabled: installedRecord?.CanToggle == true,
             removeEnabled: installedRecord?.Type == ModType.AceServer,
             settingsEnabled: installedRecord is not null && File.Exists(installedRecord.SettingsPath),
@@ -234,13 +238,16 @@ public sealed class ModsForm : Form
         var item = Selected;
         if (item is null || item.Installed is not null)
             return;
-        if (!EnsureServerStopped())
-            return;
         if (item.CompatibilityStatus != CompatibilityStatus.Compatible)
         {
-            MessageBox.Show(this, item.CompatibilityMessage, "Mod cannot be installed", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(this,
+                item.CompatibilityMessage +
+                "\r\n\r\nImport Mod Package can install a separately rebuilt package, but importing the original source does not port it to this ACE version.",
+                "Mod is not packaged for this ACE version", MessageBoxButtons.OK, MessageBoxIcon.Information);
             return;
         }
+        if (!EnsureServerStopped())
+            return;
 
         var answer = MessageBox.Show(this,
             $"Install {item.Name}?\r\n\r\n{item.Catalog.Description}\r\n\r\n{item.Catalog.SafetyNotice}\r\n\r\nThe local server must restart before the mod becomes active.",
@@ -263,6 +270,64 @@ public sealed class ModsForm : Form
         catch (Exception ex)
         {
             MessageBox.Show(this, ex.Message, "Mod was not installed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            UpdateDetails();
+        }
+    }
+
+    private async Task ImportPackageAsync()
+    {
+        if (!EnsureServerStopped())
+            return;
+
+        using var dialog = new OpenFileDialog
+        {
+            Title = "Import an ACE Single Player mod package",
+            Filter = "ACE mod packages (*.zip)|*.zip",
+            CheckFileExists = true,
+            Multiselect = false
+        };
+        if (dialog.ShowDialog(this) != DialogResult.OK)
+            return;
+
+        importPackage.Enabled = false;
+        try
+        {
+            var manifest = await installer.InspectAsync(dialog.FileName);
+            var catalog = AquafirSampleCatalog.Entries.FirstOrDefault(entry =>
+                string.Equals(entry.Id, manifest.Id, StringComparison.OrdinalIgnoreCase));
+            var compatibilityWarning = catalog is null
+                ? "This package is not in the curated catalog. The launcher can validate its checksum and file layout, but cannot prove that its code is compatible or safe for saved characters."
+                : catalog.Availability == ModCatalogAvailability.Ready
+                    ? catalog.SafetyNotice
+                    : "The bundled catalog still marks this mod as needing a source port. Only continue if this ZIP was rebuilt and tested specifically for the current ACE Single Player release.";
+
+            var answer = MessageBox.Show(this,
+                $"Import {manifest.Name} {manifest.Version}?\r\n\r\nPackage ID: {manifest.Id}\r\n\r\n{compatibilityWarning}\r\n\r\n" +
+                "A matching .sha256 checksum file was verified. Back up %LOCALAPPDATA%\\ACESinglePlayer before importing unverified code. The server will restart when you next click Play.",
+                "Import mod package", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (answer != DialogResult.Yes)
+                return;
+
+            var destination = await installer.InstallAsync(
+                dialog.FileName,
+                manifest.Id,
+                settings.ModsDirectory,
+                Path.Combine(settings.RuntimeDirectory, "ModStaging"));
+            RefreshCatalog();
+            MessageBox.Show(this,
+                $"{manifest.Name} was imported to:\r\n{destination}\r\n\r\nIt will load the next time you click Play.",
+                "Mod imported", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this,
+                ex.Message +
+                "\r\n\r\nA supported package contains ace-mod.json at the ZIP root, its files under mod/, and a matching .zip.sha256 file beside the ZIP.",
+                "Mod was not imported", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        finally
+        {
+            importPackage.Enabled = true;
             UpdateDetails();
         }
     }
