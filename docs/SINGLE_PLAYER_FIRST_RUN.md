@@ -1,6 +1,6 @@
 # ACE Single Player: first run
 
-ACE Single Player keeps ACE.Server as a private local process and launches the original client directly. It does not include or download Asheron's Call, DAT files, MariaDB, Decal, ThwargLauncher, or community mods.
+ACE Single Player keeps ACE.Server and a bundled MariaDB instance as private local processes and launches the original client directly. The release includes the server, database runtime, complete world, .NET, and curated server mods. It does not include Asheron's Call, proprietary DAT files, Decal, or ThwargLauncher.
 
 ## Before opening the launcher
 
@@ -9,25 +9,21 @@ ACE Single Player keeps ACE.Server as a private local process and launches the o
    - `client_cell_1.dat`
    - `client_portal.dat`
    - `client_local_English.dat`
-   - `client_highres.dat` is optional for ACE.Server, although the client installation normally includes it.
-3. Have MariaDB for Windows installed. Its Windows service may be running or stopped; the recommended private mode uses the installed programs to create a separate database and does not need the service's `root` password. The launcher does not bundle or download MariaDB.
-4. Download the current official ACE-World release package and extract its populated `ACE-World-Database-*.sql` file. Do not select the repository's `Database\Base\WorldBase.sql`; that file defines empty tables and cannot run a world. The launcher never downloads or trusts a database package on its own.
+   - `client_highres.dat`
+   Keep the complete client installation together in one writable folder outside OneDrive and `Program Files`.
+3. Extract the complete release. Do not move or delete its `Server` or `Dependencies` folders.
 
-## Setup wizard
+## First start
 
 Double-click `ACE.SinglePlayer.exe`.
 
-1. Select `acclient.exe`. The wizard fills the DAT directory automatically when all three required DAT files are beside it.
-2. Select the packaged `Server\ACE.Server.exe`.
-3. Keep the package `Mods` directory and the default local Windows app-data `Runtime` directory unless you intentionally store them elsewhere. Runtime configuration contains short-lived local credentials and should not be placed in OneDrive.
-4. Keep **Automatic private database (recommended)**. The wizard detects `mariadbd.exe`, selects a free loopback-only port, generates protected credentials, and stores MariaDB data under local Windows app data rather than OneDrive. No MariaDB username or password is requested.
-5. Select the extracted, populated `ACE-World-Database-*.sql` file. Click **Prepare Private Database** if you want to prepare it immediately, or continue; **Save Setup** performs the same preparation automatically. The first world import can take several minutes. Existing complete databases are never overwritten. Private databases left with empty world tables by an interrupted or older setup are repaired from the selected package; external databases are never repaired automatically.
-6. Keep the account name `singleplayer` or choose one permanent name. A strong password is generated once, protected with Windows DPAPI, and reused. Do not change or delete this account if you want the same characters.
-7. Keep local port `9000` unless it conflicts with another application.
-8. Save setup.
-9. On the main launcher, check **Use Decal** beside **PLAY** when Decal, ThwargLauncher, `Inject.dll`, and `injector.dll` are detected. Leave it unchecked for Vanilla. **PLAY** starts the entire session directly from ACE Single Player.
+1. The launcher checks common AC locations automatically. If it cannot find a complete client, select the folder containing `acclient.exe` and all four DAT files.
+2. The main launcher opens immediately. Check **Use Decal** when a separate working Decal and ThwargLauncher installation is detected; otherwise leave it unchecked.
+3. Click **PLAY**. The first run creates the private database and imports the bundled world, which can take several minutes. Existing complete databases are never overwritten. Later launches skip the import.
 
-The private database lives at `%LOCALAPPDATA%\ACESinglePlayer\Database`. The launcher uses the `mariadb-install-db.exe` shipped beside the detected MariaDB program, initializes into a staging directory, and moves it into place only after initialization succeeds. It creates a dedicated `ace_singleplayer` database user; generated administrator and application passwords are protected with Windows DPAPI and are not displayed or logged. The existing MariaDB service and its `root` account are not changed.
+Before the server starts for the first time, the launcher also makes a private copy of the four DAT files under `%LOCALAPPDATA%\ACESinglePlayer\ServerData`. This needs roughly the same amount of free disk space as the four original DATs and prevents ACE.Server from locking the files used by the game client. Later launches reuse the copy unless the originals change.
+
+The private database lives at `%LOCALAPPDATA%\ACESinglePlayer\Database`. The launcher uses the bundled `Dependencies\MariaDB` programs, initializes into a staging directory, and moves it into place only after initialization succeeds. It creates a dedicated `ace_singleplayer` database user; generated administrator and application passwords are protected with Windows DPAPI and are not displayed or logged. Any separately installed MariaDB service and its `root` account are not changed.
 
 To use a separately administered server instead, choose **Existing MariaDB/MySQL (advanced)** and enter its host, port, username, password, and database names. Use **Test Connection** and **Initialize Missing Databases** as needed.
 

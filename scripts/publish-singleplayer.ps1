@@ -1,20 +1,25 @@
 param(
     [ValidateSet("Debug", "Release")]
     [string] $Configuration = "Release",
-    [string] $OutputDirectory
+    [string] $OutputDirectory,
+    [switch] $SkipBundledDependencies
 )
 
 $ErrorActionPreference = "Stop"
 $repoRoot = [IO.Path]::GetFullPath((Split-Path $PSScriptRoot -Parent))
 if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
-    $OutputDirectory = Join-Path $repoRoot "artifacts\ACE-SinglePlayer"
+    $localBuildRoot = if ([string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
+        Join-Path ([IO.Path]::GetTempPath()) "ACE-SinglePlayer-Build"
+    } else {
+        Join-Path $env:LOCALAPPDATA "ACE-SinglePlayer-Build"
+    }
+    $OutputDirectory = Join-Path $localBuildRoot "ACE-SinglePlayer"
 }
 $OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
 $outputPrefix = $OutputDirectory.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
-$artifactsRoot = [IO.Path]::GetFullPath((Join-Path $repoRoot "artifacts"))
-$artifactsPrefix = $artifactsRoot.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
-if ($OutputDirectory -ne $artifactsRoot -and -not $OutputDirectory.StartsWith($artifactsPrefix, [StringComparison]::OrdinalIgnoreCase)) {
-    throw "OutputDirectory must remain under $artifactsRoot"
+if ((Split-Path $OutputDirectory -Leaf) -ine "ACE-SinglePlayer" -or
+    [string]::Equals($OutputDirectory, [IO.Path]::GetPathRoot($OutputDirectory), [StringComparison]::OrdinalIgnoreCase)) {
+    throw "OutputDirectory must name a non-root directory called ACE-SinglePlayer. The directory is replaced on every build."
 }
 
 $localDotnet = Join-Path $repoRoot ".dotnet\dotnet.exe"
@@ -35,6 +40,25 @@ if (-not $stage.StartsWith($tempPrefix, [StringComparison]::OrdinalIgnoreCase)) 
 $launcherPublish = Join-Path $stage "Launcher"
 $serverPublish = Join-Path $stage "Server"
 $decalHostPublish = Join-Path $stage "DecalHost"
+$criticalOverridePublish = Join-Path $stage "CriticalOverride"
+$criticalOverridePackage = Join-Path $stage "CriticalOverridePackage"
+$mariaDbExtract = Join-Path $stage "MariaDB"
+$worldExtract = Join-Path $stage "World"
+$buildArtifacts = Join-Path $stage "BuildArtifacts"
+
+$mariaDbVersion = "12.3.2"
+$mariaDbArchiveName = "mariadb-$mariaDbVersion-winx64.zip"
+$mariaDbUri = "https://archive.mariadb.org/mariadb-$mariaDbVersion/winx64-packages/$mariaDbArchiveName"
+$mariaDbSha256 = "67347c129eb9c5923d002ea34fbfa27c60eb95d36dd73b85af2651cdeceecac5"
+$worldVersion = "0.9.294"
+$worldArchiveName = "ACE-World-Database-v$worldVersion.sql.zip"
+$worldUri = "https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/download/v$worldVersion/$worldArchiveName"
+$worldSha256 = "aa8275a2fd8edd8c2b95092d2407ece4616ba7b8d7eab1405719bbbfa80c8f89"
+$cacheRoot = if ([string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
+    Join-Path $tempRoot "ACE-SinglePlayer-BuildCache"
+} else {
+    Join-Path $env:LOCALAPPDATA "ACE-SinglePlayer-BuildCache"
+}
 
 function Invoke-DotNet([string[]] $Arguments) {
     & $dotnet @Arguments
@@ -43,26 +67,123 @@ function Invoke-DotNet([string[]] $Arguments) {
     }
 }
 
+function Get-VerifiedDownload([string] $Uri, [string] $Destination, [string] $ExpectedSha256) {
+    if (Test-Path -LiteralPath $Destination) {
+        $actual = (Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($actual -eq $ExpectedSha256.ToLowerInvariant()) {
+            Write-Host "Using verified dependency cache: $(Split-Path $Destination -Leaf)"
+            return
+        }
+        Remove-Item -LiteralPath $Destination -Force
+    }
+
+    Write-Host "Downloading $(Split-Path $Destination -Leaf)..."
+    Invoke-WebRequest -Uri $Uri -OutFile $Destination -UseBasicParsing
+    $downloaded = (Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($downloaded -ne $ExpectedSha256.ToLowerInvariant()) {
+        Remove-Item -LiteralPath $Destination -Force
+        throw "SHA-256 mismatch for $Uri. Expected $ExpectedSha256 but received $downloaded."
+    }
+}
+
 foreach ($path in @($stage, $OutputDirectory)) {
     if (Test-Path -LiteralPath $path) {
         Remove-Item -LiteralPath $path -Recurse -Force
     }
 }
-New-Item -ItemType Directory -Path $launcherPublish, $serverPublish, $decalHostPublish, $OutputDirectory | Out-Null
+New-Item -ItemType Directory -Path $launcherPublish, $serverPublish, $decalHostPublish, $criticalOverridePublish, $criticalOverridePackage, $buildArtifacts, $OutputDirectory | Out-Null
 
 Write-Host "Publishing ACE.Server as self-contained Windows x64..."
-Invoke-DotNet @("publish", (Join-Path $repoRoot "Source\ACE.Server\ACE.Server.csproj"), "-c", $Configuration, "-r", "win-x64", "--self-contained", "true", "-o", $serverPublish)
+Invoke-DotNet @("publish", (Join-Path $repoRoot "Source\ACE.Server\ACE.Server.csproj"), "-c", $Configuration, "-r", "win-x64", "--self-contained", "true", "--artifacts-path", $buildArtifacts, "-o", $serverPublish)
 
 Write-Host "Publishing ACE.SinglePlayer as self-contained Windows x64..."
-Invoke-DotNet @("publish", (Join-Path $repoRoot "Source\ACE.SinglePlayer\ACE.SinglePlayer.csproj"), "-c", $Configuration, "-r", "win-x64", "--self-contained", "true", "-o", $launcherPublish)
+Invoke-DotNet @("publish", (Join-Path $repoRoot "Source\ACE.SinglePlayer\ACE.SinglePlayer.csproj"), "-c", $Configuration, "-r", "win-x64", "--self-contained", "true", "--artifacts-path", $buildArtifacts, "-o", $launcherPublish)
 
 Write-Host "Publishing the optional Decal helper as a self-contained Windows x86 executable..."
-Invoke-DotNet @("publish", (Join-Path $repoRoot "Source\ACE.SinglePlayer.DecalHost\ACE.SinglePlayer.DecalHost.csproj"), "-c", $Configuration, "-r", "win-x86", "--self-contained", "true", "-p:PublishSingleFile=true", "-o", $decalHostPublish)
+Invoke-DotNet @("publish", (Join-Path $repoRoot "Source\ACE.SinglePlayer.DecalHost\ACE.SinglePlayer.DecalHost.csproj"), "-c", $Configuration, "-r", "win-x86", "--self-contained", "true", "--artifacts-path", $buildArtifacts, "-p:PublishSingleFile=true", "-o", $decalHostPublish)
+
+Write-Host "Building the curated CriticalOverride mod package..."
+$criticalOverrideProject = Join-Path $repoRoot "Source\ACE.SinglePlayer.Mods.CriticalOverride"
+Invoke-DotNet @("build", (Join-Path $criticalOverrideProject "ACE.SinglePlayer.Mods.CriticalOverride.csproj"), "-c", $Configuration, "--artifacts-path", $buildArtifacts, "-o", $criticalOverridePublish)
 
 Copy-Item -Path (Join-Path $launcherPublish "*") -Destination $OutputDirectory -Recurse -Force
-New-Item -ItemType Directory -Path (Join-Path $OutputDirectory "Server"), (Join-Path $OutputDirectory "Tools") | Out-Null
+New-Item -ItemType Directory -Path (Join-Path $OutputDirectory "Server"), (Join-Path $OutputDirectory "Tools"), (Join-Path $OutputDirectory "Packages") | Out-Null
 Copy-Item -Path (Join-Path $serverPublish "*") -Destination (Join-Path $OutputDirectory "Server") -Recurse -Force
 Copy-Item -Path (Join-Path $decalHostPublish "ACE.SinglePlayer.DecalHost.exe") -Destination (Join-Path $OutputDirectory "Tools") -Force
+
+$criticalOverrideModDirectory = Join-Path $criticalOverridePackage "mod"
+New-Item -ItemType Directory -Path $criticalOverrideModDirectory | Out-Null
+Copy-Item (Join-Path $criticalOverrideProject "ace-mod.json") $criticalOverridePackage
+Copy-Item (Join-Path $criticalOverridePublish "CriticalOverride.dll") $criticalOverrideModDirectory
+Copy-Item (Join-Path $criticalOverrideProject "Meta.json") $criticalOverrideModDirectory
+Copy-Item (Join-Path $criticalOverrideProject "Settings.json") $criticalOverrideModDirectory
+Copy-Item (Join-Path $criticalOverrideProject "README.md") $criticalOverrideModDirectory
+$criticalOverrideArchive = Join-Path $OutputDirectory "Packages\aquafir.critical-override-1.0.0-sp1.zip"
+Compress-Archive -Path (Join-Path $criticalOverridePackage "*") -DestinationPath $criticalOverrideArchive -CompressionLevel Optimal
+(Get-FileHash -LiteralPath $criticalOverrideArchive -Algorithm SHA256).Hash | Set-Content -LiteralPath ($criticalOverrideArchive + ".sha256") -Encoding ascii
+
+if (-not $SkipBundledDependencies) {
+    New-Item -ItemType Directory -Path $cacheRoot, $mariaDbExtract, $worldExtract -Force | Out-Null
+    $mariaDbArchive = Join-Path $cacheRoot $mariaDbArchiveName
+    $worldArchive = Join-Path $cacheRoot $worldArchiveName
+    Get-VerifiedDownload $mariaDbUri $mariaDbArchive $mariaDbSha256
+    Get-VerifiedDownload $worldUri $worldArchive $worldSha256
+
+    Write-Host "Extracting the pinned portable MariaDB runtime..."
+    Expand-Archive -LiteralPath $mariaDbArchive -DestinationPath $mariaDbExtract -Force
+    $mariaDbRoots = @(Get-ChildItem -LiteralPath $mariaDbExtract -Directory | Where-Object {
+        Test-Path -LiteralPath (Join-Path $_.FullName "bin\mariadbd.exe")
+    })
+    if ($mariaDbRoots.Count -ne 1) {
+        throw "The MariaDB archive did not contain exactly one complete Windows runtime root."
+    }
+    $mariaDbOutput = Join-Path $OutputDirectory "Dependencies\MariaDB"
+    New-Item -ItemType Directory -Path (Split-Path $mariaDbOutput -Parent) -Force | Out-Null
+    Move-Item -LiteralPath $mariaDbRoots[0].FullName -Destination $mariaDbOutput
+
+    Write-Host "Extracting the pinned complete ACE World database..."
+    Expand-Archive -LiteralPath $worldArchive -DestinationPath $worldExtract -Force
+    $worldSqlFiles = @(Get-ChildItem -LiteralPath $worldExtract -Recurse -File -Filter "ACE-World-Database-*.sql")
+    if ($worldSqlFiles.Count -ne 1) {
+        throw "The ACE World archive did not contain exactly one complete ACE-World-Database SQL file."
+    }
+    $worldOutput = Join-Path $OutputDirectory "Dependencies\World"
+    New-Item -ItemType Directory -Path $worldOutput -Force | Out-Null
+    Move-Item -LiteralPath $worldSqlFiles[0].FullName -Destination (Join-Path $worldOutput "ACE-World-Database-v$worldVersion.sql") -Force
+
+    $licensesOutput = Join-Path $OutputDirectory "Licenses"
+    New-Item -ItemType Directory -Path $licensesOutput -Force | Out-Null
+    Copy-Item -LiteralPath (Join-Path $repoRoot "LICENSE") -Destination (Join-Path $licensesOutput "ACE-and-ACE-World-AGPL-3.0.txt")
+    $mariaDbLicense = Get-ChildItem -LiteralPath $mariaDbOutput -File | Where-Object { $_.Name -in @("COPYING", "COPYING.txt") } | Select-Object -First 1
+    if ($null -eq $mariaDbLicense) {
+        throw "The MariaDB distribution license was not found in the official archive."
+    }
+    Copy-Item -LiteralPath $mariaDbLicense.FullName -Destination (Join-Path $licensesOutput "MariaDB-GPL-2.0.txt")
+    Copy-Item -LiteralPath (Join-Path $repoRoot "docs\THIRD_PARTY_NOTICES.md") -Destination (Join-Path $OutputDirectory "THIRD_PARTY_NOTICES.md")
+
+    $bundleManifest = [ordered]@{
+        formatVersion = 1
+        aceUpstream = [ordered]@{
+            repository = "https://github.com/ACEmulator/ACE"
+            commit = "650c5b75ae909957feaf58db320e46be16502653"
+            build = "1.77.4782"
+            license = "AGPL-3.0"
+        }
+        mariaDb = [ordered]@{
+            version = $mariaDbVersion
+            source = $mariaDbUri
+            sha256 = $mariaDbSha256
+            license = "GPL-2.0"
+        }
+        aceWorld = [ordered]@{
+            version = $worldVersion
+            source = $worldUri
+            sha256 = $worldSha256
+            license = "AGPL-3.0"
+        }
+    }
+    $bundleManifest | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $OutputDirectory "BUNDLE-MANIFEST.json") -Encoding utf8
+}
 
 foreach ($directory in @("Runtime", "Mods", "Logs", "Client", "Docs")) {
     New-Item -ItemType Directory -Path (Join-Path $OutputDirectory $directory) -Force | Out-Null
@@ -71,6 +192,7 @@ Copy-Item (Join-Path $repoRoot "docs\SINGLE_PLAYER_FIRST_RUN.md") (Join-Path $Ou
 Copy-Item (Join-Path $repoRoot "docs\SINGLE_PLAYER_INSTALL.md") (Join-Path $OutputDirectory "INSTALL.md")
 Copy-Item (Join-Path $repoRoot "docs\SINGLE_PLAYER_ARCHITECTURE.md") (Join-Path $OutputDirectory "Docs")
 Copy-Item (Join-Path $repoRoot "docs\AQUIFIR_MOD_COMPATIBILITY.md") (Join-Path $OutputDirectory "Docs")
+Copy-Item (Join-Path $repoRoot "docs\MOD_LIBRARY.md") (Join-Path $OutputDirectory "Docs")
 Copy-Item (Join-Path $repoRoot "docs\SINGLE_PLAYER_ROADMAP.md") (Join-Path $OutputDirectory "Docs")
 Copy-Item (Join-Path $repoRoot "docs\SINGLE_PLAYER_BUILD_AND_TEST.md") (Join-Path $OutputDirectory "Docs")
 Copy-Item (Join-Path $repoRoot "README.md") $OutputDirectory
@@ -86,7 +208,9 @@ $forbidden = Get-ChildItem -LiteralPath $OutputDirectory -Recurse -File | Where-
     } else {
         $_.FullName
     }
-    $_.Name -in @("Config.js", "settings.json", "acclient.exe", "mariadbd.exe", "ace-server.ready.json", "ace-server.process.json") -or
+    $isPinnedMariaDb = $relativePath -ieq "Dependencies\MariaDB\bin\mariadbd.exe"
+    $_.Name -in @("Config.js", "settings.json", "acclient.exe", "ace-server.ready.json", "ace-server.process.json") -or
+    ($_.Name -ieq "mariadbd.exe" -and -not $isPinnedMariaDb) -or
     $_.Name -like "client_*.dat" -or $_.Extension -in @(".log", ".pdb") -or
     $relativePath -match '^(Runtime|Logs|Client)[\\/]'
 }
@@ -96,7 +220,12 @@ if ($forbidden) {
 
 $textExtensions = @(".bat", ".config", ".example", ".js", ".json", ".md", ".ps1", ".sh", ".sql", ".txt", ".xml", ".yml", ".yaml")
 $personalPathMatches = Get-ChildItem -LiteralPath $OutputDirectory -Recurse -File | Where-Object {
-    $_.Extension -in $textExtensions
+    $relativePath = if ($_.FullName.StartsWith($outputPrefix, [StringComparison]::OrdinalIgnoreCase)) {
+        $_.FullName.Substring($outputPrefix.Length)
+    } else {
+        $_.FullName
+    }
+    $_.Extension -in $textExtensions -and $relativePath -notmatch '^Dependencies[\\/]'
 } | Select-String -Pattern '(?i)(C:[\\/]Users[\\/][^\\/]+|/Users/[^/]+)' -List
 if ($personalPathMatches) {
     throw "Packaging safety check found a personal user-profile path: $($personalPathMatches.Path -join ', ')"

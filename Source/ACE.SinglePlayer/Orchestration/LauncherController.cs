@@ -20,6 +20,7 @@ public sealed class LauncherController : IAsyncDisposable
     private readonly ReadyFileMonitor readyFileMonitor;
     private readonly ISecretProtector secretProtector;
     private readonly LauncherLog log;
+    private readonly ServerDatProvisioner serverDatProvisioner;
     private readonly PlayOperationGate playGate = new();
     private CancellationTokenSource? runCancellation;
     private IDatabaseRuntime? databaseRuntime;
@@ -40,6 +41,7 @@ public sealed class LauncherController : IAsyncDisposable
         this.readyFileMonitor = readyFileMonitor;
         this.secretProtector = secretProtector;
         this.log = log;
+        serverDatProvisioner = new ServerDatProvisioner(log);
         State = new LauncherStateMachine();
 
         serverManager.UnexpectedExit += exitCode => State.Set(LauncherState.Error,
@@ -87,9 +89,28 @@ public sealed class LauncherController : IAsyncDisposable
             runCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var token = runCancellation.Token;
 
+            if (serverManager.IsRunning && serverDatProvisioner.RequiresRefresh(Settings))
+            {
+                log.Write("Stopping the current ACE.Server process before refreshing its private DAT copy.");
+                await serverManager.StopAsync(token);
+            }
+
+            State.Set(LauncherState.PreparingData,
+                "Preparing private server data files. The first run may take a few minutes...");
+            var serverDatDirectory = await serverDatProvisioner.EnsureAsync(Settings, token);
+            if (!string.Equals(Settings.DatFilesDirectory, serverDatDirectory, StringComparison.OrdinalIgnoreCase))
+            {
+                Settings.DatFilesDirectory = serverDatDirectory;
+                await settingsStore.SaveAsync(Settings, token);
+            }
+
+            validation = SetupValidator.Validate(Settings);
+            if (!validation.IsValid)
+                throw new InvalidOperationException(validation.Message);
+
             if (!serverManager.IsRunning)
             {
-                databaseRuntime = databaseRuntimeFactory.Create(Settings);
+                databaseRuntime ??= databaseRuntimeFactory.Create(Settings);
                 State.Set(databaseRuntime.IsManaged ? LauncherState.StartingDatabase : LauncherState.CheckingDatabase,
                     databaseRuntime.IsManaged ? "Preparing your private local database..." : "Checking MariaDB/MySQL and ACE databases...");
                 await databaseRuntime.StartAsync(Settings, token);

@@ -28,7 +28,7 @@ internal static class Program
 
             var commandLine = BuildCommandLine(new[]
             {
-                client, "-a", account, "-v", password, "-h", $"{host}:{port}", "-rodat", "on"
+                client, "-a", account, "-v", password, "-h", $"{host}:{port}"
             });
             var processId = LaunchWithInstalledThwargInjector(
                 injector,

@@ -11,22 +11,31 @@ The launcher is designed for players who want a persistent personal world withou
 - Persistent characters and world state
 - Direct Vanilla client launch, with one-click Decal support when Decal and ThwargLauncher are already installed
 - Self-contained Windows release; players do not need to install .NET
-- Original game client, DAT files, MariaDB, and ACE World data remain user-supplied
+- Pinned portable MariaDB and complete ACE World database included in the release
+- Only the original game client and its four proprietary DAT files remain user-supplied
 
 ## Install
 
 The short version is:
 
-1. Install MariaDB for Windows.
-2. Have a working Asheron's Call client and DAT files. The usual client path is `C:\Turbine\Asheron's Call\acclient.exe`.
-3. Download and extract the populated `ACE-World-Database-*.sql` file from the [official ACE World releases](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest).
-4. Download the latest ACE Single Player release ZIP and extract it to a normal writable folder such as `C:\Games\ACE-SinglePlayer`.
-5. Run `ACE.SinglePlayer.exe`, keep **Automatic private database**, select the client and world SQL file, save setup, and click **PLAY**.
+1. Have a complete Asheron's Call client in one writable folder with `acclient.exe` and all four client DAT files. The usual path is `C:\Turbine\Asheron's Call`.
+2. Download the latest ACE Single Player release ZIP and extract the entire archive to a normal writable folder such as `C:\Games\ACE-SinglePlayer`.
+3. Run `ACE.SinglePlayer.exe`. If the client is not found automatically, select its folder once, then click **PLAY**. The first private-world import can take several minutes; later launches are much faster.
+
+On the first Play, the launcher also creates a private server copy of the four DAT files under `%LOCALAPPDATA%\ACESinglePlayer\ServerData`. This prevents ACE.Server from locking the original files needed by the client and requires roughly the same amount of free disk space as the four DATs. These local copies are never included in release ZIPs or GitHub.
+
+The portable release currently pins ACEmulator server build `1.77.4782` from upstream commit `650c5b75`, ACE World `v0.9.294`, and MariaDB `12.3.2 LTS`. Exact source URLs, hashes, and licenses are recorded in `BUNDLE-MANIFEST.json` and [the third-party notices](docs/THIRD_PARTY_NOTICES.md).
+
+## Mods
+
+Open **Mods** in the launcher to browse the curated mod library. Every entry includes a plain-language description, compatibility result, requirements, and a saved-game safety warning. `CriticalOverride` is the first Aquafir sample rebuilt for this exact ACE version and is included as a checksum-verified one-click package; other samples remain clearly marked until they are ported and tested.
+
+Turning a mod off stops its code after a server restart, but it does not undo experience, items, balances, character properties, or world content already saved by that mod. The launcher blocks removal of mods whose saved data may still depend on them and moves safely removable files to a recovery folder rather than deleting them. See [Mod library and saved-game safety](docs/MOD_LIBRARY.md) for the full policy and the separate plan for world/DAT content packs.
 
 See the [complete installation guide](docs/SINGLE_PLAYER_INSTALL.md) for prerequisites, expected file names, first-run instructions, troubleshooting, backups, and upgrade guidance.
 
 > [!IMPORTANT]
-> This repository and its release packages do not contain Asheron's Call, proprietary DAT files, MariaDB, Decal, ThwargLauncher, or the ACE World database. Do not upload those files when sharing builds or reporting problems.
+> The release does not contain Asheron's Call, `acclient.exe`, proprietary DAT files, Decal, or ThwargLauncher. It does include the redistributable open-source ACE server, ACE World database, and MariaDB runtime with their licenses and source links. Never upload your client or DAT files when sharing builds or reporting problems.
 
 ## Project status
 

@@ -8,121 +8,387 @@ namespace ACE.SinglePlayer.UI;
 
 public sealed class ModsForm : Form
 {
+    private static readonly Color Night = Color.FromArgb(14, 25, 32);
+    private static readonly Color DeepSlate = Color.FromArgb(26, 43, 52);
+    private static readonly Color WeatheredGold = Color.FromArgb(205, 160, 82);
+    private static readonly Color PaleGold = Color.FromArgb(241, 220, 170);
+    private static readonly Color Mist = Color.FromArgb(222, 231, 226);
+
     private readonly LauncherSettings settings;
     private readonly Func<bool> isServerRunning;
-    private readonly DataGridView grid = new() { Dock = DockStyle.Fill, AutoGenerateColumns = false, ReadOnly = true, AllowUserToAddRows = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect };
-    private BindingList<ModRecord> records = new();
+    private readonly ModPackageInstaller installer = new();
+    private readonly DataGridView grid = new()
+    {
+        Dock = DockStyle.Fill,
+        AutoGenerateColumns = false,
+        ReadOnly = true,
+        AllowUserToAddRows = false,
+        AllowUserToDeleteRows = false,
+        AllowUserToResizeRows = false,
+        MultiSelect = false,
+        RowHeadersVisible = false,
+        SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+        BackgroundColor = Night,
+        BorderStyle = BorderStyle.None
+    };
+    private readonly Label detailTitle = new() { AutoSize = false, Dock = DockStyle.Top, Height = 42 };
+    private readonly Label detailStatus = new() { AutoSize = false, Dock = DockStyle.Top, Height = 44 };
+    private readonly TextBox detailText = new()
+    {
+        Dock = DockStyle.Fill,
+        Multiline = true,
+        ReadOnly = true,
+        ScrollBars = ScrollBars.Vertical,
+        BorderStyle = BorderStyle.None
+    };
+    private readonly LinkLabel sourceLink = new() { Text = "View source and original documentation", AutoSize = true };
+    private readonly Button install = new() { Text = "Install", AutoSize = true };
+    private readonly Button toggle = new() { Text = "Turn off", AutoSize = true };
+    private readonly Button remove = new() { Text = "Remove", AutoSize = true };
+    private readonly Button openSettings = new() { Text = "Settings", AutoSize = true };
+    private BindingList<ModListItem> items = new();
 
     public ModsForm(LauncherSettings settings, Func<bool> isServerRunning)
     {
         this.settings = settings;
         this.isServerRunning = isServerRunning;
-        Text = "Mods and client plugins";
+
+        Text = "ACE Single Player - Mod Library";
         StartPosition = FormStartPosition.CenterParent;
-        Size = new Size(1000, 600);
+        MinimumSize = new Size(1040, 680);
+        Size = new Size(1240, 780);
+        BackColor = Night;
+        ForeColor = Mist;
+        Font = new Font(SystemFonts.MessageBoxFont!.FontFamily, 9.5f);
 
         AddColumns();
-        grid.CellContentClick += async (_, args) => await ToggleAsync(args);
-        grid.CellFormatting += FormatCell;
+        StyleGrid();
 
-        var buttons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 48, Padding = new Padding(8), AutoSize = false };
-        var refresh = new Button { Text = "Refresh", AutoSize = true };
-        var openMods = new Button { Text = "Open Mods Folder", AutoSize = true };
-        var openMod = new Button { Text = "Open Selected Folder", AutoSize = true };
-        var openSettings = new Button { Text = "Open Settings.json", AutoSize = true };
-        buttons.Controls.AddRange(new Control[] { refresh, openMods, openMod, openSettings });
-        refresh.Click += (_, _) => RefreshCatalog();
-        openMods.Click += (_, _) => Open(settings.ModsDirectory);
-        openMod.Click += (_, _) => { if (Selected is { InstalledPath.Length: > 0 } record) Open(record.InstalledPath); };
-        openSettings.Click += (_, _) =>
-        {
-            if (Selected is { SettingsPath.Length: > 0 } record && File.Exists(record.SettingsPath)) Open(record.SettingsPath);
-            else MessageBox.Show(this, "This server mod has no Settings.json file.", "No settings file", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        };
-
-        var note = new Label
+        var heading = new Label
         {
             Dock = DockStyle.Top,
-            Height = 48,
-            Padding = new Padding(10),
-            Text = "ACE server mods are loaded by ACE.Server's existing Harmony ModManager. Decal entries are read-only and load only in Decal mode. Server-mod changes require a restart."
+            Height = 72,
+            Padding = new Padding(18, 10, 18, 4),
+            Font = new Font("Georgia", 19, FontStyle.Bold),
+            ForeColor = PaleGold,
+            Text = "MOD LIBRARY\r\nPick a mod to see what it changes before installing it."
         };
-        Controls.Add(grid);
-        Controls.Add(buttons);
-        Controls.Add(note);
+
+        var split = new SplitContainer
+        {
+            Dock = DockStyle.Fill,
+            SplitterDistance = 730,
+            SplitterWidth = 6,
+            BackColor = Night,
+            Panel1MinSize = 540,
+            Panel2MinSize = 360
+        };
+        split.Panel1.Padding = new Padding(14, 8, 6, 14);
+        split.Panel2.Padding = new Padding(8, 8, 14, 14);
+        split.Panel1.Controls.Add(grid);
+        split.Panel2.Controls.Add(BuildDetailsPanel());
+
+        Controls.Add(split);
+        Controls.Add(heading);
+
+        grid.SelectionChanged += (_, _) => UpdateDetails();
+        install.Click += async (_, _) => await InstallSelectedAsync();
+        toggle.Click += async (_, _) => await ToggleSelectedAsync();
+        remove.Click += (_, _) => RemoveSelected();
+        openSettings.Click += (_, _) => OpenSelectedSettings();
+        sourceLink.LinkClicked += (_, _) => OpenSelectedSource();
+
         RefreshCatalog();
     }
 
-    private ModRecord? Selected => grid.CurrentRow?.DataBoundItem as ModRecord;
+    private ModListItem? Selected => grid.CurrentRow?.DataBoundItem as ModListItem;
+
+    private Control BuildDetailsPanel()
+    {
+        var panel = new Panel { Dock = DockStyle.Fill, BackColor = DeepSlate, Padding = new Padding(16) };
+        detailTitle.Font = new Font("Georgia", 17, FontStyle.Bold);
+        detailTitle.ForeColor = PaleGold;
+        detailStatus.Font = new Font(Font, FontStyle.Bold);
+        detailStatus.ForeColor = WeatheredGold;
+        detailText.BackColor = DeepSlate;
+        detailText.ForeColor = Mist;
+        detailText.Font = new Font(Font.FontFamily, 10);
+        sourceLink.LinkColor = Color.FromArgb(142, 197, 222);
+        sourceLink.ActiveLinkColor = PaleGold;
+
+        var actions = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Bottom,
+            Height = 48,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = false,
+            Padding = new Padding(0, 9, 0, 0),
+            BackColor = Color.Transparent
+        };
+        foreach (var button in new[] { install, toggle, remove, openSettings })
+            StyleButton(button);
+        actions.Controls.AddRange(new Control[] { install, toggle, remove, openSettings });
+
+        var sourcePanel = new Panel { Dock = DockStyle.Bottom, Height = 38, Padding = new Padding(0, 8, 0, 0) };
+        sourcePanel.Controls.Add(sourceLink);
+
+        panel.Controls.Add(detailText);
+        panel.Controls.Add(sourcePanel);
+        panel.Controls.Add(actions);
+        panel.Controls.Add(detailStatus);
+        panel.Controls.Add(detailTitle);
+        return panel;
+    }
 
     private void RefreshCatalog()
     {
-        var catalog = new ModCatalog(new IModProvider[]
+        var installedCatalog = new ModCatalog(new IModProvider[]
         {
             new AceServerModProvider(settings.ModsDirectory),
             new DecalPluginProvider(),
             new ChorizitePluginProvider(),
             new AceContentPackProvider()
         });
-        records = new BindingList<ModRecord>(catalog.Scan().ToList());
-        grid.DataSource = records;
+        var service = new ModCatalogService(AquafirSampleCatalog.Entries, AppContext.BaseDirectory);
+        items = new BindingList<ModListItem>(service.Merge(installedCatalog.Scan()).ToList());
+        grid.DataSource = items;
+        if (grid.Rows.Count > 0)
+            grid.Rows[0].Selected = true;
+        UpdateDetails();
     }
 
-    private async Task ToggleAsync(DataGridViewCellEventArgs args)
+    private void UpdateDetails()
     {
-        if (args.RowIndex < 0 || grid.Columns[args.ColumnIndex].Name != "Enabled" || grid.Rows[args.RowIndex].DataBoundItem is not ModRecord record)
-            return;
-        if (!record.CanToggle)
+        var item = Selected;
+        if (item is null)
         {
-            MessageBox.Show(this, record.Type == ModType.DecalPlugin
-                ? "Decal registration is read-only until its current format is fully tested."
-                : "Malformed metadata cannot be edited safely.", "Read-only", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            detailTitle.Text = "Select a mod";
+            detailStatus.Text = string.Empty;
+            detailText.Text = string.Empty;
+            SetActions(false, false, false, false, false);
             return;
         }
-        if (isServerRunning())
+
+        detailTitle.Text = item.Name;
+        detailStatus.Text = $"{item.Status}  |  {item.Safety}";
+        detailStatus.ForeColor = item.CompatibilityStatus switch
         {
-            MessageBox.Show(this, "Stop ACE.Server before changing mod metadata. The change requires a server restart.", "Restart required", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            CompatibilityStatus.Compatible => Color.FromArgb(151, 222, 178),
+            CompatibilityStatus.LoadFailed or CompatibilityStatus.Conflict => Color.FromArgb(255, 153, 125),
+            _ => WeatheredGold
+        };
+
+        var dependencies = item.Catalog.Dependencies.Count == 0
+            ? "None declared"
+            : string.Join(", ", item.Catalog.Dependencies.Select(FindCatalogName));
+        detailText.Text =
+            $"WHAT IT DOES\r\n{item.Catalog.Description}\r\n\r\n" +
+            $"DETAILS\r\n{item.Catalog.Details}\r\n\r\n" +
+            $"SAVED-GAME SAFETY\r\n{item.Catalog.SafetyNotice}\r\n\r\n" +
+            $"COMPATIBILITY\r\n{item.CompatibilityMessage}\r\n\r\n" +
+            $"REQUIRES\r\n{dependencies}\r\n\r\n" +
+            $"AUTHOR / VERSION TARGET\r\n{item.Author}  |  {item.Catalog.TargetFramework}  |  {item.Catalog.TargetAceVersion}";
+
+        var installedRecord = item.Installed;
+        install.Text = "Install";
+        toggle.Text = installedRecord?.Enabled == true ? "Turn off" : "Turn on";
+        SetActions(
+            installEnabled: installedRecord is null && item.CompatibilityStatus == CompatibilityStatus.Compatible,
+            toggleEnabled: installedRecord?.CanToggle == true,
+            removeEnabled: installedRecord?.Type == ModType.AceServer,
+            settingsEnabled: installedRecord is not null && File.Exists(installedRecord.SettingsPath),
+            sourceEnabled: !string.IsNullOrWhiteSpace(item.Catalog.SourceUrl));
+    }
+
+    private async Task InstallSelectedAsync()
+    {
+        var item = Selected;
+        if (item is null || item.Installed is not null)
             return;
+        if (!EnsureServerStopped())
+            return;
+        if (item.CompatibilityStatus != CompatibilityStatus.Compatible)
+        {
+            MessageBox.Show(this, item.CompatibilityMessage, "Mod cannot be installed", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        var answer = MessageBox.Show(this,
+            $"Install {item.Name}?\r\n\r\n{item.Catalog.Description}\r\n\r\n{item.Catalog.SafetyNotice}\r\n\r\nThe local server must restart before the mod becomes active.",
+            "Install mod", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+        if (answer != DialogResult.Yes)
+            return;
+
+        SetActions(false, false, false, false, false);
+        try
+        {
+            await installer.InstallAsync(
+                item.PackagePath,
+                item.Catalog.Id,
+                settings.ModsDirectory,
+                Path.Combine(settings.RuntimeDirectory, "ModStaging"));
+            RefreshCatalog();
+            MessageBox.Show(this, $"{item.Name} is installed. It will load the next time you click Play.",
+                "Mod installed", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, "Mod was not installed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            UpdateDetails();
+        }
+    }
+
+    private async Task ToggleSelectedAsync()
+    {
+        var item = Selected;
+        var record = item?.Installed;
+        if (item is null || record is null || !record.CanToggle)
+            return;
+        if (!EnsureServerStopped())
+            return;
+
+        var enabling = !record.Enabled;
+        if (!enabling && item.Catalog.RemovalPolicy is not ModRemovalPolicy.Safe)
+        {
+            var warning = item.Catalog.RemovalPolicy == ModRemovalPolicy.DoNotRemove
+                ? "This mod may be required by saved characters, items, or world data. Turning it off is strongly discouraged."
+                : "Some changes made by this mod will remain in the saved game after it is turned off.";
+            var answer = MessageBox.Show(this,
+                $"{warning}\r\n\r\n{item.Catalog.SafetyNotice}\r\n\r\nBack up %LOCALAPPDATA%\\ACESinglePlayer first. Turn it off anyway?",
+                "Saved-game warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (answer != DialogResult.Yes)
+                return;
         }
 
         try
         {
-            record.Enabled = !record.Enabled;
-            await ModMetadataEditor.SetEnabledAsync(record.MetadataPath, record.Enabled);
-            grid.InvalidateRow(args.RowIndex);
+            await ModMetadataEditor.SetEnabledAsync(record.MetadataPath, enabling);
+            RefreshCatalog();
         }
         catch (Exception ex)
         {
-            record.Enabled = !record.Enabled;
-            MessageBox.Show(this, ex.Message, "Could not update Meta.json", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(this, ex.Message, "Could not change the mod", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 
-    private static void Open(string path)
+    private void RemoveSelected()
     {
-        Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
+        var item = Selected;
+        var record = item?.Installed;
+        if (item is null || record?.Type != ModType.AceServer)
+            return;
+        if (!EnsureServerStopped())
+            return;
+        if (item.Catalog.RemovalPolicy == ModRemovalPolicy.DoNotRemove)
+        {
+            MessageBox.Show(this,
+                "Removal is blocked because saved characters, items, or world data may require this mod. You can turn it off for troubleshooting, but keep the files until a tested cleanup migration exists.\r\n\r\n" + item.Catalog.SafetyNotice,
+                "Removal blocked", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        var answer = MessageBox.Show(this,
+            $"Remove {item.Name}?\r\n\r\n{item.Catalog.SafetyNotice}\r\n\r\nThe files will be moved to a recovery folder, not deleted.",
+            "Remove mod", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+        if (answer != DialogResult.Yes)
+            return;
+
+        try
+        {
+            var destination = installer.MoveToQuarantine(
+                record.InstalledPath,
+                settings.ModsDirectory,
+                Path.Combine(settings.RuntimeDirectory, "RemovedMods"));
+            RefreshCatalog();
+            MessageBox.Show(this, $"The mod was removed from ACE and retained for recovery at:\r\n{destination}",
+                "Mod removed", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, "Could not remove the mod", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
     }
 
-    private void FormatCell(object? sender, DataGridViewCellFormattingEventArgs args)
+    private void OpenSelectedSettings()
     {
-        if (args.RowIndex < 0 || grid.Rows[args.RowIndex].DataBoundItem is not ModRecord record)
-            return;
-        if (record.IsMalformed || record.CompatibilityStatus == CompatibilityStatus.LoadFailed)
-            args.CellStyle.BackColor = Color.MistyRose;
-        else if (record.Type == ModType.DecalPlugin)
-            args.CellStyle.BackColor = Color.AliceBlue;
+        var path = Selected?.Installed?.SettingsPath;
+        if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+            Open(path);
+    }
+
+    private void OpenSelectedSource()
+    {
+        var url = Selected?.Catalog.SourceUrl;
+        if (!string.IsNullOrWhiteSpace(url))
+            Open(url);
+    }
+
+    private bool EnsureServerStopped()
+    {
+        if (!isServerRunning())
+            return true;
+        MessageBox.Show(this, "Stop the game and local server before changing mods.",
+            "Server is running", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        return false;
+    }
+
+    private static void Open(string path) =>
+        Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
+
+    private static string FindCatalogName(string id) =>
+        AquafirSampleCatalog.Entries.FirstOrDefault(entry => string.Equals(entry.Id, id, StringComparison.OrdinalIgnoreCase))?.Name ?? id;
+
+    private void SetActions(bool installEnabled, bool toggleEnabled, bool removeEnabled, bool settingsEnabled, bool sourceEnabled)
+    {
+        install.Enabled = installEnabled;
+        toggle.Enabled = toggleEnabled;
+        remove.Enabled = removeEnabled;
+        openSettings.Enabled = settingsEnabled;
+        sourceLink.Enabled = sourceEnabled;
+        sourceLink.Visible = sourceEnabled;
     }
 
     private void AddColumns()
     {
-        grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(ModRecord.Type), HeaderText = "Type", Width = 110 });
-        grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(ModRecord.Name), HeaderText = "Name", Width = 160 });
-        grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(ModRecord.Author), HeaderText = "Author", Width = 110 });
-        grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(ModRecord.Version), HeaderText = "Version", Width = 75 });
-        grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(ModRecord.Priority), HeaderText = "Priority", Width = 65 });
-        grid.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Enabled", DataPropertyName = nameof(ModRecord.Enabled), HeaderText = "Enabled", Width = 65 });
-        grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(ModRecord.CompatibilityStatus), HeaderText = "Compatibility", Width = 120 });
-        grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(ModRecord.Description), HeaderText = "Description", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
-        grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(ModRecord.LastLoadError), HeaderText = "Last error", Width = 180 });
+        grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(ModListItem.Status), HeaderText = "Status", Width = 122 });
+        grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(ModListItem.Name), HeaderText = "Mod", Width = 145 });
+        grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(ModListItem.Safety), HeaderText = "Saved-game impact", Width = 155 });
+        grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(ModListItem.Description), HeaderText = "What it does", AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill });
+    }
+
+    private void StyleGrid()
+    {
+        grid.EnableHeadersVisualStyles = false;
+        grid.ColumnHeadersDefaultCellStyle.BackColor = DeepSlate;
+        grid.ColumnHeadersDefaultCellStyle.ForeColor = PaleGold;
+        grid.ColumnHeadersDefaultCellStyle.Font = new Font(Font, FontStyle.Bold);
+        grid.ColumnHeadersHeight = 38;
+        grid.DefaultCellStyle.BackColor = Color.FromArgb(20, 34, 41);
+        grid.DefaultCellStyle.ForeColor = Mist;
+        grid.DefaultCellStyle.SelectionBackColor = Color.FromArgb(70, 80, 67);
+        grid.DefaultCellStyle.SelectionForeColor = Color.White;
+        grid.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+        grid.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(24, 40, 48);
+        grid.RowTemplate.Height = 66;
+        grid.CellFormatting += (_, args) =>
+        {
+            if (args.RowIndex < 0 || grid.Rows[args.RowIndex].DataBoundItem is not ModListItem item)
+                return;
+            if (item.CompatibilityStatus is CompatibilityStatus.LoadFailed or CompatibilityStatus.Conflict)
+                args.CellStyle.ForeColor = Color.FromArgb(255, 174, 151);
+            else if (item.Installed is not null)
+                args.CellStyle.ForeColor = Color.FromArgb(165, 226, 188);
+        };
+    }
+
+    private static void StyleButton(Button button)
+    {
+        button.FlatStyle = FlatStyle.Flat;
+        button.FlatAppearance.BorderColor = Color.FromArgb(126, 146, 145);
+        button.FlatAppearance.BorderSize = 1;
+        button.FlatAppearance.MouseOverBackColor = Color.FromArgb(55, 77, 84);
+        button.FlatAppearance.MouseDownBackColor = Color.FromArgb(33, 51, 59);
+        button.BackColor = Night;
+        button.ForeColor = Mist;
     }
 }

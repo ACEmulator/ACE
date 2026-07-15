@@ -1,0 +1,8 @@
+{
+  "formatVersion": 1,
+  "id": "aquafir.critical-override",
+  "name": "CriticalOverride",
+  "version": "1.0.0-sp1",
+  "folderName": "CriticalOverride",
+  "entryAssembly": "CriticalOverride.dll"
+}

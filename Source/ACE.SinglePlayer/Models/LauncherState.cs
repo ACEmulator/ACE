@@ -3,6 +3,7 @@ namespace ACE.SinglePlayer.Models;
 public enum LauncherState
 {
     NotConfigured,
+    PreparingData,
     CheckingDatabase,
     StartingDatabase,
     StartingServer,
