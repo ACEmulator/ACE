@@ -28,7 +28,7 @@ The portable release currently pins ACEmulator server build `1.77.4782` from ups
 
 ## Mods
 
-Open **Mods** in the launcher to browse the curated mod library. Every entry includes a plain-language description, compatibility result, requirements, and a saved-game safety warning. `CriticalOverride` is the first Aquafir sample rebuilt for this exact ACE version and is included as a checksum-verified one-click package; other samples remain clearly marked until they are ported and tested.
+Open **Mods** in the launcher to browse the curated mod library. Every entry includes a plain-language description, compatibility result, requirements, and a saved-game safety warning. `CriticalOverride` is the first Aquafir sample rebuilt for this exact ACE version and is included as a checksum-verified one-click package; other samples remain clearly marked until they are ported and tested. **Import Mod Package...** can atomically install separately rebuilt, checksummed packages in the documented ACE Single Player ZIP format.
 
 Turning a mod off stops its code after a server restart, but it does not undo experience, items, balances, character properties, or world content already saved by that mod. The launcher blocks removal of mods whose saved data may still depend on them and moves safely removable files to a recovery folder rather than deleting them. See [Mod library and saved-game safety](docs/MOD_LIBRARY.md) for the full policy and the separate plan for world/DAT content packs.
 
