@@ -169,13 +169,7 @@ public sealed class ModsForm : Form
 
     private void RefreshCatalog()
     {
-        var installedCatalog = new ModCatalog(new IModProvider[]
-        {
-            new AceServerModProvider(settings.ModsDirectory),
-            new DecalPluginProvider(),
-            new ChorizitePluginProvider(),
-            new AceContentPackProvider()
-        });
+        var installedCatalog = new ModCatalog(CreateDisplayedModProviders(settings.ModsDirectory));
         var service = new ModCatalogService(AquafirSampleCatalog.Entries, AppContext.BaseDirectory);
         items = new BindingList<ModListItem>(service.Merge(installedCatalog.Scan()).ToList());
         grid.DataSource = items;
@@ -183,6 +177,14 @@ public sealed class ModsForm : Form
             grid.Rows[0].Selected = true;
         UpdateDetails();
     }
+
+    internal static IReadOnlyList<IModProvider> CreateDisplayedModProviders(string modsDirectory) =>
+        new IModProvider[]
+        {
+            new AceServerModProvider(modsDirectory),
+            new ChorizitePluginProvider(),
+            new AceContentPackProvider()
+        };
 
     private void UpdateDetails()
     {
@@ -368,9 +370,13 @@ public sealed class ModsForm : Form
     private void SetActions(bool installEnabled, bool toggleEnabled, bool removeEnabled, bool settingsEnabled, bool sourceEnabled)
     {
         install.Enabled = installEnabled;
+        install.Visible = installEnabled;
         toggle.Enabled = toggleEnabled;
+        toggle.Visible = toggleEnabled;
         remove.Enabled = removeEnabled;
+        remove.Visible = removeEnabled;
         openSettings.Enabled = settingsEnabled;
+        openSettings.Visible = settingsEnabled;
         sourceLink.Enabled = sourceEnabled;
         sourceLink.Visible = sourceEnabled;
     }
@@ -416,6 +422,8 @@ public sealed class ModsForm : Form
         button.FlatAppearance.MouseOverBackColor = Color.FromArgb(55, 77, 84);
         button.FlatAppearance.MouseDownBackColor = Color.FromArgb(33, 51, 59);
         button.BackColor = Night;
-        button.ForeColor = Mist;
+        button.ForeColor = PaleGold;
+        button.Font = new Font(button.Font, FontStyle.Bold);
+        button.UseVisualStyleBackColor = false;
     }
 }
