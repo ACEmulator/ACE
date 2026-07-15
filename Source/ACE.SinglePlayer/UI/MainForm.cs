@@ -1,5 +1,6 @@
 using System.Diagnostics;
 
+using ACE.SinglePlayer.ClientLaunch;
 using ACE.SinglePlayer.Database;
 using ACE.SinglePlayer.Infrastructure;
 using ACE.SinglePlayer.Models;
@@ -17,10 +18,13 @@ public sealed class MainForm : Form
     private readonly LauncherLog log;
     private readonly Label state = new() { AutoSize = false, Dock = DockStyle.Top, Height = 64, TextAlign = ContentAlignment.MiddleCenter, Font = new Font(SystemFonts.MessageBoxFont!.FontFamily, 14, FontStyle.Bold) };
     private readonly Button play = new() { Text = "PLAY", Width = 330, Height = 100, Font = new Font(SystemFonts.MessageBoxFont.FontFamily, 26, FontStyle.Bold) };
+    private readonly CheckBox useDecal = new() { Text = "Use Decal", AutoSize = true, Padding = new Padding(10, 38, 4, 0) };
     private readonly Button stop = new() { Text = "Stop", Width = 100, Height = 38 };
     private readonly TextBox diagnostics = new() { Dock = DockStyle.Fill, Multiline = true, ReadOnly = true, ScrollBars = ScrollBars.Vertical, Font = new Font(FontFamily.GenericMonospace, 9) };
     private readonly Panel diagnosticPanel = new() { Dock = DockStyle.Fill, Visible = false, Padding = new Padding(8) };
+    private readonly ToolTip toolTip = new();
     private bool closingAllowed;
+    private bool updatingDecalPreference;
 
     public MainForm(LauncherController controller, SettingsStore settingsStore, ISecretProtector secretProtector,
         DatabaseRuntimeFactory databaseRuntimeFactory, DatabaseBootstrapper databaseBootstrapper, LauncherLog log)
@@ -46,6 +50,7 @@ public sealed class MainForm : Form
 
         var playPanel = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, Padding = new Padding(150, 15, 0, 0) };
         playPanel.Controls.Add(play);
+        playPanel.Controls.Add(useDecal);
         playPanel.Controls.Add(stop);
         main.Controls.Add(playPanel, 0, 1);
 
@@ -61,6 +66,14 @@ public sealed class MainForm : Form
         main.Controls.Add(diagnosticPanel, 0, 3);
         Controls.Add(main);
 
+        var decalAvailable = IsDecalAvailable();
+        useDecal.Checked = controller.Settings.ClientLaunchMode == ClientLaunchMode.Decal;
+        useDecal.Enabled = decalAvailable;
+        useDecal.Text = decalAvailable ? "Use Decal" : "Use Decal (not detected)";
+        toolTip.SetToolTip(useDecal, decalAvailable
+            ? "Launch the game with your installed Decal and ThwargLauncher. Uncheck for Vanilla."
+            : "Install both Decal and ThwargLauncher to enable this option.");
+
         controller.State.Changed += UpdateState;
         log.MessageWritten += AppendDiagnostic;
         play.Click += async (_, _) =>
@@ -72,6 +85,7 @@ public sealed class MainForm : Form
                 WindowState = FormWindowState.Minimized;
         };
         stop.Click += async (_, _) => await controller.StopAsync();
+        useDecal.CheckedChanged += async (_, _) => await UpdateDecalPreferenceAsync();
         settings.Click += async (_, _) => await ShowSettingsAsync();
         mods.Click += (_, _) => new ModsForm(controller.Settings, () => controller.IsServerRunning).ShowDialog(this);
         logs.Click += (_, _) => Process.Start(new ProcessStartInfo { FileName = Path.GetDirectoryName(log.LogPath)!, UseShellExecute = true });
@@ -80,6 +94,57 @@ public sealed class MainForm : Form
 
         controller.State.Set(LauncherState.Ready, "Ready — click Play");
     }
+
+    private async Task UpdateDecalPreferenceAsync()
+    {
+        if (updatingDecalPreference)
+            return;
+
+        var requestedMode = useDecal.Checked ? ClientLaunchMode.Decal : ClientLaunchMode.Vanilla;
+        var previousMode = controller.Settings.ClientLaunchMode;
+        if (requestedMode == ClientLaunchMode.Decal && !IsDecalAvailable())
+        {
+            SetDecalCheckbox(previousMode == ClientLaunchMode.Decal);
+            MessageBox.Show(this, "Use Decal requires working Decal and ThwargLauncher installations.",
+                "Decal unavailable", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        useDecal.Enabled = false;
+        try
+        {
+            controller.Settings.ClientLaunchMode = requestedMode;
+            await settingsStore.SaveAsync(controller.Settings);
+            controller.UpdateSettings(controller.Settings);
+        }
+        catch (Exception ex)
+        {
+            controller.Settings.ClientLaunchMode = previousMode;
+            SetDecalCheckbox(previousMode == ClientLaunchMode.Decal);
+            MessageBox.Show(this, "The Decal preference could not be saved.\r\n\r\n" + ex.Message,
+                "Settings error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        finally
+        {
+            useDecal.Enabled = IsDecalAvailable() && !controller.IsServerRunning && !controller.IsClientRunning;
+        }
+    }
+
+    private void SetDecalCheckbox(bool value)
+    {
+        updatingDecalPreference = true;
+        try
+        {
+            useDecal.Checked = value;
+        }
+        finally
+        {
+            updatingDecalPreference = false;
+        }
+    }
+
+    private static bool IsDecalAvailable() =>
+        DecalDetector.Detect() is not null && ThwargDetector.Detect() is not null;
 
     private async Task ShowSettingsAsync()
     {
@@ -104,6 +169,7 @@ public sealed class MainForm : Form
         state.Text = $"{ToDisplayName(change.State)}\r\n{change.Message}";
         stop.Enabled = controller.IsServerRunning || controller.IsClientRunning;
         play.Enabled = (change.State is LauncherState.Ready or LauncherState.Error or LauncherState.NotConfigured) && !controller.IsClientRunning;
+        useDecal.Enabled = IsDecalAvailable() && !controller.IsServerRunning && !controller.IsClientRunning;
         if (change.State == LauncherState.Error)
             diagnosticPanel.Visible = true;
     }

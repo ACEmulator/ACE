@@ -1,4 +1,3 @@
-using ACE.SinglePlayer.ClientLaunch;
 using ACE.SinglePlayer.Database;
 using ACE.SinglePlayer.Infrastructure;
 using ACE.SinglePlayer.Models;
@@ -30,7 +29,6 @@ public sealed class SetupWizardForm : Form
     private readonly TextBox accountName = new();
     private readonly NumericUpDown serverPort = new() { Minimum = 1, Maximum = 65534 };
     private readonly NumericUpDown startupTimeout = new() { Minimum = 30, Maximum = 900, Increment = 30 };
-    private readonly ComboBox clientMode = new() { DropDownStyle = ComboBoxStyle.DropDownList };
     private readonly CheckBox stopWithGame = new() { Text = "Stop the local server when the game exits", AutoSize = true };
     private readonly CheckBox stopManagedDatabase = new() { Text = "Stop launcher-managed MariaDB when this launcher exits", AutoSize = true };
     private readonly CheckBox minimize = new() { Text = "Minimize this launcher after the client starts", AutoSize = true };
@@ -42,7 +40,6 @@ public sealed class SetupWizardForm : Form
         AutoSize = true,
         MaximumSize = new Size(650, 0)
     };
-    private readonly Label decalStatus = new() { AutoSize = true, MaximumSize = new Size(620, 0) };
     private readonly Button testDatabase = new() { Text = "Check Database", AutoSize = true };
     private readonly Button initializeDatabase = new() { Text = "Prepare Private Database", AutoSize = true };
     private readonly Button back = new() { Text = "Back", AutoSize = true };
@@ -68,7 +65,6 @@ public sealed class SetupWizardForm : Form
         FormBorderStyle = FormBorderStyle.Sizable;
 
         databaseMode.Items.AddRange(new object[] { "Automatic private database (recommended)", "Existing MariaDB/MySQL (advanced)" });
-        clientMode.Items.AddRange(new object[] { "Vanilla", "Decal", "Chorizite (future)" });
 
         pages.TabPages.Add(CreateClientPage());
         pages.TabPages.Add(CreateServerPage());
@@ -186,14 +182,11 @@ public sealed class SetupWizardForm : Form
         AddRow(layout, "Persistent account", accountName, 0);
         AddRow(layout, "Local server port", serverPort, 1);
         AddRow(layout, "Startup timeout (seconds)", startupTimeout, 2);
-        AddRow(layout, "Client launch mode", clientMode, 3);
-        layout.Controls.Add(decalStatus, 1, 4);
-        layout.SetColumnSpan(decalStatus, 2);
-        layout.Controls.Add(stopWithGame, 1, 5);
+        layout.Controls.Add(stopWithGame, 1, 3);
         layout.SetColumnSpan(stopWithGame, 2);
-        layout.Controls.Add(stopManagedDatabase, 1, 6);
+        layout.Controls.Add(stopManagedDatabase, 1, 4);
         layout.SetColumnSpan(stopManagedDatabase, 2);
-        layout.Controls.Add(minimize, 1, 7);
+        layout.Controls.Add(minimize, 1, 5);
         layout.SetColumnSpan(minimize, 2);
         var note = new Label
         {
@@ -201,7 +194,7 @@ public sealed class SetupWizardForm : Form
             AutoSize = true,
             MaximumSize = new Size(650, 0)
         };
-        layout.Controls.Add(note, 0, 8);
+        layout.Controls.Add(note, 0, 6);
         layout.SetColumnSpan(note, 3);
         page.Controls.Add(layout);
         return page;
@@ -240,13 +233,9 @@ public sealed class SetupWizardForm : Form
         accountName.Text = settings.AccountName;
         serverPort.Value = settings.Port;
         startupTimeout.Value = Math.Clamp(settings.ServerStartupTimeoutSeconds, (int)startupTimeout.Minimum, (int)startupTimeout.Maximum);
-        clientMode.SelectedIndex = (int)settings.ClientLaunchMode;
         stopWithGame.Checked = settings.StopServerWhenGameExits;
         stopManagedDatabase.Checked = settings.StopManagedDatabaseWhenLauncherExits;
         minimize.Checked = settings.MinimizeLauncherAfterClientStarts;
-        decalStatus.Text = DecalDetector.Detect() is null
-            ? "Decal is not detected. Vanilla mode is fully supported; Chorizite is reserved for future work."
-            : "Decal and Inject.dll were detected. Decal mode is optional; Vanilla remains available if injection fails.";
         UpdateDatabaseModeControls();
     }
 
@@ -307,12 +296,6 @@ public sealed class SetupWizardForm : Form
         result.StopServerWhenGameExits = stopWithGame.Checked;
         result.StopManagedDatabaseWhenLauncherExits = stopManagedDatabase.Checked;
         result.MinimizeLauncherAfterClientStarts = minimize.Checked;
-        result.ClientLaunchMode = clientMode.SelectedIndex switch
-        {
-            1 => ClientLaunchMode.Decal,
-            2 => ClientLaunchMode.ChoriziteFuture,
-            _ => ClientLaunchMode.Vanilla
-        };
         return result;
     }
 
@@ -325,17 +308,6 @@ public sealed class SetupWizardForm : Form
             MessageBox.Show(this, validation.Message, "Setup needs attention", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
-        if (settings.ClientLaunchMode == ClientLaunchMode.Decal && DecalDetector.Detect() is null)
-        {
-            MessageBox.Show(this, "Decal is not detected. Choose Vanilla mode to continue.", "Decal unavailable", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            return;
-        }
-        if (settings.ClientLaunchMode == ClientLaunchMode.ChoriziteFuture)
-        {
-            MessageBox.Show(this, "Chorizite launch support is reserved for a future release. Choose Vanilla or detected Decal mode.", "Not implemented", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            return;
-        }
-
         finish.Enabled = false;
         try
         {

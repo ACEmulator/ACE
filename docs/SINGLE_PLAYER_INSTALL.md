@@ -1,6 +1,6 @@
 # Installing ACE Single Player
 
-ACE Single Player runs the ACE server, a private MariaDB database, and the original Asheron's Call client together on one Windows computer. It does not include or download the game client, DAT files, MariaDB, Decal, or the ACE World database.
+ACE Single Player runs the ACE server, a private MariaDB database, and the original Asheron's Call client together on one Windows computer. It does not include or download the game client, DAT files, MariaDB, Decal, ThwargLauncher, or the ACE World database.
 
 ## What you need
 
@@ -14,6 +14,7 @@ ACE Single Player runs the ACE server, a private MariaDB database, and the origi
   - `client_highres.dat` is normally present and is recommended.
 - [MariaDB Community Server for Windows](https://mariadb.org/download/). The launcher uses its database programs but creates a separate private database. The password chosen for MariaDB's normal Windows service is not used by the recommended setup.
 - The populated `ACE-World-Database-*.sql` file from the [official ACE World release](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest).
+- Optional for Decal mode: working Decal and ThwargLauncher installations. ACE Single Player uses ThwargLauncher's installed `injector.dll` but does not copy or redistribute it.
 
 Do not select `Database\Base\WorldBase.sql` from the ACE source repository. That file only creates empty tables and does not contain the playable world.
 
@@ -34,8 +35,8 @@ The release is self-contained. If Windows says that .NET must be installed, the 
 5. Choose **Automatic private database (recommended)**. The launcher should detect MariaDB automatically. If it does not, select the installed `mariadbd.exe`, normally found under `C:\Program Files\MariaDB*\bin`.
 6. Select the extracted, populated `ACE-World-Database-*.sql` file.
 7. Keep the account name `singleplayer`, or choose one name that you will continue using for this world.
-8. Choose **Vanilla** for the simplest launch. Choose **Decal** only when Decal is already installed and detected.
-9. Save setup. Preparing and importing the world for the first time can take several minutes.
+8. Save setup. Preparing and importing the world for the first time can take several minutes.
+9. On the main launcher, check **Use Decal** beside **PLAY** when both Decal and ThwargLauncher are installed. Leave it unchecked for Vanilla. No second launcher window or repeated login is required.
 10. Click **PLAY** once. The launcher starts the private database and server, waits until the world is ready, and then opens the game client.
 
 The first successful login creates the local ACE account automatically. Closing the game normally stops the launcher-owned server and database.
@@ -63,6 +64,10 @@ Return to setup and choose **Automatic private database**. It does not use the e
 ### The client cannot open the data files
 
 Confirm that the required DAT files are beside `acclient.exe`, that they are not read-only due to cloud synchronization, and that the game is installed outside OneDrive. The normal `C:\Turbine\Asheron's Call` location is suitable.
+
+### Decal mode is unavailable
+
+Install and configure both Decal and ThwargLauncher normally, then reopen ACE Single Player. The **Use Decal** checkbox becomes available when both installations are detected. Decal mode deliberately uses their installed files and never bundles them.
 
 ### The world starts and then immediately shuts down
 

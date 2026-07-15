@@ -1,6 +1,6 @@
 # ACE Single Player: first run
 
-ACE Single Player keeps ACE.Server as a private local process and launches the original client directly. It does not include or download Asheron's Call, DAT files, MariaDB, Decal, or community mods.
+ACE Single Player keeps ACE.Server as a private local process and launches the original client directly. It does not include or download Asheron's Call, DAT files, MariaDB, Decal, ThwargLauncher, or community mods.
 
 ## Before opening the launcher
 
@@ -24,8 +24,8 @@ Double-click `ACE.SinglePlayer.exe`.
 5. Select the extracted, populated `ACE-World-Database-*.sql` file. Click **Prepare Private Database** if you want to prepare it immediately, or continue; **Save Setup** performs the same preparation automatically. The first world import can take several minutes. Existing complete databases are never overwritten. Private databases left with empty world tables by an interrupted or older setup are repaired from the selected package; external databases are never repaired automatically.
 6. Keep the account name `singleplayer` or choose one permanent name. A strong password is generated once, protected with Windows DPAPI, and reused. Do not change or delete this account if you want the same characters.
 7. Keep local port `9000` unless it conflicts with another application.
-8. Choose **Vanilla** for the dependable direct-launch path. Choose **Decal** only when Decal and its `Inject.dll` are detected. Chorizite is displayed as future work and cannot be selected yet.
-9. Save setup.
+8. Save setup.
+9. On the main launcher, check **Use Decal** beside **PLAY** when Decal, ThwargLauncher, `Inject.dll`, and `injector.dll` are detected. Leave it unchecked for Vanilla. **PLAY** starts the entire session directly from ACE Single Player.
 
 The private database lives at `%LOCALAPPDATA%\ACESinglePlayer\Database`. The launcher uses the `mariadb-install-db.exe` shipped beside the detected MariaDB program, initializes into a staging directory, and moves it into place only after initialization succeeds. It creates a dedicated `ace_singleplayer` database user; generated administrator and application passwords are protected with Windows DPAPI and are not displayed or logged. The existing MariaDB service and its `root` account are not changed.
 
