@@ -18,6 +18,14 @@ public static class SetupValidator
         "client_local_English.dat"
     };
 
+    public static readonly string[] RequiredClientDatFiles =
+    {
+        "client_cell_1.dat",
+        "client_portal.dat",
+        "client_local_English.dat",
+        "client_highres.dat"
+    };
+
     public static ValidationResult Validate(LauncherSettings settings)
     {
         var errors = new List<string>();
@@ -25,12 +33,29 @@ public static class SetupValidator
             errors.Add("Select a valid acclient.exe file.");
         else if (!string.Equals(Path.GetFileName(settings.ClientExePath), "acclient.exe", StringComparison.OrdinalIgnoreCase))
             errors.Add("The selected client executable must be acclient.exe.");
+        else
+        {
+            var clientDirectory = Path.GetDirectoryName(Path.GetFullPath(settings.ClientExePath))!;
+            var missingClientDats = RequiredClientDatFiles
+                .Where(file => !File.Exists(Path.Combine(clientDirectory, file)))
+                .ToArray();
+            if (missingClientDats.Length > 0)
+            {
+                errors.Add("The folder containing acclient.exe is missing required client data files: " +
+                    string.Join(", ", missingClientDats) +
+                    ". The AC client must have its DAT files in the same folder as acclient.exe. Copy the complete client installation to a writable folder such as C:\\Games\\AsheronsCall, then select that acclient.exe.");
+            }
+            else if (!CanWriteDirectory(clientDirectory))
+            {
+                errors.Add("The folder containing acclient.exe is not writable. Copy the complete AC client installation to a normal folder such as C:\\Games\\AsheronsCall; do not run it from Program Files, OneDrive, or a read-only archive.");
+            }
+        }
 
         if (!File.Exists(settings.ServerExePath))
             errors.Add("Select a published ACE.Server executable.");
 
         if (!Directory.Exists(settings.DatFilesDirectory))
-            errors.Add("Select the directory containing the Asheron's Call DAT files.");
+            errors.Add("Return to the first setup page and select acclient.exe from a complete Asheron's Call installation. The DAT folder is filled automatically.");
         else
             foreach (var file in RequiredDatFiles)
                 if (!File.Exists(Path.Combine(settings.DatFilesDirectory, file)))
@@ -79,8 +104,35 @@ public static class SetupValidator
     public static string? DetectDatDirectory(string clientExePath)
     {
         var directory = Path.GetDirectoryName(clientExePath);
-        return directory is not null && RequiredDatFiles.All(file => File.Exists(Path.Combine(directory, file)))
+        return directory is not null && RequiredClientDatFiles.All(file => File.Exists(Path.Combine(directory, file)))
             ? directory
             : null;
+    }
+
+    private static bool CanWriteDirectory(string directory)
+    {
+        var probe = Path.Combine(directory, ".ace-singleplayer-write-test-" + Guid.NewGuid().ToString("N") + ".tmp");
+        try
+        {
+            using var stream = new FileStream(probe, FileMode.CreateNew, FileAccess.Write, FileShare.None, 1, FileOptions.DeleteOnClose);
+            stream.WriteByte(0);
+            return true;
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or IOException)
+        {
+            return false;
+        }
+        finally
+        {
+            try
+            {
+                if (File.Exists(probe))
+                    File.Delete(probe);
+            }
+            catch (Exception ex) when (ex is UnauthorizedAccessException or IOException)
+            {
+                // A failed cleanup does not change whether the directory accepted the write probe.
+            }
+        }
     }
 }

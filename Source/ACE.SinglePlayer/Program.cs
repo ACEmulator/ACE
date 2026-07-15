@@ -63,6 +63,13 @@ internal static class Program
             settings.ManagedDatabaseExePath = MariaDbInstallationLocator.FindServerExecutable(settings.ManagedDatabaseExePath)
                 ?? settings.ManagedDatabaseExePath;
 
+        if (SettingsPathRepairer.Repair(settings, AppContext.BaseDirectory))
+        {
+            log.Write("Automatically repaired the client/DAT or packaged server paths for this installation.");
+            if (store.Exists)
+                store.SaveAsync(settings).GetAwaiter().GetResult();
+        }
+
         if (!store.Exists || !SetupValidator.Validate(settings).IsValid)
         {
             using var wizard = new SetupWizardForm(settings, store, protector, runtimeFactory, bootstrapper);

@@ -11,7 +11,8 @@ ACE Single Player runs the ACE server, a private MariaDB database, and the origi
   - `client_cell_1.dat`
   - `client_portal.dat`
   - `client_local_English.dat`
-  - `client_highres.dat` is normally present and is recommended.
+  - `client_highres.dat`
+- Keep the complete client installation in one writable folder outside OneDrive and `Program Files`, such as `C:\Games\AsheronsCall` or `C:\Turbine\Asheron's Call`.
 - [MariaDB Community Server for Windows](https://mariadb.org/download/). The launcher uses its database programs but creates a separate private database. The password chosen for MariaDB's normal Windows service is not used by the recommended setup.
 - The populated `ACE-World-Database-*.sql` file from the [official ACE World release](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest).
 - Optional for Decal mode: working Decal and ThwargLauncher installations. ACE Single Player uses ThwargLauncher's installed `injector.dll` but does not copy or redistribute it.
@@ -63,7 +64,7 @@ Return to setup and choose **Automatic private database**. It does not use the e
 
 ### The client cannot open the data files
 
-Confirm that the required DAT files are beside `acclient.exe`, that they are not read-only due to cloud synchronization, and that the game is installed outside OneDrive. The normal `C:\Turbine\Asheron's Call` location is suitable.
+Confirm that all four required DAT files are beside `acclient.exe`, not merely in the separate folder selected for ACE.Server. The client folder must be writable and outside OneDrive or `Program Files`. The launcher now checks this before starting MariaDB and logs the exact executable, client working directory, and server DAT directory.
 
 ### Decal mode is unavailable
 

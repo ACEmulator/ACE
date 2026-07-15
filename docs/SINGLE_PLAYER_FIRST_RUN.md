@@ -9,7 +9,8 @@ ACE Single Player keeps ACE.Server as a private local process and launches the o
    - `client_cell_1.dat`
    - `client_portal.dat`
    - `client_local_English.dat`
-   - `client_highres.dat` is optional for ACE.Server, although the client installation normally includes it.
+   - `client_highres.dat`
+   Keep the complete client installation together in one writable folder outside OneDrive and `Program Files`.
 3. Have MariaDB for Windows installed. Its Windows service may be running or stopped; the recommended private mode uses the installed programs to create a separate database and does not need the service's `root` password. The launcher does not bundle or download MariaDB.
 4. Download the current official ACE-World release package and extract its populated `ACE-World-Database-*.sql` file. Do not select the repository's `Database\Base\WorldBase.sql`; that file defines empty tables and cannot run a world. The launcher never downloads or trusts a database package on its own.
 
@@ -17,7 +18,7 @@ ACE Single Player keeps ACE.Server as a private local process and launches the o
 
 Double-click `ACE.SinglePlayer.exe`.
 
-1. Select `acclient.exe`. The wizard fills the DAT directory automatically when all three required DAT files are beside it.
+1. Select `acclient.exe`. The wizard fills the DAT directory automatically when all four required DAT files are beside it. Setup now stops early with a clear message if the client folder is incomplete or not writable.
 2. Select the packaged `Server\ACE.Server.exe`.
 3. Keep the package `Mods` directory and the default local Windows app-data `Runtime` directory unless you intentionally store them elsewhere. Runtime configuration contains short-lived local credentials and should not be placed in OneDrive.
 4. Keep **Automatic private database (recommended)**. The wizard detects `mariadbd.exe`, selects a free loopback-only port, generates protected credentials, and stores MariaDB data under local Windows app data rather than OneDrive. No MariaDB username or password is requested.

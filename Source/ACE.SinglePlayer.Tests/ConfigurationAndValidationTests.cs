@@ -59,13 +59,82 @@ public sealed class ConfigurationAndValidationTests
         }
     }
 
+    [TestMethod]
+    public void ValidatorRejectsClientWhoseDatFilesAreOnlyInASeparateServerDirectory()
+    {
+        var root = TestPaths.CreateTemporaryDirectory();
+        try
+        {
+            var clientDirectory = Path.Combine(root, "ClientWithoutDats");
+            var datDirectory = Path.Combine(root, "ServerDats");
+            Directory.CreateDirectory(clientDirectory);
+            Directory.CreateDirectory(datDirectory);
+            var settings = ValidSettings(root);
+            settings.ClientExePath = Path.Combine(clientDirectory, "acclient.exe");
+            settings.DatFilesDirectory = datDirectory;
+            File.WriteAllText(settings.ClientExePath, string.Empty);
+            foreach (var dat in SetupValidator.RequiredClientDatFiles)
+                File.WriteAllText(Path.Combine(datDirectory, dat), string.Empty);
+
+            var result = SetupValidator.Validate(settings);
+
+            Assert.IsFalse(result.IsValid);
+            StringAssert.Contains(result.Message, "same folder as acclient.exe");
+            StringAssert.Contains(result.Message, "client_highres.dat");
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
+    }
+
+    [TestMethod]
+    public void PathRepairerUsesDatsBesideClientAndCurrentPackagedServer()
+    {
+        var root = TestPaths.CreateTemporaryDirectory();
+        try
+        {
+            var applicationDirectory = Path.Combine(root, "InstalledApp");
+            var clientDirectory = Path.Combine(root, "CompleteClient");
+            var oldDirectory = Path.Combine(root, "OldBuild");
+            Directory.CreateDirectory(Path.Combine(applicationDirectory, "Server"));
+            Directory.CreateDirectory(Path.Combine(applicationDirectory, "Mods"));
+            Directory.CreateDirectory(clientDirectory);
+            Directory.CreateDirectory(Path.Combine(oldDirectory, "Mods"));
+            File.WriteAllText(Path.Combine(applicationDirectory, "Server", "ACE.Server.exe"), string.Empty);
+            File.WriteAllText(Path.Combine(oldDirectory, "ACE.Server.exe"), string.Empty);
+            var client = Path.Combine(clientDirectory, "acclient.exe");
+            File.WriteAllText(client, string.Empty);
+            foreach (var dat in SetupValidator.RequiredClientDatFiles)
+                File.WriteAllText(Path.Combine(clientDirectory, dat), string.Empty);
+
+            var settings = new LauncherSettings
+            {
+                ClientExePath = client,
+                DatFilesDirectory = Path.Combine(root, "MissingServerData"),
+                ServerExePath = Path.Combine(oldDirectory, "ACE.Server.exe"),
+                ModsDirectory = Path.Combine(oldDirectory, "Mods")
+            };
+
+            Assert.IsTrue(SettingsPathRepairer.Repair(settings, applicationDirectory));
+            Assert.AreEqual(clientDirectory, settings.DatFilesDirectory);
+            Assert.AreEqual(Path.Combine(applicationDirectory, "Server", "ACE.Server.exe"), settings.ServerExePath);
+            Assert.AreEqual(Path.Combine(applicationDirectory, "Mods"), settings.ModsDirectory);
+            Assert.IsFalse(SettingsPathRepairer.Repair(settings, applicationDirectory));
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
+    }
+
     private static LauncherSettings ValidSettings(string root)
     {
         var client = Path.Combine(root, "acclient.exe");
         var server = Path.Combine(root, "ACE.Server.exe");
         File.WriteAllText(client, string.Empty);
         File.WriteAllText(server, string.Empty);
-        foreach (var dat in SetupValidator.RequiredDatFiles)
+        foreach (var dat in SetupValidator.RequiredClientDatFiles)
             File.WriteAllText(Path.Combine(root, dat), string.Empty);
         return new LauncherSettings
         {

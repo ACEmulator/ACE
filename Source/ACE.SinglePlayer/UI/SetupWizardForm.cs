@@ -106,10 +106,11 @@ public sealed class SetupWizardForm : Form
         var page = NewPage();
         var layout = NewFields();
         AddPathRow(layout, "acclient.exe", clientPath, "Select acclient.exe", () => BrowseFile(clientPath, "acclient.exe|acclient.exe"), 0);
-        AddPathRow(layout, "DAT-file directory", datPath, "Select the folder containing the client DAT files", () => BrowseFolder(datPath), 1);
+        datPath.ReadOnly = true;
+        AddPathRow(layout, "DAT files (automatic)", datPath, "Automatically uses the DAT files beside acclient.exe", () => BrowseFolder(datPath), 1);
         var note = new Label
         {
-            Text = "The launcher does not download or redistribute the proprietary client. Required: client_cell_1.dat, client_portal.dat, and client_local_English.dat. client_highres.dat is optional for ACE.Server.",
+            Text = "Select acclient.exe from a complete, writable AC client folder. The client requires client_cell_1.dat, client_portal.dat, client_local_English.dat, and client_highres.dat beside acclient.exe. The launcher does not download or redistribute these proprietary files.",
             AutoSize = true,
             MaximumSize = new Size(650, 0)
         };
@@ -202,6 +203,7 @@ public sealed class SetupWizardForm : Form
 
     private void LoadSettings()
     {
+        SettingsPathRepairer.Repair(settings, AppContext.BaseDirectory);
         clientPath.Text = settings.ClientExePath;
         datPath.Text = settings.DatFilesDirectory;
         serverPath.Text = settings.ServerExePath;
@@ -243,7 +245,7 @@ public sealed class SetupWizardForm : Form
     {
         var result = settings;
         result.ClientExePath = clientPath.Text.Trim();
-        result.DatFilesDirectory = datPath.Text.Trim();
+        result.DatFilesDirectory = SetupValidator.DetectDatDirectory(result.ClientExePath) ?? datPath.Text.Trim();
         result.ServerExePath = serverPath.Text.Trim();
         result.ModsDirectory = modsPath.Text.Trim();
         result.RuntimeDirectory = runtimePath.Text.Trim();

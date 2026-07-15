@@ -1,6 +1,12 @@
 # Aquafir project compatibility with current ACE
 
-Assessment date: 2026-07-13. Current ACE checkout: `08471633`, .NET 10. The external repositories were inspected at their default branches. They were not copied into ACE, and the real client-side projects were not executed.
+Assessment date: 2026-07-14. Current ACE base: `08471633`, .NET 10. The external repositories were inspected at their default branches. Only the explicitly documented `CriticalOverride` pilot was ported into this repository; the client-side projects were not executed.
+
+## ACE.BaseMod sample catalog update
+
+The launcher now inventories all 22 folders under `aquafir/ACE.BaseMod/Samples` with curated descriptions and saved-game policies. The upstream samples target .NET 8, reference an installed ACE server, and use placeholder metadata, so they are not offered as compatible binaries merely because their source is public.
+
+`CriticalOverride` has been ported in-tree to .NET 10, compiled against this exact `ACE.Server`, and packaged with an identity manifest and SHA-256 checksum. It is the first one-click installable pilot. Every remaining sample stays visible as **Needs port**, **Experimental**, or **Not recommended** until it receives the same rebuild and test treatment. See `docs/MOD_LIBRARY.md` for install/removal behavior and persistent-data rules.
 
 | Project | Type | Current target/dependencies | Builds against this ACE as-is? | Without Thwarg/Decal? | Status and recommendation |
 |---|---|---|---|---|---|

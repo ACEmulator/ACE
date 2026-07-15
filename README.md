@@ -18,10 +18,16 @@ The launcher is designed for players who want a persistent personal world withou
 The short version is:
 
 1. Install MariaDB for Windows.
-2. Have a working Asheron's Call client and DAT files. The usual client path is `C:\Turbine\Asheron's Call\acclient.exe`.
+2. Have a complete Asheron's Call client in one writable folder with all four client DAT files beside `acclient.exe`. The usual client path is `C:\Turbine\Asheron's Call\acclient.exe`.
 3. Download and extract the populated `ACE-World-Database-*.sql` file from the [official ACE World releases](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest).
 4. Download the latest ACE Single Player release ZIP and extract it to a normal writable folder such as `C:\Games\ACE-SinglePlayer`.
 5. Run `ACE.SinglePlayer.exe`, keep **Automatic private database**, select the client and world SQL file, save setup, and click **PLAY**.
+
+## Mods
+
+Open **Mods** in the launcher to browse the curated mod library. Every entry includes a plain-language description, compatibility result, requirements, and a saved-game safety warning. `CriticalOverride` is the first Aquafir sample rebuilt for this exact ACE version and is included as a checksum-verified one-click package; other samples remain clearly marked until they are ported and tested.
+
+Turning a mod off stops its code after a server restart, but it does not undo experience, items, balances, character properties, or world content already saved by that mod. The launcher blocks removal of mods whose saved data may still depend on them and moves safely removable files to a recovery folder rather than deleting them. See [Mod library and saved-game safety](docs/MOD_LIBRARY.md) for the full policy and the separate plan for world/DAT content packs.
 
 See the [complete installation guide](docs/SINGLE_PLAYER_INSTALL.md) for prerequisites, expected file names, first-run instructions, troubleshooting, backups, and upgrade guidance.
 

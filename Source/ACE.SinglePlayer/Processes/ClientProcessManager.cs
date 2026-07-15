@@ -31,6 +31,9 @@ public sealed class ClientProcessManager : IDisposable
         if (!provider.IsAvailable(out var reason))
             throw new InvalidOperationException(reason);
 
+        var workingDirectory = Path.GetDirectoryName(Path.GetFullPath(settings.ClientExePath))!;
+        log.Write($"Launching client executable '{Path.GetFullPath(settings.ClientExePath)}'.");
+        log.Write($"Client working/DAT directory: '{workingDirectory}'. ACE.Server DAT directory: '{Path.GetFullPath(settings.DatFilesDirectory)}'.");
         process = await provider.LaunchAsync(new ClientLaunchRequest(settings, accountPassword), cancellationToken);
         process.EnableRaisingEvents = true;
         process.Exited += OnExited;
@@ -68,6 +71,8 @@ public sealed class ClientProcessManager : IDisposable
         if (sender is not Process exited)
             return;
         log.Write($"acclient.exe process {exited.Id} exited with code {exited.ExitCode}.");
+        if (exited.ExitCode != 0)
+            log.Write("Client startup failed. Verify that the complete AC client, including all client DAT files, is beside acclient.exe in a writable folder and is not blocked by Windows Security.");
         if (!stopping)
             ClientExited?.Invoke(exited.ExitCode);
     }
