@@ -6,7 +6,7 @@
 
 1. A user-installed `mariadbd.exe` in automatic private-database mode.
 2. The published `ACE.Server.exe`, started with `--config <absolute path>` and `--ready-file <absolute path>`.
-3. `acclient.exe`, launched directly in Vanilla mode or through the package's isolated x86 Decal helper.
+3. `acclient.exe`, launched directly in Vanilla mode or through the package's isolated x86 bridge to an installed ThwargLauncher injector.
 
 The original server behavior is unchanged when the two new arguments are omitted. The normal cross-platform `Source/ACE.sln` is unchanged; Windows packaging uses `Source/ACE.SinglePlayer.slnx`.
 
@@ -36,7 +36,9 @@ Two random passwords are generated: a private administrator credential used only
 
 `IClientLaunchProvider` isolates client choices. `DirectClientLaunchProvider` uses `ProcessStartInfo.ArgumentList` for `-a`, `-v`, `-h`, and `-rodat on`; read-only DAT access allows ACE.Server and `acclient.exe` to use the same files concurrently. Vanilla mode has no Decal, Thwarg, Chorizite, or injection dependency.
 
-`DecalClientLaunchProvider` detects `SOFTWARE\Decal\Agent\AgentPath` in 32/64-bit HKLM/HKCU views and validates `Inject.dll`. A separately built, self-contained x86 helper creates the 32-bit client suspended, loads the installed `Inject.dll`, invokes its exported `DecalStartup`, resumes the client, and returns a diagnostic PID. It bundles no Decal or third-party injector binaries and does not use ThwargLauncher or ThwargFilter. Invocation is diagnosed, but actual in-game Decal/plugin loading was not end-to-end tested in this repository environment.
+`DecalClientLaunchProvider` detects `SOFTWARE\Decal\Agent\AgentPath` and `SOFTWARE\Thwargle Games\ThwargLauncher\Path` in 32/64-bit HKLM/HKCU views, then validates Decal's `Inject.dll` and ThwargLauncher's `injector.dll`. A separately built, self-contained x86 bridge loads the installed Thwarg native launcher and asks it to start `acclient.exe` with Decal's `DecalStartup` entry point. The account, protected password, loopback server address, and `-rodat on` setting are supplied automatically by ACE Single Player. No Decal, ThwargLauncher, ThwargFilter, or third-party injector binary is bundled or copied.
+
+The main window exposes this choice as a **Use Decal** checkbox beside **PLAY**. Checking it persists `ClientLaunchMode.Decal`; unchecking it persists `ClientLaunchMode.Vanilla`. The checkbox is disabled while the game or server is running and when either required installation is missing. Database and path setup contain no separate client-mode dropdown.
 
 ## Mods
 
@@ -49,5 +51,5 @@ Decal registry inventory is read-only and clearly typed as client-side. Chorizit
 - A real client, DATs, installed MariaDB Windows distribution, and populated world package are user-supplied.
 - MariaDB binaries are detected and reused but are not bundled or downloaded by the launcher.
 - The client and live character-selection screen were not available for end-to-end testing here.
-- Decal's startup export is invoked and diagnosed, but in-game injection/plugin behavior requires a machine with a working Decal/client installation.
+- Decal mode requires separate working Decal and ThwargLauncher installations. Client creation through the installed Thwarg injector is verified; individual plugins remain outside this project's control.
 - Chorizite launch and package installation are reserved for future work.

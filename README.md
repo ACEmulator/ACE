@@ -9,7 +9,7 @@ The launcher is designed for players who want a persistent personal world withou
 - Private, loopback-only ACE server and database
 - Automatic database credentials protected for the current Windows user
 - Persistent characters and world state
-- Direct Vanilla client launch, with optional Decal support when Decal is already installed
+- Direct Vanilla client launch, with one-click Decal support when Decal and ThwargLauncher are already installed
 - Self-contained Windows release; players do not need to install .NET
 - Original game client, DAT files, MariaDB, and ACE World data remain user-supplied
 
@@ -26,7 +26,7 @@ The short version is:
 See the [complete installation guide](docs/SINGLE_PLAYER_INSTALL.md) for prerequisites, expected file names, first-run instructions, troubleshooting, backups, and upgrade guidance.
 
 > [!IMPORTANT]
-> This repository and its release packages do not contain Asheron's Call, proprietary DAT files, MariaDB, Decal, or the ACE World database. Do not upload those files when sharing builds or reporting problems.
+> This repository and its release packages do not contain Asheron's Call, proprietary DAT files, MariaDB, Decal, ThwargLauncher, or the ACE World database. Do not upload those files when sharing builds or reporting problems.
 
 ## Project status
 
