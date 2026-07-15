@@ -3,6 +3,7 @@ namespace ACE.SinglePlayer.Mods;
 public static class AquafirSampleCatalog
 {
     private const string BaseUrl = "https://github.com/aquafir/ACE.BaseMod/tree/master/Samples/";
+    private const string PortBaseUrl = "https://github.com/titaniumweiner/ACE-SinglePlayer/tree/main/Source/ACE.SinglePlayer.Mods.";
 
     public static IReadOnlyList<ModCatalogEntry> Entries { get; } = new ModCatalogEntry[]
     {
@@ -51,7 +52,8 @@ public static class AquafirSampleCatalog
             "Safe to turn off. Existing combat results are not recalculated.",
             TargetAceVersion: "ACE.Server 1.1 / ACE Single Player",
             TargetFramework: ".NET 10 port",
-            PackageRelativePath: @"Packages\aquafir.critical-override-1.0.0-sp1.zip"),
+            PackageRelativePath: @"Packages\aquafir.critical-override-1.0.0-sp1.zip",
+            PortSourceUrl: PortBaseUrl + "CriticalOverride"),
         PortRequired(
             "aquafir.custom-spells", "CustomSpells",
             "Creates or edits spells and equipment-set spell tiers from Settings.json or an Excel spreadsheet.",
@@ -78,13 +80,16 @@ public static class AquafirSampleCatalog
             "This is an experimental foundation for major gameplay overhauls. Some generated items require its runtime features to keep working as designed.",
             ModDataImpact.WorldData, ModRemovalPolicy.DoNotRemove,
             "High risk: once it has generated modified loot, removing it can leave dependent items in the saved world."),
-        PortRequired(
-            "aquafir.hello-command", "HelloCommand",
+        new ModCatalogEntry(
+            "aquafir.hello-command", "HelloCommand", "aquafir",
             "A small developer sample that adds /hello and /bye commands to demonstrate how ACE server-mod commands are registered.",
             "It is useful for mod authors but adds little to normal gameplay.",
-            ModDataImpact.None, ModRemovalPolicy.Safe,
+            BaseUrl + "HelloCommand", ModCatalogAvailability.Preview, ModDataImpact.None, ModRemovalPolicy.Safe,
             "Safe to turn off or remove.",
-            availability: ModCatalogAvailability.NotRecommended),
+            TargetAceVersion: "ACE.Server 1.1 / ACE Single Player",
+            TargetFramework: ".NET 10 preview port",
+            PackageRelativePath: @"Packages\aquafir.hello-command-1.0.0-sp1.zip",
+            PortSourceUrl: PortBaseUrl + "HelloCommand"),
         PortRequired(
             "aquafir.imgui-hud", "ImGuiHud",
             "An experimental server-side ImGui overlay sample with pickers, filters, textures, tables, and on-screen tools.",
@@ -131,12 +136,16 @@ public static class AquafirSampleCatalog
             ModDataImpact.WorldData, ModRemovalPolicy.Safe,
             "Dangerous for normal play; the launcher will not offer one-click installation.",
             availability: ModCatalogAvailability.NotRecommended),
-        PortRequired(
-            "aquafir.society-tailoring", "SocietyTailoring",
+        new ModCatalogEntry(
+            "aquafir.society-tailoring", "SocietyTailoring", "aquafir",
             "Allows Society armor to be used in tailoring while keeping inventory and retained-item checks.",
             "Tailoring changes the resulting item permanently; disabling the mod stops new uses but does not reverse completed tailoring.",
-            ModDataImpact.CharacterData, ModRemovalPolicy.ChangesRemain,
-            "Existing tailored items remain after the mod is turned off."),
+            BaseUrl + "SocietyTailoring", ModCatalogAvailability.Preview, ModDataImpact.CharacterData, ModRemovalPolicy.ChangesRemain,
+            "Back up first. Existing tailored items remain after the mod is turned off.",
+            TargetAceVersion: "ACE.Server 1.1 / ACE Single Player",
+            TargetFramework: ".NET 10 preview port",
+            PackageRelativePath: @"Packages\aquafir.society-tailoring-1.0.0-sp1.zip",
+            PortSourceUrl: PortBaseUrl + "SocietyTailoring"),
         PortRequired(
             "aquafir.tinkering", "Tinkering",
             "Reworks tinkering requirement checks, maximum attempts, difficulty scaling, and handling of additional imbue effects.",

@@ -40,8 +40,6 @@ if (-not $stage.StartsWith($tempPrefix, [StringComparison]::OrdinalIgnoreCase)) 
 $launcherPublish = Join-Path $stage "Launcher"
 $serverPublish = Join-Path $stage "Server"
 $decalHostPublish = Join-Path $stage "DecalHost"
-$criticalOverridePublish = Join-Path $stage "CriticalOverride"
-$criticalOverridePackage = Join-Path $stage "CriticalOverridePackage"
 $mariaDbExtract = Join-Path $stage "MariaDB"
 $worldExtract = Join-Path $stage "World"
 $buildArtifacts = Join-Path $stage "BuildArtifacts"
@@ -91,7 +89,7 @@ foreach ($path in @($stage, $OutputDirectory)) {
         Remove-Item -LiteralPath $path -Recurse -Force
     }
 }
-New-Item -ItemType Directory -Path $launcherPublish, $serverPublish, $decalHostPublish, $criticalOverridePublish, $criticalOverridePackage, $buildArtifacts, $OutputDirectory | Out-Null
+New-Item -ItemType Directory -Path $launcherPublish, $serverPublish, $decalHostPublish, $buildArtifacts, $OutputDirectory | Out-Null
 
 Write-Host "Publishing ACE.Server as self-contained Windows x64..."
 Invoke-DotNet @("publish", (Join-Path $repoRoot "Source\ACE.Server\ACE.Server.csproj"), "-c", $Configuration, "-r", "win-x64", "--self-contained", "true", "--artifacts-path", $buildArtifacts, "-o", $serverPublish)
@@ -102,25 +100,25 @@ Invoke-DotNet @("publish", (Join-Path $repoRoot "Source\ACE.SinglePlayer\ACE.Sin
 Write-Host "Publishing the optional Decal helper as a self-contained Windows x86 executable..."
 Invoke-DotNet @("publish", (Join-Path $repoRoot "Source\ACE.SinglePlayer.DecalHost\ACE.SinglePlayer.DecalHost.csproj"), "-c", $Configuration, "-r", "win-x86", "--self-contained", "true", "--artifacts-path", $buildArtifacts, "-p:PublishSingleFile=true", "-o", $decalHostPublish)
 
-Write-Host "Building the curated CriticalOverride mod package..."
-$criticalOverrideProject = Join-Path $repoRoot "Source\ACE.SinglePlayer.Mods.CriticalOverride"
-Invoke-DotNet @("build", (Join-Path $criticalOverrideProject "ACE.SinglePlayer.Mods.CriticalOverride.csproj"), "-c", $Configuration, "--artifacts-path", $buildArtifacts, "-o", $criticalOverridePublish)
-
 Copy-Item -Path (Join-Path $launcherPublish "*") -Destination $OutputDirectory -Recurse -Force
 New-Item -ItemType Directory -Path (Join-Path $OutputDirectory "Server"), (Join-Path $OutputDirectory "Tools"), (Join-Path $OutputDirectory "Packages") | Out-Null
 Copy-Item -Path (Join-Path $serverPublish "*") -Destination (Join-Path $OutputDirectory "Server") -Recurse -Force
 Copy-Item -Path (Join-Path $decalHostPublish "ACE.SinglePlayer.DecalHost.exe") -Destination (Join-Path $OutputDirectory "Tools") -Force
 
-$criticalOverrideModDirectory = Join-Path $criticalOverridePackage "mod"
-New-Item -ItemType Directory -Path $criticalOverrideModDirectory | Out-Null
-Copy-Item (Join-Path $criticalOverrideProject "ace-mod.json") $criticalOverridePackage
-Copy-Item (Join-Path $criticalOverridePublish "CriticalOverride.dll") $criticalOverrideModDirectory
-Copy-Item (Join-Path $criticalOverrideProject "Meta.json") $criticalOverrideModDirectory
-Copy-Item (Join-Path $criticalOverrideProject "Settings.json") $criticalOverrideModDirectory
-Copy-Item (Join-Path $criticalOverrideProject "README.md") $criticalOverrideModDirectory
-$criticalOverrideArchive = Join-Path $OutputDirectory "Packages\aquafir.critical-override-1.0.0-sp1.zip"
-Compress-Archive -Path (Join-Path $criticalOverridePackage "*") -DestinationPath $criticalOverrideArchive -CompressionLevel Optimal
-(Get-FileHash -LiteralPath $criticalOverrideArchive -Algorithm SHA256).Hash | Set-Content -LiteralPath ($criticalOverrideArchive + ".sha256") -Encoding ascii
+Write-Host "Building the curated mod packages..."
+foreach ($modProject in @(
+    "ACE.SinglePlayer.Mods.CriticalOverride",
+    "ACE.SinglePlayer.Mods.HelloCommand",
+    "ACE.SinglePlayer.Mods.SocietyTailoring"
+)) {
+    & (Join-Path $repoRoot "scripts\package-mod.ps1") `
+        -ProjectDirectory (Join-Path $repoRoot "Source\$modProject") `
+        -OutputDirectory (Join-Path $OutputDirectory "Packages") `
+        -Configuration $Configuration
+    if ($LASTEXITCODE -ne 0) {
+        throw "Packaging $modProject failed with exit code $LASTEXITCODE"
+    }
+}
 
 if (-not $SkipBundledDependencies) {
     New-Item -ItemType Directory -Path $cacheRoot, $mariaDbExtract, $worldExtract -Force | Out-Null
@@ -193,6 +191,7 @@ Copy-Item (Join-Path $repoRoot "docs\SINGLE_PLAYER_INSTALL.md") (Join-Path $Outp
 Copy-Item (Join-Path $repoRoot "docs\SINGLE_PLAYER_ARCHITECTURE.md") (Join-Path $OutputDirectory "Docs")
 Copy-Item (Join-Path $repoRoot "docs\AQUIFIR_MOD_COMPATIBILITY.md") (Join-Path $OutputDirectory "Docs")
 Copy-Item (Join-Path $repoRoot "docs\MOD_LIBRARY.md") (Join-Path $OutputDirectory "Docs")
+Copy-Item (Join-Path $repoRoot "docs\MOD_AUTHOR_GUIDE.md") (Join-Path $OutputDirectory "Docs")
 Copy-Item (Join-Path $repoRoot "docs\SINGLE_PLAYER_ROADMAP.md") (Join-Path $OutputDirectory "Docs")
 Copy-Item (Join-Path $repoRoot "docs\SINGLE_PLAYER_BUILD_AND_TEST.md") (Join-Path $OutputDirectory "Docs")
 Copy-Item (Join-Path $repoRoot "README.md") $OutputDirectory

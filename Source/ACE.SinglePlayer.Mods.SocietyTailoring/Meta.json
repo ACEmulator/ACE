@@ -1,0 +1,14 @@
+{
+  "Name": "SocietyTailoring",
+  "Author": "aquafir; ACE Single Player port",
+  "Description": "Allows Society armor to be used in tailoring while retaining ACE safety checks.",
+  "Version": "1.0.0-sp1",
+  "Priority": 0,
+  "Enabled": true,
+  "HotReload": false,
+  "RegisterCommands": false,
+  "CatalogId": "aquafir.society-tailoring",
+  "TargetAceVersion": "ACE.Server 1.1 / .NET 10",
+  "DataImpact": "CharacterData",
+  "RemovalPolicy": "ChangesRemain"
+}

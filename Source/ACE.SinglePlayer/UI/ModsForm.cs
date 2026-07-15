@@ -41,12 +41,14 @@ public sealed class ModsForm : Form
         ScrollBars = ScrollBars.Vertical,
         BorderStyle = BorderStyle.None
     };
-    private readonly LinkLabel sourceLink = new() { Text = "View source and original documentation", AutoSize = true };
+    private readonly LinkLabel sourceLink = new() { Text = "View original source code", AutoSize = true };
+    private readonly LinkLabel portedSourceLink = new() { Text = "View ACE Single Player ported code", AutoSize = true };
     private readonly Button install = new() { Text = "Install", AutoSize = true };
     private readonly Button toggle = new() { Text = "Turn off", AutoSize = true };
     private readonly Button remove = new() { Text = "Remove", AutoSize = true };
     private readonly Button openSettings = new() { Text = "Settings", AutoSize = true };
-    private readonly Button importPackage = new() { Text = "Import Mod Package...", AutoSize = true };
+    private readonly Button importPackage = new() { Text = "Import a Mod ZIP...", AutoSize = true };
+    private readonly Button authorGuide = new() { Text = "How to Make a Mod", AutoSize = true };
     private BindingList<ModListItem> items = new();
 
     public ModsForm(LauncherSettings settings, Func<bool> isServerRunning)
@@ -67,13 +69,27 @@ public sealed class ModsForm : Form
 
         var heading = new Label
         {
-            Dock = DockStyle.Top,
-            Height = 72,
+            Dock = DockStyle.Fill,
             Padding = new Padding(18, 10, 18, 4),
             Font = new Font("Georgia", 19, FontStyle.Bold),
             ForeColor = PaleGold,
             Text = "MOD LIBRARY\r\nPick a mod to see what it changes before installing it."
         };
+        var headerActions = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Right,
+            Width = 330,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = true,
+            Padding = new Padding(0, 20, 12, 0),
+            BackColor = Color.Transparent
+        };
+        foreach (var button in new[] { importPackage, authorGuide })
+            StyleButton(button);
+        headerActions.Controls.AddRange(new Control[] { importPackage, authorGuide });
+        var header = new Panel { Dock = DockStyle.Top, Height = 82, BackColor = Night };
+        header.Controls.Add(heading);
+        header.Controls.Add(headerActions);
 
         var split = new SplitContainer
         {
@@ -87,7 +103,7 @@ public sealed class ModsForm : Form
         split.Panel2.Controls.Add(BuildDetailsPanel());
 
         Controls.Add(split);
-        Controls.Add(heading);
+        Controls.Add(header);
 
         // SplitContainer starts with a small design-time width. Setting a large
         // distance or panel minimum in the initializer throws before the form has
@@ -100,7 +116,9 @@ public sealed class ModsForm : Form
         remove.Click += (_, _) => RemoveSelected();
         openSettings.Click += (_, _) => OpenSelectedSettings();
         importPackage.Click += async (_, _) => await ImportPackageAsync();
+        authorGuide.Click += (_, _) => OpenModAuthorGuide();
         sourceLink.LinkClicked += (_, _) => OpenSelectedSource();
+        portedSourceLink.LinkClicked += (_, _) => OpenSelectedPortSource();
 
         RefreshCatalog();
     }
@@ -144,6 +162,8 @@ public sealed class ModsForm : Form
         detailText.Font = new Font(Font.FontFamily, 10);
         sourceLink.LinkColor = Color.FromArgb(142, 197, 222);
         sourceLink.ActiveLinkColor = PaleGold;
+        portedSourceLink.LinkColor = Color.FromArgb(142, 197, 222);
+        portedSourceLink.ActiveLinkColor = PaleGold;
 
         var actions = new FlowLayoutPanel
         {
@@ -154,12 +174,19 @@ public sealed class ModsForm : Form
             Padding = new Padding(0, 9, 0, 0),
             BackColor = Color.Transparent
         };
-        foreach (var button in new[] { install, toggle, remove, openSettings, importPackage })
+        foreach (var button in new[] { install, toggle, remove, openSettings })
             StyleButton(button);
-        actions.Controls.AddRange(new Control[] { install, toggle, remove, openSettings, importPackage });
+        actions.Controls.AddRange(new Control[] { install, toggle, remove, openSettings });
 
-        var sourcePanel = new Panel { Dock = DockStyle.Bottom, Height = 38, Padding = new Padding(0, 8, 0, 0) };
-        sourcePanel.Controls.Add(sourceLink);
+        var sourcePanel = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Bottom,
+            Height = 48,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = true,
+            Padding = new Padding(0, 8, 0, 0)
+        };
+        sourcePanel.Controls.AddRange(new Control[] { sourceLink, portedSourceLink });
 
         panel.Controls.Add(detailText);
         panel.Controls.Add(sourcePanel);
@@ -212,11 +239,17 @@ public sealed class ModsForm : Form
         var dependencies = item.Catalog.Dependencies.Count == 0
             ? "None declared"
             : string.Join(", ", item.Catalog.Dependencies.Select(FindCatalogName));
+        var testingStatus = item.Catalog.Availability == ModCatalogAvailability.Preview
+            ? "PREVIEW - automated compatibility checks passed, but thorough in-game testing has not been completed."
+            : item.Catalog.Availability == ModCatalogAvailability.Ready
+                ? "CURATED - packaged for this ACE release."
+                : "NOT PORTED - source is listed for reference only.";
         detailText.Text =
             $"WHAT IT DOES\r\n{item.Catalog.Description}\r\n\r\n" +
             $"DETAILS\r\n{item.Catalog.Details}\r\n\r\n" +
             $"SAVED-GAME SAFETY\r\n{item.Catalog.SafetyNotice}\r\n\r\n" +
             $"COMPATIBILITY\r\n{item.CompatibilityMessage}\r\n\r\n" +
+            $"TESTING STATUS\r\n{testingStatus}\r\n\r\n" +
             $"REQUIRES\r\n{dependencies}\r\n\r\n" +
             $"AUTHOR / VERSION TARGET\r\n{item.Author}  |  {item.Catalog.TargetFramework}  |  {item.Catalog.TargetAceVersion}";
 
@@ -242,7 +275,7 @@ public sealed class ModsForm : Form
         {
             MessageBox.Show(this,
                 item.CompatibilityMessage +
-                "\r\n\r\nImport Mod Package can install a separately rebuilt package, but importing the original source does not port it to this ACE version.",
+                "\r\n\r\nImport a Mod ZIP can install a separately rebuilt package, but importing the original source does not port it to this ACE version.",
                 "Mod is not packaged for this ACE version", MessageBoxButtons.OK, MessageBoxIcon.Information);
             return;
         }
@@ -250,7 +283,11 @@ public sealed class ModsForm : Form
             return;
 
         var answer = MessageBox.Show(this,
-            $"Install {item.Name}?\r\n\r\n{item.Catalog.Description}\r\n\r\n{item.Catalog.SafetyNotice}\r\n\r\nThe local server must restart before the mod becomes active.",
+            $"Install {item.Name}?\r\n\r\n{item.Catalog.Description}\r\n\r\n{item.Catalog.SafetyNotice}" +
+            (item.Catalog.Availability == ModCatalogAvailability.Preview
+                ? "\r\n\r\nPREVIEW WARNING: automated checks passed, but this mod has not been thoroughly tested in game."
+                : string.Empty) +
+            "\r\n\r\nThe local server must restart before the mod becomes active.",
             "Install mod", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
         if (answer != DialogResult.Yes)
             return;
@@ -295,11 +332,13 @@ public sealed class ModsForm : Form
             var manifest = await installer.InspectAsync(dialog.FileName);
             var catalog = AquafirSampleCatalog.Entries.FirstOrDefault(entry =>
                 string.Equals(entry.Id, manifest.Id, StringComparison.OrdinalIgnoreCase));
-            var compatibilityWarning = catalog is null
-                ? "This package is not in the curated catalog. The launcher can validate its checksum and file layout, but cannot prove that its code is compatible or safe for saved characters."
-                : catalog.Availability == ModCatalogAvailability.Ready
-                    ? catalog.SafetyNotice
-                    : "The bundled catalog still marks this mod as needing a source port. Only continue if this ZIP was rebuilt and tested specifically for the current ACE Single Player release.";
+            var compatibilityWarning = catalog?.Availability switch
+            {
+                null => "This package is not in the curated catalog. The launcher can validate its checksum and file layout, but cannot prove that its code is compatible or safe for saved characters.",
+                ModCatalogAvailability.Ready => catalog.SafetyNotice,
+                ModCatalogAvailability.Preview => catalog.SafetyNotice + "\r\n\r\nPREVIEW WARNING: automated checks passed, but this mod has not been thoroughly tested in game.",
+                _ => "The bundled catalog still marks this mod as needing a source port. Only continue if this ZIP was rebuilt and tested specifically for the current ACE Single Player release."
+            };
 
             var answer = MessageBox.Show(this,
                 $"Import {manifest.Name} {manifest.Version}?\r\n\r\nPackage ID: {manifest.Id}\r\n\r\n{compatibilityWarning}\r\n\r\n" +
@@ -417,6 +456,21 @@ public sealed class ModsForm : Form
             Open(url);
     }
 
+    private void OpenSelectedPortSource()
+    {
+        var url = Selected?.Catalog.PortSourceUrl;
+        if (!string.IsNullOrWhiteSpace(url))
+            Open(url);
+    }
+
+    private static void OpenModAuthorGuide()
+    {
+        var localGuide = Path.Combine(AppContext.BaseDirectory, "Docs", "MOD_AUTHOR_GUIDE.md");
+        Open(File.Exists(localGuide)
+            ? localGuide
+            : "https://github.com/titaniumweiner/ACE-SinglePlayer/blob/main/docs/MOD_AUTHOR_GUIDE.md");
+    }
+
     private bool EnsureServerStopped()
     {
         if (!isServerRunning())
@@ -444,6 +498,9 @@ public sealed class ModsForm : Form
         openSettings.Visible = settingsEnabled;
         sourceLink.Enabled = sourceEnabled;
         sourceLink.Visible = sourceEnabled;
+        var portedSourceEnabled = sourceEnabled && !string.IsNullOrWhiteSpace(Selected?.Catalog.PortSourceUrl);
+        portedSourceLink.Enabled = portedSourceEnabled;
+        portedSourceLink.Visible = portedSourceEnabled;
     }
 
     private void AddColumns()

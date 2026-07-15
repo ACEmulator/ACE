@@ -4,7 +4,12 @@ using System.Security.Cryptography;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using ACE.Server.Command;
+using ACE.Server.Entity;
+using ACE.Server.WorldObjects;
 using ACE.SinglePlayer.Mods;
+
+using HarmonyLib;
 
 namespace ACE.SinglePlayer.Tests;
 
@@ -23,6 +28,57 @@ public sealed class ModTests
         var criticalOverride = AquafirSampleCatalog.Entries.Single(entry => entry.Id == "aquafir.critical-override");
         Assert.AreEqual(ModCatalogAvailability.Ready, criticalOverride.Availability);
         Assert.AreEqual(ModRemovalPolicy.Safe, criticalOverride.RemovalPolicy);
+
+        foreach (var preview in AquafirSampleCatalog.Entries.Where(entry => entry.Availability == ModCatalogAvailability.Preview))
+        {
+            Assert.IsFalse(string.IsNullOrWhiteSpace(preview.PackageRelativePath));
+            Assert.IsFalse(string.IsNullOrWhiteSpace(preview.SourceUrl));
+            Assert.IsFalse(string.IsNullOrWhiteSpace(preview.PortSourceUrl));
+        }
+        Assert.AreEqual(2, AquafirSampleCatalog.Entries.Count(entry => entry.Availability == ModCatalogAvailability.Preview));
+    }
+
+    [TestMethod]
+    public void HelloCommandRegistersAndRemovesCurrentAceCommands()
+    {
+        var mod = new HelloCommand.Mod();
+        try
+        {
+            mod.Initialize();
+            Assert.AreEqual(1, CommandManager.GetCommandByName("hello").Count());
+            Assert.AreEqual(1, CommandManager.GetCommandByName("bye").Count());
+        }
+        finally
+        {
+            mod.Dispose();
+        }
+
+        Assert.AreEqual(0, CommandManager.GetCommandByName("hello").Count());
+        Assert.AreEqual(0, CommandManager.GetCommandByName("bye").Count());
+    }
+
+    [TestMethod]
+    public void SocietyTailoringPatchTargetsCurrentAceSignature()
+    {
+        var original = AccessTools.Method(typeof(Tailoring), nameof(Tailoring.VerifyUseRequirements),
+            new[] { typeof(Player), typeof(WorldObject), typeof(WorldObject) });
+        Assert.IsNotNull(original);
+
+        var mod = new SocietyTailoring.Mod();
+        try
+        {
+            mod.Initialize();
+            var patchInfo = Harmony.GetPatchInfo(original);
+            Assert.IsNotNull(patchInfo);
+            Assert.IsTrue(patchInfo.Prefixes.Any(patch => patch.owner == "aquafir.SocietyTailoring.ace-single-player"));
+        }
+        finally
+        {
+            mod.Dispose();
+        }
+
+        var remaining = Harmony.GetPatchInfo(original);
+        Assert.IsTrue(remaining is null || remaining.Prefixes.All(patch => patch.owner != "aquafir.SocietyTailoring.ace-single-player"));
     }
 
     [TestMethod]
@@ -40,6 +96,30 @@ public sealed class ModTests
 
         Assert.AreEqual(CompatibilityStatus.MissingDependency, result.CompatibilityStatus);
         Assert.IsTrue(result.CompatibilityMessage.Contains("Dependency", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    public void PreviewPackageIsInstallableButKeepsLimitedTestingWarning()
+    {
+        var root = TestPaths.CreateTemporaryDirectory();
+        try
+        {
+            File.WriteAllText(Path.Combine(root, "preview.zip"), "package placeholder");
+            var preview = new ModCatalogEntry(
+                "preview", "Preview", "Author", "Description", "Details", "https://example.invalid/original",
+                ModCatalogAvailability.Preview, ModDataImpact.None, ModRemovalPolicy.Safe, "Back up first.",
+                PackageRelativePath: "preview.zip", PortSourceUrl: "https://example.invalid/port");
+
+            var item = new ModCatalogService(new[] { preview }, root).Merge(Array.Empty<ModRecord>()).Single();
+
+            Assert.AreEqual(CompatibilityStatus.Compatible, item.CompatibilityStatus);
+            Assert.AreEqual("Preview - limited testing", item.Status);
+            Assert.IsTrue(item.CompatibilityMessage.Contains("not received thorough in-game testing", StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
     }
 
     [TestMethod]

@@ -6,11 +6,11 @@ ACE Single Player includes a curated mod library. Open **Mods** from the launche
 
 The library inventories all 22 samples in [aquafir/ACE.BaseMod](https://github.com/aquafir/ACE.BaseMod/tree/master/Samples). The upstream `Meta.json` files contain placeholder descriptions, so ACE Single Player's descriptions and safety policies are curated from the actual READMEs and source.
 
-`CriticalOverride` is the first sample ported to this repository's .NET 10 ACE build. Its checksum-verified package is included in the release and can be installed with one click. The other samples remain visible but are marked **Needs port**, **Experimental**, or **Not recommended** until they compile against this exact ACE version and pass load/gameplay tests. The launcher will not pretend that old .NET 8 source is a compatible installable package.
+`CriticalOverride` is curated for this repository's .NET 10 ACE build. `HelloCommand` and `SocietyTailoring` are installable **Preview** ports. Their checksum-verified packages build and pass automated registration/Harmony-target, packaging, and launcher tests, but they have not received thorough in-game testing. The launcher repeats that warning before installation. The other samples remain visible but are marked **Needs port**, **Experimental**, or **Not recommended** until they compile against this exact ACE version and pass suitable tests. The launcher will not pretend that old .NET 8 source is a compatible installable package.
 
 ## Importing a separately rebuilt package
 
-**Import Mod Package...** accepts an ACE Single Player mod ZIP after the game and server are stopped. Import is atomic and requires:
+**Import a Mod ZIP...** at the top of the Mods window accepts an ACE Single Player mod ZIP after the game and server are stopped. Import is atomic and requires:
 
 - `ace-mod.json` at the ZIP root;
 - mod files under the ZIP's `mod/` directory;
@@ -31,6 +31,8 @@ The manifest format is:
 ```
 
 Importing validates identity, checksum, archive paths, size, required files, and ACE's folder/assembly naming rule. It cannot prove that arbitrary DLL code is compatible or safe. In particular, downloading an original Aquafir .NET 8 source folder and putting it in a ZIP does **not** port it to this .NET 10 ACE build. A developer must rebuild and test that source first. The launcher gives an additional warning when a selected package corresponds to a catalog entry that still says **Needs port**.
+
+See [How to make and import an ACE Single Player mod](MOD_AUTHOR_GUIDE.md) for a working project skeleton, metadata examples, the package helper, testing checklist, and import steps.
 
 ## Install, turn off, and remove are different operations
 
