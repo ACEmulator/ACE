@@ -36,7 +36,7 @@ public sealed class SetupWizardForm : Form
     private readonly Label databaseStatus = new() { AutoSize = true, MaximumSize = new Size(620, 0) };
     private readonly Label privateDatabaseNote = new()
     {
-        Text = "Recommended: the launcher creates an isolated database in your local Windows app-data folder (outside OneDrive), generates its credentials, binds it only to this PC, and leaves the Windows MariaDB service untouched. Select an extracted, populated ACE-World-Database-*.sql file; Database\\Base\\WorldBase.sql contains only empty tables.",
+        Text = "Recommended: the launcher uses its bundled MariaDB and ACE World files to create an isolated database in local Windows app data. Credentials are generated automatically and the database binds only to this PC.",
         AutoSize = true,
         MaximumSize = new Size(650, 0)
     };
@@ -160,7 +160,7 @@ public sealed class SetupWizardForm : Form
             () => BrowseFile(managedDatabaseExe, "MariaDB server|mariadbd.exe"), 9);
         privateDatabaseControls.AddRange(new Control[] { mariaDbPathControls.Label, managedDatabaseExe, mariaDbPathControls.Button });
         AddPathRow(layout, "World SQL package", worldSql,
-            "Select extracted ACE-World-Database-*.sql, not Database\\Base\\WorldBase.sql",
+            "Bundled automatically; browse only to use an advanced replacement world",
             () => BrowseFile(worldSql, "SQL files|*.sql"), 10);
 
         var actions = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight };

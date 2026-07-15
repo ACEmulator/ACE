@@ -52,11 +52,11 @@ public sealed class DatabaseBootstrapper
 
         if (!File.Exists(worldSqlPath))
             throw new FileNotFoundException(
-                "Select the populated ACE-World-Database SQL package before initializing the world database.", worldSqlPath);
+                "The bundled populated ACE World database is missing. Extract the complete release again, or select an advanced replacement in Settings.", worldSqlPath);
         if (!await WorldSqlPackageInspector.ContainsRequiredWorldDataAsync(worldSqlPath, cancellationToken))
             throw new InvalidDataException(
-                "The selected World SQL file contains empty table definitions but not the required ACE world data. " +
-                "Do not select Database\\Base\\WorldBase.sql. Extract and select ACE-World-Database-*.sql from the official ACE-World release package.");
+                "The configured World SQL file contains empty table definitions but not the required ACE world data. " +
+                "Re-extract the complete release or select a populated ACE-World-Database package in advanced Settings.");
 
         if (settings.DatabaseMode == DatabaseMode.Private)
             await ImportPrivateWorldAsync(settings, worldSqlPath, cancellationToken);

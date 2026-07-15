@@ -1,6 +1,6 @@
 # Installing ACE Single Player
 
-ACE Single Player runs the ACE server, a private MariaDB database, and the original Asheron's Call client together on one Windows computer. It does not include or download the game client, DAT files, MariaDB, Decal, ThwargLauncher, or the ACE World database.
+ACE Single Player runs the ACE server, a private MariaDB database, and the original Asheron's Call client together on one Windows computer. The portable release includes ACE.Server, MariaDB, the complete ACE World database, and .NET. It does not include the proprietary game client or DAT files, Decal, or ThwargLauncher.
 
 ## What you need
 
@@ -13,32 +13,22 @@ ACE Single Player runs the ACE server, a private MariaDB database, and the origi
   - `client_local_English.dat`
   - `client_highres.dat`
 - Keep the complete client installation in one writable folder outside OneDrive and `Program Files`, such as `C:\Games\AsheronsCall` or `C:\Turbine\Asheron's Call`.
-- [MariaDB Community Server for Windows](https://mariadb.org/download/). The launcher uses its database programs but creates a separate private database. The password chosen for MariaDB's normal Windows service is not used by the recommended setup.
-- The populated `ACE-World-Database-*.sql` file from the [official ACE World release](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest).
 - Optional for Decal mode: working Decal and ThwargLauncher installations. ACE Single Player uses ThwargLauncher's installed `injector.dll` but does not copy or redistribute it.
-
-Do not select `Database\Base\WorldBase.sql` from the ACE source repository. That file only creates empty tables and does not contain the playable world.
 
 ## Download and extract
 
 1. Open this project's **Releases** page and download the latest `ACE-SinglePlayer-*.zip` file. Do not download GitHub's automatically generated **Source code** archives unless you intend to build the program yourself.
 2. Create a writable folder outside OneDrive and `Program Files`, such as `C:\Games\ACE-SinglePlayer`.
-3. Extract the entire ZIP into that folder. `ACE.SinglePlayer.exe` and the `Server` folder must remain together.
+3. Extract the entire ZIP into that folder. `ACE.SinglePlayer.exe`, `Server`, and `Dependencies` must remain together.
 
 The release is self-contained. If Windows says that .NET must be installed, the source archive or an incomplete build was downloaded instead of the release ZIP.
 
 ## First-time setup
 
 1. Double-click `ACE.SinglePlayer.exe`.
-2. Select `acclient.exe`. When the DAT files are beside it, the launcher fills in the DAT location automatically.
-3. Select `Server\ACE.Server.exe` if it was not detected automatically.
-4. Keep the suggested Mods and Runtime locations.
-5. Choose **Automatic private database (recommended)**. The launcher should detect MariaDB automatically. If it does not, select the installed `mariadbd.exe`, normally found under `C:\Program Files\MariaDB*\bin`.
-6. Select the extracted, populated `ACE-World-Database-*.sql` file.
-7. Keep the account name `singleplayer`, or choose one name that you will continue using for this world.
-8. Save setup. Preparing and importing the world for the first time can take several minutes.
-9. On the main launcher, check **Use Decal** beside **PLAY** when both Decal and ThwargLauncher are installed. Leave it unchecked for Vanilla. No second launcher window or repeated login is required.
-10. Click **PLAY** once. The launcher starts the private database and server, waits until the world is ready, and then opens the game client.
+2. If prompted, select the folder containing `acclient.exe` and all four DAT files. Standard `C:\Turbine\Asheron's Call` installations are detected automatically.
+3. On the main launcher, check **Use Decal** beside **PLAY** when both Decal and ThwargLauncher are installed. Leave it unchecked for Vanilla.
+4. Click **PLAY** once. The launcher generates protected credentials, initializes its bundled private MariaDB, imports the bundled world, starts ACE.Server, waits for logins to open, and launches the client. The initial import can take several minutes and is performed only once.
 
 The first successful login creates the local ACE account automatically. Closing the game normally stops the launcher-owned server and database.
 
@@ -46,6 +36,7 @@ The first successful login creates the local ACE account automatically. Closing 
 
 - Settings: `%LOCALAPPDATA%\ACESinglePlayer\settings.json`
 - Private database and characters: `%LOCALAPPDATA%\ACESinglePlayer\Database`
+- Private server DAT copy: `%LOCALAPPDATA%\ACESinglePlayer\ServerData`
 - Generated runtime configuration and logs: `%LOCALAPPDATA%\ACESinglePlayer\Runtime`
 
 Passwords are generated automatically and protected for the current Windows user. The launcher does not change the MariaDB service's `root` account.
@@ -56,15 +47,15 @@ Back up the entire `%LOCALAPPDATA%\ACESinglePlayer` folder before reinstalling W
 
 ### Nothing opens after clicking PLAY
 
-Use **Open Logs** in the launcher. Confirm that MariaDB is installed, the populated world SQL file was selected, and no other program is using the configured local port.
+Use **Open Logs** in the launcher. Confirm that the entire release was extracted, the `Dependencies` folder is present, and no other program is using the configured local port.
 
 ### MariaDB says access denied for root
 
-Return to setup and choose **Automatic private database**. It does not use the existing MariaDB service's root password.
+The portable release does not use an installed MariaDB service or its root password. Re-extract the complete release and use **Automatic private database** in advanced Settings.
 
 ### The client cannot open the data files
 
-Confirm that all four required DAT files are beside `acclient.exe`, not merely in the separate folder selected for ACE.Server. The client folder must be writable and outside OneDrive or `Program Files`. The launcher now checks this before starting MariaDB and logs the exact executable, client working directory, and server DAT directory.
+Confirm that all four required DAT files are beside `acclient.exe`. The client folder must be writable and outside OneDrive or `Program Files`. Current releases automatically give ACE.Server a separate copy under `%LOCALAPPDATA%\ACESinglePlayer\ServerData`; the launcher log should show different client and server DAT directories. If an older release shows the same directory for both, install the current release.
 
 ### Decal mode is unavailable
 
@@ -72,7 +63,7 @@ Install and configure both Decal and ThwargLauncher normally, then reopen ACE Si
 
 ### The world starts and then immediately shuts down
 
-Make sure the selected SQL file is the populated `ACE-World-Database-*.sql` release, not the empty `WorldBase.sql` schema.
+Use **Open Logs** and verify that `Dependencies\World\ACE-World-Database-v0.9.294.sql` exists. Re-extract the complete release if it is missing.
 
 ## Updating
 

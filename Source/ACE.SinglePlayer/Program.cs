@@ -59,24 +59,47 @@ internal static class Program
             settings = LauncherSettings.CreateDefaults(AppContext.BaseDirectory);
         }
 
-        if (settings.DatabaseMode != DatabaseMode.External)
+        var portableBundle = BundledDistribution.IsComplete(AppContext.BaseDirectory);
+        var settingsChanged = SettingsPathRepairer.Repair(settings, AppContext.BaseDirectory);
+        if (portableBundle && settings.DatabaseMode != DatabaseMode.External)
+            settingsChanged |= AutomaticSetupConfigurator.Configure(settings, AppContext.BaseDirectory, protector);
+        else if (settings.DatabaseMode != DatabaseMode.External)
             settings.ManagedDatabaseExePath = MariaDbInstallationLocator.FindServerExecutable(settings.ManagedDatabaseExePath)
                 ?? settings.ManagedDatabaseExePath;
 
-        if (SettingsPathRepairer.Repair(settings, AppContext.BaseDirectory))
+        if (settingsChanged)
         {
-            log.Write("Automatically repaired the client/DAT or packaged server paths for this installation.");
+            log.Write("Automatically configured the bundled server, world, database, or client paths for this installation.");
             if (store.Exists)
                 store.SaveAsync(settings).GetAwaiter().GetResult();
         }
 
-        if (!store.Exists || !SetupValidator.Validate(settings).IsValid)
+        if (portableBundle && settings.DatabaseMode != DatabaseMode.External && !SetupValidator.ValidateClient(settings).IsValid)
+        {
+            using var quickSetup = new QuickSetupForm(settings);
+            if (quickSetup.ShowDialog() != DialogResult.OK)
+                return;
+            AutomaticSetupConfigurator.Configure(settings, AppContext.BaseDirectory, protector);
+            store.SaveAsync(settings).GetAwaiter().GetResult();
+        }
+        else if ((!portableBundle || settings.DatabaseMode == DatabaseMode.External) &&
+                 (!store.Exists || !SetupValidator.Validate(settings).IsValid))
         {
             using var wizard = new SetupWizardForm(settings, store, protector, runtimeFactory, bootstrapper);
             if (wizard.ShowDialog() != DialogResult.OK)
                 return;
             settings = wizard.SavedSettings;
         }
+
+        var validation = SetupValidator.Validate(settings);
+        if (!validation.IsValid)
+        {
+            MessageBox.Show(validation.Message, "ACE Single Player needs attention", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        if (!store.Exists)
+            store.SaveAsync(settings).GetAwaiter().GetResult();
 
         using var serverManager = new AceServerProcessManager(log);
         using var clientManager = new ClientProcessManager(new IClientLaunchProvider[]

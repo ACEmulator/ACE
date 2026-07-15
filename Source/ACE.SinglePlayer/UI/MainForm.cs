@@ -286,6 +286,7 @@ public sealed class MainForm : Form
     private static string ToDisplayName(LauncherState value) => value switch
     {
         LauncherState.NotConfigured => "Not configured",
+        LauncherState.PreparingData => "Preparing game data",
         LauncherState.CheckingDatabase => "Checking database",
         LauncherState.StartingDatabase => "Starting database",
         LauncherState.StartingServer => "Starting server",

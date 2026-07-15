@@ -192,7 +192,7 @@ public sealed class ManagedMariaDbRuntime : IDatabaseRuntime
         if (settings.DatabaseMode == DatabaseMode.External)
             throw new InvalidOperationException("The private MariaDB runtime cannot start in external database mode.");
         if (!File.Exists(settings.ManagedDatabaseExePath))
-            throw new FileNotFoundException("MariaDB was not found. Install MariaDB or select mariadbd.exe in Settings.", settings.ManagedDatabaseExePath);
+            throw new FileNotFoundException("The bundled MariaDB runtime was not found. Extract the complete release again, or select mariadbd.exe in advanced Settings.", settings.ManagedDatabaseExePath);
         if (MariaDbInstallationLocator.FindInitializer(settings.ManagedDatabaseExePath) is null)
             throw new FileNotFoundException("The MariaDB initializer was not found beside mariadbd.exe. Repair the MariaDB installation and retry.");
         if (!string.Equals(settings.DatabaseHost, "127.0.0.1", StringComparison.Ordinal))

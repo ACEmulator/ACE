@@ -12,7 +12,7 @@
     <RootNamespace>ACE.SinglePlayer</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MySqlConnector" Version="2.6.0" />
+    <PackageReference Include="MySqlConnector" Version="2.6.1" />
     <ProjectReference Include="..\ACE.Common\ACE.Common.csproj" />
   </ItemGroup>
   <ItemGroup>

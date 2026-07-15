@@ -44,9 +44,5 @@ public sealed class DirectClientLaunchProvider : IClientLaunchProvider
         arguments.Add(password);
         arguments.Add("-h");
         arguments.Add($"{host}:{port}");
-        arguments.Add("-rodat");
-        // ACE.Server keeps the client DATs open with shared-read access. The client must
-        // also open them read-only or Windows rejects its write request while the server runs.
-        arguments.Add("on");
     }
 }

@@ -12,7 +12,8 @@ public static class SettingsPathRepairer
         {
             var clientDirectory = SetupValidator.DetectDatDirectory(completeClient)!;
             changed |= SetIfDifferent(settings.ClientExePath, completeClient, value => settings.ClientExePath = value);
-            changed |= SetIfDifferent(settings.DatFilesDirectory, clientDirectory, value => settings.DatFilesDirectory = value);
+            if (!HasServerDatFiles(settings.DatFilesDirectory))
+                changed |= SetIfDifferent(settings.DatFilesDirectory, clientDirectory, value => settings.DatFilesDirectory = value);
         }
 
         var packagedServer = Path.GetFullPath(Path.Combine(applicationDirectory, "Server", "ACE.Server.exe"));
@@ -22,6 +23,16 @@ public static class SettingsPathRepairer
         var packagedMods = Path.GetFullPath(Path.Combine(applicationDirectory, "Mods"));
         if (Directory.Exists(packagedMods))
             changed |= SetIfDifferent(settings.ModsDirectory, packagedMods, value => settings.ModsDirectory = value);
+
+        var bundledMariaDb = BundledDistribution.MariaDbServerPath(applicationDirectory);
+        if (File.Exists(bundledMariaDb))
+            changed |= SetIfDifferent(settings.ManagedDatabaseExePath, bundledMariaDb,
+                value => settings.ManagedDatabaseExePath = value);
+
+        var bundledWorld = BundledDistribution.FindWorldSqlPath(applicationDirectory);
+        if (bundledWorld is not null)
+            changed |= SetIfDifferent(settings.WorldDatabaseSqlPath, bundledWorld,
+                value => settings.WorldDatabaseSqlPath = value);
 
         return changed;
     }
@@ -63,4 +74,9 @@ public static class SettingsPathRepairer
         setter(replacement);
         return true;
     }
+
+    private static bool HasServerDatFiles(string directory) =>
+        !string.IsNullOrWhiteSpace(directory) &&
+        Directory.Exists(directory) &&
+        SetupValidator.RequiredDatFiles.All(file => File.Exists(Path.Combine(directory, file)));
 }
