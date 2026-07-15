@@ -1,0 +1,14 @@
+{
+  "Name": "HelloCommand",
+  "Author": "aquafir; ACE Single Player port",
+  "Description": "Adds /hello and /bye as a small server-mod command example.",
+  "Version": "1.0.0-sp1",
+  "Priority": 0,
+  "Enabled": true,
+  "HotReload": false,
+  "RegisterCommands": false,
+  "CatalogId": "aquafir.hello-command",
+  "TargetAceVersion": "ACE.Server 1.1 / .NET 10",
+  "DataImpact": "None",
+  "RemovalPolicy": "Safe"
+}

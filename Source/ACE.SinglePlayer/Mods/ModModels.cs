@@ -41,6 +41,7 @@ public enum ModRemovalPolicy
 public enum ModCatalogAvailability
 {
     Ready,
+    Preview,
     NeedsPort,
     Experimental,
     NotRecommended
@@ -84,7 +85,8 @@ public sealed record ModCatalogEntry(
     string TargetFramework = ".NET 8 source sample",
     IReadOnlyList<string>? DependencyIds = null,
     IReadOnlyList<string>? ConflictIds = null,
-    string PackageRelativePath = "")
+    string PackageRelativePath = "",
+    string PortSourceUrl = "")
 {
     public IReadOnlyList<string> Dependencies { get; init; } = DependencyIds ?? Array.Empty<string>();
     public IReadOnlyList<string> Conflicts { get; init; } = ConflictIds ?? Array.Empty<string>();
@@ -112,7 +114,10 @@ public sealed class ModListItem
     };
     public string Status => Installed?.IsMalformed == true ? "Install error"
         : Installed is not null
-        ? Installed.Enabled ? "Installed - on" : "Installed - off"
+        ? Catalog.Availability == ModCatalogAvailability.Preview
+            ? Installed.Enabled ? "Installed - on (preview)" : "Installed - off (preview)"
+            : Installed.Enabled ? "Installed - on" : "Installed - off"
+        : Catalog.Availability == ModCatalogAvailability.Preview ? "Preview - limited testing"
         : Catalog.Availability == ModCatalogAvailability.Experimental ? "Experimental"
         : Catalog.Availability == ModCatalogAvailability.NotRecommended ? "Not recommended"
         : CompatibilityStatus switch

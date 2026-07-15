@@ -81,12 +81,15 @@ public sealed class ModCatalogService
         {
             if (installed.IsMalformed)
                 return (CompatibilityStatus.LoadFailed, installed.LastLoadError);
-            return (CompatibilityStatus.Compatible, installed.Enabled
+            var installedMessage = installed.Enabled
                 ? "Installed and enabled. A server restart is required after changes."
-                : "Installed but disabled. A server restart is required after changes.");
+                : "Installed but disabled. A server restart is required after changes.";
+            if (entry.Availability == ModCatalogAvailability.Preview)
+                installedMessage += " Preview port: automated checks passed, but thorough in-game testing has not been completed.";
+            return (CompatibilityStatus.Compatible, installedMessage);
         }
 
-        if (entry.Availability is not ModCatalogAvailability.Ready)
+        if (entry.Availability is not (ModCatalogAvailability.Ready or ModCatalogAvailability.Preview))
         {
             var message = entry.Availability switch
             {
@@ -108,7 +111,9 @@ public sealed class ModCatalogService
         if (string.IsNullOrWhiteSpace(packagePath) || !File.Exists(packagePath))
             return (CompatibilityStatus.PackageMissing, "This build does not contain the validated mod package.");
 
-        return (CompatibilityStatus.Compatible, "Validated package is included and ready to install.");
+        return entry.Availability == ModCatalogAvailability.Preview
+            ? (CompatibilityStatus.Compatible, "Preview package is included. It builds and passes automated load, patch/registration, checksum, and package checks, but it has not received thorough in-game testing. Back up before use.")
+            : (CompatibilityStatus.Compatible, "Validated package is included and ready to install.");
     }
 
     private string FriendlyNames(IEnumerable<string> ids) => string.Join(", ", ids.Select(id =>

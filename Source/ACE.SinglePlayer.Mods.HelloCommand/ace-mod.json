@@ -1,0 +1,8 @@
+{
+  "formatVersion": 1,
+  "id": "aquafir.hello-command",
+  "name": "HelloCommand",
+  "version": "1.0.0-sp1",
+  "folderName": "HelloCommand",
+  "entryAssembly": "HelloCommand.dll"
+}
