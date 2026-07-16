@@ -199,7 +199,7 @@ public sealed class ModsForm : Form
     private void RefreshCatalog()
     {
         var installedCatalog = new ModCatalog(CreateDisplayedModProviders(settings.ModsDirectory));
-        var service = new ModCatalogService(AquafirSampleCatalog.Entries, AppContext.BaseDirectory);
+        var service = new ModCatalogService(CuratedModCatalog.Entries, AppContext.BaseDirectory);
         items = new BindingList<ModListItem>(service.Merge(installedCatalog.Scan()).ToList());
         grid.DataSource = items;
         if (grid.Rows.Count > 0)
@@ -240,7 +240,9 @@ public sealed class ModsForm : Form
             ? "None declared"
             : string.Join(", ", item.Catalog.Dependencies.Select(FindCatalogName));
         var testingStatus = item.Catalog.Availability == ModCatalogAvailability.Preview
-            ? "PREVIEW - automated compatibility checks passed, but thorough in-game testing has not been completed."
+            ? "PREVIEW - " + (string.IsNullOrWhiteSpace(item.Catalog.PreviewNotice)
+                ? "automated compatibility checks passed, but thorough in-game testing has not been completed."
+                : item.Catalog.PreviewNotice)
             : item.Catalog.Availability == ModCatalogAvailability.Ready
                 ? "CURATED - packaged for this ACE release."
                 : "NOT PORTED - source is listed for reference only.";
@@ -330,7 +332,7 @@ public sealed class ModsForm : Form
         try
         {
             var manifest = await installer.InspectAsync(dialog.FileName);
-            var catalog = AquafirSampleCatalog.Entries.FirstOrDefault(entry =>
+            var catalog = CuratedModCatalog.Entries.FirstOrDefault(entry =>
                 string.Equals(entry.Id, manifest.Id, StringComparison.OrdinalIgnoreCase));
             var compatibilityWarning = catalog?.Availability switch
             {
@@ -484,7 +486,7 @@ public sealed class ModsForm : Form
         Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
 
     private static string FindCatalogName(string id) =>
-        AquafirSampleCatalog.Entries.FirstOrDefault(entry => string.Equals(entry.Id, id, StringComparison.OrdinalIgnoreCase))?.Name ?? id;
+        CuratedModCatalog.Entries.FirstOrDefault(entry => string.Equals(entry.Id, id, StringComparison.OrdinalIgnoreCase))?.Name ?? id;
 
     private void SetActions(bool installEnabled, bool toggleEnabled, bool removeEnabled, bool settingsEnabled, bool sourceEnabled)
     {

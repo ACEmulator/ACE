@@ -6,7 +6,13 @@ ACE Single Player includes a curated mod library. Open **Mods** from the launche
 
 The library inventories all 22 samples in [aquafir/ACE.BaseMod](https://github.com/aquafir/ACE.BaseMod/tree/master/Samples). The upstream `Meta.json` files contain placeholder descriptions, so ACE Single Player's descriptions and safety policies are curated from the actual READMEs and source.
 
-`CriticalOverride` is curated for this repository's .NET 10 ACE build. `HelloCommand` and `SocietyTailoring` are installable **Preview** ports. Their checksum-verified packages build and pass automated registration/Harmony-target, packaging, and launcher tests, but they have not received thorough in-game testing. The launcher repeats that warning before installation. The other samples remain visible but are marked **Needs port**, **Experimental**, or **Not recommended** until they compile against this exact ACE version and pass suitable tests. The launcher will not pretend that old .NET 8 source is a compatible installable package.
+`CriticalOverride` is curated for this repository's .NET 10 ACE build. `HelloCommand` and `SocietyTailoring` are installable **Preview** ports. Their checksum-verified packages build and pass automated registration/Harmony-target, packaging, and launcher tests, but they have not received thorough in-game testing. OptimShi's `CustomClothingBase` v1.11 is also an installable Preview. Its unmodified official .NET 8 package is pinned by SHA-256 and passed an isolated load test in the exact .NET 10 ACE mod container, but custom clothing behavior and saved-world compatibility are not thoroughly tested. The launcher repeats those warnings before installation. The other samples remain visible but are marked **Needs port**, **Experimental**, or **Not recommended** until they compile against this exact ACE version and pass suitable tests.
+
+### CustomClothingBase
+
+`CustomClothingBase` loads custom ClothingTable entries from JSON without requiring client DAT updates. After installation, place custom `*.json` definitions directly in its `json` folder under the private ACE Mods directory. It can export entries with `@clothingbase-export` and reload with `@clear-clothing-cache`. Custom ClothingBase IDs can become dependencies of saved items or world content, so the launcher blocks removal and recommends a full backup before use. The [original source and examples](https://github.com/OptimShi/CustomClothingBase) remain the authoritative documentation.
+
+The upstream repository currently has no `LICENSE` file. The official v1.11 binaries are included unchanged based on OptimShi's permission reported by the ACE Single Player project maintainer, with attribution and links preserved in the package and release notices.
 
 ## Importing a separately rebuilt package
 

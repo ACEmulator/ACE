@@ -86,7 +86,8 @@ public sealed record ModCatalogEntry(
     IReadOnlyList<string>? DependencyIds = null,
     IReadOnlyList<string>? ConflictIds = null,
     string PackageRelativePath = "",
-    string PortSourceUrl = "")
+    string PortSourceUrl = "",
+    string PreviewNotice = "")
 {
     public IReadOnlyList<string> Dependencies { get; init; } = DependencyIds ?? Array.Empty<string>();
     public IReadOnlyList<string> Conflicts { get; init; } = ConflictIds ?? Array.Empty<string>();

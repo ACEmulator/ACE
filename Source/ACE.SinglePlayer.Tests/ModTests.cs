@@ -39,6 +39,20 @@ public sealed class ModTests
     }
 
     [TestMethod]
+    public void CuratedCatalogIncludesCustomClothingBaseAsWarnedPreview()
+    {
+        Assert.AreEqual(23, CuratedModCatalog.Entries.Count);
+        var entry = CuratedModCatalog.Entries.Single(item => item.Id == "optimshi.custom-clothing-base");
+        Assert.AreEqual("OptimShi", entry.Author);
+        Assert.AreEqual(ModCatalogAvailability.Preview, entry.Availability);
+        Assert.AreEqual(ModDataImpact.WorldData, entry.DataImpact);
+        Assert.AreEqual(ModRemovalPolicy.DoNotRemove, entry.RemovalPolicy);
+        Assert.IsTrue(entry.SourceUrl.Contains("OptimShi/CustomClothingBase", StringComparison.Ordinal));
+        Assert.IsTrue(entry.PreviewNotice.Contains("not been thoroughly tested", StringComparison.OrdinalIgnoreCase));
+        Assert.IsTrue(entry.PackageRelativePath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [TestMethod]
     public void HelloCommandRegistersAndRemovesCurrentAceCommands()
     {
         var mod = new HelloCommand.Mod();
