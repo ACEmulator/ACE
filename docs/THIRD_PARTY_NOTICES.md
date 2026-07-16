@@ -27,4 +27,13 @@ The ready-to-play ACE Single Player release bundles these unmodified upstream co
 - License: GNU General Public License version 2
 - Source: <https://archive.mariadb.org/mariadb-12.3.2/source/>
 
-The applicable license texts are included in the release's `Licenses` directory. Asheron's Call itself, `acclient.exe`, client DAT files, Decal, and ThwargLauncher are not included.
+## CustomClothingBase
+
+- Author: OptimShi
+- Upstream and source: <https://github.com/OptimShi/CustomClothingBase>
+- Official release: `v1.11`
+- Official asset SHA-256: `505dcb951bdba9ec7788b2f947f3b8d6a7638e06c43000bd38beb129689873a6`
+- Packaging: upstream DLLs are unmodified; ACE Single Player adds only its install manifest, metadata, and instructions
+- License notice: the upstream repository currently contains no `LICENSE` file. Redistribution is included based on OptimShi's permission reported by the ACE Single Player project maintainer. OptimShi retains ownership of the upstream mod.
+
+The applicable published license texts are included in the release's `Licenses` directory. Asheron's Call itself, `acclient.exe`, client DAT files, Decal, and ThwargLauncher are not included.

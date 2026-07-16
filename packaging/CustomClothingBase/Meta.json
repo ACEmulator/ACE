@@ -1,0 +1,14 @@
+{
+  "Name": "CustomClothingBase",
+  "Author": "OptimShi",
+  "Description": "Loads custom server-side ClothingTable entries from JSON files.",
+  "Version": "1.11-upstream",
+  "Priority": 0,
+  "Enabled": true,
+  "HotReload": true,
+  "RegisterCommands": true,
+  "CatalogId": "optimshi.custom-clothing-base",
+  "TargetAceVersion": "Official v1.11 binary load-tested with ACE.Server 1.1 / .NET 10",
+  "DataImpact": "WorldData",
+  "RemovalPolicy": "DoNotRemove"
+}

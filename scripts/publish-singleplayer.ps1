@@ -40,6 +40,8 @@ if (-not $stage.StartsWith($tempPrefix, [StringComparison]::OrdinalIgnoreCase)) 
 $launcherPublish = Join-Path $stage "Launcher"
 $serverPublish = Join-Path $stage "Server"
 $decalHostPublish = Join-Path $stage "DecalHost"
+$customClothingExtract = Join-Path $stage "CustomClothingBaseExtract"
+$customClothingPackage = Join-Path $stage "CustomClothingBasePackage"
 $mariaDbExtract = Join-Path $stage "MariaDB"
 $worldExtract = Join-Path $stage "World"
 $buildArtifacts = Join-Path $stage "BuildArtifacts"
@@ -52,6 +54,10 @@ $worldVersion = "0.9.294"
 $worldArchiveName = "ACE-World-Database-v$worldVersion.sql.zip"
 $worldUri = "https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/download/v$worldVersion/$worldArchiveName"
 $worldSha256 = "aa8275a2fd8edd8c2b95092d2407ece4616ba7b8d7eab1405719bbbfa80c8f89"
+$customClothingVersion = "1.11"
+$customClothingArchiveName = "CustomClothingBase-v$customClothingVersion.zip"
+$customClothingUri = "https://github.com/OptimShi/CustomClothingBase/releases/download/v$customClothingVersion/CustomClothingBase.zip"
+$customClothingSha256 = "505dcb951bdba9ec7788b2f947f3b8d6a7638e06c43000bd38beb129689873a6"
 $cacheRoot = if ([string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
     Join-Path $tempRoot "ACE-SinglePlayer-BuildCache"
 } else {
@@ -120,6 +126,38 @@ foreach ($modProject in @(
     }
 }
 
+Write-Host "Packaging OptimShi's checksum-pinned official CustomClothingBase v$customClothingVersion release..."
+New-Item -ItemType Directory -Force -Path $cacheRoot, $customClothingExtract, $customClothingPackage | Out-Null
+$customClothingArchive = Join-Path $cacheRoot $customClothingArchiveName
+Get-VerifiedDownload $customClothingUri $customClothingArchive $customClothingSha256
+Expand-Archive -LiteralPath $customClothingArchive -DestinationPath $customClothingExtract -Force
+$customClothingUpstreamFiles = @(
+    "ACE.Shared.dll",
+    "CustomClothingBase.dll",
+    "JsonNet.ContractResolvers.dll",
+    "Newtonsoft.Json.dll",
+    "Settings.json"
+)
+foreach ($fileName in $customClothingUpstreamFiles) {
+    if (-not (Test-Path -LiteralPath (Join-Path $customClothingExtract $fileName))) {
+        throw "The official CustomClothingBase archive is missing $fileName."
+    }
+}
+$customClothingModDirectory = Join-Path $customClothingPackage "mod"
+$customClothingJsonDirectory = Join-Path $customClothingModDirectory "json"
+New-Item -ItemType Directory -Force -Path $customClothingModDirectory, $customClothingJsonDirectory | Out-Null
+Copy-Item -LiteralPath (Join-Path $repoRoot "packaging\CustomClothingBase\ace-mod.json") -Destination $customClothingPackage
+foreach ($fileName in $customClothingUpstreamFiles) {
+    Copy-Item -LiteralPath (Join-Path $customClothingExtract $fileName) -Destination $customClothingModDirectory
+}
+Copy-Item -LiteralPath (Join-Path $repoRoot "packaging\CustomClothingBase\Meta.json") -Destination $customClothingModDirectory
+Copy-Item -LiteralPath (Join-Path $repoRoot "packaging\CustomClothingBase\README.md") -Destination $customClothingModDirectory
+Copy-Item -LiteralPath (Join-Path $repoRoot "packaging\CustomClothingBase\json\README.txt") -Destination $customClothingJsonDirectory
+$customClothingOutputArchive = Join-Path $OutputDirectory "Packages\optimshi.custom-clothing-base-1.11-upstream.zip"
+Compress-Archive -Path (Join-Path $customClothingPackage "*") -DestinationPath $customClothingOutputArchive -CompressionLevel Optimal
+$customClothingPackageSha256 = (Get-FileHash -LiteralPath $customClothingOutputArchive -Algorithm SHA256).Hash.ToLowerInvariant()
+$customClothingPackageSha256 | Set-Content -LiteralPath ($customClothingOutputArchive + ".sha256") -Encoding ascii
+
 if (-not $SkipBundledDependencies) {
     New-Item -ItemType Directory -Path $cacheRoot, $mariaDbExtract, $worldExtract -Force | Out-Null
     $mariaDbArchive = Join-Path $cacheRoot $mariaDbArchiveName
@@ -178,6 +216,14 @@ if (-not $SkipBundledDependencies) {
             source = $worldUri
             sha256 = $worldSha256
             license = "AGPL-3.0"
+        }
+        customClothingBase = [ordered]@{
+            repository = "https://github.com/OptimShi/CustomClothingBase"
+            version = $customClothingVersion
+            source = $customClothingUri
+            upstreamSha256 = $customClothingSha256
+            packagedSha256 = $customClothingPackageSha256
+            license = "No LICENSE file in upstream repository; redistributed with author permission reported by the project maintainer"
         }
     }
     $bundleManifest | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $OutputDirectory "BUNDLE-MANIFEST.json") -Encoding utf8

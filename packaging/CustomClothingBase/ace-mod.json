@@ -1,0 +1,8 @@
+{
+  "formatVersion": 1,
+  "id": "optimshi.custom-clothing-base",
+  "name": "CustomClothingBase",
+  "version": "1.11-upstream",
+  "folderName": "CustomClothingBase",
+  "entryAssembly": "CustomClothingBase.dll"
+}
