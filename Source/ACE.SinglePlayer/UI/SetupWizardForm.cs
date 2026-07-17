@@ -58,7 +58,7 @@ public sealed class SetupWizardForm : Form
         this.databaseRuntimeFactory = databaseRuntimeFactory;
         this.databaseBootstrapper = databaseBootstrapper;
 
-        Text = settingsStore.Exists ? "ACE Single Player Settings" : "ACE Single Player Setup";
+        Text = settingsStore.Exists ? "OpenDereth Settings" : "OpenDereth Setup";
         StartPosition = FormStartPosition.CenterScreen;
         MinimumSize = new Size(760, 590);
         Size = new Size(820, 650);

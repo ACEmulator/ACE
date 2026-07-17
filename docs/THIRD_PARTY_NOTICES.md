@@ -1,6 +1,6 @@
 # Third-party components in the portable release
 
-The ready-to-play ACE Single Player release bundles these unmodified upstream components so players do not need to install a database server or import the world manually.
+The ready-to-play OpenDereth release bundles these unmodified upstream components so players do not need to install a database server or import the world manually.
 
 ## ACEmulator ACE
 
@@ -8,7 +8,7 @@ The ready-to-play ACE Single Player release bundles these unmodified upstream co
 - Pinned upstream commit: `650c5b75ae909957feaf58db320e46be16502653`
 - Server build: `1.77.4782`
 - License: GNU Affero General Public License version 3
-- Corresponding source, including the single-player modifications: <https://github.com/titaniumweiner/ACE-SinglePlayer>
+- Corresponding source, including the single-player modifications: <https://github.com/titaniumweiner/OpenDereth>
 
 ## ACE World Database
 
@@ -33,7 +33,7 @@ The ready-to-play ACE Single Player release bundles these unmodified upstream co
 - Upstream and source: <https://github.com/OptimShi/CustomClothingBase>
 - Official release: `v1.11`
 - Official asset SHA-256: `505dcb951bdba9ec7788b2f947f3b8d6a7638e06c43000bd38beb129689873a6`
-- Packaging: upstream DLLs are unmodified; ACE Single Player adds only its install manifest, metadata, and instructions
-- License notice: the upstream repository currently contains no `LICENSE` file. Redistribution is included based on OptimShi's permission reported by the ACE Single Player project maintainer. OptimShi retains ownership of the upstream mod.
+- Packaging: upstream DLLs are unmodified; OpenDereth adds only its install manifest, metadata, and instructions
+- License notice: the upstream repository currently contains no `LICENSE` file. Redistribution is included based on OptimShi's permission reported by the OpenDereth project maintainer. OptimShi retains ownership of the upstream mod.
 
 The applicable published license texts are included in the release's `Licenses` directory. Asheron's Call itself, `acclient.exe`, client DAT files, Decal, and ThwargLauncher are not included.

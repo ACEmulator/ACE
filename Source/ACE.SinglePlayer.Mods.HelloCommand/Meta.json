@@ -1,6 +1,6 @@
 {
   "Name": "HelloCommand",
-  "Author": "aquafir; ACE Single Player port",
+  "Author": "aquafir; OpenDereth port",
   "Description": "Adds /hello and /bye as a small server-mod command example.",
   "Version": "1.0.0-sp1",
   "Priority": 0,

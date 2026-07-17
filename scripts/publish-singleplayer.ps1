@@ -9,17 +9,17 @@ $ErrorActionPreference = "Stop"
 $repoRoot = [IO.Path]::GetFullPath((Split-Path $PSScriptRoot -Parent))
 if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
     $localBuildRoot = if ([string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
-        Join-Path ([IO.Path]::GetTempPath()) "ACE-SinglePlayer-Build"
+        Join-Path ([IO.Path]::GetTempPath()) "OpenDereth-Build"
     } else {
-        Join-Path $env:LOCALAPPDATA "ACE-SinglePlayer-Build"
+        Join-Path $env:LOCALAPPDATA "OpenDereth-Build"
     }
-    $OutputDirectory = Join-Path $localBuildRoot "ACE-SinglePlayer"
+    $OutputDirectory = Join-Path $localBuildRoot "OpenDereth"
 }
 $OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
 $outputPrefix = $OutputDirectory.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
-if ((Split-Path $OutputDirectory -Leaf) -ine "ACE-SinglePlayer" -or
+if ((Split-Path $OutputDirectory -Leaf) -ine "OpenDereth" -or
     [string]::Equals($OutputDirectory, [IO.Path]::GetPathRoot($OutputDirectory), [StringComparison]::OrdinalIgnoreCase)) {
-    throw "OutputDirectory must name a non-root directory called ACE-SinglePlayer. The directory is replaced on every build."
+    throw "OutputDirectory must name a non-root directory called OpenDereth. The directory is replaced on every build."
 }
 
 $localDotnet = Join-Path $repoRoot ".dotnet\dotnet.exe"
@@ -32,7 +32,7 @@ $dotnet = if (Test-Path -LiteralPath $localDotnet) {
 # Microsoft.NET.Publish.targets uses a single-quoted item transform for PublishDir.
 # Staging outside a repository path containing an apostrophe avoids MSB3094 on .NET 10.
 $tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
-$stage = [IO.Path]::GetFullPath((Join-Path $tempRoot "ACE-SinglePlayer-Publish-$PID"))
+$stage = [IO.Path]::GetFullPath((Join-Path $tempRoot "OpenDereth-Publish-$PID"))
 $tempPrefix = $tempRoot.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
 if (-not $stage.StartsWith($tempPrefix, [StringComparison]::OrdinalIgnoreCase)) {
     throw "Temporary staging directory must remain under $tempRoot"
@@ -59,9 +59,9 @@ $customClothingArchiveName = "CustomClothingBase-v$customClothingVersion.zip"
 $customClothingUri = "https://github.com/OptimShi/CustomClothingBase/releases/download/v$customClothingVersion/CustomClothingBase.zip"
 $customClothingSha256 = "505dcb951bdba9ec7788b2f947f3b8d6a7638e06c43000bd38beb129689873a6"
 $cacheRoot = if ([string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
-    Join-Path $tempRoot "ACE-SinglePlayer-BuildCache"
+    Join-Path $tempRoot "OpenDereth-BuildCache"
 } else {
-    Join-Path $env:LOCALAPPDATA "ACE-SinglePlayer-BuildCache"
+    Join-Path $env:LOCALAPPDATA "OpenDereth-BuildCache"
 }
 
 function Invoke-DotNet([string[]] $Arguments) {
@@ -100,7 +100,7 @@ New-Item -ItemType Directory -Path $launcherPublish, $serverPublish, $decalHostP
 Write-Host "Publishing ACE.Server as self-contained Windows x64..."
 Invoke-DotNet @("publish", (Join-Path $repoRoot "Source\ACE.Server\ACE.Server.csproj"), "-c", $Configuration, "-r", "win-x64", "--self-contained", "true", "--artifacts-path", $buildArtifacts, "-o", $serverPublish)
 
-Write-Host "Publishing ACE.SinglePlayer as self-contained Windows x64..."
+Write-Host "Publishing OpenDereth as self-contained Windows x64..."
 Invoke-DotNet @("publish", (Join-Path $repoRoot "Source\ACE.SinglePlayer\ACE.SinglePlayer.csproj"), "-c", $Configuration, "-r", "win-x64", "--self-contained", "true", "--artifacts-path", $buildArtifacts, "-o", $launcherPublish)
 
 Write-Host "Publishing the optional Decal helper as a self-contained Windows x86 executable..."
@@ -109,7 +109,7 @@ Invoke-DotNet @("publish", (Join-Path $repoRoot "Source\ACE.SinglePlayer.DecalHo
 Copy-Item -Path (Join-Path $launcherPublish "*") -Destination $OutputDirectory -Recurse -Force
 New-Item -ItemType Directory -Path (Join-Path $OutputDirectory "Server"), (Join-Path $OutputDirectory "Tools"), (Join-Path $OutputDirectory "Packages") | Out-Null
 Copy-Item -Path (Join-Path $serverPublish "*") -Destination (Join-Path $OutputDirectory "Server") -Recurse -Force
-Copy-Item -Path (Join-Path $decalHostPublish "ACE.SinglePlayer.DecalHost.exe") -Destination (Join-Path $OutputDirectory "Tools") -Force
+Copy-Item -Path (Join-Path $decalHostPublish "OpenDereth.DecalHost.exe") -Destination (Join-Path $OutputDirectory "Tools") -Force
 
 Write-Host "Building the curated mod packages..."
 foreach ($modProject in @(
@@ -285,5 +285,5 @@ if (Test-Path -LiteralPath $archivePath) {
 Compress-Archive -Path (Join-Path $OutputDirectory "*") -DestinationPath $archivePath -CompressionLevel Optimal
 
 Remove-Item -LiteralPath $stage -Recurse -Force
-Write-Host "ACE Single Player package created at: $OutputDirectory"
+Write-Host "OpenDereth package created at: $OutputDirectory"
 Write-Host "Shareable ZIP created at: $archivePath"

@@ -1,10 +1,10 @@
 # Mod library and saved-game safety
 
-ACE Single Player includes a curated mod library. Open **Server Mods** from the launcher, select a mod, and read its description, requirements, compatibility status, and saved-game warning before changing anything.
+OpenDereth includes a curated mod library. Open **Server Mods** from the launcher, select a mod, and read its description, requirements, compatibility status, and saved-game warning before changing anything.
 
 ## Current status
 
-The library inventories all 22 samples in [aquafir/ACE.BaseMod](https://github.com/aquafir/ACE.BaseMod/tree/master/Samples). The upstream `Meta.json` files contain placeholder descriptions, so ACE Single Player's descriptions and safety policies are curated from the actual READMEs and source.
+The library inventories all 22 samples in [aquafir/ACE.BaseMod](https://github.com/aquafir/ACE.BaseMod/tree/master/Samples). The upstream `Meta.json` files contain placeholder descriptions, so OpenDereth's descriptions and safety policies are curated from the actual READMEs and source.
 
 `CriticalOverride` is curated for this repository's .NET 10 ACE build. `HelloCommand`, `SocietyTailoring`, and **Expanded Cast on Strike** are installable **Preview** ports. Their checksum-verified packages build and pass automated registration/Harmony-target, packaging, and launcher tests, but they have not received thorough in-game testing. OptimShi's `CustomClothingBase` v1.11 is also an installable Preview. Its unmodified official .NET 8 package is pinned by SHA-256 and passed an isolated load test in the exact .NET 10 ACE mod container, but custom clothing behavior and saved-world compatibility are not thoroughly tested. The launcher repeats those warnings before installation. The other samples remain visible but are marked **Needs port**, **Experimental**, or **Not recommended** until they compile against this exact ACE version and pass suitable tests.
 
@@ -18,11 +18,11 @@ Turning the mod off is safe for the database: custom items remain, but their non
 
 `CustomClothingBase` loads custom ClothingTable entries from JSON without requiring client DAT updates. After installation, place custom `*.json` definitions directly in its `json` folder under the private ACE Mods directory. It can export entries with `@clothingbase-export` and reload with `@clear-clothing-cache`. Custom ClothingBase IDs can become dependencies of saved items or world content, so the launcher blocks removal and recommends a full backup before use. The [original source and examples](https://github.com/OptimShi/CustomClothingBase) remain the authoritative documentation.
 
-The upstream repository currently has no `LICENSE` file. The official v1.11 binaries are included unchanged based on OptimShi's permission reported by the ACE Single Player project maintainer, with attribution and links preserved in the package and release notices.
+The upstream repository currently has no `LICENSE` file. The official v1.11 binaries are included unchanged based on OptimShi's permission reported by the OpenDereth project maintainer, with attribution and links preserved in the package and release notices.
 
 ## Importing a separately rebuilt package
 
-**Import a Mod ZIP...** at the top of the Mods window accepts an ACE Single Player mod ZIP after the game and server are stopped. Import is atomic and requires:
+**Import a Mod ZIP...** at the top of the Mods window accepts an OpenDereth mod ZIP after the game and server are stopped. Import is atomic and requires:
 
 - `ace-mod.json` at the ZIP root;
 - mod files under the ZIP's `mod/` directory;
@@ -44,19 +44,19 @@ The manifest format is:
 
 Importing validates identity, checksum, archive paths, size, required files, and ACE's folder/assembly naming rule. It cannot prove that arbitrary DLL code is compatible or safe. In particular, downloading an original Aquafir .NET 8 source folder and putting it in a ZIP does **not** port it to this .NET 10 ACE build. A developer must rebuild and test that source first. The launcher gives an additional warning when a selected package corresponds to a catalog entry that still says **Needs port**.
 
-See [How to make and import an ACE Single Player mod](MOD_AUTHOR_GUIDE.md) for a working project skeleton, metadata examples, the package helper, testing checklist, and import steps.
+See [How to make and import an OpenDereth mod](MOD_AUTHOR_GUIDE.md) for a working project skeleton, metadata examples, the package helper, testing checklist, and import steps.
 
 ## Install, turn off, and remove are different operations
 
 - **Install** validates the package identity and checksum, rejects unsafe archive paths, stages all files, and only then moves the complete mod into the ACE `Mods` directory.
 - **Turn off** changes the mod's `Enabled` value. It stops the mod code after the next server restart, but it does not erase changes already saved to characters, items, or the world.
-- **Remove** moves a safe mod out of ACE into `%LOCALAPPDATA%\ACESinglePlayer\Runtime\RemovedMods`. The files are retained for recovery instead of being deleted.
+- **Remove** moves a safe mod out of ACE into `%LOCALAPPDATA%\OpenDereth\Runtime\RemovedMods`. The files are retained for recovery instead of being deleted.
 
 The launcher assigns every curated mod one of these saved-data policies:
 
 - **Safe**: no persistent game data depends on the mod. It can be turned off or moved to recovery.
 - **Changes remain**: the mod can be turned off, but completed actions such as item tailoring, experience awards, or character moves are not undone.
-- **Backup required**: turning it off may leave unusual but loadable character/item state. Back up `%LOCALAPPDATA%\ACESinglePlayer` first.
+- **Backup required**: turning it off may leave unusual but loadable character/item state. Back up `%LOCALAPPDATA%\OpenDereth` first.
 - **Do not remove**: characters, items, custom spells, balances, or world objects may require the mod. Removal is blocked until the package provides a tested cleanup migration.
 
 All mod changes require the game and local server to be stopped. This prevents ACE from loading a half-copied assembly or saving data during a change.
@@ -79,4 +79,4 @@ A new town or dungeon can often use existing client assets with server/world cha
 
 ## Backups
 
-Private-world characters and world state live under `%LOCALAPPDATA%\ACESinglePlayer\Database`. Until automatic per-mod snapshots are implemented, close the launcher and copy the entire `%LOCALAPPDATA%\ACESinglePlayer` folder before enabling a mod labeled **Backup required** or **Do not remove**.
+Private-world characters and world state live under `%LOCALAPPDATA%\OpenDereth\Database`. Until automatic per-mod snapshots are implemented, close the launcher and copy the entire `%LOCALAPPDATA%\OpenDereth` folder before enabling a mod labeled **Backup required** or **Do not remove**.

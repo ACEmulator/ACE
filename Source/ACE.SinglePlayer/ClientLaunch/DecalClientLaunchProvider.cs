@@ -34,7 +34,7 @@ public sealed class DecalClientLaunchProvider : IClientLaunchProvider
 
         if (!File.Exists(FindHostPath()))
         {
-            reason = "The ACE Decal launch helper is not installed. Vanilla mode remains available.";
+            reason = "The OpenDereth Decal launch helper is not installed. Vanilla mode remains available.";
             return false;
         }
 
@@ -50,7 +50,7 @@ public sealed class DecalClientLaunchProvider : IClientLaunchProvider
             ?? throw new InvalidOperationException("ThwargLauncher is not installed or its injector.dll is missing. Install ThwargLauncher or select Vanilla mode.");
         var hostPath = FindHostPath();
         if (!File.Exists(hostPath))
-            throw new FileNotFoundException("The ACE Decal launch helper is missing. Select Vanilla mode and retry.", hostPath);
+            throw new FileNotFoundException("The OpenDereth Decal launch helper is missing. Select Vanilla mode and retry.", hostPath);
 
         var startInfo = new ProcessStartInfo
         {
@@ -69,7 +69,7 @@ public sealed class DecalClientLaunchProvider : IClientLaunchProvider
         Add(startInfo, "--host", request.Settings.Host);
         Add(startInfo, "--port", request.Settings.Port.ToString());
 
-        using var host = Process.Start(startInfo) ?? throw new InvalidOperationException("The ACE Decal launch helper did not start.");
+        using var host = Process.Start(startInfo) ?? throw new InvalidOperationException("The OpenDereth Decal launch helper did not start.");
         var outputTask = host.StandardOutput.ReadToEndAsync(cancellationToken);
         var errorTask = host.StandardError.ReadToEndAsync(cancellationToken);
         await host.WaitForExitAsync(cancellationToken);
@@ -99,8 +99,14 @@ public sealed class DecalClientLaunchProvider : IClientLaunchProvider
 
     private static string FindHostPath()
     {
-        var toolsPath = Path.Combine(AppContext.BaseDirectory, "Tools", "ACE.SinglePlayer.DecalHost.exe");
-        return File.Exists(toolsPath) ? toolsPath : Path.Combine(AppContext.BaseDirectory, "ACE.SinglePlayer.DecalHost.exe");
+        var candidates = new[]
+        {
+            Path.Combine(AppContext.BaseDirectory, "Tools", "OpenDereth.DecalHost.exe"),
+            Path.Combine(AppContext.BaseDirectory, "OpenDereth.DecalHost.exe"),
+            Path.Combine(AppContext.BaseDirectory, "Tools", "ACE.SinglePlayer.DecalHost.exe"),
+            Path.Combine(AppContext.BaseDirectory, "ACE.SinglePlayer.DecalHost.exe")
+        };
+        return candidates.FirstOrDefault(File.Exists) ?? candidates[0];
     }
 
     private sealed class DecalHostResult

@@ -62,7 +62,7 @@ public sealed class CustomWeeniesForm : Form
         this.isServerRunning = isServerRunning;
         importer = new CustomWeenieImportService(runtimeFactory, connectionFactory, log);
 
-        Text = "ACE Single Player - Custom Weenies";
+        Text = "OpenDereth - Custom Weenies";
         StartPosition = FormStartPosition.CenterParent;
         MinimumSize = new Size(940, 680);
         Size = new Size(1120, 780);

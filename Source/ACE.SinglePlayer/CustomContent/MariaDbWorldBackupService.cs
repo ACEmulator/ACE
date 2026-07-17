@@ -24,7 +24,7 @@ internal sealed class MariaDbWorldBackupService
     {
         var dumpExecutable = FindDumpExecutable(settings.ManagedDatabaseExePath)
             ?? throw new FileNotFoundException(
-                "The bundled MariaDB backup program was not found. Extract the complete ACE Single Player release again before importing custom content.");
+                "The bundled MariaDB backup program was not found. Extract the complete OpenDereth release again before importing custom content.");
         var privateRoot = Path.GetDirectoryName(settings.PrivateDatabaseDirectory)
             ?? throw new InvalidOperationException("The private database folder has no parent directory.");
         var backupDirectory = GetBackupDirectory(settings);
@@ -125,7 +125,7 @@ internal sealed class MariaDbWorldBackupService
     internal static string GetBackupDirectory(LauncherSettings settings)
     {
         var root = Path.GetDirectoryName(settings.PrivateDatabaseDirectory)
-            ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ACESinglePlayer");
+            ?? ApplicationPaths.LocalRoot;
         return Path.Combine(root, "Backups", "CustomWeenies");
     }
 

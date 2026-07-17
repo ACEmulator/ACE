@@ -1,6 +1,6 @@
 {
   "Name": "CriticalOverride",
-  "Author": "aquafir; ACE Single Player port",
+  "Author": "aquafir; OpenDereth port",
   "Description": "Overrides physical and magic critical-hit chances against non-player creatures.",
   "Version": "1.0.0-sp1",
   "Priority": 0,

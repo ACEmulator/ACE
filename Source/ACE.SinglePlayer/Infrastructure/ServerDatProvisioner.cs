@@ -15,9 +15,7 @@ public sealed class ServerDatProvisioner
 
     public string TargetDirectory { get; }
 
-    public static string GetDefaultDirectory() => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "ACESinglePlayer", "ServerData");
+    public static string GetDefaultDirectory() => Path.Combine(ApplicationPaths.LocalRoot, "ServerData");
 
     public bool RequiresRefresh(LauncherSettings settings)
     {
@@ -64,7 +62,7 @@ public sealed class ServerDatProvisioner
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             throw new IOException(
-                $"ACE Single Player could not prepare its private server data files in '{targetFullPath}'. " +
+                $"OpenDereth could not prepare its private server data files in '{targetFullPath}'. " +
                 "Close any running ACE.Server process and make sure the drive has enough free space. " + ex.Message,
                 ex);
         }

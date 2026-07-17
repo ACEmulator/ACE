@@ -24,8 +24,8 @@ internal static class Program
         {
             WriteStartupFailure(ex);
             MessageBox.Show(
-                "ACE Single Player could not start. Details were written to the launcher log.\r\n\r\n" + ex.Message,
-                "ACE Single Player startup error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                "OpenDereth could not start. Details were written to the launcher log.\r\n\r\n" + ex.Message,
+                "OpenDereth startup error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 
@@ -34,12 +34,15 @@ internal static class Program
         using var instance = new SingleInstance(@"Local\ACE.SinglePlayer");
         if (!instance.IsPrimary)
         {
-            MessageBox.Show("ACE Single Player is already open.", "ACE Single Player", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("OpenDereth is already open.", "OpenDereth", MessageBoxButtons.OK, MessageBoxIcon.Information);
             return;
         }
 
-        var localRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ACESinglePlayer");
+        var migratedLegacyData = ApplicationPaths.MigrateLegacyLocalData();
+        var localRoot = ApplicationPaths.LocalRoot;
         using var log = new LauncherLog(Path.Combine(localRoot, "Logs"));
+        if (migratedLegacyData)
+            log.Write($"Migrated local data from '{ApplicationPaths.LegacyLocalRoot}' to '{ApplicationPaths.LocalRoot}'.");
         var store = new SettingsStore();
         var protector = new SecretProtector();
         var connectionFactory = new DatabaseConnectionFactory(protector);
@@ -94,7 +97,7 @@ internal static class Program
         var validation = SetupValidator.Validate(settings);
         if (!validation.IsValid)
         {
-            MessageBox.Show(validation.Message, "ACE Single Player needs attention", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show(validation.Message, "OpenDereth needs attention", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
@@ -118,11 +121,12 @@ internal static class Program
     {
         try
         {
-            var logDirectory = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "ACESinglePlayer", "Logs");
+            var failureRoot = Directory.Exists(ApplicationPaths.LegacyLocalRoot) && !Directory.Exists(ApplicationPaths.LocalRoot)
+                ? ApplicationPaths.LegacyLocalRoot
+                : ApplicationPaths.LocalRoot;
+            var logDirectory = Path.Combine(failureRoot, "Logs");
             Directory.CreateDirectory(logDirectory);
-            File.AppendAllText(Path.Combine(logDirectory, "ACE.SinglePlayer.log"),
+            File.AppendAllText(Path.Combine(logDirectory, "OpenDereth.log"),
                 $"{DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss zzz} Startup failed: {exception}{Environment.NewLine}");
         }
         catch

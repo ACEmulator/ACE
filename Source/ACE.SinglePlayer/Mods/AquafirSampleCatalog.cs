@@ -3,7 +3,7 @@ namespace ACE.SinglePlayer.Mods;
 public static class AquafirSampleCatalog
 {
     private const string BaseUrl = "https://github.com/aquafir/ACE.BaseMod/tree/master/Samples/";
-    private const string PortBaseUrl = "https://github.com/titaniumweiner/ACE-SinglePlayer/tree/main/Source/ACE.SinglePlayer.Mods.";
+    private const string PortBaseUrl = "https://github.com/titaniumweiner/OpenDereth/tree/main/Source/ACE.SinglePlayer.Mods.";
 
     public static IReadOnlyList<ModCatalogEntry> Entries { get; } = new ModCatalogEntry[]
     {
@@ -47,10 +47,10 @@ public static class AquafirSampleCatalog
         new ModCatalogEntry(
             "aquafir.critical-override", "CriticalOverride", "aquafir",
             "Overrides physical and magic critical-hit chances against non-player creatures with two simple settings.",
-            "The ACE Single Player port keeps player-versus-player calculations unchanged. Restart the local server after changing Settings.json.",
+            "The OpenDereth port keeps player-versus-player calculations unchanged. Restart the local server after changing Settings.json.",
             BaseUrl + "CriticalOverride", ModCatalogAvailability.Ready, ModDataImpact.SettingsOnly, ModRemovalPolicy.Safe,
             "Safe to turn off. Existing combat results are not recalculated.",
-            TargetAceVersion: "ACE.Server 1.1 / ACE Single Player",
+            TargetAceVersion: "ACE.Server 1.1 / OpenDereth",
             TargetFramework: ".NET 10 port",
             PackageRelativePath: @"Packages\aquafir.critical-override-1.0.0-sp1.zip",
             PortSourceUrl: PortBaseUrl + "CriticalOverride"),
@@ -86,7 +86,7 @@ public static class AquafirSampleCatalog
             "It is useful for mod authors but adds little to normal gameplay.",
             BaseUrl + "HelloCommand", ModCatalogAvailability.Preview, ModDataImpact.None, ModRemovalPolicy.Safe,
             "Safe to turn off or remove.",
-            TargetAceVersion: "ACE.Server 1.1 / ACE Single Player",
+            TargetAceVersion: "ACE.Server 1.1 / OpenDereth",
             TargetFramework: ".NET 10 preview port",
             PackageRelativePath: @"Packages\aquafir.hello-command-1.0.0-sp1.zip",
             PortSourceUrl: PortBaseUrl + "HelloCommand"),
@@ -142,7 +142,7 @@ public static class AquafirSampleCatalog
             "Tailoring changes the resulting item permanently; disabling the mod stops new uses but does not reverse completed tailoring.",
             BaseUrl + "SocietyTailoring", ModCatalogAvailability.Preview, ModDataImpact.CharacterData, ModRemovalPolicy.ChangesRemain,
             "Back up first. Existing tailored items remain after the mod is turned off.",
-            TargetAceVersion: "ACE.Server 1.1 / ACE Single Player",
+            TargetAceVersion: "ACE.Server 1.1 / OpenDereth",
             TargetFramework: ".NET 10 preview port",
             PackageRelativePath: @"Packages\aquafir.society-tailoring-1.0.0-sp1.zip",
             PortSourceUrl: PortBaseUrl + "SocietyTailoring"),

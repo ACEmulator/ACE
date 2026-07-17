@@ -30,7 +30,7 @@ public static class SetupValidator
     {
         var errors = new List<string>(ValidateClient(settings).Errors);
         if (!File.Exists(settings.ServerExePath))
-            errors.Add("The bundled ACE.Server executable is missing. Extract the complete ACE Single Player ZIP again.");
+            errors.Add("The bundled ACE.Server executable is missing. Extract the complete OpenDereth ZIP again.");
 
         if (!Directory.Exists(settings.DatFilesDirectory))
             errors.Add("Select the folder containing acclient.exe. The DAT folder is filled automatically.");
@@ -65,15 +65,15 @@ public static class SetupValidator
             if (!string.Equals(settings.DatabaseUsername, "ace_singleplayer", StringComparison.Ordinal))
                 errors.Add("The automatic private database must use its isolated ACE account.");
             if (!File.Exists(settings.ManagedDatabaseExePath))
-                errors.Add("The bundled private database runtime is missing. Extract the complete ACE Single Player ZIP again.");
+                errors.Add("The bundled private database runtime is missing. Extract the complete OpenDereth ZIP again.");
             else if (Database.MariaDbInstallationLocator.FindInitializer(settings.ManagedDatabaseExePath) is null)
-                errors.Add("The bundled MariaDB initializer is missing. Extract the complete ACE Single Player ZIP again.");
+                errors.Add("The bundled MariaDB initializer is missing. Extract the complete OpenDereth ZIP again.");
             if (string.IsNullOrWhiteSpace(settings.ProtectedDatabasePassword) ||
                 string.IsNullOrWhiteSpace(settings.ProtectedPrivateDatabaseAdminPassword))
                 errors.Add("The automatic private database credentials have not been generated.");
             if (!Directory.Exists(Path.Combine(settings.PrivateDatabaseDirectory, "mysql")) &&
                 !File.Exists(settings.WorldDatabaseSqlPath))
-                errors.Add("The bundled ACE World database is missing. Extract the complete ACE Single Player ZIP again.");
+                errors.Add("The bundled ACE World database is missing. Extract the complete OpenDereth ZIP again.");
         }
 
         return new ValidationResult(errors.Count == 0, errors);

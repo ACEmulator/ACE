@@ -1,4 +1,4 @@
-# ACE Single Player build and test
+# OpenDereth build and test
 
 Building requires the .NET 10 SDK on Windows. The packaging script publishes the launcher and server self-contained for Windows x64 and the optional Decal helper self-contained for Windows x86. Users of the finished package do not need a separate .NET installation.
 
@@ -20,7 +20,7 @@ dotnet test .\Source\ACE.SinglePlayer.Tests\ACE.SinglePlayer.Tests.csproj -c Rel
 
 The integration test uses a unique temporary data directory and does not modify the Windows MariaDB service. Set `ACE_TEST_WORLD_SQL` to an extracted official `ACE-World-Database-*.sql` file to exercise the full populated-world import and empty-world repair path; otherwise the test uses a minimal populated fixture.
 
-The clean package is written to `%LOCALAPPDATA%\ACE-SinglePlayer-Build\ACE-SinglePlayer`, with a shareable `ACE-SinglePlayer.zip` archive beside it. Keeping release output outside the checkout prevents cloud-sync software from locking it. `-OutputDirectory` may select another safe directory whose final name is `ACE-SinglePlayer`; that directory is replaced on every build. By default, the packaging script downloads hash-pinned official MariaDB `12.3.2` and ACE World `v0.9.294` archives into `%LOCALAPPDATA%\ACE-SinglePlayer-BuildCache`, verifies both SHA-256 hashes, and bundles their extracted runtime files. Use `-SkipBundledDependencies` only for a small developer package that is not suitable as the public ready-to-play release.
+The clean package is written to `%LOCALAPPDATA%\OpenDereth-Build\OpenDereth`, with a shareable `OpenDereth.zip` archive beside it. Keeping release output outside the checkout prevents cloud-sync software from locking it. `-OutputDirectory` may select another safe directory whose final name is `OpenDereth`; that directory is replaced on every build. By default, the packaging script downloads hash-pinned official MariaDB `12.3.2` and ACE World `v0.9.294` archives into `%LOCALAPPDATA%\OpenDereth-BuildCache`, verifies both SHA-256 hashes, and bundles their extracted runtime files. Use `-SkipBundledDependencies` only for a small developer package that is not suitable as the public ready-to-play release.
 
 Publishing stages final output, compiler output, and intermediate files under the current user's temporary directory. This avoids a .NET 10 publish-transform bug when the repository path contains an apostrophe and prevents OneDrive from locking build files when a developer's source checkout is cloud-synced. It removes debug symbols that can contain build-machine paths, then rejects generated Config.js, settings, logs, private database data, proprietary client/DAT files, unpinned MariaDB servers, or personal user-profile paths. `BUNDLE-MANIFEST.json`, `THIRD_PARTY_NOTICES.md`, and the `Licenses` directory record the redistributed components.
 

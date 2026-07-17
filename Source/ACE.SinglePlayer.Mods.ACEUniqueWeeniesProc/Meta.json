@@ -1,6 +1,6 @@
 {
   "Name": "Expanded Cast on Strike",
-  "Author": "titaniumweiner; ACE Single Player port",
+  "Author": "titaniumweiner; OpenDereth port",
   "Description": "Enables cast-on-strike procs on non-Aetheria equipped items used by ACEUniqueWeenies content.",
   "Version": "1.0.0-sp1",
   "Priority": 0,

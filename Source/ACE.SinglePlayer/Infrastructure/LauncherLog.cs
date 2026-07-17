@@ -8,7 +8,7 @@ public sealed class LauncherLog : IDisposable
     public LauncherLog(string logsDirectory)
     {
         Directory.CreateDirectory(logsDirectory);
-        LogPath = Path.Combine(logsDirectory, "ACE.SinglePlayer.log");
+        LogPath = Path.Combine(logsDirectory, "OpenDereth.log");
         writer = new StreamWriter(new FileStream(LogPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
         {
             AutoFlush = true

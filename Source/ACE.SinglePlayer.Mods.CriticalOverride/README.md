@@ -1,4 +1,4 @@
-# CriticalOverride for ACE Single Player
+# CriticalOverride for OpenDereth
 
 This is a .NET 10 port of aquafir's `ACE.BaseMod` CriticalOverride sample. It overrides physical and magic critical-hit chances against non-player creatures while leaving player-versus-player calculations unchanged.
 
@@ -6,4 +6,4 @@ Edit `Settings.json` while the local server is stopped. Values are probabilities
 
 Original source: <https://github.com/aquafir/ACE.BaseMod/tree/master/Samples/CriticalOverride>
 
-The original and modified source are licensed under the GNU Affero General Public License v3.0, the same license included with ACE Single Player.
+The original and modified source are licensed under the GNU Affero General Public License v3.0, the same license included with OpenDereth.

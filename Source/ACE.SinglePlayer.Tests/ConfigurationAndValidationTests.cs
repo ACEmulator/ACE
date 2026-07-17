@@ -23,6 +23,7 @@ public sealed class ConfigurationAndValidationTests
             settings.ProtectedDatabasePassword = protector.Protect("database secret");
             var configuration = new AceConfigurationWriter(protector).Create(settings);
 
+            Assert.AreEqual("OpenDereth", configuration.Server.WorldName);
             Assert.AreEqual("127.0.0.1", configuration.Server.Network.Host);
             Assert.AreEqual((uint)9000, configuration.Server.Network.Port);
             Assert.AreEqual((uint)4, configuration.Server.Network.MaximumAllowedSessions);
@@ -154,6 +155,7 @@ public sealed class ConfigurationAndValidationTests
 
             var settings = new LauncherSettings { ClientExePath = client };
             using var log = new LauncherLog(logDirectory);
+            Assert.AreEqual("OpenDereth.log", Path.GetFileName(log.LogPath));
             var provisioner = new ServerDatProvisioner(log, targetDirectory);
 
             var result = await provisioner.EnsureAsync(settings, CancellationToken.None);

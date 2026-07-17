@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
 
+using ACE.SinglePlayer.Infrastructure;
+
 namespace ACE.SinglePlayer.Models;
 
 public enum DatabaseMode
@@ -19,7 +21,7 @@ public enum ClientLaunchMode
 
 public sealed class LauncherSettings
 {
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 3;
 
     public int SettingsVersion { get; set; } = CurrentVersion;
     public string ClientExePath { get; set; } = string.Empty;
@@ -72,7 +74,7 @@ public sealed class LauncherSettings
 
     public static LauncherSettings CreateDefaults(string applicationDirectory)
     {
-        var root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ACESinglePlayer");
+        var root = ApplicationPaths.LocalRoot;
         var packagedClient = Path.Combine(applicationDirectory, "Client", "acclient.exe");
         var packagedServer = Path.Combine(applicationDirectory, "Server", "ACE.Server.exe");
 
@@ -86,6 +88,5 @@ public sealed class LauncherSettings
         };
     }
 
-    private static string GetDefaultPrivateDatabaseDirectory() => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ACESinglePlayer", "Database");
+    private static string GetDefaultPrivateDatabaseDirectory() => Path.Combine(ApplicationPaths.LocalRoot, "Database");
 }

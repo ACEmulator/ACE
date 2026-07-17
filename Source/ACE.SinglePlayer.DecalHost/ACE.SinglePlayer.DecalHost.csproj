@@ -8,6 +8,8 @@
     <Platforms>x86</Platforms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>ACE.SinglePlayer.DecalHost</AssemblyName>
+    <AssemblyName>OpenDereth.DecalHost</AssemblyName>
+    <Product>OpenDereth</Product>
+    <Title>OpenDereth Decal Host</Title>
   </PropertyGroup>
 </Project>

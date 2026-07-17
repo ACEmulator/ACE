@@ -1,8 +1,8 @@
-# How to make and import an ACE Single Player mod
+# How to make and import an OpenDereth mod
 
-ACE Single Player's Mod ZIP importer handles **server-code mods**: .NET DLLs that use ACE's `IHarmonyMod` interface. Per-weenie AceForge SQL uses the separate **Custom Weenies** screen described in [the Custom Weenies guide](CUSTOM_WEENIES.md). General world SQL packs and client DAT/landscape packs still need a different migration system and are not supported by the Mod ZIP importer.
+OpenDereth's Mod ZIP importer handles **server-code mods**: .NET DLLs that use ACE's `IHarmonyMod` interface. Per-weenie AceForge SQL uses the separate **Custom Weenies** screen described in [the Custom Weenies guide](CUSTOM_WEENIES.md). General world SQL packs and client DAT/landscape packs still need a different migration system and are not supported by the Mod ZIP importer.
 
-The easiest starting point is the small [HelloCommand port](https://github.com/titaniumweiner/ACE-SinglePlayer/tree/main/Source/ACE.SinglePlayer.Mods.HelloCommand). Copy that project, rename its assembly and namespace, and replace its command code with your own feature.
+The easiest starting point is the small [HelloCommand port](https://github.com/titaniumweiner/OpenDereth/tree/main/Source/ACE.SinglePlayer.Mods.HelloCommand). Copy that project, rename its assembly and namespace, and replace its command code with your own feature.
 
 ## 1. Create the project
 
@@ -147,7 +147,7 @@ mod/
 ## 6. Import it
 
 1. Stop the game and local server.
-2. Open **Server Mods** in ACE Single Player.
+2. Open **Server Mods** in OpenDereth.
 3. Click **Import a Mod ZIP...** at the top.
 4. Choose the `.zip`; the launcher finds and verifies the adjacent `.zip.sha256` file.
 5. Read the warning and confirm.
@@ -157,12 +157,12 @@ The importer checks the checksum, manifest, required files, naming rules, archiv
 
 ## Testing checklist before sharing
 
-- Build using the exact ACE Single Player branch you name as supported.
+- Build using the exact OpenDereth branch you name as supported.
 - Start the private server with only this mod enabled and inspect the server log for load errors.
 - Exercise the changed behavior in game, including failure and boundary cases.
 - Test a clean install, disable/re-enable, server restart, and removal when removal is claimed safe.
 - Test with every declared dependency and likely patch conflict.
-- Back up `%LOCALAPPDATA%\ACESinglePlayer` before tests that change characters, items, or the world.
+- Back up `%LOCALAPPDATA%\OpenDereth` before tests that change characters, items, or the world.
 - Link to the complete source and license. Clearly label a package **Preview / not thoroughly tested** until real gameplay coverage exists.
 
 Do not put Asheron's Call client files or DAT files in a mod ZIP. They are proprietary and the server-mod importer is not designed to switch client data safely.

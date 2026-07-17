@@ -18,7 +18,7 @@ public sealed class SavedPrivateDatabaseIntegrationTests
             return;
 
         var settings = await new SettingsStore().LoadAsync()
-            ?? throw new InvalidOperationException("ACE Single Player settings have not been saved.");
+            ?? throw new InvalidOperationException("OpenDereth settings have not been saved.");
         Assert.AreEqual(DatabaseMode.Private, settings.DatabaseMode);
 
         var logRoot = TestPaths.CreateTemporaryDirectory();

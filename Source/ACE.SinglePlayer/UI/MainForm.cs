@@ -21,7 +21,7 @@ public sealed class MainForm : Form
     private readonly DatabaseRuntimeFactory databaseRuntimeFactory;
     private readonly DatabaseBootstrapper databaseBootstrapper;
     private readonly LauncherLog log;
-    private readonly Label title = new() { Text = "A C E   S I N G L E   P L A Y E R", AutoSize = false, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter };
+    private readonly Label title = new() { Text = "O P E N D E R E T H", AutoSize = false, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter };
     private readonly Label state = new() { AutoSize = false, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter };
     private readonly Button play = new() { Text = "PLAY", Width = 320, Height = 96 };
     private readonly CheckBox useDecal = new()
@@ -54,7 +54,7 @@ public sealed class MainForm : Form
         this.databaseBootstrapper = databaseBootstrapper;
         this.log = log;
 
-        Text = "ACE Single Player - A Private World in Dereth";
+        Text = "OpenDereth - Your World, Your Way";
         StartPosition = FormStartPosition.CenterScreen;
         MinimumSize = new Size(780, 620);
         Size = new Size(900, 710);

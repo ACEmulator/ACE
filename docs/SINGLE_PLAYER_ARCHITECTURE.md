@@ -1,4 +1,4 @@
-# ACE Single Player architecture
+# OpenDereth architecture
 
 ## Process boundary
 
@@ -10,7 +10,7 @@
 
 The original server behavior is unchanged when the two new arguments are omitted. The normal cross-platform `Source/ACE.sln` is unchanged; Windows packaging uses `Source/ACE.SinglePlayer.slnx`.
 
-The release package publishes the launcher and server self-contained for Windows x64. This avoids a first-run dependency on Windows' .NET runtime installer. The isolated Decal helper remains self-contained Windows x86. New setups place operational Runtime files and the private MariaDB data under `%LOCALAPPDATA%\ACESinglePlayer` so cloud-sync tools do not lock database files or copy short-lived configuration credentials.
+The release package publishes the launcher and server self-contained for Windows x64. This avoids a first-run dependency on Windows' .NET runtime installer. The isolated Decal helper remains self-contained Windows x86. New setups place operational Runtime files and the private MariaDB data under `%LOCALAPPDATA%\OpenDereth` so cloud-sync tools do not lock database files or copy short-lived configuration credentials. A one-time startup migration moves the complete legacy `%LOCALAPPDATA%\ACESinglePlayer` tree and repairs saved absolute runtime and database paths.
 
 ## Configuration and readiness
 
@@ -28,17 +28,17 @@ Process arguments are added individually. Arguments and configuration content ar
 
 `IDatabaseRuntime` separates an advanced external connection from the default private MariaDB. Validation checks authentication, all three schema names, core tables (`account`, `character`, and `weenie`), and the required Human world record (`weenie.class_Id = 1`). `DatabaseBootstrapper` uses the packaged ACE authentication/shard base SQL and the pinned complete world SQL under `Dependencies\World`. It rejects schema-only world data. External databases remain conservative and are never rewritten when incomplete; an isolated private database with empty world tables can be repaired by streaming the bundled full dump through MariaDB's local import client.
 
-Private mode prefers the pinned bundled `mariadbd.exe` and requires its matching initializer and import client. First initialization occurs in a unique staging directory and is promoted to `%LOCALAPPDATA%\ACESinglePlayer\Database` only after MariaDB's system tables exist. Keeping database data outside the release folder prevents cloud-sync locks and allows application upgrades without replacing characters. Existing `Runtime\Database` data is copied once to the local location and retained at the old path as a backup. The launcher chooses an available local port, passes `--no-defaults`, binds to `127.0.0.1`, disables remote-root creation, and never opens a firewall port.
+Private mode prefers the pinned bundled `mariadbd.exe` and requires its matching initializer and import client. First initialization occurs in a unique staging directory and is promoted to `%LOCALAPPDATA%\OpenDereth\Database` only after MariaDB's system tables exist. Keeping database data outside the release folder prevents cloud-sync locks and allows application upgrades without replacing characters. Existing `Runtime\Database` data is copied once to the local location and retained at the old path as a backup. The launcher chooses an available local port, passes `--no-defaults`, binds to `127.0.0.1`, disables remote-root creation, and never opens a firewall port.
 
 Two random passwords are generated: a private administrator credential used only for lifecycle/provisioning and a dedicated `ace_singleplayer` application credential granted only over the three configured ACE schemas. Both are protected by Windows DPAPI. MariaDB output is redacted against both secrets. The launcher sends MariaDB's supported `SHUTDOWN` statement before forcing only its own child after a timeout. A version-1 loopback `root` configuration migrates into the private setup flow; non-root external configurations remain external.
 
 ## Client providers
 
-`ServerDatProvisioner` copies the four user-supplied DAT files into `%LOCALAPPDATA%\ACESinglePlayer\ServerData` before ACE.Server starts. File size and modification time are used to refresh only changed files, and every replacement is staged before it becomes active. ACE.Server keeps its DAT streams open for performance, so this private copy prevents it from locking the original client files. The proprietary DATs remain local and are never placed in the release archive or repository.
+`ServerDatProvisioner` copies the four user-supplied DAT files into `%LOCALAPPDATA%\OpenDereth\ServerData` before ACE.Server starts. File size and modification time are used to refresh only changed files, and every replacement is staged before it becomes active. ACE.Server keeps its DAT streams open for performance, so this private copy prevents it from locking the original client files. The proprietary DATs remain local and are never placed in the release archive or repository.
 
 `IClientLaunchProvider` isolates client choices. `DirectClientLaunchProvider` uses `ProcessStartInfo.ArgumentList` for `-a`, `-v`, and `-h`. Vanilla mode has no Decal, Thwarg, Chorizite, or injection dependency.
 
-`DecalClientLaunchProvider` detects `SOFTWARE\Decal\Agent\AgentPath` and `SOFTWARE\Thwargle Games\ThwargLauncher\Path` in 32/64-bit HKLM/HKCU views, then validates Decal's `Inject.dll` and ThwargLauncher's `injector.dll`. A separately built, self-contained x86 bridge loads the installed Thwarg native launcher and asks it to start `acclient.exe` with Decal's `DecalStartup` entry point. The account, protected password, and loopback server address are supplied automatically by ACE Single Player. No Decal, ThwargLauncher, ThwargFilter, or third-party injector binary is bundled or copied.
+`DecalClientLaunchProvider` detects `SOFTWARE\Decal\Agent\AgentPath` and `SOFTWARE\Thwargle Games\ThwargLauncher\Path` in 32/64-bit HKLM/HKCU views, then validates Decal's `Inject.dll` and ThwargLauncher's `injector.dll`. A separately built, self-contained x86 bridge loads the installed Thwarg native launcher and asks it to start `acclient.exe` with Decal's `DecalStartup` entry point. The account, protected password, and loopback server address are supplied automatically by OpenDereth. No Decal, ThwargLauncher, ThwargFilter, or third-party injector binary is bundled or copied.
 
 The main window exposes this choice as a **Use Decal** checkbox beside **PLAY**. Checking it persists `ClientLaunchMode.Decal`; unchecking it persists `ClientLaunchMode.Vanilla`. The checkbox is disabled while the game or server is running and when either required installation is missing. Database and path setup contain no separate client-mode dropdown.
 

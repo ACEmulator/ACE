@@ -16,9 +16,7 @@ public sealed class SettingsStore
 
     public SettingsStore(string? settingsPath = null)
     {
-        SettingsPath = settingsPath ?? Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "ACESinglePlayer", "settings.json");
+        SettingsPath = settingsPath ?? Path.Combine(ApplicationPaths.LocalRoot, "settings.json");
     }
 
     public string SettingsPath { get; }
@@ -30,15 +28,19 @@ public sealed class SettingsStore
         if (!File.Exists(SettingsPath))
             return null;
 
-        await using var stream = File.OpenRead(SettingsPath);
-        var settings = await JsonSerializer.DeserializeAsync<LauncherSettings>(stream, JsonOptions, cancellationToken);
+        LauncherSettings? settings;
+        await using (var stream = File.OpenRead(SettingsPath))
+            settings = await JsonSerializer.DeserializeAsync<LauncherSettings>(stream, JsonOptions, cancellationToken);
         if (settings is null)
             throw new InvalidDataException("The launcher settings file is empty or invalid.");
         if (settings.SettingsVersion > LauncherSettings.CurrentVersion)
             throw new InvalidDataException($"Settings version {settings.SettingsVersion} is newer than this launcher supports.");
 
+        var requiresSave = settings.SettingsVersion < LauncherSettings.CurrentVersion;
         Migrate(settings);
         settings.SettingsVersion = LauncherSettings.CurrentVersion;
+        if (requiresSave)
+            await SaveAsync(settings, cancellationToken);
         return settings;
     }
 
@@ -65,27 +67,33 @@ public sealed class SettingsStore
 
     private static void Migrate(LauncherSettings settings)
     {
-        if (settings.SettingsVersion >= 2)
-            return;
+        if (settings.SettingsVersion < 2)
+        {
+            var usedExperimentalManagedMode = settings.DatabaseMode == DatabaseMode.ManagedExperimental;
+            var usedLocalRoot = settings.DatabaseMode == DatabaseMode.External &&
+                string.Equals(settings.DatabaseHost, "127.0.0.1", StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(settings.DatabaseUsername, "root", StringComparison.OrdinalIgnoreCase);
 
-        var usedExperimentalManagedMode = settings.DatabaseMode == DatabaseMode.ManagedExperimental;
-        var usedLocalRoot = settings.DatabaseMode == DatabaseMode.External &&
-            string.Equals(settings.DatabaseHost, "127.0.0.1", StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(settings.DatabaseUsername, "root", StringComparison.OrdinalIgnoreCase);
+            if (usedExperimentalManagedMode || usedLocalRoot)
+            {
+                var previousPassword = settings.ProtectedDatabasePassword;
+                var previousUserWasRoot = string.Equals(settings.DatabaseUsername, "root", StringComparison.OrdinalIgnoreCase);
+                settings.DatabaseMode = DatabaseMode.Private;
+                settings.DatabaseHost = "127.0.0.1";
+                settings.DatabasePort = 3307;
+                settings.DatabaseUsername = "ace_singleplayer";
+                if (usedExperimentalManagedMode && previousUserWasRoot)
+                    settings.ProtectedPrivateDatabaseAdminPassword = previousPassword;
+                else
+                    settings.ProtectedExternalDatabasePassword = previousPassword;
+                settings.ProtectedDatabasePassword = string.Empty;
+            }
+        }
 
-        if (!usedExperimentalManagedMode && !usedLocalRoot)
-            return;
-
-        var previousPassword = settings.ProtectedDatabasePassword;
-        var previousUserWasRoot = string.Equals(settings.DatabaseUsername, "root", StringComparison.OrdinalIgnoreCase);
-        settings.DatabaseMode = DatabaseMode.Private;
-        settings.DatabaseHost = "127.0.0.1";
-        settings.DatabasePort = 3307;
-        settings.DatabaseUsername = "ace_singleplayer";
-        if (usedExperimentalManagedMode && previousUserWasRoot)
-            settings.ProtectedPrivateDatabaseAdminPassword = previousPassword;
-        else
-            settings.ProtectedExternalDatabasePassword = previousPassword;
-        settings.ProtectedDatabasePassword = string.Empty;
+        if (settings.SettingsVersion < 3)
+        {
+            settings.RuntimeDirectory = ApplicationPaths.ReplaceLegacyRoot(settings.RuntimeDirectory);
+            settings.PrivateDatabaseDirectoryPath = ApplicationPaths.ReplaceLegacyRoot(settings.PrivateDatabaseDirectoryPath);
+        }
     }
 }

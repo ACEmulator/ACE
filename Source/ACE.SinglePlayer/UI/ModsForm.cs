@@ -42,7 +42,7 @@ public sealed class ModsForm : Form
         BorderStyle = BorderStyle.None
     };
     private readonly LinkLabel sourceLink = new() { Text = "View original source code", AutoSize = true };
-    private readonly LinkLabel portedSourceLink = new() { Text = "View ACE Single Player ported code", AutoSize = true };
+    private readonly LinkLabel portedSourceLink = new() { Text = "View OpenDereth ported code", AutoSize = true };
     private readonly Button install = new() { Text = "Install", AutoSize = true };
     private readonly Button toggle = new() { Text = "Turn off", AutoSize = true };
     private readonly Button remove = new() { Text = "Remove", AutoSize = true };
@@ -56,7 +56,7 @@ public sealed class ModsForm : Form
         this.settings = settings;
         this.isServerRunning = isServerRunning;
 
-        Text = "ACE Single Player - Mod Library";
+        Text = "OpenDereth - Mod Library";
         StartPosition = FormStartPosition.CenterParent;
         MinimumSize = new Size(1040, 680);
         Size = new Size(1240, 780);
@@ -320,7 +320,7 @@ public sealed class ModsForm : Form
 
         using var dialog = new OpenFileDialog
         {
-            Title = "Import an ACE Single Player mod package",
+            Title = "Import an OpenDereth mod package",
             Filter = "ACE mod packages (*.zip)|*.zip",
             CheckFileExists = true,
             Multiselect = false
@@ -339,12 +339,12 @@ public sealed class ModsForm : Form
                 null => "This package is not in the curated catalog. The launcher can validate its checksum and file layout, but cannot prove that its code is compatible or safe for saved characters.",
                 ModCatalogAvailability.Ready => catalog.SafetyNotice,
                 ModCatalogAvailability.Preview => catalog.SafetyNotice + "\r\n\r\nPREVIEW WARNING: automated checks passed, but this mod has not been thoroughly tested in game.",
-                _ => "The bundled catalog still marks this mod as needing a source port. Only continue if this ZIP was rebuilt and tested specifically for the current ACE Single Player release."
+                _ => "The bundled catalog still marks this mod as needing a source port. Only continue if this ZIP was rebuilt and tested specifically for the current OpenDereth release."
             };
 
             var answer = MessageBox.Show(this,
                 $"Import {manifest.Name} {manifest.Version}?\r\n\r\nPackage ID: {manifest.Id}\r\n\r\n{compatibilityWarning}\r\n\r\n" +
-                "A matching .sha256 checksum file was verified. Back up %LOCALAPPDATA%\\ACESinglePlayer before importing unverified code. The server will restart when you next click Play.",
+                "A matching .sha256 checksum file was verified. Back up %LOCALAPPDATA%\\OpenDereth before importing unverified code. The server will restart when you next click Play.",
                 "Import mod package", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (answer != DialogResult.Yes)
                 return;
@@ -389,7 +389,7 @@ public sealed class ModsForm : Form
                 ? "This mod may be required by saved characters, items, or world data. Turning it off is strongly discouraged."
                 : "Some changes made by this mod will remain in the saved game after it is turned off.";
             var answer = MessageBox.Show(this,
-                $"{warning}\r\n\r\n{item.Catalog.SafetyNotice}\r\n\r\nBack up %LOCALAPPDATA%\\ACESinglePlayer first. Turn it off anyway?",
+                $"{warning}\r\n\r\n{item.Catalog.SafetyNotice}\r\n\r\nBack up %LOCALAPPDATA%\\OpenDereth first. Turn it off anyway?",
                 "Saved-game warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (answer != DialogResult.Yes)
                 return;
@@ -470,7 +470,7 @@ public sealed class ModsForm : Form
         var localGuide = Path.Combine(AppContext.BaseDirectory, "Docs", "MOD_AUTHOR_GUIDE.md");
         Open(File.Exists(localGuide)
             ? localGuide
-            : "https://github.com/titaniumweiner/ACE-SinglePlayer/blob/main/docs/MOD_AUTHOR_GUIDE.md");
+            : "https://github.com/titaniumweiner/OpenDereth/blob/main/docs/MOD_AUTHOR_GUIDE.md");
     }
 
     private bool EnsureServerStopped()

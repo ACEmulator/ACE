@@ -19,7 +19,7 @@ public sealed class AceConfigurationWriter
     {
         var databasePassword = secretProtector.Unprotect(settings.ProtectedDatabasePassword);
         var configuration = new MasterConfiguration();
-        configuration.Server.WorldName = "ACE Single Player";
+        configuration.Server.WorldName = "OpenDereth";
         configuration.Server.Network.Host = "127.0.0.1";
         configuration.Server.Network.Port = settings.Port;
         configuration.Server.Network.MaximumAllowedSessions = 4;

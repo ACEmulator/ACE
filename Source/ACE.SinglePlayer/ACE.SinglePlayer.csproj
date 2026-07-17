@@ -8,8 +8,11 @@
     <Platforms>x64</Platforms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>ACE.SinglePlayer</AssemblyName>
+    <AssemblyName>OpenDereth</AssemblyName>
     <RootNamespace>ACE.SinglePlayer</RootNamespace>
+    <Product>OpenDereth</Product>
+    <Title>OpenDereth</Title>
+    <Description>A private Asheron's Call world, powered by ACEmulator ACE.</Description>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MySqlConnector" Version="2.6.1" />

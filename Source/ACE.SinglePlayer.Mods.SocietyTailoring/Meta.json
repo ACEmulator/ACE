@@ -1,6 +1,6 @@
 {
   "Name": "SocietyTailoring",
-  "Author": "aquafir; ACE Single Player port",
+  "Author": "aquafir; OpenDereth port",
   "Description": "Allows Society armor to be used in tailoring while retaining ACE safety checks.",
   "Version": "1.0.0-sp1",
   "Priority": 0,

@@ -21,7 +21,7 @@ namespace ACE.Server.Tests
         [TestMethod]
         public void LaunchOptionsPreserveAbsolutePathsWithSpaces()
         {
-            var root = Path.Combine(Path.GetTempPath(), "ACE Single Player Test");
+            var root = Path.Combine(Path.GetTempPath(), "OpenDereth Test");
             var options = ServerLaunchOptions.Parse(new[]
             {
                 "--config", Path.Combine(root, "Config.js"),

@@ -125,6 +125,62 @@ public sealed class SettingsAndSecretsTests
     }
 
     [TestMethod]
+    public async Task VersionTwoPathsMigrateToOpenDerethLocalData()
+    {
+        var directory = TestPaths.CreateTemporaryDirectory();
+        try
+        {
+            var path = Path.Combine(directory, "settings.json");
+            var legacyRuntime = Path.Combine(ApplicationPaths.LegacyLocalRoot, "Runtime");
+            var legacyDatabase = Path.Combine(ApplicationPaths.LegacyLocalRoot, "Database");
+            await File.WriteAllTextAsync(path, JsonSerializer.Serialize(new LauncherSettings
+            {
+                SettingsVersion = 2,
+                RuntimeDirectory = legacyRuntime,
+                PrivateDatabaseDirectoryPath = legacyDatabase
+            }));
+
+            var loaded = await new SettingsStore(path).LoadAsync();
+
+            Assert.IsNotNull(loaded);
+            Assert.AreEqual(Path.Combine(ApplicationPaths.LocalRoot, "Runtime"), loaded.RuntimeDirectory);
+            Assert.AreEqual(Path.Combine(ApplicationPaths.LocalRoot, "Database"), loaded.PrivateDatabaseDirectoryPath);
+            Assert.AreEqual(LauncherSettings.CurrentVersion, loaded.SettingsVersion);
+            var persisted = await File.ReadAllTextAsync(path);
+            StringAssert.Contains(persisted, "OpenDereth");
+            Assert.IsFalse(persisted.Contains("ACESinglePlayer", StringComparison.Ordinal));
+        }
+        finally
+        {
+            Directory.Delete(directory, true);
+        }
+    }
+
+    [TestMethod]
+    public void LegacyLocalDataDirectoryMovesAsOneUnit()
+    {
+        var root = TestPaths.CreateTemporaryDirectory();
+        var legacyRoot = Path.Combine(root, "ACESinglePlayer");
+        var localRoot = Path.Combine(root, "OpenDereth");
+        try
+        {
+            Directory.CreateDirectory(Path.Combine(legacyRoot, "Database"));
+            File.WriteAllText(Path.Combine(legacyRoot, "settings.json"), "saved settings");
+            File.WriteAllText(Path.Combine(legacyRoot, "Database", "character.dat"), "saved character");
+
+            Assert.IsTrue(ApplicationPaths.MigrateLegacyLocalData(legacyRoot, localRoot));
+            Assert.IsFalse(Directory.Exists(legacyRoot));
+            Assert.AreEqual("saved settings", File.ReadAllText(Path.Combine(localRoot, "settings.json")));
+            Assert.AreEqual("saved character", File.ReadAllText(Path.Combine(localRoot, "Database", "character.dat")));
+            Assert.IsFalse(ApplicationPaths.MigrateLegacyLocalData(legacyRoot, localRoot));
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
+    }
+
+    [TestMethod]
     public void DpapiRoundTripUsesCurrentWindowsUser()
     {
         var protector = new SecretProtector();

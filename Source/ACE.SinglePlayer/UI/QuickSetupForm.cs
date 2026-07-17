@@ -11,7 +11,7 @@ public sealed class QuickSetupForm : Form
     public QuickSetupForm(LauncherSettings settings)
     {
         this.settings = settings;
-        Text = "ACE Single Player - Choose Asheron's Call";
+        Text = "OpenDereth - Choose Asheron's Call";
         StartPosition = FormStartPosition.CenterScreen;
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;

@@ -1,6 +1,6 @@
-# ACE Single Player Launcher
+# OpenDereth
 
-ACE Single Player Launcher turns the open-source [ACEmulator ACE server](https://github.com/ACEmulator/ACE) into a private, local game session on Windows. One **PLAY** button starts an isolated MariaDB database, starts ACE.Server on your own computer, waits until the world is ready, and launches the original Asheron's Call client.
+OpenDereth turns the open-source [ACEmulator ACE server](https://github.com/ACEmulator/ACE) into a private, local game session on Windows. One **PLAY** button starts an isolated MariaDB database, starts ACE.Server on your own computer, waits until the world is ready, and launches the original Asheron's Call client.
 
 The launcher is designed for players who want a persistent personal world without manually maintaining server configuration files or entering a MariaDB root password. Characters and world state are kept between sessions, and nothing is exposed to the internet by default.
 
@@ -20,16 +20,16 @@ The launcher is designed for players who want a persistent personal world withou
 The short version is:
 
 1. Have a complete Asheron's Call client in one writable folder with `acclient.exe` and all four client DAT files. The usual path is `C:\Turbine\Asheron's Call`.
-2. Download the latest ACE Single Player release ZIP and extract the entire archive to a normal writable folder such as `C:\Games\ACE-SinglePlayer`.
+2. Download the latest OpenDereth release ZIP and extract the entire archive to a normal writable folder such as `C:\Games\OpenDereth`.
 3. Run `ACE.SinglePlayer.exe`. If the client is not found automatically, select its folder once, then click **PLAY**. The first private-world import can take several minutes; later launches are much faster.
 
-On the first Play, the launcher also creates a private server copy of the four DAT files under `%LOCALAPPDATA%\ACESinglePlayer\ServerData`. This prevents ACE.Server from locking the original files needed by the client and requires roughly the same amount of free disk space as the four DATs. These local copies are never included in release ZIPs or GitHub.
+On the first Play, the launcher also creates a private server copy of the four DAT files under `%LOCALAPPDATA%\OpenDereth\ServerData`. This prevents ACE.Server from locking the original files needed by the client and requires roughly the same amount of free disk space as the four DATs. These local copies are never included in release ZIPs or GitHub. Upgrading from the earlier ACE Single Player previews automatically moves the complete legacy `%LOCALAPPDATA%\ACESinglePlayer` folder to the new location before startup.
 
 The portable release currently pins ACEmulator server build `1.77.4782` from upstream commit `650c5b75`, ACE World `v0.9.294`, and MariaDB `12.3.2 LTS`. Exact source URLs, hashes, and licenses are recorded in `BUNDLE-MANIFEST.json` and [the third-party notices](docs/THIRD_PARTY_NOTICES.md).
 
 ## Mods
 
-Open **Server Mods** in the launcher to browse the curated mod library. Installed and ready-to-install entries are listed before unavailable ports. Every entry includes a plain-language description, compatibility result, requirements, source-code links, and a saved-game safety warning. `CriticalOverride` is curated for one-click installation. `HelloCommand`, `SocietyTailoring`, and **Expanded Cast on Strike** are installable **Preview** ports. The last one enables the non-Aetheria equipped-item procs documented by [ACEUniqueWeenies](https://github.com/titaniumweiner/ACEUniqueWeenies); its custom item SQL remains a separate Custom Weenies import. OptimShi's `CustomClothingBase` v1.11 is also an installable Preview using the author's checksum-pinned, unmodified official DLLs after a successful current-ACE loader test. Preview mods are clearly marked as not thoroughly tested in game. Other samples remain listed but unavailable until they are ported and tested. **Import a Mod ZIP...** can atomically install separately rebuilt, checksummed packages in the documented ACE Single Player ZIP format.
+Open **Server Mods** in the launcher to browse the curated mod library. Installed and ready-to-install entries are listed before unavailable ports. Every entry includes a plain-language description, compatibility result, requirements, source-code links, and a saved-game safety warning. `CriticalOverride` is curated for one-click installation. `HelloCommand`, `SocietyTailoring`, and **Expanded Cast on Strike** are installable **Preview** ports. The last one enables the non-Aetheria equipped-item procs documented by [ACEUniqueWeenies](https://github.com/titaniumweiner/ACEUniqueWeenies); its custom item SQL remains a separate Custom Weenies import. OptimShi's `CustomClothingBase` v1.11 is also an installable Preview using the author's checksum-pinned, unmodified official DLLs after a successful current-ACE loader test. Preview mods are clearly marked as not thoroughly tested in game. Other samples remain listed but unavailable until they are ported and tested. **Import a Mod ZIP...** can atomically install separately rebuilt, checksummed packages in the documented OpenDereth ZIP format.
 
 Turning a mod off stops its code after a server restart, but it does not undo experience, items, balances, character properties, or world content already saved by that mod. The launcher blocks removal of mods whose saved data may still depend on them and moves safely removable files to a recovery folder rather than deleting them. See [Mod library and saved-game safety](docs/MOD_LIBRARY.md) for the full policy, or [How to make and import a mod](docs/MOD_AUTHOR_GUIDE.md) to build a compatible package.
 
@@ -50,11 +50,11 @@ This is a Windows-focused single-player launcher built as a maintained fork of A
 
 ## Privacy and local files
 
-User-specific settings and protected credentials are stored under `%LOCALAPPDATA%\ACESinglePlayer`. Private database files, settings, logs, client files, and DAT files are ignored by Git and rejected by the public packaging script. Public release packages also exclude debug symbols that could reveal the build computer's source path.
+User-specific settings and protected credentials are stored under `%LOCALAPPDATA%\OpenDereth`. Private database files, settings, logs, client files, and DAT files are ignored by Git and rejected by the public packaging script. Public release packages also exclude debug symbols that could reveal the build computer's source path.
 
 ## Upstream project
 
-ACE Single Player is based on ACEmulator ACE and remains under ACE's AGPL-3.0 license. The original ACE project information follows.
+OpenDereth is based on ACEmulator ACE and remains under ACE's AGPL-3.0 license. The original ACE project information follows.
 
 ---
 

@@ -1,4 +1,4 @@
-# ACE Single Player roadmap
+# OpenDereth roadmap
 
 Phase 1 deliberately keeps a narrow, dependable loopback server and direct-client path. Future work should be delivered without weakening Vanilla launch:
 
