@@ -119,6 +119,31 @@ public sealed class CustomWeenieTests
     }
 
     [TestMethod]
+    public void BundledAceUniqueWeeniesAreValidAndDoNotReuseRetailIds()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var folder = Path.Combine(repositoryRoot, "Weenies", "ACEUniqueWeenies");
+        var files = Directory.GetFiles(folder, "*.sql", SearchOption.TopDirectoryOnly);
+
+        var result = new CustomWeenieSqlInspector().InspectFiles(files);
+
+        Assert.AreEqual(76, files.Length);
+        Assert.AreEqual(0, result.Issues.Count,
+            string.Join(Environment.NewLine, result.Issues.Select(issue => $"{issue.FilePath}: {issue.Message}")));
+        Assert.AreEqual(76, result.Definitions.Count);
+        Assert.AreEqual(76, result.Definitions.Select(definition => definition.ClassId).Distinct().Count());
+        CollectionAssert.AreEquivalent(
+            new uint[] { 910000001, 910000002, 910000003, 910000004, 910000005 },
+            result.Definitions.Where(definition => definition.ClassId is >= 910000001 and <= 910000005)
+                .Select(definition => definition.ClassId).ToArray());
+        Assert.IsFalse(result.Definitions.Any(definition => definition.ClassId is 1057 or 8138 or 24494 or 24497 or 24955));
+
+        var generator = File.ReadAllText(Path.Combine(folder, "8800387 Lugian Generator.sql"));
+        foreach (var id in new uint[] { 910000002, 910000003, 910000004, 910000005 })
+            StringAssert.Contains(generator, id.ToString());
+    }
+
+    [TestMethod]
     public void BackupProgramIsFoundBesideMariaDbServer()
     {
         var root = TestPaths.CreateTemporaryDirectory();
@@ -135,5 +160,13 @@ public sealed class CustomWeenieTests
         {
             Directory.Delete(root, true);
         }
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "scripts", "publish-singleplayer.ps1")))
+            directory = directory.Parent;
+        return directory?.FullName ?? throw new DirectoryNotFoundException("Could not locate the repository root.");
     }
 }

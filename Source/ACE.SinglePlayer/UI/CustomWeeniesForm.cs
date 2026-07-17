@@ -48,7 +48,7 @@ public sealed class CustomWeeniesForm : Form
         TextAlign = ContentAlignment.MiddleLeft,
         AutoEllipsis = true
     };
-    private readonly Button chooseFolder = new() { Text = "Choose AceForge Folder...", AutoSize = true };
+    private readonly Button chooseFolder = new() { Text = "Choose Weenie Folder...", AutoSize = true };
     private readonly Button chooseFiles = new() { Text = "Choose SQL Files...", AutoSize = true };
     private readonly Button openAceForge = new() { Text = "Open AceForge v0.3.36", AutoSize = true };
     private readonly Button openBackups = new() { Text = "Open Backups", AutoSize = true };
@@ -165,7 +165,7 @@ public sealed class CustomWeeniesForm : Form
         openAceForge.Click += (_, _) => Open(AceForgeReleaseUrl);
         openBackups.Click += (_, _) => OpenBackupFolder();
         import.Click += async (_, _) => await ImportAsync();
-        status.Text = "Choose AceForge weenie SQL files to begin.";
+        status.Text = "Choose a weenie SQL folder or individual files to begin.";
         issues.Text = "No files selected.";
     }
 
@@ -173,10 +173,13 @@ public sealed class CustomWeeniesForm : Form
     {
         using var dialog = new FolderBrowserDialog
         {
-            Description = "Choose the AceForge output folder containing custom weenie SQL files",
+            Description = "Choose a folder containing custom weenie SQL files",
             UseDescriptionForTitle = true,
             ShowNewFolderButton = false
         };
+        var bundledWeenies = Path.Combine(AppContext.BaseDirectory, "Weenies");
+        if (Directory.Exists(bundledWeenies))
+            dialog.SelectedPath = bundledWeenies;
         if (dialog.ShowDialog(this) != DialogResult.OK)
             return;
         try

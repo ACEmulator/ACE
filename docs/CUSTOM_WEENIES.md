@@ -7,7 +7,7 @@ OpenDereth can import custom ACE World objects saved as per-weenie SQL files by 
 1. Create or edit the object in AceForge and save its SQL. AceForge normally writes files named like `850001 Example Item.sql` in its configured output folder.
 2. Exit the game and stop the local server.
 3. Open **Custom Weenies** in OpenDereth.
-4. Click **Choose AceForge Folder...** to scan a complete output folder recursively, or **Choose SQL Files...** for individual files.
+4. Click **Choose Weenie Folder...** to scan a complete output folder recursively, or **Choose SQL Files...** for individual files. Release builds open the bundled `Weenies` folder by default.
 5. Review the WCID, name, type, and validation notes. Invalid and unsupported files are skipped rather than executed.
 6. Click **IMPORT VALID WEENIES**. If a WCID already exists, the launcher shows the existing records and requires a second confirmation before replacing them.
 7. The launcher starts the private database, creates a complete `ace_world` SQL backup, and applies all accepted files together in a transaction. Start the game after the success message.
@@ -19,6 +19,20 @@ Backups and import-history manifests are stored under:
 ```
 
 The **Open Backups** button opens the actual configured location.
+
+## Bundled optional pack
+
+OpenDereth releases include `Weenies\ACEUniqueWeenies`, a 76-weenie optional
+pack sourced from [titaniumweiner/ACEUniqueWeenies](https://github.com/titaniumweiner/ACEUniqueWeenies).
+It is not imported automatically. Choose that folder in the Custom Weenies
+screen and review the preview before importing.
+
+The shopkeeper and four Lugian definitions use collision-safe OpenDereth WCIDs
+`910000001` through `910000005`. The included Lugian Generator points to those
+new creature IDs, so the pack does not replace the original shopkeeper or
+landscape Lugians. This also means importing the definitions alone does not
+place the custom shopkeeper or creatures on the landscape. See the README in
+the pack folder for the complete ID map and current placement limitation.
 
 ## Accepted SQL
 

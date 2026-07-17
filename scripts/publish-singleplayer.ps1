@@ -230,9 +230,10 @@ if (-not $SkipBundledDependencies) {
     $bundleManifest | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $OutputDirectory "BUNDLE-MANIFEST.json") -Encoding utf8
 }
 
-foreach ($directory in @("Runtime", "Mods", "Logs", "Client", "Docs")) {
+foreach ($directory in @("Runtime", "Mods", "Logs", "Client", "Docs", "Weenies")) {
     New-Item -ItemType Directory -Path (Join-Path $OutputDirectory $directory) -Force | Out-Null
 }
+Copy-Item -Path (Join-Path $repoRoot "Weenies\*") -Destination (Join-Path $OutputDirectory "Weenies") -Recurse -Force
 Copy-Item (Join-Path $repoRoot "docs\SINGLE_PLAYER_FIRST_RUN.md") (Join-Path $OutputDirectory "FIRST_RUN.md")
 Copy-Item (Join-Path $repoRoot "docs\SINGLE_PLAYER_INSTALL.md") (Join-Path $OutputDirectory "INSTALL.md")
 Copy-Item (Join-Path $repoRoot "docs\SINGLE_PLAYER_ARCHITECTURE.md") (Join-Path $OutputDirectory "Docs")
