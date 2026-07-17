@@ -1,0 +1,14 @@
+{
+  "Name": "ACEUniqueWeeniesProc",
+  "Author": "titaniumweiner; ACE Single Player port",
+  "Description": "Enables cast-on-strike procs on non-Aetheria equipped items used by ACEUniqueWeenies content.",
+  "Version": "1.0.0-sp1",
+  "Priority": 0,
+  "Enabled": true,
+  "HotReload": false,
+  "RegisterCommands": false,
+  "CatalogId": "titaniumweiner.ace-unique-weenies-proc",
+  "TargetAceVersion": "ACE.Server 1.1 / .NET 10",
+  "DataImpact": "SettingsOnly",
+  "RemovalPolicy": "Safe"
+}

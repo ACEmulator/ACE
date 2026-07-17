@@ -6,6 +6,22 @@ public static class CuratedModCatalog
         AquafirSampleCatalog.Entries.Concat(new[]
         {
             new ModCatalogEntry(
+                "titaniumweiner.ace-unique-weenies-proc",
+                "ACEUniqueWeeniesProc",
+                "titaniumweiner",
+                "Enables cast-on-strike procs on non-Aetheria equipped items such as the jewelry, armor, and weapons used by ACEUniqueWeenies content.",
+                "Replaces ACE's Aetheria-only equipped-proc pass with the filter documented by ACEUniqueWeenies: the item must have a proc, must not be cloak weave proc type 1, and must match the current self-target mode. The package changes server combat behavior only; import compatible item SQL separately through Custom Weenies. It intentionally matches the documented filter exactly, including processing an active proc weapon again if that weapon is also present in EquippedObjects.",
+                "https://github.com/titaniumweiner/ACEUniqueWeenies",
+                ModCatalogAvailability.Preview,
+                ModDataImpact.SettingsOnly,
+                ModRemovalPolicy.Safe,
+                "Safe to turn off after a server restart. Imported items remain in the world, but their non-Aetheria equipped procs stop working. Earlier combat results are not reversed.",
+                TargetAceVersion: "ACE.Server 1.1 / ACE Single Player",
+                TargetFramework: ".NET 10 preview port",
+                PackageRelativePath: @"Packages\titaniumweiner.ace-unique-weenies-proc-1.0.0-sp1.zip",
+                PortSourceUrl: "https://github.com/titaniumweiner/ACE-SinglePlayer/tree/main/Source/ACE.SinglePlayer.Mods.ACEUniqueWeeniesProc",
+                PreviewNotice: "The package builds, loads, targets the pinned TryProcEquippedItems signature, and passes filter and removal tests. Its proc frequency and interactions with every custom item have not been thoroughly tested in game."),
+            new ModCatalogEntry(
                 "optimshi.custom-clothing-base",
                 "CustomClothingBase",
                 "OptimShi",

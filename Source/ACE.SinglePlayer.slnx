@@ -4,6 +4,7 @@
   <Project Path="ACE.Server.Tests/ACE.Server.Tests.csproj" />
   <Project Path="ACE.SinglePlayer/ACE.SinglePlayer.csproj" />
   <Project Path="ACE.SinglePlayer.Mods.CriticalOverride/ACE.SinglePlayer.Mods.CriticalOverride.csproj" />
+  <Project Path="ACE.SinglePlayer.Mods.ACEUniqueWeeniesProc/ACE.SinglePlayer.Mods.ACEUniqueWeeniesProc.csproj" />
   <Project Path="ACE.SinglePlayer.Mods.HelloCommand/ACE.SinglePlayer.Mods.HelloCommand.csproj" />
   <Project Path="ACE.SinglePlayer.Mods.SocietyTailoring/ACE.SinglePlayer.Mods.SocietyTailoring.csproj" />
   <Project Path="ACE.SinglePlayer.DecalHost/ACE.SinglePlayer.DecalHost.csproj" />

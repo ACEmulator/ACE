@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>ACEUniqueWeeniesProc</AssemblyName>
+    <RootNamespace>ACEUniqueWeeniesProc</RootNamespace>
+    <PlatformTarget>x64</PlatformTarget>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.4.2" ExcludeAssets="runtime" />
+    <ProjectReference Include="..\ACE.Server\ACE.Server.csproj" Private="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-4f7c-pmjv-c25w" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Meta.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

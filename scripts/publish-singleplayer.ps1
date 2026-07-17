@@ -114,6 +114,7 @@ Copy-Item -Path (Join-Path $decalHostPublish "ACE.SinglePlayer.DecalHost.exe") -
 Write-Host "Building the curated mod packages..."
 foreach ($modProject in @(
     "ACE.SinglePlayer.Mods.CriticalOverride",
+    "ACE.SinglePlayer.Mods.ACEUniqueWeeniesProc",
     "ACE.SinglePlayer.Mods.HelloCommand",
     "ACE.SinglePlayer.Mods.SocietyTailoring"
 )) {

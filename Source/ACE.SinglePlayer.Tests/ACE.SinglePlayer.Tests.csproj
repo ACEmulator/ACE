@@ -15,6 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ACE.SinglePlayer\ACE.SinglePlayer.csproj" />
+    <ProjectReference Include="..\ACE.SinglePlayer.Mods.ACEUniqueWeeniesProc\ACE.SinglePlayer.Mods.ACEUniqueWeeniesProc.csproj" />
     <ProjectReference Include="..\ACE.SinglePlayer.Mods.HelloCommand\ACE.SinglePlayer.Mods.HelloCommand.csproj" />
     <ProjectReference Include="..\ACE.SinglePlayer.Mods.SocietyTailoring\ACE.SinglePlayer.Mods.SocietyTailoring.csproj" />
     <ProjectReference Include="..\ACE.SinglePlayer.TestHost\ACE.SinglePlayer.TestHost.csproj" ReferenceOutputAssembly="false" />

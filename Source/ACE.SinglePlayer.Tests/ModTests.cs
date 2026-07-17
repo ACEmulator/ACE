@@ -41,13 +41,28 @@ public sealed class ModTests
     [TestMethod]
     public void CuratedCatalogIncludesCustomClothingBaseAsWarnedPreview()
     {
-        Assert.AreEqual(23, CuratedModCatalog.Entries.Count);
+        Assert.AreEqual(24, CuratedModCatalog.Entries.Count);
         var entry = CuratedModCatalog.Entries.Single(item => item.Id == "optimshi.custom-clothing-base");
         Assert.AreEqual("OptimShi", entry.Author);
         Assert.AreEqual(ModCatalogAvailability.Preview, entry.Availability);
         Assert.AreEqual(ModDataImpact.WorldData, entry.DataImpact);
         Assert.AreEqual(ModRemovalPolicy.DoNotRemove, entry.RemovalPolicy);
         Assert.IsTrue(entry.SourceUrl.Contains("OptimShi/CustomClothingBase", StringComparison.Ordinal));
+        Assert.IsTrue(entry.PreviewNotice.Contains("not been thoroughly tested", StringComparison.OrdinalIgnoreCase));
+        Assert.IsTrue(entry.PackageRelativePath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [TestMethod]
+    public void CuratedCatalogIncludesUniqueWeeniesProcAsWarnedPreview()
+    {
+        var entry = CuratedModCatalog.Entries.Single(item =>
+            item.Id == "titaniumweiner.ace-unique-weenies-proc");
+
+        Assert.AreEqual("titaniumweiner", entry.Author);
+        Assert.AreEqual(ModCatalogAvailability.Preview, entry.Availability);
+        Assert.AreEqual(ModDataImpact.SettingsOnly, entry.DataImpact);
+        Assert.AreEqual(ModRemovalPolicy.Safe, entry.RemovalPolicy);
+        Assert.IsTrue(entry.SourceUrl.Contains("titaniumweiner/ACEUniqueWeenies", StringComparison.Ordinal));
         Assert.IsTrue(entry.PreviewNotice.Contains("not been thoroughly tested", StringComparison.OrdinalIgnoreCase));
         Assert.IsTrue(entry.PackageRelativePath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase));
     }
@@ -93,6 +108,47 @@ public sealed class ModTests
 
         var remaining = Harmony.GetPatchInfo(original);
         Assert.IsTrue(remaining is null || remaining.Prefixes.All(patch => patch.owner != "aquafir.SocietyTailoring.ace-single-player"));
+    }
+
+    [TestMethod]
+    public void UniqueWeeniesProcPatchTargetsCurrentAceSignatureAndCanBeRemoved()
+    {
+        var original = AccessTools.Method(typeof(WorldObject), nameof(WorldObject.TryProcEquippedItems),
+            new[] { typeof(WorldObject), typeof(Creature), typeof(bool), typeof(WorldObject) });
+        Assert.IsNotNull(original);
+
+        var mod = new ACEUniqueWeeniesProc.Mod();
+        try
+        {
+            mod.Initialize();
+            var patchInfo = Harmony.GetPatchInfo(original);
+            Assert.IsNotNull(patchInfo);
+            Assert.IsTrue(patchInfo.Prefixes.Any(patch =>
+                patch.owner == "titaniumweiner.ACEUniqueWeeniesProc.ace-single-player"));
+        }
+        finally
+        {
+            mod.Dispose();
+        }
+
+        var remaining = Harmony.GetPatchInfo(original);
+        Assert.IsTrue(remaining is null || remaining.Prefixes.All(patch =>
+            patch.owner != "titaniumweiner.ACEUniqueWeeniesProc.ace-single-player"));
+    }
+
+    [TestMethod]
+    public void UniqueWeeniesProcFilterMatchesDocumentedBehavior()
+    {
+        Assert.IsTrue(ACEUniqueWeeniesProc.ACEUniqueWeeniesProcPatch.IsEligibleEquippedProc(
+            hasProc: true, cloakWeaveProc: null, procSpellSelfTargeted: false, selfTarget: false));
+        Assert.IsTrue(ACEUniqueWeeniesProc.ACEUniqueWeeniesProcPatch.IsEligibleEquippedProc(
+            hasProc: true, cloakWeaveProc: 2, procSpellSelfTargeted: true, selfTarget: true));
+        Assert.IsFalse(ACEUniqueWeeniesProc.ACEUniqueWeeniesProcPatch.IsEligibleEquippedProc(
+            hasProc: true, cloakWeaveProc: 1, procSpellSelfTargeted: false, selfTarget: false));
+        Assert.IsFalse(ACEUniqueWeeniesProc.ACEUniqueWeeniesProcPatch.IsEligibleEquippedProc(
+            hasProc: false, cloakWeaveProc: null, procSpellSelfTargeted: false, selfTarget: false));
+        Assert.IsFalse(ACEUniqueWeeniesProc.ACEUniqueWeeniesProcPatch.IsEligibleEquippedProc(
+            hasProc: true, cloakWeaveProc: null, procSpellSelfTargeted: true, selfTarget: false));
     }
 
     [TestMethod]
