@@ -238,6 +238,7 @@ Copy-Item (Join-Path $repoRoot "docs\SINGLE_PLAYER_ARCHITECTURE.md") (Join-Path 
 Copy-Item (Join-Path $repoRoot "docs\AQUIFIR_MOD_COMPATIBILITY.md") (Join-Path $OutputDirectory "Docs")
 Copy-Item (Join-Path $repoRoot "docs\MOD_LIBRARY.md") (Join-Path $OutputDirectory "Docs")
 Copy-Item (Join-Path $repoRoot "docs\MOD_AUTHOR_GUIDE.md") (Join-Path $OutputDirectory "Docs")
+Copy-Item (Join-Path $repoRoot "docs\CUSTOM_WEENIES.md") (Join-Path $OutputDirectory "Docs")
 Copy-Item (Join-Path $repoRoot "docs\SINGLE_PLAYER_ROADMAP.md") (Join-Path $OutputDirectory "Docs")
 Copy-Item (Join-Path $repoRoot "docs\SINGLE_PLAYER_BUILD_AND_TEST.md") (Join-Path $OutputDirectory "Docs")
 Copy-Item (Join-Path $repoRoot "README.md") $OutputDirectory

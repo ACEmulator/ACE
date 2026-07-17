@@ -66,10 +66,17 @@ public sealed class ModCatalogService
         }
 
         return result
-            .OrderByDescending(item => item.Installed is not null)
+            .OrderBy(GetDisplayRank)
             .ThenBy(item => item.Name, StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
+
+    private static int GetDisplayRank(ModListItem item) => item switch
+    {
+        { Installed: not null } => 0,
+        { CompatibilityStatus: CompatibilityStatus.Compatible } => 1,
+        _ => 2
+    };
 
     private (CompatibilityStatus Status, string Message) Evaluate(
         ModCatalogEntry entry,

@@ -132,15 +132,17 @@ public sealed class MainForm : Form
 
         var actions = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, BackColor = Color.FromArgb(216, Night), Padding = new Padding(12, 9, 0, 0) };
         var settings = new Button { Text = "Settings", AutoSize = true };
-        var mods = new Button { Text = "Mods", AutoSize = true };
+        var mods = new Button { Text = "Server Mods", AutoSize = true };
+        var customWeenies = new Button { Text = "Custom Weenies", AutoSize = true };
         var logs = new Button { Text = "Open Logs", AutoSize = true };
         var showDiagnostics = new CheckBox { Text = "Show diagnostics", AutoSize = true, Padding = new Padding(10, 7, 0, 0) };
         StyleSecondaryButton(settings);
         StyleSecondaryButton(mods);
+        StyleSecondaryButton(customWeenies);
         StyleSecondaryButton(logs);
         showDiagnostics.ForeColor = Mist;
         showDiagnostics.BackColor = Color.Transparent;
-        actions.Controls.AddRange(new Control[] { settings, mods, logs, showDiagnostics });
+        actions.Controls.AddRange(new Control[] { settings, mods, customWeenies, logs, showDiagnostics });
         main.Controls.Add(actions, 0, 3);
 
         diagnosticPanel.Controls.Add(diagnostics);
@@ -176,6 +178,9 @@ public sealed class MainForm : Form
         };
         settings.Click += async (_, _) => await ShowSettingsAsync();
         mods.Click += (_, _) => new ModsForm(controller.Settings, () => controller.IsServerRunning).ShowDialog(this);
+        customWeenies.Click += (_, _) => new CustomWeeniesForm(controller.Settings,
+            () => controller.IsServerRunning, databaseRuntimeFactory,
+            new DatabaseConnectionFactory(secretProtector), log).ShowDialog(this);
         logs.Click += (_, _) => Process.Start(new ProcessStartInfo { FileName = Path.GetDirectoryName(log.LogPath)!, UseShellExecute = true });
         showDiagnostics.CheckedChanged += (_, _) => diagnosticPanel.Visible = showDiagnostics.Checked;
         FormClosing += OnFormClosing;

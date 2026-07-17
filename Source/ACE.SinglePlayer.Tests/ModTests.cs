@@ -137,6 +137,34 @@ public sealed class ModTests
     }
 
     [TestMethod]
+    public void CatalogListsInstalledAndReadyToInstallModsBeforeUnavailableMods()
+    {
+        var root = TestPaths.CreateTemporaryDirectory();
+        try
+        {
+            File.WriteAllText(Path.Combine(root, "ready.zip"), "package placeholder");
+            var unavailable = new ModCatalogEntry(
+                "unavailable", "A Needs Port", "Author", "Description", "Details", "",
+                ModCatalogAvailability.NeedsPort, ModDataImpact.None, ModRemovalPolicy.Safe, "Safe");
+            var ready = new ModCatalogEntry(
+                "ready", "Z Ready", "Author", "Description", "Details", "",
+                ModCatalogAvailability.Ready, ModDataImpact.None, ModRemovalPolicy.Safe, "Safe",
+                PackageRelativePath: "ready.zip");
+            var installed = new ModRecord { Name = "Installed", Type = ModType.AceServer, Enabled = true };
+
+            var result = new ModCatalogService(new[] { unavailable, ready }, root).Merge(new[] { installed });
+
+            Assert.AreEqual("Installed", result[0].Name);
+            Assert.AreEqual("Z Ready", result[1].Name);
+            Assert.AreEqual("A Needs Port", result[2].Name);
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
+    }
+
+    [TestMethod]
     public async Task ValidatedPackageInstallsAtomically()
     {
         var root = TestPaths.CreateTemporaryDirectory();

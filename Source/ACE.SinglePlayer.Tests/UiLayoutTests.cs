@@ -3,6 +3,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ACE.SinglePlayer.UI;
 using ACE.SinglePlayer.Models;
 using ACE.SinglePlayer.Mods;
+using ACE.SinglePlayer.Database;
+using ACE.SinglePlayer.Infrastructure;
 
 namespace ACE.SinglePlayer.Tests;
 
@@ -42,6 +44,41 @@ public sealed class UiLayoutTests
         thread.Start();
 
         Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(10)), "The Mods window constructor did not finish.");
+        Assert.IsNull(failure, failure?.ToString());
+    }
+
+    [TestMethod]
+    public void CustomWeeniesScreenCanBeConstructedBeforeWindowsCompletesLayout()
+    {
+        Exception? failure = null;
+        var thread = new Thread(() =>
+        {
+            var root = TestPaths.CreateTemporaryDirectory();
+            try
+            {
+                using var log = new LauncherLog(Path.Combine(root, "Logs"));
+                var connectionFactory = new DatabaseConnectionFactory(new SecretProtector());
+                var runtimeFactory = new DatabaseRuntimeFactory(connectionFactory, log);
+                var settings = new LauncherSettings
+                {
+                    RuntimeDirectory = Path.Combine(root, "Runtime"),
+                    PrivateDatabaseDirectoryPath = Path.Combine(root, "Database")
+                };
+                using var form = new CustomWeeniesForm(settings, () => false, runtimeFactory, connectionFactory, log);
+            }
+            catch (Exception ex)
+            {
+                failure = ex;
+            }
+            finally
+            {
+                Directory.Delete(root, true);
+            }
+        });
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+
+        Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(10)), "The Custom Weenies window constructor did not finish.");
         Assert.IsNull(failure, failure?.ToString());
     }
 

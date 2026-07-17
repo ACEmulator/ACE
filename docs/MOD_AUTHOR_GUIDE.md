@@ -1,6 +1,6 @@
 # How to make and import an ACE Single Player mod
 
-ACE Single Player currently imports **server-code mods**: .NET DLLs that use ACE's `IHarmonyMod` interface. World SQL packs and client DAT/landscape packs need a different migration system and are not supported by this ZIP importer yet.
+ACE Single Player's Mod ZIP importer handles **server-code mods**: .NET DLLs that use ACE's `IHarmonyMod` interface. Per-weenie AceForge SQL uses the separate **Custom Weenies** screen described in [the Custom Weenies guide](CUSTOM_WEENIES.md). General world SQL packs and client DAT/landscape packs still need a different migration system and are not supported by the Mod ZIP importer.
 
 The easiest starting point is the small [HelloCommand port](https://github.com/titaniumweiner/ACE-SinglePlayer/tree/main/Source/ACE.SinglePlayer.Mods.HelloCommand). Copy that project, rename its assembly and namespace, and replace its command code with your own feature.
 
@@ -147,7 +147,7 @@ mod/
 ## 6. Import it
 
 1. Stop the game and local server.
-2. Open **Mods** in ACE Single Player.
+2. Open **Server Mods** in ACE Single Player.
 3. Click **Import a Mod ZIP...** at the top.
 4. Choose the `.zip`; the launcher finds and verifies the adjacent `.zip.sha256` file.
 5. Read the warning and confirm.

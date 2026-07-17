@@ -10,6 +10,7 @@ The launcher is designed for players who want a persistent personal world withou
 - Automatic database credentials protected for the current Windows user
 - Persistent characters and world state
 - Direct Vanilla client launch, with one-click Decal support when Decal and ThwargLauncher are already installed
+- Curated server-mod library plus guarded AceForge Custom Weenie SQL imports
 - Self-contained Windows release; players do not need to install .NET
 - Pinned portable MariaDB and complete ACE World database included in the release
 - Only the original game client and its four proprietary DAT files remain user-supplied
@@ -28,9 +29,15 @@ The portable release currently pins ACEmulator server build `1.77.4782` from ups
 
 ## Mods
 
-Open **Mods** in the launcher to browse the curated mod library. Every entry includes a plain-language description, compatibility result, requirements, source-code links, and a saved-game safety warning. `CriticalOverride` is curated for one-click installation. `HelloCommand` and `SocietyTailoring` are installable **Preview** ports. OptimShi's `CustomClothingBase` v1.11 is also an installable Preview using the author's checksum-pinned, unmodified official DLLs after a successful current-ACE loader test. Preview mods are clearly marked as not thoroughly tested in game. Other samples remain listed but unavailable until they are ported and tested. **Import a Mod ZIP...** can atomically install separately rebuilt, checksummed packages in the documented ACE Single Player ZIP format.
+Open **Server Mods** in the launcher to browse the curated mod library. Installed and ready-to-install entries are listed before unavailable ports. Every entry includes a plain-language description, compatibility result, requirements, source-code links, and a saved-game safety warning. `CriticalOverride` is curated for one-click installation. `HelloCommand` and `SocietyTailoring` are installable **Preview** ports. OptimShi's `CustomClothingBase` v1.11 is also an installable Preview using the author's checksum-pinned, unmodified official DLLs after a successful current-ACE loader test. Preview mods are clearly marked as not thoroughly tested in game. Other samples remain listed but unavailable until they are ported and tested. **Import a Mod ZIP...** can atomically install separately rebuilt, checksummed packages in the documented ACE Single Player ZIP format.
 
 Turning a mod off stops its code after a server restart, but it does not undo experience, items, balances, character properties, or world content already saved by that mod. The launcher blocks removal of mods whose saved data may still depend on them and moves safely removable files to a recovery folder rather than deleting them. See [Mod library and saved-game safety](docs/MOD_LIBRARY.md) for the full policy, or [How to make and import a mod](docs/MOD_AUTHOR_GUIDE.md) to build a compatible package.
+
+## Custom Weenies and AceForge
+
+Open **Custom Weenies** to import per-weenie `.sql` files created by [AceForge](https://github.com/shemtar-90/AceForge/releases/tag/v0.3.36). Choose an AceForge output folder or individual SQL files; the launcher previews each WCID, validates a strict list of ACE weenie-property operations, skips unsupported content, checks whether WCIDs already exist, and creates a complete `ace_world` backup before applying the import in one database transaction. Automatic imports require the launcher's Private Database mode.
+
+Custom weenies become part of the saved world and do not have a one-click uninstaller. Quest, recipe, event, treasure, landscape, and client-DAT changes are not imported by this screen. See [Importing AceForge custom weenies](docs/CUSTOM_WEENIES.md) for the exact workflow and safety limits.
 
 See the [complete installation guide](docs/SINGLE_PLAYER_INSTALL.md) for prerequisites, expected file names, first-run instructions, troubleshooting, backups, and upgrade guidance.
 
