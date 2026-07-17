@@ -24,8 +24,13 @@ The **Open Backups** button opens the actual configured location.
 
 OpenDereth releases include `Weenies\ACEUniqueWeenies`, a 76-weenie optional
 pack sourced from [titaniumweiner/ACEUniqueWeenies](https://github.com/titaniumweiner/ACEUniqueWeenies).
-It is not imported automatically. Choose that folder in the Custom Weenies
-screen and review the preview before importing.
+It is not imported automatically. Release builds display these bundled files
+when the Custom Weenies screen opens, so users can review the preview and import
+without locating the folder first.
+
+The bundled pack requires the selectable **Cast on Strike Expanded** server mod
+for its intended item behavior. Enable that mod in the **Mods** screen before
+playing with the pack.
 
 The shopkeeper and four Lugian definitions use collision-safe OpenDereth WCIDs
 `910000001` through `910000005`. The included Lugian Generator points to those

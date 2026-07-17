@@ -123,7 +123,7 @@ public sealed class CustomWeenieTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var folder = Path.Combine(repositoryRoot, "Weenies", "ACEUniqueWeenies");
-        var files = Directory.GetFiles(folder, "*.sql", SearchOption.TopDirectoryOnly);
+        var files = BundledWeenieCatalog.FindSqlFiles(repositoryRoot).ToArray();
 
         var result = new CustomWeenieSqlInspector().InspectFiles(files);
 
