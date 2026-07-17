@@ -58,6 +58,7 @@ public sealed class ModTests
         var entry = CuratedModCatalog.Entries.Single(item =>
             item.Id == "titaniumweiner.ace-unique-weenies-proc");
 
+        Assert.AreEqual("Expanded Cast on Strike", entry.Name);
         Assert.AreEqual("titaniumweiner", entry.Author);
         Assert.AreEqual(ModCatalogAvailability.Preview, entry.Availability);
         Assert.AreEqual(ModDataImpact.SettingsOnly, entry.DataImpact);

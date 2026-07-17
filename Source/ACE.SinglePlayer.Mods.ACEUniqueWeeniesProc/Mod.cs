@@ -12,7 +12,7 @@ public sealed class Mod : IHarmonyMod
     public void Initialize()
     {
         harmony.PatchAll(typeof(Mod).Assembly);
-        Console.WriteLine("[ACEUniqueWeeniesProc] Enabled cast-on-strike procs for equipped items other than cloak weave proc type 1.");
+        Console.WriteLine("[Expanded Cast on Strike] Enabled cast-on-strike procs for equipped items other than cloak weave proc type 1.");
     }
 
     public void Dispose() => harmony.UnpatchAll(HarmonyId);

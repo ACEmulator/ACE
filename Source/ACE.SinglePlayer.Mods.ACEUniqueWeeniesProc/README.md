@@ -1,4 +1,4 @@
-# ACEUniqueWeeniesProc for ACE Single Player
+# Expanded Cast on Strike for ACE Single Player
 
 This .NET 10 Harmony mod implements the server-code change documented by [titaniumweiner/ACEUniqueWeenies](https://github.com/titaniumweiner/ACEUniqueWeenies). It lets equipped jewelry, armor, and other items use cast-on-strike proc properties instead of limiting the equipped-item pass to Aetheria. Items with `CloakWeaveProc` type `1` remain excluded.
 

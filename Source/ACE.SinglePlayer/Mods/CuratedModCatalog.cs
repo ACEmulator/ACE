@@ -7,7 +7,7 @@ public static class CuratedModCatalog
         {
             new ModCatalogEntry(
                 "titaniumweiner.ace-unique-weenies-proc",
-                "ACEUniqueWeeniesProc",
+                "Expanded Cast on Strike",
                 "titaniumweiner",
                 "Enables cast-on-strike procs on non-Aetheria equipped items such as the jewelry, armor, and weapons used by ACEUniqueWeenies content.",
                 "Replaces ACE's Aetheria-only equipped-proc pass with the filter documented by ACEUniqueWeenies: the item must have a proc, must not be cloak weave proc type 1, and must match the current self-target mode. The package changes server combat behavior only; import compatible item SQL separately through Custom Weenies. It intentionally matches the documented filter exactly, including processing an active proc weapon again if that weapon is also present in EquippedObjects.",
