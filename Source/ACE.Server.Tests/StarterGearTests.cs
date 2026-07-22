@@ -1,7 +1,8 @@
 using System;
 using System.IO;
 
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -19,7 +20,15 @@ namespace ACE.Server.Tests
             var starterGearPath = Path.GetFullPath(Path.Combine(testDir, "..", "..", "..", "..", "..", "ACE.Server", "starterGear.json"));
             string contents = File.ReadAllText(starterGearPath);
 
-            StarterGearConfiguration config = JsonConvert.DeserializeObject<StarterGearConfiguration>(contents);
+            StarterGearConfiguration config = JsonSerializer.Deserialize<StarterGearConfiguration>(contents, SerializerOptions);
         }
+
+        private static readonly JsonSerializerOptions SerializerOptions = new()
+        {
+            AllowTrailingCommas = true,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            WriteIndented = true
+        };
     }
 }
