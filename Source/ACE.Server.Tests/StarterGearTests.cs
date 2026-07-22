@@ -2,10 +2,10 @@ using System;
 using System.IO;
 
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using ACE.Common;
 using ACE.Server.Entity;
 
 namespace ACE.Server.Tests
@@ -20,15 +20,7 @@ namespace ACE.Server.Tests
             var starterGearPath = Path.GetFullPath(Path.Combine(testDir, "..", "..", "..", "..", "..", "ACE.Server", "starterGear.json"));
             string contents = File.ReadAllText(starterGearPath);
 
-            StarterGearConfiguration config = JsonSerializer.Deserialize<StarterGearConfiguration>(contents, SerializerOptions);
+            StarterGearConfiguration config = JsonSerializer.Deserialize<StarterGearConfiguration>(contents, ConfigManager.SerializerOptions);
         }
-
-        private static readonly JsonSerializerOptions SerializerOptions = new()
-        {
-            AllowTrailingCommas = true,
-            NumberHandling = JsonNumberHandling.AllowReadingFromString,
-            ReadCommentHandling = JsonCommentHandling.Skip,
-            WriteIndented = true
-        };
     }
 }
