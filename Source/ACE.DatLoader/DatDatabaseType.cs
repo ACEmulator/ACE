@@ -6,6 +6,7 @@ namespace ACE.DatLoader
         Cell    = 2, // client_cell_1.dat
 
         // This is not explicity defined in the client, but we may want to use these
-        Language = 3 // client_local_English.dat
+        Language = 3, // client_local_English.dat
+        HighRes = 4 // client_highres.dat
     }
 }
