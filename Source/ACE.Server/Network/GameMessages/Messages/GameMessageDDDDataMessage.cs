@@ -36,6 +36,13 @@ namespace ACE.Server.Network.GameMessages.Messages
                     datFileID = 3;
 
                     break;
+
+                case DatDatabaseType.HighRes:
+
+                    datFileType = DDDManager.HiFi_String_As_Int; // HiFi
+                    datFileID = 1;
+
+                    break;
             }
 
             var datFileContents = DDDManager.TryGetDatFileContentsForTransmission(datFileId, datDatabaseType, out var datFile, out var isCompressed);
