@@ -240,6 +240,7 @@ namespace ACE.Server.Network.Handlers
                 session.DatWarnPortal = false;
                 session.DatWarnCell = false;
                 session.DatWarnLanguage = false;
+                session.DatWarnHighRes = false;
 
                 log.Info($"[DDD] client {session.Account} reported it successfully received and patched its DAT files with expected BeginDDD payload");
             }
