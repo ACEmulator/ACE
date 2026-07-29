@@ -160,7 +160,12 @@ namespace ACE.Entity.Adapter
                 result.PropertiesBook = weenie.PropertiesBook.Clone();
 
             if (weenie.PropertiesBookPageData != null && (instantiateEmptyCollections || weenie.PropertiesBookPageData.Count > 0))
-                result.PropertiesBookPageData = new List<PropertiesBookPageData>(weenie.PropertiesBookPageData);
+            {
+                result.PropertiesBookPageData = new List<PropertiesBookPageData>(weenie.PropertiesBookPageData.Count);
+
+                foreach (var page in weenie.PropertiesBookPageData)
+                    result.PropertiesBookPageData.Add(page.Clone());
+            }
 
 
             return result;

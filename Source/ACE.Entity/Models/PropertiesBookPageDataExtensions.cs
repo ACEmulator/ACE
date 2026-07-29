@@ -65,7 +65,7 @@ namespace ACE.Entity.Models
             {
                 value.Add(page);
 
-                index = value.Count;
+                index = value.Count - 1;
             }
             finally
             {
