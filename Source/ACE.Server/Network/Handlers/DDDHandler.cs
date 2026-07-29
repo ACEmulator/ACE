@@ -31,6 +31,7 @@ namespace ACE.Server.Network.Handlers
             var clientPortalDatIntSet = new CMostlyConsecutiveIntSet();
             var clientCellDatIntSet = new CMostlyConsecutiveIntSet();
             var clientLanguageDatIntSet = new CMostlyConsecutiveIntSet();
+            var clientHighResDatIntSet = new CMostlyConsecutiveIntSet();
 
             var showDatWarning = PropertyManager.GetBool("show_dat_warning").Item;
 
@@ -44,27 +45,60 @@ namespace ACE.Server.Network.Handlers
             {
                 switch (entry.DatFileId)
                 {
-                    case 1: // PORTAL
-                        clientPortalDatIntSet = entry.List;
-                        if (entry.List.Iterations < DatManager.PortalDat.Iteration)
+                    case 1: // PORTAL or HIGHRES
+                        if (entry.DatFileType == 0) // PORTAL
                         {
-                            if (showDatWarning)
-                                session.DatWarnPortal = true;
+                            clientPortalDatIntSet = entry.List;
+                            if (entry.List.Iterations < DatManager.PortalDat.Iteration)
+                            {
+                                if (showDatWarning)
+                                    session.DatWarnPortal = true;
 
-                            clientIsMissingIterations = true;
+                                clientIsMissingIterations = true;
+                            }
+                            else if (entry.List.Iterations > DatManager.PortalDat.Iteration)
+                            {
+                                if (showDatWarning)
+                                    session.DatWarnPortal = true;
+
+                                clientHasExtraIterations = true;
+                            }
                         }
-                        else if (entry.List.Iterations > DatManager.PortalDat.Iteration)
+                        else if (entry.DatFileType == DDDManager.HiFi_String_As_Int) // HIGHRES
                         {
-                            if (showDatWarning)
-                                session.DatWarnPortal = true;
+                            clientHighResDatIntSet = entry.List;
 
-                            clientHasExtraIterations = true;
+                            if (DatManager.HighResDat == null)
+                            {
+                                continue;
+                            }
+
+                            if (entry.List.Iterations < DatManager.HighResDat.Iteration)
+                            {
+                                if (clientHighResDatIntSet.Iterations == 0)
+                                    continue;
+
+                                if (showDatWarning)
+                                    session.DatWarnHighRes = true;
+
+                                clientIsMissingIterations = true;
+                            }
+                            else if (entry.List.Iterations > DatManager.HighResDat.Iteration)
+                            {
+                                if (showDatWarning)
+                                    session.DatWarnHighRes = true;
+
+                                clientHasExtraIterations = true;
+                            }
                         }
                         break;
                     case 2: // CELL
                         clientCellDatIntSet = entry.List;
                         if (entry.List.Iterations < DatManager.CellDat.Iteration)
                         {
+                            if (clientCellDatIntSet.Iterations == 0)
+                                continue;
+
                             if (showDatWarning)
                                 session.DatWarnCell = true;
 
@@ -103,11 +137,14 @@ namespace ACE.Server.Network.Handlers
                 Console.WriteLine($"{session.Account} client_portal.dat:" + Environment.NewLine + clientPortalDatIntSet);
                 Console.WriteLine($"{session.Account} client_cell_1.dat:" + Environment.NewLine + clientCellDatIntSet);
                 Console.WriteLine($"{session.Account} client_Local_English.dat:" + Environment.NewLine + clientLanguageDatIntSet);
+                Console.WriteLine($"{session.Account} client_highres.dat:" + Environment.NewLine + clientHighResDatIntSet);
             }
 
             var enableDATpatching = ConfigManager.Config.DDD.EnableDATPatching;
 
             var logMsg = $"[DDD] client {session.Account} responded to Interrogation:\n client_portal.dat: {clientPortalDatIntSet.Iterations} | client_cell_1.dat: {clientCellDatIntSet.Iterations} | client_Local_English.dat: {clientLanguageDatIntSet.Iterations}";
+            if (PropertyManager.GetBool("allow_highres_dat").Item)
+                logMsg += $"\n client_highres.dat: {clientHighResDatIntSet.Iterations}{(DatManager.HighResDat == null ? " (server allows but does not have client_highres.dat to validate)" : "")}";
             if (clientHasExtraIterations) logMsg += " | client has more iterations than server, cannot update";
             else if (clientIsMissingIterations) logMsg += " | update required";
             else logMsg += " | no update required";
@@ -121,7 +158,7 @@ namespace ACE.Server.Network.Handlers
             }
             else if (clientIsMissingIterations && enableDATpatching)
             {
-                var totalMissingIterations = DDDManager.GetMissingIterations(clientPortalDatIntSet, clientCellDatIntSet, clientLanguageDatIntSet, out var totalFileSize, out var missingIterations);                
+                var totalMissingIterations = DDDManager.GetMissingIterations(clientPortalDatIntSet, clientCellDatIntSet, clientLanguageDatIntSet, clientHighResDatIntSet, out var totalFileSize, out var missingIterations);                
                 var patchStatusMessage = new GameMessageDDDBeginDDD(totalMissingIterations, totalFileSize, missingIterations);
                 session.Network.EnqueueSend(patchStatusMessage);
                 session.BeginDDDSentTime = DateTime.UtcNow;
@@ -131,6 +168,7 @@ namespace ACE.Server.Network.Handlers
 
                 var hasPortalMissingIterations = missingIterations.TryGetValue(DatDatabaseType.Portal, out var portalMissingIterations);
                 var hasLanguageMissingIterations = missingIterations.TryGetValue(DatDatabaseType.Language, out var languageMissingIterations);
+                var hasHighResMissingIterations = missingIterations.TryGetValue(DatDatabaseType.HighRes, out var highresMissingIterations);
 
                 if (hasPortalMissingIterations)
                 {
@@ -161,6 +199,21 @@ namespace ACE.Server.Network.Handlers
                         }
                     }
                 }
+
+                if (hasHighResMissingIterations)
+                {
+                    foreach (var iteration in highresMissingIterations.Values)
+                    {
+                        foreach (var fileId in iteration.OrderBy(f => f))
+                        {
+                            if (DatManager.HighResDat.AllFiles.TryGetValue(fileId, out _))
+                                //session.Network.EnqueueSend(new GameMessageDDDDataMessage(fileId, DatDatabaseType.HighRes));
+                                DDDManager.AddToQueue(session, fileId, DatDatabaseType.HighRes);
+                            else
+                                log.Warn($"[DDD] DDD_InterrogationResponse: DDDManager.AddToQueue failed: DatManager.HighResDat.AllFiles does not contain 0x{fileId:X8}");
+                        }
+                    }
+                }
             }
             else if (clientIsMissingIterations && !enableDATpatching)
             {
@@ -187,6 +240,7 @@ namespace ACE.Server.Network.Handlers
                 session.DatWarnPortal = false;
                 session.DatWarnCell = false;
                 session.DatWarnLanguage = false;
+                session.DatWarnHighRes = false;
 
                 log.Info($"[DDD] client {session.Account} reported it successfully received and patched its DAT files with expected BeginDDD payload");
             }

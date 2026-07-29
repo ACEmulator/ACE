@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 
 using ACE.DatLoader;
+using ACE.Server.Managers;
 
 namespace ACE.Server.Network.GameMessages.Messages
 {
@@ -21,6 +22,9 @@ namespace ACE.Server.Network.GameMessages.Messages
 
             if (missingIterations.ContainsKey(DatDatabaseType.Cell))
                 WriteIterations(DatDatabaseType.Cell, missingIterations[DatDatabaseType.Cell]);
+
+            if (missingIterations.ContainsKey(DatDatabaseType.HighRes))
+                WriteIterations(DatDatabaseType.HighRes, missingIterations[DatDatabaseType.HighRes]);
         }
 
         private void WriteIterations(DatDatabaseType datDatabaseType, Dictionary<uint, List<uint>> iterations)
@@ -42,6 +46,11 @@ namespace ACE.Server.Network.GameMessages.Messages
                     case DatDatabaseType.Language:
                         Writer.Write(1);
                         Writer.Write(3);
+                        break;
+
+                    case DatDatabaseType.HighRes:
+                        Writer.Write(DDDManager.HiFi_String_As_Int); // HiFi
+                        Writer.Write(1);
                         break;
                 }
 

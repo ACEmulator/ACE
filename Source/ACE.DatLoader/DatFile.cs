@@ -199,6 +199,15 @@ namespace ACE.DatLoader
                 }
             }
 
+            if (datDatabaseType == DatDatabaseType.HighRes)
+            {
+                switch (ObjectId >> 24)
+                {
+                    case 0x06:
+                        return DatFileType.Texture;
+                }
+            }
+
             Console.WriteLine($"Unknown file type: {ObjectId:X8}");
             return null;
         }
