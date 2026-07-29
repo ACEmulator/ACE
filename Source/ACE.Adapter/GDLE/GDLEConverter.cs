@@ -531,7 +531,7 @@ namespace ACE.Adapter.GDLE
                         result.Requirements[iidReq.Index] = requirements;
                     }
 
-                    requirements.DIDRequirements.Add(new Models.DIDRequirement
+                    requirements.IIDRequirements.Add(new Models.IIDRequirement
                     {
                         Stat = iidReq.Stat,
                         Value = iidReq.Value,

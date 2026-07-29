@@ -459,7 +459,7 @@ namespace ACE.Adapter.Lifestoned
                 {
                     foreach (var value in input.Spells)
                     {
-                        if (result.WeeniePropertiesDID.FirstOrDefault(x => x.Type == (int)PropertyDataId.Spell && x.Value == value.SpellId) == null)
+                        if (result.WeeniePropertiesSpellBook.FirstOrDefault(x => x.Spell == value.SpellId) == null)
                             result.WeeniePropertiesSpellBook.Add(new WeeniePropertiesSpellBook { Spell = value.SpellId, Probability = (float?)value.Stats.CastingChance ?? 0f });
                     }
                 }
