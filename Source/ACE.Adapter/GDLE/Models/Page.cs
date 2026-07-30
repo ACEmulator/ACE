@@ -23,7 +23,7 @@ namespace ACE.Adapter.GDLE.Models
         {
             get
             {
-                return (!IgnoreAutor_Binder.HasValue) ? null : new bool?((IgnoreAutor_Binder.Value == 0) ? true : false);
+                return (!IgnoreAutor_Binder.HasValue) ? null : new bool?(IgnoreAutor_Binder.Value != 0);
             }
             set
             {
