@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Entity.Models;
+using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Managers;
 
@@ -95,8 +96,22 @@ namespace ACE.Server.Entity
                         // handle special case to prevent message: Pumpkin Shield casts Web of Defense on you, refreshing Aura of Defense
                         var spellDuration = equip ? double.PositiveInfinity : spell.Duration;
 
-                        if (!equip && caster is Player player && player.AugmentationIncreasedSpellDuration > 0 && !isWeaponSpell)
-                            spellDuration *= 1.0f + player.AugmentationIncreasedSpellDuration * 0.2f;
+
+
+
+                        if (!equip && caster is Player player && !isWeaponSpell)
+                        {
+
+                            var spellDurationModifier = Math.Max(PropertyManager.GetDouble("spell_duration_modifier").Item, 0);
+                            var moddedSpellDuration = spellDuration * spellDurationModifier;
+
+                            spellDuration = Math.Max(moddedSpellDuration, 1);
+
+
+                            if(player.AugmentationIncreasedSpellDuration > 0)
+                                spellDuration *= 1.0f + player.AugmentationIncreasedSpellDuration * 0.2f;
+
+                        }
 
                         var entryDuration = entry.Duration == -1 ? double.PositiveInfinity : entry.Duration;
 
