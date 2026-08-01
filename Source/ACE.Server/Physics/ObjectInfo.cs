@@ -52,7 +52,7 @@ namespace ACE.Server.Physics.Animation
             {
                 if (wobj.IsImpenetrable())
                     State |= ObjectInfoState.IsImpenetrable;
-                if (wobj.IsPlayer())
+                if (wobj.IsPlayer)
                     State |= ObjectInfoState.IsPlayer;
                 if (wobj.IsPK())
                     State |= ObjectInfoState.IsPK;
@@ -86,7 +86,7 @@ namespace ACE.Server.Physics.Animation
             {
                 if (collideObj.WeenieObj != null && collideObj.ID != TargetID)
                 {
-                    if (collideObj.State.HasFlag(PhysicsState.Ethereal) || TargetID != 0 && collideObj.WeenieObj.IsCreature())
+                    if (collideObj.State.HasFlag(PhysicsState.Ethereal) || TargetID != 0 && collideObj.WeenieObj.IsCreature)
                         return true;
                 }
             }
