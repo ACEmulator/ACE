@@ -76,10 +76,12 @@ namespace ACE.Server.Network.Structure
             // Help us make sure the item identify properly
             NPCLooksLikeObject = wo.GetProperty(PropertyBool.NpcLooksLikeObject) ?? false;
 
-            if (PropertiesIID.ContainsKey(PropertyInstanceId.AllowedWielder) && !PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedWielder))
+            var allowedWielder = wo.GetProperty(PropertyInstanceId.AllowedWielder);
+            if ((PropertiesIID.ContainsKey(PropertyInstanceId.AllowedWielder) || allowedWielder > 0) && !PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedWielder))
                 PropertiesBool.Add(PropertyBool.AppraisalHasAllowedWielder, true);
 
-            if (PropertiesIID.ContainsKey(PropertyInstanceId.AllowedActivator) && !PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedActivator))
+            var allowedActivator = wo.GetProperty(PropertyInstanceId.AllowedActivator);
+            if ((PropertiesIID.ContainsKey(PropertyInstanceId.AllowedActivator) || allowedActivator > 0) && !PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedActivator))
                 PropertiesBool.Add(PropertyBool.AppraisalHasAllowedActivator, true);
 
             if (PropertiesString.ContainsKey(PropertyString.ScribeAccount) && !examiner.IsAdmin && !examiner.IsSentinel && !examiner.IsEnvoy && !examiner.IsArch && !examiner.IsPsr)
