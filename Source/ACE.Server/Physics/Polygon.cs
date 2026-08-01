@@ -403,11 +403,14 @@ namespace ACE.Server.Physics
             if (dp <= path.WalkableAllowance) return false;
             Vector3 contactPoint = Vector3.Zero;
             var hit = polygon_hits_sphere_precise(sphere, ref contactPoint);
-            if (hit != polygon_hits_sphere(sphere, ref contactPoint))
-            {
-                polygon_hits_sphere_precise(sphere, ref contactPoint);
-                polygon_hits_sphere(sphere, ref contactPoint);
-            }
+            // The client decompile has this branch of code as well.
+            // The purpose was likely for a devleoper to put a break point to debug if these two functions ever return a different result.
+            // Comment this out and put a break point, long, debug, or exception if you want to debug cross-check.
+            //if (hit != polygon_hits_sphere(sphere, ref contactPoint))
+            //{
+            //    polygon_hits_sphere_precise(sphere, ref contactPoint);
+            //    polygon_hits_sphere(sphere, ref contactPoint);
+            //}
             return hit;
         }
 
