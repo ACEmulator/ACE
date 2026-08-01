@@ -744,7 +744,7 @@ namespace ACE.Server.Physics.Animation
             if (PhysicsObj == null)
                 return WeenieError.NoPhysicsObject;
 
-            if (WeenieObj == null && !WeenieObj.IsCreature || !PhysicsObj.State.HasFlag(PhysicsState.Gravity) ||
+            if (WeenieObj == null || !WeenieObj.IsCreature || !PhysicsObj.State.HasFlag(PhysicsState.Gravity) ||
                 PhysicsObj.TransientState.HasFlag(TransientStateFlags.Contact | TransientStateFlags.OnWalkable))
             {
                 if (PhysicsObj.IsFullyConstrained())
