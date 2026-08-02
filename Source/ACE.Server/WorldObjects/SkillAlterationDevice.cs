@@ -284,7 +284,7 @@ namespace ACE.Server.WorldObjects
                     CheckWieldRequirement(player, equippedItem.WieldRequirements2, equippedItem.WieldSkillType2, equippedItem.WieldDifficulty2) ||
                     CheckWieldRequirement(player, equippedItem.WieldRequirements3, equippedItem.WieldSkillType3, equippedItem.WieldDifficulty3) ||
                     CheckWieldRequirement(player, equippedItem.WieldRequirements4, equippedItem.WieldSkillType4, equippedItem.WieldDifficulty4) ||
-                    CheckActivationRequirement(player, equippedItem))
+                    CheckActivationRequirements(player, equippedItem))
                 {
                     return true;
                 }
@@ -314,7 +314,7 @@ namespace ACE.Server.WorldObjects
             return player.ConvertToMoASkill((Skill)(wieldSkillType ?? 0)) == SkillToBeAltered;
         }
 
-        private bool CheckActivationRequirement(Player player, WorldObject equippedItem)
+        private bool CheckActivationRequirements(Player player, WorldObject equippedItem)
         {
             if (equippedItem.ItemDifficulty > 0 && SkillToBeAltered == Skill.ArcaneLore)
                 return true;
