@@ -268,7 +268,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // verify skill specialized
-            // only found on a few items, doesn't show up on ID panel so is effectively a hidden requirement
+            // only found on a few items, doesn't show up on ID panel so is effectively a hidden requirement unless noted in ShortDesc/LongDesc string text
             if (ItemSpecializedOnly != null)
             {
                 var skill = activator.ConvertToMoASkill((Skill)ItemSpecializedOnly.Value);
