@@ -77,18 +77,20 @@ namespace ACE.Server.Network.Structure
             NPCLooksLikeObject = wo.GetProperty(PropertyBool.NpcLooksLikeObject) ?? false;
 
             var allowedWielder = wo.GetProperty(PropertyInstanceId.AllowedWielder);
-            if ((PropertiesIID.ContainsKey(PropertyInstanceId.AllowedWielder) || allowedWielder > 0) && !PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedWielder))
-                PropertiesBool.Add(PropertyBool.AppraisalHasAllowedWielder, true);
+            if (allowedWielder > 0 && !PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedWielder))
+                PropertiesBool[PropertyBool.AppraisalHasAllowedWielder] = true;
 
             var allowedActivator = wo.GetProperty(PropertyInstanceId.AllowedActivator);
-            if ((PropertiesIID.ContainsKey(PropertyInstanceId.AllowedActivator) || allowedActivator > 0) && !PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedActivator))
-                PropertiesBool.Add(PropertyBool.AppraisalHasAllowedActivator, true);
+            if (allowedActivator > 0 && !PropertiesBool.ContainsKey(PropertyBool.AppraisalHasAllowedActivator))
+                PropertiesBool[PropertyBool.AppraisalHasAllowedActivator] = true;
 
             if (PropertiesString.ContainsKey(PropertyString.ScribeAccount) && !examiner.IsAdmin && !examiner.IsSentinel && !examiner.IsEnvoy && !examiner.IsArch && !examiner.IsPsr)
                 PropertiesString.Remove(PropertyString.ScribeAccount);
 
-            if (PropertiesString.ContainsKey(PropertyString.HouseOwnerAccount) && !examiner.IsAdmin && !examiner.IsSentinel && !examiner.IsEnvoy && !examiner.IsArch && !examiner.IsPsr)
-                PropertiesString.Remove(PropertyString.HouseOwnerAccount);
+            // not used
+            //var houseOwnerAccount = wo.GetProperty(PropertyString.HouseOwnerAccount);
+            //if (!string.IsNullOrWhiteSpace(houseOwnerAccount) && (examiner.IsAdmin || examiner.IsSentinel || examiner.IsEnvoy || examiner.IsArch || examiner.IsPsr))
+            //    PropertiesString[PropertyString.HouseOwnerAccount] = houseOwnerAccount;
 
             if (PropertiesInt.ContainsKey(PropertyInt.Lifespan))
                 PropertiesInt[PropertyInt.RemainingLifespan] = wo.GetRemainingLifespan();
@@ -152,10 +154,14 @@ namespace ACE.Server.Network.Structure
                         if (!PropertiesInt.ContainsKey(PropertyInt.AppraisalLockpickSuccessPercent))
                             PropertiesInt.Add(PropertyInt.AppraisalLockpickSuccessPercent, (int)successChance);
                     }
+                }                
+                else
+                {
+                    // if wo has DefaultLocked property and is unlocked, add that state to the property buckets
+                    var defaultLocked = wo.GetProperty(PropertyBool.DefaultLocked);
+                    if (defaultLocked ?? false)
+                        PropertiesBool[PropertyBool.Locked] = false;
                 }
-                // if wo has DefaultLocked property and is unlocked, add that state to the property buckets
-                else if (PropertiesBool.ContainsKey(PropertyBool.DefaultLocked))
-                    PropertiesBool[PropertyBool.Locked] = false;
             }
 
             if (wo is Corpse)
