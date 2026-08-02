@@ -283,7 +283,8 @@ namespace ACE.Server.WorldObjects
                 if (CheckWieldRequirement(player, equippedItem.WieldRequirements, equippedItem.WieldSkillType, equippedItem.WieldDifficulty) ||
                     CheckWieldRequirement(player, equippedItem.WieldRequirements2, equippedItem.WieldSkillType2, equippedItem.WieldDifficulty2) ||
                     CheckWieldRequirement(player, equippedItem.WieldRequirements3, equippedItem.WieldSkillType3, equippedItem.WieldDifficulty3) ||
-                    CheckWieldRequirement(player, equippedItem.WieldRequirements4, equippedItem.WieldSkillType4, equippedItem.WieldDifficulty4))
+                    CheckWieldRequirement(player, equippedItem.WieldRequirements4, equippedItem.WieldSkillType4, equippedItem.WieldDifficulty4) ||
+                    CheckActivationRequirement(player, equippedItem))
                 {
                     return true;
                 }
@@ -311,6 +312,26 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             return player.ConvertToMoASkill((Skill)(wieldSkillType ?? 0)) == SkillToBeAltered;
+        }
+
+        private bool CheckActivationRequirement(Player player, WorldObject equippedItem)
+        {
+            if (equippedItem.ItemDifficulty > 0 && SkillToBeAltered == Skill.ArcaneLore)
+                return true;
+
+            if (player.ConvertToMoASkill(equippedItem.ItemSkillLimit ?? 0) == SkillToBeAltered)
+                return true;
+
+            if (player.ConvertToMoASkill(equippedItem.ItemSpecializedOnly ?? 0) == SkillToBeAltered)
+                return true;
+
+            if (player.ConvertToMoASkill((Skill)(equippedItem.UseRequiresSkill ?? 0)) == SkillToBeAltered)
+                return true;
+
+            if (player.ConvertToMoASkill((Skill)(equippedItem.UseRequiresSkillSpec ?? 0)) == SkillToBeAltered)
+                return true;
+
+            return false;
         }
     }
 }
