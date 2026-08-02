@@ -280,10 +280,10 @@ namespace ACE.Server.WorldObjects
         {
             foreach (var equippedItem in player.EquippedObjects.Values)
             {
-                if (CheckWieldRequirement(player, equippedItem.WieldRequirements, equippedItem.WieldSkillType) ||
-                    CheckWieldRequirement(player, equippedItem.WieldRequirements2, equippedItem.WieldSkillType2) ||
-                    CheckWieldRequirement(player, equippedItem.WieldRequirements3, equippedItem.WieldSkillType3) ||
-                    CheckWieldRequirement(player, equippedItem.WieldRequirements4, equippedItem.WieldSkillType4))
+                if (CheckWieldRequirement(player, equippedItem.WieldRequirements, equippedItem.WieldSkillType, equippedItem.WieldDifficulty) ||
+                    CheckWieldRequirement(player, equippedItem.WieldRequirements2, equippedItem.WieldSkillType2, equippedItem.WieldDifficulty2) ||
+                    CheckWieldRequirement(player, equippedItem.WieldRequirements3, equippedItem.WieldSkillType3, equippedItem.WieldDifficulty3) ||
+                    CheckWieldRequirement(player, equippedItem.WieldRequirements4, equippedItem.WieldSkillType4, equippedItem.WieldDifficulty4))
                 {
                     return true;
                 }
@@ -291,8 +291,22 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
-        private bool CheckWieldRequirement(Player player, WieldRequirement itemWieldReq, int? wieldSkillType)
+        private bool CheckWieldRequirement(Player player, WieldRequirement itemWieldReq, int? wieldSkillType, int? wieldSkillDifficulty)
         {
+            if (itemWieldReq == WieldRequirement.Training)
+            {
+                var skill = player.ConvertToMoASkill((Skill)(wieldSkillType ?? 0));
+                if (skill != SkillToBeAltered)
+                    return false;
+
+                var creatureSkill = player.GetCreatureSkill(skill, false);
+
+                if (creatureSkill == null || wieldSkillDifficulty is null)
+                    return false;
+
+                return (SkillAdvancementClass)wieldSkillDifficulty >= creatureSkill.AdvancementClass;
+            }
+
             if (itemWieldReq != WieldRequirement.RawSkill && itemWieldReq != WieldRequirement.Skill)
                 return false;
 
