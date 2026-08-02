@@ -2202,6 +2202,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.ItemSkillLimit); else SetProperty(PropertyDataId.ItemSkillLimit, (uint)value); }
         }
 
+        public Skill? ItemSpecializedOnly
+        {
+            get => (Skill?)GetProperty(PropertyDataId.ItemSpecializedOnly);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.ItemSpecializedOnly); else SetProperty(PropertyDataId.ItemSpecializedOnly, (uint)value); }
+        }
+
         public int? ItemSkillLevelLimit
         {
             get => GetProperty(PropertyInt.ItemSkillLevelLimit);
