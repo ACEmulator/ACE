@@ -145,10 +145,11 @@ namespace ACE.Server.WorldObjects
         {
             foreach (var equippedItem in player.EquippedObjects.Values)
             {
-                if (CheckWieldRequirement(player, equippedItem.WieldRequirements, equippedItem.WieldSkillType) ||
-                    CheckWieldRequirement(player, equippedItem.WieldRequirements2, equippedItem.WieldSkillType2) ||
-                    CheckWieldRequirement(player, equippedItem.WieldRequirements3, equippedItem.WieldSkillType3) ||
-                    CheckWieldRequirement(player, equippedItem.WieldRequirements4, equippedItem.WieldSkillType4))
+                if (CheckWieldRequirement(player, equippedItem.WieldRequirements, equippedItem.WieldSkillType, equippedItem.WieldDifficulty) ||
+                    CheckWieldRequirement(player, equippedItem.WieldRequirements2, equippedItem.WieldSkillType2, equippedItem.WieldDifficulty2) ||
+                    CheckWieldRequirement(player, equippedItem.WieldRequirements3, equippedItem.WieldSkillType3, equippedItem.WieldDifficulty3) ||
+                    CheckWieldRequirement(player, equippedItem.WieldRequirements4, equippedItem.WieldSkillType4, equippedItem.WieldDifficulty4) ||
+                    CheckActivationRequirement(player, equippedItem))
                 {
                     return true;
                 }
@@ -156,17 +157,38 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
-        private bool CheckWieldRequirement(Player player, WieldRequirement itemWieldReq, int? wieldSkillType)
+        private bool CheckWieldRequirement(Player player, WieldRequirement itemWieldReq, int? wieldSkillType, int? wieldSkillDifficulty)
         {
             //if (itemWieldReq != WieldRequirement.RawSkill && itemWieldReq != WieldRequirement.Skill
             //    && itemWieldReq != WieldRequirement.RawAttrib && itemWieldReq != WieldRequirement.Attrib
-            //    && itemWieldReq != WieldRequirement.RawSecondaryAttrib && itemWieldReq != WieldRequirement.SecondaryAttrib)
-            if (itemWieldReq < WieldRequirement.Skill && itemWieldReq > WieldRequirement.RawSecondaryAttrib)
+            //    && itemWieldReq != WieldRequirement.RawSecondaryAttrib && itemWieldReq != WieldRequirement.SecondaryAttrib
+            //    && itemWieldReq != WieldRequirement.Training)
+            if (itemWieldReq < WieldRequirement.Skill && itemWieldReq > WieldRequirement.RawSecondaryAttrib && itemWieldReq != WieldRequirement.Training)
             {
-                return false;
+                return true;
             }
 
-            return true;
+            return false;
+        }
+
+        private bool CheckActivationRequirement(Player player, WorldObject equippedItem)
+        {
+            if (equippedItem.ItemDifficulty > 0)
+                return true;
+
+            if (player.ConvertToMoASkill(equippedItem.ItemSkillLimit ?? 0) != Skill.None)
+                return true;
+
+            if (player.ConvertToMoASkill(equippedItem.ItemSpecializedOnly ?? 0) != Skill.None)
+                return true;
+
+            if (player.ConvertToMoASkill((Skill)(equippedItem.UseRequiresSkill ?? 0)) != Skill.None)
+                return true;
+
+            if (player.ConvertToMoASkill((Skill)(equippedItem.UseRequiresSkillSpec ?? 0)) != Skill.None)
+                return true;
+
+            return false;
         }
     }
 }
