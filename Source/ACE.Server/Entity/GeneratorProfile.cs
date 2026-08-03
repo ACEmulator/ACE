@@ -577,8 +577,7 @@ namespace ACE.Server.Entity
                     if (wo.Container == Generator)
                     {
                         var container = Generator as Container;
-                        if (container?.TryRemoveFromInventory(wo.Guid) ?? false)
-                            wo.Destroy();
+                        container?.TryRemoveFromInventory(wo.Guid);
                     }
 
                     wo.Destroy();

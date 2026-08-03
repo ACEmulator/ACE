@@ -405,7 +405,7 @@ namespace ACE.Adapter.GDLE
         /// </summary>
         public static bool TryConvert(List<CookBook> cookbooks, out Models.RecipeCombined result)
         {
-            if (cookbooks == null || cookbooks.Count == 0)
+            if (cookbooks == null || cookbooks.Count == 0 || cookbooks[0].Recipe == null)
             {
                 result = null;
                 return false;
@@ -418,9 +418,10 @@ namespace ACE.Adapter.GDLE
             result.key = recipe.Id;
             result.desc = cookbooks[0].SourceWCID.ToString();   // TODO: get weenie name
 
-            TryConvert(recipe, out var newRecipe);
-            if (newRecipe != null)
-                newRecipe.RecipeId = 0;
+            if (!TryConvert(recipe, out var newRecipe))
+                return false;
+
+            newRecipe.RecipeId = 0;
 
             result.recipe = newRecipe;
 

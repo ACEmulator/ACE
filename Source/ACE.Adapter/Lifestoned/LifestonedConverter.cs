@@ -754,8 +754,9 @@ namespace ACE.Adapter.Lifestoned
                             {
                                 SortOrder = aorder,
                                 Amount = (uint?)action.Amount,
-                                Amount64 = (uint?)action.Amount64,
+                                Amount64 = (long?)action.Amount64,
                                 Delay = action.Delay,
+                                Display = action.Display,
                                 EmoteActionType = action.Type,
                                 Extent = action.Extent,
                                 FMax = (float?)action.MaxDbl,
