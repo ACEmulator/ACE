@@ -722,22 +722,29 @@ namespace ACE.Server.WorldObjects
         /// Returns the total applicable Recklessness modifier,
         /// taking into account both attacker and defender players
         /// </summary>
-        public static float GetRecklessnessMod(Creature attacker, Creature defender)
+        public static float GetRecklessnessMod(Creature attacker, Creature defender, out bool selfReckless)
         {
-            var playerAttacker = attacker as Player;
-            var playerDefender = defender as Player;
-
-            var recklessnessMod = 1.0f;
-
-            // multiplicative or additive?
+            // multiplicative or additive? (probably additive)
             // defender is a negative Damage Reduction Rating
             // 20 DR combined with 20 DRR = 1.2 * 0.8333... = 1.0
             // 20 DR combined with -20 DRR = 1.2 * 1.2 = 1.44
-            if (playerAttacker != null)
-                recklessnessMod *= playerAttacker.GetRecklessnessMod();
+            // should be 1.4
 
-            if (playerDefender != null)
-                recklessnessMod *= playerDefender.GetRecklessnessMod();
+            var recklessRatingSelf = 0;
+            var recklessRatingTarget = 0;
+
+            selfReckless = false;
+
+            if (attacker is Player playerAttacker)
+            {
+                recklessRatingSelf = playerAttacker.GetRecklessRating();
+                selfReckless = recklessRatingSelf > 0;
+            }
+
+            if (defender is Player playerDefender)
+                recklessRatingTarget = playerDefender.GetRecklessRating();
+
+            var recklessnessMod = GetPositiveRatingMod(recklessRatingSelf + recklessRatingTarget);
 
             return recklessnessMod;
         }
