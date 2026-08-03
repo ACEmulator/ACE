@@ -216,12 +216,12 @@ namespace ACE.Server.WorldObjects
                 var skill = activator.ConvertToMoASkill((Skill)ItemSkillLimit.Value);
                 var playerSkill = player.GetCreatureSkill(skill);
 
-                if (playerSkill.AdvancementClass < SkillAdvancementClass.Trained)
-                {
-                    //return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_SkillMustBeTrained, playerSkill.Skill.ToSentence()));
-                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You must have {playerSkill.Skill.ToSentence()} trained to use that item's magic"));
-                    return new ActivationResult(false);
-                }
+                //if (playerSkill.AdvancementClass < SkillAdvancementClass.Trained)
+                //{
+                //    //return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_SkillMustBeTrained, playerSkill.Skill.ToSentence()));
+                //    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You must have {playerSkill.Skill.ToSentence()} trained to use that item's magic"));
+                //    return new ActivationResult(false);
+                //}
 
                 // verify skill level
                 if (playerSkill.Current < ItemSkillLevelLimit.Value)
