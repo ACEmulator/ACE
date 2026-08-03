@@ -492,7 +492,7 @@ namespace ACE.Server.WorldObjects
         {
             // get base armor/resistance level
             var baseArmor = armor.GetProperty(PropertyInt.ArmorLevel) ?? 0;
-            var armorType = armor.GetProperty(PropertyInt.ArmorType) ?? 0;
+            //var armorType = armor.GetProperty(PropertyInt.ArmorType) ?? 0;
             var resistance = GetResistance(armor, damageType);
 
             /*Console.WriteLine(armor.Name);

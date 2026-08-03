@@ -150,11 +150,13 @@ namespace ACE.Server.Network
             {
                 if (headerChecksum + payloadChecksum == Header.Checksum)
                 {
-                    packetLog.DebugFormat("{0}", this);
+                    if (packetLog.IsDebugEnabled)
+                        packetLog.DebugFormat("{0}", this);
                     return true;
                 }
 
-                packetLog.DebugFormat("{0}, Checksum Failed", this);
+                if (packetLog.IsDebugEnabled)
+                    packetLog.DebugFormat("{0}, Checksum Failed", this);
             }
 
             NetworkStatistics.C2S_CRCErrors_Aggregate_Increment();
