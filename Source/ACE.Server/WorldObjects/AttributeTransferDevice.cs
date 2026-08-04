@@ -124,14 +124,14 @@ namespace ACE.Server.WorldObjects
             if (transferFromAttribute.StartingValue <= 10)
             {
                 //player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your innate {TransferFromAttribute} must be above 10 to use the {Name}.", ChatMessageType.Broadcast));
-                player.SendWeenieErrorWithString(WeenieErrorWithString.AttributeTransferFromTooLow, $"Your innate {TransferFromAttribute} must be above 10 to use the {Name}.");
+                player.SendWeenieErrorWithString(WeenieErrorWithString.AttributeTransferFromTooLow, $"Your innate level of {TransferFromAttribute} is already as low as it can be. You may not reduce it any further.");
                 return false;
             }
 
             if (transferToAttribute.StartingValue >= 100)
             {
                 //player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your innate {TransferToAttribute} must be below 100 to use the {Name}.", ChatMessageType.Broadcast));
-                player.SendWeenieErrorWithString(WeenieErrorWithString.AttributeTransferToTooHigh, $"Your innate {TransferToAttribute} must be below 100 to use the {Name}.");
+                player.SendWeenieErrorWithString(WeenieErrorWithString.AttributeTransferToTooHigh, $"Your innate level of {TransferFromAttribute} is already as high as it can be. You may not increase it any further.");
                 return false;
             }
 
@@ -148,8 +148,8 @@ namespace ACE.Server.WorldObjects
                 if (CheckWieldRequirement(player, equippedItem.WieldRequirements, equippedItem.WieldSkillType, equippedItem.WieldDifficulty) ||
                     CheckWieldRequirement(player, equippedItem.WieldRequirements2, equippedItem.WieldSkillType2, equippedItem.WieldDifficulty2) ||
                     CheckWieldRequirement(player, equippedItem.WieldRequirements3, equippedItem.WieldSkillType3, equippedItem.WieldDifficulty3) ||
-                    CheckWieldRequirement(player, equippedItem.WieldRequirements4, equippedItem.WieldSkillType4, equippedItem.WieldDifficulty4) ||
-                    CheckActivationRequirements(player, equippedItem))
+                    CheckWieldRequirement(player, equippedItem.WieldRequirements4, equippedItem.WieldSkillType4, equippedItem.WieldDifficulty4)) //||
+                    //CheckActivationRequirements(player, equippedItem))
                 {
                     return true;
                 }
@@ -163,7 +163,8 @@ namespace ACE.Server.WorldObjects
             //    && itemWieldReq != WieldRequirement.RawAttrib && itemWieldReq != WieldRequirement.Attrib
             //    && itemWieldReq != WieldRequirement.RawSecondaryAttrib && itemWieldReq != WieldRequirement.SecondaryAttrib
             //    && itemWieldReq != WieldRequirement.Training)
-            if (itemWieldReq < WieldRequirement.Skill && itemWieldReq > WieldRequirement.RawSecondaryAttrib && itemWieldReq != WieldRequirement.Training)
+            //if ((itemWieldReq >= WieldRequirement.Skill && itemWieldReq <= WieldRequirement.RawSecondaryAttrib) || itemWieldReq == WieldRequirement.Training)
+            if (itemWieldReq == WieldRequirement.RawAttrib || itemWieldReq == WieldRequirement.Attrib)
             {
                 return true;
             }
