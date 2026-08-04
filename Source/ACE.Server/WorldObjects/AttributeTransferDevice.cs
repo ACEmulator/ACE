@@ -159,10 +159,10 @@ namespace ACE.Server.WorldObjects
 
         private bool CheckWieldRequirement(Player player, WieldRequirement itemWieldReq, int? wieldSkillType, int? wieldSkillDifficulty)
         {
-            //if (itemWieldReq != WieldRequirement.RawSkill && itemWieldReq != WieldRequirement.Skill
-            //    && itemWieldReq != WieldRequirement.RawAttrib && itemWieldReq != WieldRequirement.Attrib
-            //    && itemWieldReq != WieldRequirement.RawSecondaryAttrib && itemWieldReq != WieldRequirement.SecondaryAttrib
-            //    && itemWieldReq != WieldRequirement.Training)
+            //if (itemWieldReq == WieldRequirement.RawSkill || itemWieldReq == WieldRequirement.Skill
+            //    || itemWieldReq == WieldRequirement.RawAttrib || itemWieldReq == WieldRequirement.Attrib
+            //    || itemWieldReq == WieldRequirement.RawSecondaryAttrib || itemWieldReq == WieldRequirement.SecondaryAttrib
+            //    || itemWieldReq == WieldRequirement.Training)
             //if ((itemWieldReq >= WieldRequirement.Skill && itemWieldReq <= WieldRequirement.RawSecondaryAttrib) || itemWieldReq == WieldRequirement.Training)
             if (itemWieldReq == WieldRequirement.RawAttrib || itemWieldReq == WieldRequirement.Attrib)
             {
