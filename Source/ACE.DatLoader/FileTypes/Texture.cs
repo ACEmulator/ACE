@@ -209,10 +209,15 @@ namespace ACE.DatLoader.FileTypes
                             for (uint x = 0; x < Width; x++)
                             {
                                 ushort val = reader.ReadUInt16();
-                                int alpha = (val >> 12) / 0xF * 255;
-                                int red = (val >> 8 & 0xF) / 0xF * 255;
-                                int green = (val >> 4 & 0xF) / 0xF * 255;
-                                int blue = (val & 0xF) / 0xF * 255;
+                                // Expand each 4-bit channel to 8 bits. Dividing first is
+                                // integer division: nibble / 0xF is 0 for every nibble
+                                // 0..14 and 1 only for 15, so every channel collapsed to
+                                // 0 or 255. 255 / 15 == 17 exactly, so multiplying by 17
+                                // maps 0..15 onto 0..255 with no rounding error.
+                                int alpha = (val >> 12 & 0xF) * 17;
+                                int red = (val >> 8 & 0xF) * 17;
+                                int green = (val >> 4 & 0xF) * 17;
+                                int blue = (val & 0xF) * 17;
 
                                 colors.Add(alpha);
                                 colors.Add(red);
@@ -362,9 +367,16 @@ namespace ACE.DatLoader.FileTypes
             int green_mask = 0x7E0;
             int blue_mask = 0x1F;
 
-            int red = ((val & red_mask) >> 11) << 3;
-            int green = ((val & green_mask) >> 5) << 2;
-            int blue = (val & blue_mask) << 3;
+            int r5 = (val & red_mask) >> 11;   // 0..31
+            int g6 = (val & green_mask) >> 5;  // 0..63
+            int b5 = val & blue_mask;          // 0..31
+
+            // Expand by bit replication rather than a bare shift. A plain v << 3
+            // maps 0..31 onto 0,8,16..248 and can never reach 255, so a fully
+            // saturated R5G6B5 white decoded to (248,252,248).
+            int red = (r5 << 3) | (r5 >> 2);
+            int green = (g6 << 2) | (g6 >> 4);
+            int blue = (b5 << 3) | (b5 >> 2);
 
             color.Add(red); // Red
             color.Add(green); // Green
