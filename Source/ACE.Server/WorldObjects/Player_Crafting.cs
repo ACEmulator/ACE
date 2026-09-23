@@ -324,6 +324,11 @@ namespace ACE.Server.WorldObjects
             // choose the best one
             var addStructure = Math.Max(salvageAmount, tinkeringAmount);
 
+            // modify by salvage_modifier
+            var salvageModifier = Math.Max(PropertyManager.GetDouble("salvage_modifier").Item,0);
+            var moddedAddStructure = addStructure * salvageModifier;
+            addStructure = (int)Math.Max(Math.Round(moddedAddStructure),1);
+
             var skill = salvageAmount > tinkeringAmount ? Skill.Salvaging : GetMaxSkill(TinkeringSkills).Skill;
 
             message = salvageResults.GetMessage(salvageItem.MaterialType ?? ACE.Entity.Enum.MaterialType.Unknown, skill);
