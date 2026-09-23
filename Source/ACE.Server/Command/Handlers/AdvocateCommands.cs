@@ -134,9 +134,9 @@ namespace ACE.Server.Command.Handlers
                         return;
                     }
 
-                    if (session.Player.AdvocateLevel < player.AdvocateLevel)
+                    if (session.Player.AdvocateLevel <= player.AdvocateLevel)
                     {
-                        session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot remove {playerToFind.Name}'s Advocate status because they out rank you.", ChatMessageType.Broadcast));
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot remove {playerToFind.Name}'s Advocate status because they are equal to or out rank you.", ChatMessageType.Broadcast));
                         return;
                     }
 
