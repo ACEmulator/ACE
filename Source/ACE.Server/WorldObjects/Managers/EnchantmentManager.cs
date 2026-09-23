@@ -167,7 +167,7 @@ namespace ACE.Server.WorldObjects.Managers
 
             if (refreshSpell == null)
             {
-                var newEntry = BuildEntry(spell, caster, weapon, equip);
+                var newEntry = BuildEntry(spell, caster, weapon, equip, isWeaponSpell);
                 newEntry.LayerId = result.NextLayerId;
                 WorldObject.Biota.PropertiesEnchantmentRegistry.AddEnchantment(newEntry, WorldObject.BiotaDatabaseLock);
 
@@ -1405,7 +1405,8 @@ namespace ACE.Server.WorldObjects.Managers
                 if (isDead) break;
             }
 
-            creature.TakeDamageOverTime(tickAmountTotal, damageType);
+            if (!creature.Invincible)
+                creature.TakeDamageOverTime(tickAmountTotal, damageType);
 
             if (!creature.IsAlive) return;
 

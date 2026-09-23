@@ -144,7 +144,7 @@ namespace ACE.Server.WorldObjects
             // check for exhaustion
             if (vital.Vital == PropertyAttribute2nd.Stamina || vital.Vital == PropertyAttribute2nd.MaxStamina)
             {
-                if (newVal == 0)
+                if (vital.Current == 0)
                 {
                     OnExhausted();
                 }
