@@ -28,7 +28,7 @@ namespace ACE.Server.Command
 
         public static IEnumerable<CommandHandlerInfo> GetCommandByName(string commandname)
         {
-            return commandHandlers.Select(p => p.Value).Where(p => p.Attribute.Command == commandname);
+            return commandHandlers.Select(p => p.Value).Where(p => p.Attribute.Command.Equals(commandname, StringComparison.OrdinalIgnoreCase));
         }
 
         public static CommandHandler GetDelegate(Action<Session, string[]> handler) => (CommandHandler)Delegate.CreateDelegate(typeof(CommandHandler), handler.Method);
