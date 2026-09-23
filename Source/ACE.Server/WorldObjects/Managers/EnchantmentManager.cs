@@ -1405,7 +1405,8 @@ namespace ACE.Server.WorldObjects.Managers
                 if (isDead) break;
             }
 
-            creature.TakeDamageOverTime(tickAmountTotal, damageType);
+            if (!creature.Invincible)
+                creature.TakeDamageOverTime(tickAmountTotal, damageType);
 
             if (!creature.IsAlive) return;
 
