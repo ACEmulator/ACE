@@ -30,7 +30,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            if (parameters?[0] == "commands") // Mimick @help commands command
+            if (string.Equals(parameters?[0], "commands", StringComparison.OrdinalIgnoreCase)) // Mimick @help commands command
             {
                 HandleACECommands(session, parameters);
                 return;

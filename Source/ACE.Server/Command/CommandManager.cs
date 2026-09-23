@@ -28,7 +28,7 @@ namespace ACE.Server.Command
 
         public static IEnumerable<CommandHandlerInfo> GetCommandByName(string commandname)
         {
-            return commandHandlers.Select(p => p.Value).Where(p => p.Attribute.Command == commandname);
+            return commandHandlers.Select(p => p.Value).Where(p => p.Attribute.Command.Equals(commandname, StringComparison.OrdinalIgnoreCase));
         }
 
         public static CommandHandler GetDelegate(Action<Session, string[]> handler) => (CommandHandler)Delegate.CreateDelegate(typeof(CommandHandler), handler.Method);
@@ -139,6 +139,13 @@ namespace ACE.Server.Command
                 Console.Write("ACE >> ");
 
                 string commandLine = Console.ReadLine();
+
+                if (commandLine == null)
+                {
+                    log.Info("ACEmulator command prompt disabled - console input stream was closed");
+                    return;
+                }
+
                 if (string.IsNullOrWhiteSpace(commandLine))
                     continue;
 
