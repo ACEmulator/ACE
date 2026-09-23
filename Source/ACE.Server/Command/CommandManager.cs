@@ -139,6 +139,13 @@ namespace ACE.Server.Command
                 Console.Write("ACE >> ");
 
                 string commandLine = Console.ReadLine();
+
+                if (commandLine == null)
+                {
+                    log.Info("ACEmulator command prompt disabled - console input stream was closed");
+                    return;
+                }
+
                 if (string.IsNullOrWhiteSpace(commandLine))
                     continue;
 
