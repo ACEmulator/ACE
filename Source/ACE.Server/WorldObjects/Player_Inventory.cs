@@ -2541,6 +2541,15 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
+                // We make sure the stack is still valid. It could have changed during our pickup animation
+                if (FindObject(stack.Guid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems, out stackFoundInContainer, out stackRootOwner, out _) != stack || stack.StackSize <= amount)
+                {
+                    log.DebugFormat("Player 0x{0:X8}:{1} tried to split an item that's no longer valid 0x{2:X8}:{3}.", Guid.Full, Name, stack.Guid.Full, stack.Name);
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Split failed!")); // Custom error message
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.ActionCancelled));
+                    return;
+                }
+
                 if (!AdjustStack(stack, -amount, stackFoundInContainer, stackRootOwner))
                 {
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.ActionCancelled));
@@ -3245,6 +3254,15 @@ namespace ACE.Server.WorldObjects
 
                 if (!success)
                 {
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.ActionCancelled));
+                    return;
+                }
+
+                // We make sure the item is still valid. It could have changed during our movement
+                if (FindObject(item.Guid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems, out itemFoundInContainer, out itemRootOwner, out itemWasEquipped) != item || item.StackSize < amount)
+                {
+                    log.DebugFormat("Player 0x{0:X8}:{1} tried to give an item that's no longer valid 0x{2:X8}:{3}.", Guid.Full, Name, item.Guid.Full, item.Name);
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Give failed!")); // Custom error message
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.ActionCancelled));
                     return;
                 }
