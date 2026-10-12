@@ -22,7 +22,14 @@
             // AllowUlimitedSessionsFromIPs, default []
             // Will allow the given IP addresses to have unlimited sessions - recommend only use this for Admins/Devs
             // Example: [ "127.0.0.1", "8.8.8.8" ]
-            "AllowUnlimitedSessionsFromIPAddresses": []
+            "AllowUnlimitedSessionsFromIPAddresses": [],
+
+            // TrustedProxyAddresses, default []
+            // IP addresses of trusted UDP proxies (Cloudflare Spectrum, DDoS protection, relays) that prepend a Simple Proxy Protocol header to every datagram.
+            // The client address in the header is used for the per IP address limits above, account IP addresses and admin displays. Datagrams from these addresses without the header are dropped.
+            // Leave empty unless all traffic from these addresses carries the header.
+            // Example: [ "203.0.113.10" ]
+            "TrustedProxyAddresses": []
         },
 
         "Accounts": {
