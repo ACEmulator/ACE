@@ -108,8 +108,10 @@ namespace ACE.DatLoader.Entity
                         break;
                 }
             }
+            // The minimum value is stored only when its own presence flag is set.
+            // Checking hasMax here would misalign the reader when the flags differ.
             hasMin = reader.ReadBoolean();
-            if (hasMax)
+            if (hasMin)
             {
                 switch (m_propertyType)
                 {
