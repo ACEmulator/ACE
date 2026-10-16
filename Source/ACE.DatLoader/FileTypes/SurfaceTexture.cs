@@ -11,14 +11,17 @@ namespace ACE.DatLoader.FileTypes
     [DatFileType(DatFileType.SurfaceTexture)]
     public class SurfaceTexture : FileType
     {
-        // These fields use the same serialized layout as RenderTexture.
-        // DataCategory is zero in the retail SurfaceTexture records examined;
-        // its broader meaning has not been independently established.
+        // The original client identifies ImgTex as SURFACETEXTURE (DB type 0x0B).
+        // DBObj::Serialize reads/writes this field for categorized resource types.
+        // All examined retail SurfaceTexture records have DataCategory == 0.
         public uint DataCategory { get; private set; }
 
-        // The examined retail SurfaceTexture records use TextureType.Texture2D (2).
+        // ImgTex::Serialize writes a fixed byte value of 2.
+        // RenderTexture uses TextureType.Texture2D for this value.
+        // On read, the original ImgTex serializer skips the byte without interpreting it.
         public TextureType TextureType { get; private set; }
 
+        // References to Texture resources (IDs in the 0x06 and 0x07 ranges).
         public List<uint> Textures { get; private set; } = new List<uint>(); // References to Texture (0x06) entries.
 
         public override void Unpack(BinaryReader reader)
