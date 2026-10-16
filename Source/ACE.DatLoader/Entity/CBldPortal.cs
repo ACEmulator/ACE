@@ -8,9 +8,11 @@ namespace ACE.DatLoader.Entity
     {
         public PortalFlags Flags { get; private set; }
 
-        // Not sure what these do. They are both calculated from the flags.
+        // Turbine's CBldPortal::UnPack decodes ExactMatch from bit 0 (0x0001),
+        // and PortalSide from the inverse of bit 1 (0x0002).
+        // The bit behavior is verified; the gameplay meaning of these flags is not.
         public bool ExactMatch => Flags.HasFlag(PortalFlags.ExactMatch);
-        public bool PortalSide => !Flags.HasFlag(PortalFlags.PortalSide);       // this->portal_side = ((unsigned __int8)~(_BYTE)v5 >> 1) & 1;
+        public bool PortalSide => !Flags.HasFlag(PortalFlags.PortalSide);
 
         // Basically the cells that connect both sides of the portal
         public ushort OtherCellId { get; private set; }
