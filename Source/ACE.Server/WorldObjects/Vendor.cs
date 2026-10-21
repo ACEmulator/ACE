@@ -440,6 +440,8 @@ namespace ACE.Server.WorldObjects
             var defaultItemProfiles = new List<ItemProfile>();
             var uniqueItems = new List<WorldObject>();
 
+            var requestedGuids = new HashSet<uint>();
+
             // find item profiles in default and unique items
             foreach (var itemProfile in itemProfiles)
             {
@@ -450,11 +452,25 @@ namespace ACE.Server.WorldObjects
                     return false;
                 }
 
+                if (!requestedGuids.Add(itemProfile.ObjectGuid))
+                {
+                    log.Warn($"[VENDOR] {player.Name} tried to buy duplicate item {itemProfile.ObjectGuid:X8} from {Name}");
+                    player.SendTransientError($"Invalid item");
+                    return false;
+                }
+
                 var itemGuid = new ObjectGuid(itemProfile.ObjectGuid);
 
                 // check default items
                 if (DefaultItemsForSale.TryGetValue(itemGuid, out var defaultItemForSale))
                 {
+                    // services are not limited by pack space, so only allow one per request
+                    if (itemProfile.Amount > 1 && (defaultItemForSale.GetProperty(PropertyBool.VendorService) ?? false))
+                    {
+                        player.SendTransientError($"Invalid amount");
+                        return false;
+                    }
+
                     itemProfile.WeenieClassId = defaultItemForSale.WeenieClassId;
                     itemProfile.Palette = defaultItemForSale.PaletteTemplate;
                     itemProfile.Shade = defaultItemForSale.Shade;
