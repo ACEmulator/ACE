@@ -9,7 +9,7 @@ services:
     volumes:
       - ./db-data:/var/lib/mysql
     ports:
-      - "3306:3306/tcp"
+      - "127.0.0.1:3306:3306/tcp"
     restart: unless-stopped
     healthcheck:
         test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
