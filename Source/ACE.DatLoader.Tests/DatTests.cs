@@ -142,7 +142,7 @@ namespace ACE.DatLoader.Tests
                 Assert.IsNotNull(fileType, $"Key: 0x{kvp.Key:X8}, ObjectID: 0x{kvp.Value.ObjectId:X8}, FileSize: {kvp.Value.FileSize}");
 
                 // These file types aren't converted yet
-                if (fileType == DatFileType.KeyMap) continue; // 0x14, 2 files
+                // 0x14, 2 files - KeyMap is now supported by KeyMap.cs and validated against client_portal.dat
                 if (fileType == DatFileType.RenderMaterial) continue; // 0x16, 1 file
                 if (fileType == DatFileType.MaterialModifier) continue; // 0x17, 1 file
                 if (fileType == DatFileType.MaterialInstance) continue; // 0x18, 1 file
