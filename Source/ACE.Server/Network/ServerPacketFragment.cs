@@ -1,14 +1,18 @@
 using System;
-
 using ACE.Common.Cryptography;
 
 namespace ACE.Server.Network
 {
     public class ServerPacketFragment : PacketFragment
     {
-        public ServerPacketFragment(byte[] data)
+        private readonly ReadOnlyMemory<byte> payload;
+
+        public override int Length =>
+            PacketFragmentHeader.HeaderSize + payload.Length;
+        
+        public ServerPacketFragment(ReadOnlyMemory<byte> payload)
         {
-            Data = data;
+            this.payload = payload;
         }
 
         /// <summary>
@@ -16,14 +20,20 @@ namespace ACE.Server.Network
         /// </summary>
         public uint PackAndReturnHash32(byte[] buffer, ref int offset)
         {
-            Header.Size = (ushort)(PacketFragmentHeader.HeaderSize + Data.Length);
+            Header.Size = 
+                (ushort)(PacketFragmentHeader.HeaderSize + payload.Length);
 
-            var headerHash32 = Header.PackAndReturnHash32(buffer, ref offset);
+            var headerHash32 = 
+                Header.PackAndReturnHash32(buffer, ref offset);
 
-            Buffer.BlockCopy(Data, 0, buffer, offset, Data.Length);
-            offset += Data.Length;
+            // Copies directly from our read-only view into the final packet.
+            payload.Span.CopyTo(
+                buffer.AsSpan(offset, payload.Length));
 
-            return headerHash32 + Hash32.Calculate(Data, Data.Length);
+            offset += payload.Length;
+
+            return headerHash32 + 
+                Hash32.Calculate(payload.Span, payload.Length);
         }
     }
 }
