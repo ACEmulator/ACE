@@ -45,5 +45,17 @@ namespace ACE.Common
         /// <remarks>
         /// </remarks>
         public string[] AllowUnlimitedSessionsFromIPAddresses { get; set; } = { };
+
+        /// <summary>
+        /// IP addresses of trusted UDP proxies (Cloudflare Spectrum, DDoS protection, relays) that prepend a Simple Proxy Protocol header to every datagram.
+        /// </summary>
+        /// <remarks>
+        /// Datagrams from these addresses must start with a Simple Proxy Protocol header, otherwise they are dropped.
+        /// The client address in the header is used as the session's IP address for MaximumAllowedSessionsPerIPAddress, AllowUnlimitedSessionsFromIPAddresses, account IP addresses and admin displays.
+        /// Packets sent to these addresses are prepended with the header the proxy sent.
+        /// Datagrams from any other address are processed as normal. Leave empty to disable.
+        /// Reference: https://developers.cloudflare.com/spectrum/reference/simple-proxy-protocol-header/
+        /// </remarks>
+        public string[] TrustedProxyAddresses { get; set; } = { };
     }
 }

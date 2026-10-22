@@ -43,11 +43,13 @@ namespace ACE.Server.Network
             }
         }
 
-        public void CreateReadyToSendPacket(byte[] buffer, out int size)
+        /// <param name="start">The position in buffer to write the packet at</param>
+        /// <param name="size">The size of the packet, not including start</param>
+        public void CreateReadyToSendPacket(byte[] buffer, out int size, int start = 0)
         {
             uint payloadChecksum = 0u;
 
-            int offset = PacketHeader.HeaderSize;
+            int offset = start + PacketHeader.HeaderSize;
 
             if (Data != null && Data.Length > 0)
             {
@@ -61,14 +63,14 @@ namespace ACE.Server.Network
             foreach (ServerPacketFragment fragment in Fragments)
                 payloadChecksum += fragment.PackAndReturnHash32(buffer, ref offset);
 
-            size = offset;
+            size = offset - start;
 
             Header.Size = (ushort)(size - PacketHeader.HeaderSize);
 
             var headerChecksum = Header.CalculateHash32();
             finalChecksum = headerChecksum + payloadChecksum;
             Header.Checksum = headerChecksum + (payloadChecksum ^ issacXor);
-            Header.Pack(buffer);
+            Header.Pack(buffer, start);
         }
 
         public override string ToString()

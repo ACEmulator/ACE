@@ -29,6 +29,21 @@ namespace ACE.Server.Network
 
         public IPEndPoint EndPointS2C { get; private set; }
 
+        /// <summary>
+        /// The IP address of the client. When the client connects through a trusted proxy, this is the client address from the Simple Proxy Protocol header, otherwise it is the address of EndPointC2S.
+        /// </summary>
+        public IPAddress ClientAddress { get; }
+
+        /// <summary>
+        /// The Simple Proxy Protocol header received on the C2S connection, or null if the session is not proxied.
+        /// </summary>
+        public SimpleProxyProtocolHeader ProxyHeaderC2S { get; }
+
+        /// <summary>
+        /// The Simple Proxy Protocol header received on the S2C connection, or null if the session is not proxied.
+        /// </summary>
+        public SimpleProxyProtocolHeader ProxyHeaderS2C { get; private set; }
+
         public NetworkSession Network { get; set; }
 
         public uint GameEventSequence { get; set; }
@@ -84,9 +99,11 @@ namespace ACE.Server.Network
         /// </summary>
         public DateTime LastPassTime { get; set; }
 
-        public Session(ConnectionListener connectionListener, IPEndPoint endPoint, ushort clientId, ushort serverId)
+        public Session(ConnectionListener connectionListener, IPEndPoint endPoint, ushort clientId, ushort serverId, SimpleProxyProtocolHeader proxyHeader = null)
         {
             EndPointC2S = endPoint;
+            ProxyHeaderC2S = proxyHeader;
+            ClientAddress = proxyHeader?.ClientAddress ?? endPoint.Address;
             Network = new NetworkSession(this, connectionListener, clientId, serverId);
         }
 
@@ -350,9 +367,10 @@ namespace ACE.Server.Network
         }
 
 
-        public void SetS2CEndpoint(IPEndPoint endPoint)
+        public void SetS2CEndpoint(IPEndPoint endPoint, SimpleProxyProtocolHeader proxyHeader)
         {
             EndPointS2C = endPoint;
+            ProxyHeaderS2C = proxyHeader;
         }
       
         /// <summary>

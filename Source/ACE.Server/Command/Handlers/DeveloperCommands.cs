@@ -2452,7 +2452,7 @@ namespace ACE.Server.Command.Handlers
                 //    player.LogOut();
 
                 var msg = $"Player {player.Name} (0x{player.Guid}) found in PlayerManager.onlinePlayers.\n";
-                msg += $"------- Session: {(player.Session != null ? $"C2S: {player.Session.EndPointC2S} | S2C: {player.Session.EndPointS2C}" : "NULL")}\n";
+                msg += $"------- Session: {(player.Session != null ? $"C2S: {player.Session.EndPointC2S} | S2C: {player.Session.EndPointS2C}{(player.Session.ProxyHeaderC2S != null ? $" | Client IP: {player.Session.ClientAddress} via proxy" : "")}" : "NULL")}\n";
                 msg += $"------- CurrentLandblock: {(player.CurrentLandblock != null ? $"0x{player.CurrentLandblock.Id:X4}" : "NULL")}\n";
                 msg += $"------- Location: {(player.Location != null ? $"{player.Location.ToLOCString()}" : "NULL")}\n";
                 msg += $"------- IsLoggingOut: {player.IsLoggingOut}\n";
@@ -2522,7 +2522,7 @@ namespace ACE.Server.Command.Handlers
             if (target != null && target is Player player)
             {
                 if (player.Session != null)
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"Session IP: {player.Session.EndPointC2S.Address} | C2S Port: {player.Session.EndPointC2S.Port} | S2C Port: {player.Session.EndPointS2C?.Port} | ClientId: {player.Session.Network.ClientId} is connected to Character: {player.Name} (0x{player.Guid.Full.ToString("X8")}), Account: {player.Account.AccountName} ({player.Account.AccountId})", ChatMessageType.Broadcast));
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Session IP: {player.Session.ClientAddress}{(player.Session.ProxyHeaderC2S != null ? $" via proxy {player.Session.EndPointC2S.Address}" : "")} | C2S Port: {player.Session.EndPointC2S.Port} | S2C Port: {player.Session.EndPointS2C?.Port} | ClientId: {player.Session.Network.ClientId} is connected to Character: {player.Name} (0x{player.Guid.Full.ToString("X8")}), Account: {player.Account.AccountName} ({player.Account.AccountId})", ChatMessageType.Broadcast));
                 else
                     session.Network.EnqueueSend(new GameMessageSystemChat($"Session is null for {player.Name} which shouldn't occur.", ChatMessageType.Broadcast));
             }

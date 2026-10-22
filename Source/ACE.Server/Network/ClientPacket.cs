@@ -19,19 +19,21 @@ namespace ACE.Server.Network
         /// <summary>
         /// If you pass in a shared buffer, be sure to ReleaseBuffer() after you've processed the packet, and before you use the buffer again for the next job.
         /// </summary>
-        public bool Unpack(byte[] buffer, int bufferSize)
+        /// <param name="bufferSize">The number of bytes of packet data, starting at offset</param>
+        /// <param name="offset">The position in buffer the packet starts at</param>
+        public bool Unpack(byte[] buffer, int bufferSize, int offset = 0)
         {
             try
             {
                 if (bufferSize < PacketHeader.HeaderSize)
                     return false;
 
-                Header.Unpack(buffer);
+                Header.Unpack(buffer, offset);
 
                 if (Header.Size > bufferSize - PacketHeader.HeaderSize)
                     return false;
 
-                Data = new MemoryStream(buffer, PacketHeader.HeaderSize, Header.Size, false, true);
+                Data = new MemoryStream(buffer, offset + PacketHeader.HeaderSize, Header.Size, false, true);
                 DataReader = new BinaryReader(Data);
                 HeaderOptional.Unpack(DataReader, Header);
 
