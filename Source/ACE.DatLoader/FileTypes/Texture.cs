@@ -17,7 +17,10 @@ namespace ACE.DatLoader.FileTypes
     [DatFileType(DatFileType.Texture)]
     public class Texture : FileType
     {
-        public int Unknown { get; set; }
+        // RenderSurface inherits m_dataCategory from DBObj.
+        // The original client serializes this field for categorized resources.
+        // The meaning of individual category values has not yet been established.
+        public uint DataCategory { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
         public SurfacePixelFormat Format { get; set; }
@@ -32,7 +35,7 @@ namespace ACE.DatLoader.FileTypes
         public override void Unpack(BinaryReader reader)
         {
             Id = reader.ReadUInt32();
-            Unknown = reader.ReadInt32();
+            DataCategory = reader.ReadUInt32();
             Width = reader.ReadInt32();
             Height = reader.ReadInt32();
             Format = (SurfacePixelFormat)reader.ReadUInt32();
