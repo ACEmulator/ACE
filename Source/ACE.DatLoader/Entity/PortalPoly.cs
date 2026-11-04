@@ -9,8 +9,9 @@ namespace ACE.DatLoader.Entity
 
         public void Unpack(BinaryReader reader)
         {
-            PortalIndex = reader.ReadInt16();
+            // Native BSPPORTAL layout: polygon ID, then portal index.
             PolygonId   = reader.ReadInt16();
+            PortalIndex = reader.ReadInt16();
         }
     }
 }
