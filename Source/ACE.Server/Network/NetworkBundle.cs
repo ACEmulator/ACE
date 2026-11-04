@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 namespace ACE.Server.Network
 {
-
     internal class NetworkBundle
     {
         private bool propChanged;
@@ -53,6 +52,7 @@ namespace ACE.Server.Network
 
         public void Enqueue(GameMessage message)
         {
+            message.GetFrozenData();
             CurrentSize += (int)message.Data.Length;
             messages.Enqueue(message);
         }

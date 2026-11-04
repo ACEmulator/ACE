@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 
 namespace ACE.Server.Network.GameMessages
 {
@@ -11,6 +12,39 @@ namespace ACE.Server.Network.GameMessages
         public System.IO.MemoryStream Data { get; private set; }
 
         protected System.IO.BinaryWriter Writer { get; private set; }
+        // Once a GameMessage enters the outbound network path, its serialized
+        // representation is frozen here. Multiple sessions can safely share
+        // this snapshot because the network path only exposes it as read-only.
+        private byte[] frozenData;
+
+        internal ReadOnlyMemory<byte> GetFrozenData()
+        {
+            var snapshot = Volatile.Read(ref frozenData);
+
+            if (snapshot != null)
+                return snapshot;
+
+            // Writer already exists for every GameMessage, so use it as the
+            // synchronization object instead of allocating another lock object.
+            lock (Writer)
+            {
+                snapshot = frozenData;
+
+                if (snapshot == null)
+                {
+                    Writer.Flush();
+
+                    // ToArray() does NOT change MemoryStream.Position.
+                    // This is the only payload copy made for this GameMessage,
+                    // regardless of how many sessions receive it.
+                    snapshot = Data.ToArray();
+
+                    Volatile.Write(ref frozenData, snapshot);
+                }
+            }
+
+            return snapshot;
+        }
 
         protected GameMessage(GameMessageOpcode opCode, GameMessageGroup group)
         {
