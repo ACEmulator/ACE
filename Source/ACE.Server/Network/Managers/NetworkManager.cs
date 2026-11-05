@@ -42,8 +42,12 @@ namespace ACE.Server.Network.Managers
         /// </summary>
         public static readonly ActionQueue InboundMessageQueue = new ActionQueue();
 
-        public static void ProcessPacket(ConnectionListener connectionListener, ClientPacket packet, IPEndPoint endPoint)
+        /// <param name="proxyHeader">The Simple Proxy Protocol header when the packet came from a trusted proxy, otherwise null</param>
+        public static void ProcessPacket(ConnectionListener connectionListener, ClientPacket packet, IPEndPoint endPoint, SimpleProxyProtocolHeader proxyHeader = null)
         {
+            var clientAddress = proxyHeader?.ClientAddress ?? endPoint.Address;
+            var source = (object)proxyHeader ?? endPoint;
+
             if (connectionListener.ListenerEndpoint.Port == ConfigManager.Config.Server.Network.Port + 1)
             {
                 //ServerPerformanceMonitor.RestartEvent(ServerPerformanceMonitor.MonitorType.ProcessPacket_1);
@@ -72,9 +76,13 @@ namespace ACE.Server.Network.Managers
                     {
                         sessionLock.ExitReadLock();
                     }
-                    if (session != null)
+                    if (session != null && !session.ClientAddress.Equals(clientAddress))
                     {
-                        session.SetS2CEndpoint(endPoint);
+                        log.DebugFormat("ConnectResponse from {0} dropped. Session has client IP {1}", source, session.ClientAddress);
+                    }
+                    else if (session != null)
+                    {
+                        session.SetS2CEndpoint(endPoint, proxyHeader);
                         session.State = SessionState.AuthConnected;
                         session.Network.sendResync = true;
                         AuthenticationHandler.HandleConnectResponse(session);
@@ -100,49 +108,53 @@ namespace ACE.Server.Network.Managers
                         packetLog.DebugFormat("{0}, {1}", packet, endPoint);
                     if (GetAuthenticatedSessionCount() >= ConfigManager.Config.Server.Network.MaximumAllowedSessions)
                     {
-                        log.InfoFormat("Login Request from {0} rejected. Server full.", endPoint);
-                        SendLoginRequestReject(connectionListener, endPoint, CharacterError.LogonServerFull);
+                        log.InfoFormat("Login Request from {0} rejected. Server full.", source);
+                        SendLoginRequestReject(connectionListener, endPoint, proxyHeader, CharacterError.LogonServerFull);
                     }
                     else if (ServerManager.ShutdownInProgress)
                     {
-                        log.InfoFormat("Login Request from {0} rejected. Server is shutting down.", endPoint);
-                        SendLoginRequestReject(connectionListener, endPoint, CharacterError.ServerCrash1);
+                        log.InfoFormat("Login Request from {0} rejected. Server is shutting down.", source);
+                        SendLoginRequestReject(connectionListener, endPoint, proxyHeader, CharacterError.ServerCrash1);
                     }
                     else if (ServerManager.ShutdownInitiated && (ServerManager.ShutdownTime - DateTime.UtcNow).TotalMinutes < 2)
                     {
-                        log.InfoFormat("Login Request from {0} rejected. Server shutting down in less than 2 minutes.", endPoint);
-                        SendLoginRequestReject(connectionListener, endPoint, CharacterError.ServerCrash1);
+                        log.InfoFormat("Login Request from {0} rejected. Server shutting down in less than 2 minutes.", source);
+                        SendLoginRequestReject(connectionListener, endPoint, proxyHeader, CharacterError.ServerCrash1);
                     }
                     else
                     {
-                        log.DebugFormat("Login Request from {0}", endPoint);
+                        log.DebugFormat("Login Request from {0}", source);
 
-                        var ipAllowsUnlimited = ConfigManager.Config.Server.Network.AllowUnlimitedSessionsFromIPAddresses.Contains(endPoint.Address.ToString());
-                        if (ipAllowsUnlimited || ConfigManager.Config.Server.Network.MaximumAllowedSessionsPerIPAddress == -1 || GetSessionEndpointTotalByAddressCount(endPoint.Address) < ConfigManager.Config.Server.Network.MaximumAllowedSessionsPerIPAddress)
+                        var ipAllowsUnlimited = ConfigManager.Config.Server.Network.AllowUnlimitedSessionsFromIPAddresses.Contains(clientAddress.ToString());
+                        if (ipAllowsUnlimited || ConfigManager.Config.Server.Network.MaximumAllowedSessionsPerIPAddress == -1 || GetSessionEndpointTotalByAddressCount(clientAddress) < ConfigManager.Config.Server.Network.MaximumAllowedSessionsPerIPAddress)
                         {
-                            var session = FindOrCreateSession(connectionListener, endPoint);
-                            if (session != null)
+                            var session = FindOrCreateSession(connectionListener, endPoint, proxyHeader);
+                            if (session != null && !session.ClientAddress.Equals(clientAddress))
+                            {
+                                log.DebugFormat("Login Request from {0} dropped. Session for this endpoint has client IP {1}", source, session.ClientAddress);
+                            }
+                            else if (session != null)
                             {
                                 if (session.State == SessionState.AuthConnectResponse)
                                 {
                                     // connect request packet sent to the client was corrupted in transit and session entered an unspecified state.
                                     // ignore the request and remove the broken session and the client will start a new session.
                                     RemoveSession(session);
-                                    log.Warn($"Bad handshake from {endPoint}, aborting session.");
+                                    log.Warn($"Bad handshake from {source}, aborting session.");
                                 }
 
                                 session.ProcessPacket(packet);
                             }
                             else
                             {
-                                log.InfoFormat("Login Request from {0} rejected. Failed to find or create session.", endPoint);
-                                SendLoginRequestReject(connectionListener, endPoint, CharacterError.LogonServerFull);
+                                log.InfoFormat("Login Request from {0} rejected. Failed to find or create session.", source);
+                                SendLoginRequestReject(connectionListener, endPoint, proxyHeader, CharacterError.LogonServerFull);
                             }
                         }
                         else
                         {
-                            log.InfoFormat("Login Request from {0} rejected. Session would exceed MaximumAllowedSessionsPerIPAddress limit.", endPoint);
-                            SendLoginRequestReject(connectionListener, endPoint, CharacterError.LogonServerFull);
+                            log.InfoFormat("Login Request from {0} rejected. Session would exceed MaximumAllowedSessionsPerIPAddress limit.", source);
+                            SendLoginRequestReject(connectionListener, endPoint, proxyHeader, CharacterError.LogonServerFull);
                         }
                     }
                 }
@@ -151,10 +163,12 @@ namespace ACE.Server.Network.Managers
                     var session = sessionMap[packet.Header.Id];
                     if (session != null)
                     {
-                        if (session.EndPointC2S.Equals(endPoint))
-                            session.ProcessPacket(packet);
-                        else
+                        if (!session.EndPointC2S.Equals(endPoint))
                             log.DebugFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPointC2S, endPoint);
+                        else if (!session.ClientAddress.Equals(clientAddress))
+                            log.DebugFormat("Session for Id {0} has client IP {1} but packet is from {2}", packet.Header.Id, session.ClientAddress, source);
+                        else
+                            session.ProcessPacket(packet);
                     }
                     else
                     {
@@ -169,9 +183,9 @@ namespace ACE.Server.Network.Managers
             }
         }
 
-        private static void SendLoginRequestReject(ConnectionListener connectionListener, IPEndPoint endPoint, CharacterError error)
+        private static void SendLoginRequestReject(ConnectionListener connectionListener, IPEndPoint endPoint, SimpleProxyProtocolHeader proxyHeader, CharacterError error)
         {
-            var tempSession = new Session(connectionListener, endPoint, (ushort)(sessionMap.Length + 1), ServerId);
+            var tempSession = new Session(connectionListener, endPoint, (ushort)(sessionMap.Length + 1), ServerId, proxyHeader);
 
             SendLoginRequestReject(tempSession, error);
         }
@@ -230,7 +244,7 @@ namespace ACE.Server.Network.Managers
                 foreach (var s in sessionMap)
                 {
                     if (s != null)
-                        ipAddresses.Add(s.EndPointC2S.Address);
+                        ipAddresses.Add(s.ClientAddress);
                 }
 
                 return ipAddresses.Count;
@@ -250,7 +264,7 @@ namespace ACE.Server.Network.Managers
 
                 foreach (var s in sessionMap)
                 {
-                    if (s != null && s.EndPointC2S.Address.Equals(address))
+                    if (s != null && s.ClientAddress.Equals(address))
                         result++;
                 }
 
@@ -262,7 +276,7 @@ namespace ACE.Server.Network.Managers
             }
         }
 
-        public static Session FindOrCreateSession(ConnectionListener connectionListener, IPEndPoint endPoint)
+        public static Session FindOrCreateSession(ConnectionListener connectionListener, IPEndPoint endPoint, SimpleProxyProtocolHeader proxyHeader = null)
         {
             Session session;
 
@@ -280,7 +294,7 @@ namespace ACE.Server.Network.Managers
                             if (sessionMap[i] == null)
                             {
                                 log.DebugFormat("Creating new session for {0} with id {1}", endPoint, i);
-                                session = new Session(connectionListener, endPoint, i, ServerId);
+                                session = new Session(connectionListener, endPoint, i, ServerId, proxyHeader);
                                 sessionMap[i] = session;
                                 break;
                             }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 
 using log4net;
 
+using ACE.Common;
 using ACE.Server.Network.Managers;
 
 namespace ACE.Server.Network
@@ -23,7 +25,9 @@ namespace ACE.Server.Network
 
         private readonly uint listeningPort;
 
-        private readonly byte[] buffer = new byte[ClientPacket.MaxPacketSize];
+        private static readonly HashSet<IPAddress> trustedProxyAddresses = SimpleProxyProtocolHeader.ParseTrustedProxyAddresses(ConfigManager.Config.Server.Network.TrustedProxyAddresses);
+
+        private readonly byte[] buffer = new byte[ClientPacket.MaxPacketSize + (trustedProxyAddresses.Count > 0 ? SimpleProxyProtocolHeader.HeaderSize : 0)];
 
         private readonly IPAddress listeningHost;
 
@@ -112,12 +116,19 @@ namespace ACE.Server.Network
                     packetLog.DebugFormat("{0}", sb);
                 }
 
-                var packet = new ClientPacket();
+                if (SimpleProxyProtocolHeader.TryUnwrap(buffer, dataSize, ipEndpoint.Address, trustedProxyAddresses, out var proxyHeader))
+                {
+                    var offset = proxyHeader != null ? SimpleProxyProtocolHeader.HeaderSize : 0;
 
-                if (packet.Unpack(buffer, dataSize))
-                    NetworkManager.ProcessPacket(this, packet, ipEndpoint);
+                    var packet = new ClientPacket();
 
-                packet.ReleaseBuffer();
+                    if (packet.Unpack(buffer, dataSize - offset, offset))
+                        NetworkManager.ProcessPacket(this, packet, ipEndpoint, proxyHeader);
+
+                    packet.ReleaseBuffer();
+                }
+                else
+                    log.DebugFormat("Datagram (Len: {0}) from {1} dropped. Missing or invalid Simple Proxy Protocol header, or too large.", dataSize, ipEndpoint);
             }
             catch (SocketException socketException)
             {

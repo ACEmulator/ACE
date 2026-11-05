@@ -80,7 +80,7 @@ namespace ACE.Server.Network.Handlers
                             log.Warn($"Automatically setting account AccessLevel to Admin for account \"{loginRequest.Account}\" because there are no admin accounts in the current database.");
                         }
 
-                        account = DatabaseManager.Authentication.CreateAccount(loginRequest.Account.ToLower(), loginRequest.Password, accessLevel, session.EndPointC2S.Address);
+                        account = DatabaseManager.Authentication.CreateAccount(loginRequest.Account.ToLower(), loginRequest.Password, accessLevel, session.ClientAddress);
                     }
                 }
             }
@@ -227,7 +227,7 @@ namespace ACE.Server.Network.Handlers
                 }
             }
 
-            account.UpdateLastLogin(session.EndPointC2S.Address);
+            account.UpdateLastLogin(session.ClientAddress);
 
             session.SetAccount(account.AccountId, account.AccountName, (AccessLevel)account.AccessLevel);
             session.State = SessionState.AuthConnectResponse;
