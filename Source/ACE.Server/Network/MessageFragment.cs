@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 
 using ACE.Server.Network.GameMessages;
 
@@ -12,6 +11,8 @@ namespace ACE.Server.Network
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly ILog packetLog = LogManager.GetLogger(System.Reflection.Assembly.GetEntryAssembly(), "Packets");
 
+        private readonly ReadOnlyMemory<byte> data;
+
         public GameMessage Message { get; private set; }
 
         public uint Sequence { get; set; }
@@ -20,7 +21,7 @@ namespace ACE.Server.Network
 
         public ushort Count { get; set; }
 
-        public int DataLength => (int)Message.Data.Length;
+        public int DataLength => data.Length;
 
         public int DataRemaining { get; private set; }
 
@@ -35,13 +36,25 @@ namespace ACE.Server.Network
             }
         }
 
-        public int TailSize => PacketFragmentHeader.HeaderSize + (DataLength % PacketFragment.MaxFragmentDataSize);
+        public int TailSize 
+        {
+            get
+            {
+                var tailDataSize = DataLength % PacketFragment.MaxFragmentDataSize;
+
+                if (DataLength > 0 && tailDataSize == 0)
+                    tailDataSize = PacketFragment.MaxFragmentDataSize;
+
+                return PacketFragmentHeader.HeaderSize + tailDataSize;
+            }
+        }
 
         public bool TailSent { get; private set; }
 
         public MessageFragment(GameMessage message, uint sequence)
         {
             Message = message;
+            data = message.GetFrozenData();
             DataRemaining = DataLength;
             Sequence = sequence;
             Count = (ushort)(Math.Ceiling((double)DataLength / PacketFragment.MaxFragmentDataSize));
@@ -85,13 +98,12 @@ namespace ACE.Server.Network
             if (DataRemaining < dataToSend)
                 throw new InvalidOperationException("More data to send then data remaining!");
 
-            // Read data starting at position reading dataToSend bytes
-            Message.Data.Seek(position, SeekOrigin.Begin);
-            byte[] data = new byte[dataToSend];
-            Message.Data.Read(data, 0, dataToSend);
+            // Create a read-only view into the frozen message data.
+            // No shared MemoryStream cursor and no per-fragment byte[] allocation.
+            var fragmentData = data.Slice(position, dataToSend);
 
             // Build ServerPacketFragment structure
-            ServerPacketFragment fragment = new ServerPacketFragment(data);
+            ServerPacketFragment fragment = new ServerPacketFragment(fragmentData);
             fragment.Header.Sequence = Sequence;
             fragment.Header.Id = 0x80000000;
             fragment.Header.Count = Count;
