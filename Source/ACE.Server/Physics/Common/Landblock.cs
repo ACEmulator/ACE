@@ -28,7 +28,6 @@ namespace ACE.Server.Physics.Common
         public LandblockInfo Info;
         public List<PhysicsObj> StaticObjects;
         public List<BuildingObj> Buildings;
-        public List<ushort> StabList;
         public List<LandCell> DrawArray;
         public List<PhysicsObj> Scenery;
         public List<PhysicsObj> ServerObjects { get; set; }
@@ -154,7 +153,6 @@ namespace ACE.Server.Physics.Common
                 building.remove();
 
             Buildings.Clear();
-            StabList.Clear();
         }
 
         public void destroy_static_objects()
@@ -426,15 +424,13 @@ namespace ACE.Server.Physics.Common
 
         public void grab_visible_cells()
         {
-            // legacy method
-            //EnvCell.grab_visible(StabList);
+            // Legacy visibility tracking is inactive.
         }
 
         public void init_buildings()
         {
             if (Info == null || SideCellCount != 8) return;
 
-            uint maxSize = 0, stabNum = 0;
             foreach (var info in Info.Buildings)
             {
                 var building = BuildingObj.makeBuilding(info.ModelId, info.Portals, info.NumLeaves);
@@ -451,7 +447,6 @@ namespace ACE.Server.Physics.Common
 
                 building.add_to_cell(cell); // SortCell?
                 Buildings.Add(building);
-                building.add_to_stablist(ref StabList, ref maxSize, ref stabNum);
             }
         }
 
@@ -562,8 +557,7 @@ namespace ACE.Server.Physics.Common
 
         public void release_visible_cells()
         {
-            // legacy method
-            //EnvCell.release_visible(StabList);
+            // Legacy visibility tracking is inactive.
         }
 
         private bool? isDungeon;

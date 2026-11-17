@@ -30,12 +30,6 @@ namespace ACE.Server.Physics.Common
             CurCell = newCell;
         }
 
-        public void add_to_stablist(ref List<ushort> blockStabList, ref uint maxSize, ref uint stabNum)
-        {
-            foreach (var portal in Portals)
-                portal.add_to_stablist(ref blockStabList, ref maxSize, ref stabNum);
-        }
-
         public TransitionState find_building_collisions(Transition transition)
         {
             if (PartArray == null)
