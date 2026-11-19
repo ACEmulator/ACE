@@ -777,7 +777,11 @@ namespace ACE.Server.Network
 
         private void SendPacketRaw(ServerPacket packet)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent((int)(PacketHeader.HeaderSize + (packet.Data?.Length ?? 0) + (packet.Fragments.Count * PacketFragment.MaxFragementSize)));
+            // Packets to a proxied session start with the Simple Proxy Protocol header the proxy sent on that connection.
+            var proxyHeader = (session.EndPointS2C is null) ? session.ProxyHeaderC2S : session.ProxyHeaderS2C;
+            var proxyHeaderSize = (proxyHeader is null) ? 0 : SimpleProxyProtocolHeader.HeaderSize;
+
+            byte[] buffer = ArrayPool<byte>.Shared.Rent((int)(proxyHeaderSize + PacketHeader.HeaderSize + (packet.Data?.Length ?? 0) + (packet.Fragments.Count * PacketFragment.MaxFragementSize)));
 
             try
             {
@@ -785,7 +789,9 @@ namespace ACE.Server.Network
                 var socket = (session.EndPointS2C is null) ? connectionC2S.Socket : connectionS2C.Socket;
                 var endPoint = (session.EndPointS2C is null) ? session.EndPointC2S : session.EndPointS2C;
 
-                packet.CreateReadyToSendPacket(buffer, out var size);
+                proxyHeader?.Pack(buffer);
+
+                packet.CreateReadyToSendPacket(buffer, out var size, proxyHeaderSize);
 
                 if (packetLog.IsDebugEnabled)
                     packetLog.DebugFormat("{0}", packet);
@@ -795,13 +801,13 @@ namespace ACE.Server.Network
                     var listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
                     var sb = new StringBuilder();
                     sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", size, listenerEndpoint.Address, listenerEndpoint.Port, endPoint.Address, endPoint.Port, session.Network.ClientId));
-                    sb.AppendLine(buffer.BuildPacketString(0, size));
+                    sb.AppendLine(buffer.BuildPacketString(proxyHeaderSize, size));
                     packetLog.DebugFormat("{0}", sb);
                 }
 
                 try
                 {
-                    socket.SendTo(buffer, size, SocketFlags.None, endPoint);
+                    socket.SendTo(buffer, proxyHeaderSize + size, SocketFlags.None, endPoint);
                 }
                 catch (SocketException ex)
                 {
