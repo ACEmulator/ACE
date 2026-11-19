@@ -3051,8 +3051,10 @@ namespace ACE.Server.WorldObjects
                         if (DoHandleActionStackableMerge(sourceStack, targetStack, amount))
                         {
                             // If the client used the R key to merge a partial stack from the landscape, it also tries to add the "ghosted" item of the picked up stack to the inventory as well.
-                            if (sourceStackRootOwner != this && sourceStack.StackSize > 0)
-                                Session.Network.EnqueueSend(new GameMessageCreateObject(sourceStack));
+                            StackableMergeMessageHelper.EnqueueCreateObjectForRemainingSourceStack(
+                                sourceStack,
+                                sourceStackRootOwner == this,
+                                stack => Session.Network.EnqueueSend(new GameMessageCreateObject(stack)));
 
                             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
