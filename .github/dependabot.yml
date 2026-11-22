@@ -26,7 +26,7 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "log4net"
         update-types: ["version-update:semver-major"]
-      - dependency-name: "Pomelo.EntityFrameworkCore.MySql"
+      - dependency-name: "Microting.EntityFrameworkCore.MySql"
         update-types: ["version-update:semver-major"]  
 
   # Maintain dependencies for Docker
