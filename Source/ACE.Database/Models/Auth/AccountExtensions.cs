@@ -1,6 +1,7 @@
-using ACE.Common.Cryptography;
+using Microsoft.Extensions.Logging;
 
-using log4net;
+using ACE.Common.Cryptography;
+using ACE.Common.Logging;
 
 using System;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace ACE.Database.Models.Auth
 {
     public static class AccountExtensions
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public static bool PasswordMatches(this Account account, string password)
         {

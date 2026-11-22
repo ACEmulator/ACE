@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 
 using ACE.Common;
+using ACE.Common.Logging;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;

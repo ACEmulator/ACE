@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 
+using ACE.Common.Logging;
 using ACE.DatLoader.Entity.AnimationHooks;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;

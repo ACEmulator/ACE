@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 
-using log4net;
+using Microsoft.Extensions.Logging;
 
 using ACE.Common;
+using ACE.Common.Logging;
 using ACE.Common.Performance;
 using ACE.Database;
 using ACE.Database.Models.Shard;
@@ -23,7 +24,7 @@ namespace ACE.Server.Network
 {
     public class Session
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public IPEndPoint EndPointC2S { get; }
 

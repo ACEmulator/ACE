@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Concurrent;
 
+using ACE.Common.Logging;
+
 namespace ACE.Server.Entity.Actions
 {
     public class ActionQueue : IActor

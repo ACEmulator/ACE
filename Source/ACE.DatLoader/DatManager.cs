@@ -1,12 +1,14 @@
 using System.IO;
 
-using log4net;
+using Microsoft.Extensions.Logging;
+
+using ACE.Common.Logging;
 
 namespace ACE.DatLoader
 {
     public static class DatManager
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private static string datFile;
 

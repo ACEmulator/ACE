@@ -1,5 +1,6 @@
-using log4net;
+using Microsoft.Extensions.Logging;
 
+using ACE.Common.Logging;
 using ACE.Database.Models.World;
 using ACE.Server.Factories.Entity;
 using ACE.Server.WorldObjects;
@@ -8,7 +9,7 @@ namespace ACE.Server.Factories.Tables
 {
     public static class GearRatingChance
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 
         private static ChanceTable<bool> RatingChance = new ChanceTable<bool>()

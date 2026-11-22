@@ -6,14 +6,17 @@ using System.Runtime;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-using log4net;
 using log4net.Config;
+
+using Microsoft.Extensions.Logging;
 
 using ACE.Common;
 using ACE.Common.Extensions;
+using ACE.Common.Logging;
 using ACE.Database;
 using ACE.DatLoader;
 using ACE.Server.Command;
+using ACE.Server.Logging;
 using ACE.Server.Managers;
 using ACE.Server.Mods;
 using ACE.Server.Network.Managers;
@@ -37,7 +40,7 @@ namespace ACE.Server
         [DllImport("winmm.dll", EntryPoint = "timeEndPeriod")]
         public static extern uint MM_EndPeriod(uint uMilliseconds);
 
-        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public static readonly bool IsRunningInContainer = Convert.ToBoolean(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"));
 
@@ -104,8 +107,12 @@ namespace ACE.Server
                 }
             }
 
-            var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
+            var logRepository = log4net.LogManager.GetRepository(Assembly.GetEntryAssembly());
             XmlConfigurator.ConfigureAndWatch(logRepository, log4netFileInfo);
+
+            // Route Microsoft.Extensions.Logging into log4net. Every logger created so far (static fields
+            // initialised before Main) picks this provider up retroactively; log4net.config still governs output.
+            LogManager.Factory.AddProvider(new Log4NetBridgeProvider(logRepository));
 
             if (Environment.ProcessorCount < 2)
                 log.Warn("Only one vCPU was detected. ACE may run with limited performance. You should increase your vCPU count for anything more than a single player server.");

@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading;
 
 using ACE.Common;
+using ACE.Common.Logging;
 
 namespace ACE.Server
 {

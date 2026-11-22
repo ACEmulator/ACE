@@ -3,9 +3,10 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading;
 
-using log4net;
+using Microsoft.Extensions.Logging;
 
 using ACE.Common;
+using ACE.Common.Logging;
 using ACE.Common.Performance;
 using ACE.Database;
 using ACE.Database.Entity;
@@ -29,7 +30,7 @@ namespace ACE.Server.Managers
 {
     public static class WorldManager
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly PhysicsEngine Physics;
 

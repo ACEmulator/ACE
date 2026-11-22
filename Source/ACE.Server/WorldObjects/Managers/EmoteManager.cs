@@ -4,8 +4,11 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
 using ACE.Common.Extensions;
+using ACE.Common.Logging;
 using ACE.Database;
 using ACE.DatLoader;
 using ACE.Entity;
@@ -20,8 +23,6 @@ using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
-using log4net;
-
 using Position = ACE.Entity.Position;
 using Spell = ACE.Server.Entity.Spell;
 
@@ -29,7 +30,7 @@ namespace ACE.Server.WorldObjects.Managers
 {
     public class EmoteManager
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public WorldObject WorldObject => _proxy ?? _worldObject;
 

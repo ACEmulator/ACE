@@ -4,7 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
+using ACE.Common.Logging;
 using ACE.Database;
 using ACE.DatLoader;
 using ACE.Entity;
@@ -16,13 +19,11 @@ using ACE.Server.Physics.Entity;
 using ACE.Server.Physics.Managers;
 using ACE.Server.WorldObjects;
 
-using log4net;
-
 namespace ACE.Server.Command.Handlers
 {
     public static class AdminStatCommands
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         // allstats
         [CommandHandler("allstats", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of all server statistics and usage")]

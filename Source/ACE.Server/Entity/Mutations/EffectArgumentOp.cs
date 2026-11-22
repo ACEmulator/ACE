@@ -1,12 +1,13 @@
-using log4net;
+using Microsoft.Extensions.Logging;
 
+using ACE.Common.Logging;
 using ACE.Entity.Enum;
 
 namespace ACE.Server.Entity.Mutations
 {
     public partial class EffectArgument
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public static EffectArgument operator +(EffectArgument a, EffectArgument b)
         {

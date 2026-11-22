@@ -1,16 +1,17 @@
 using System;
 using System.IO;
 
-using ACE.Server.Network.GameMessages;
+using Microsoft.Extensions.Logging;
 
-using log4net;
+using ACE.Common.Logging;
+using ACE.Server.Network.GameMessages;
 
 namespace ACE.Server.Network
 {
     internal class MessageFragment
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private static readonly ILog packetLog = LogManager.GetLogger(System.Reflection.Assembly.GetEntryAssembly(), "Packets");
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger packetLog = LogManager.GetLogger("Packets");
 
         public GameMessage Message { get; private set; }
 

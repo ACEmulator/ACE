@@ -1,3 +1,4 @@
+using ACE.Common.Logging;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;

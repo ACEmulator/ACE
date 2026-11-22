@@ -3,16 +3,17 @@ using System.IO;
 using System.Reflection;
 using System.Text.Json;
 
-using ACE.Common;
-using ACE.Server.Entity;
+using Microsoft.Extensions.Logging;
 
-using log4net;
+using ACE.Common;
+using ACE.Common.Logging;
+using ACE.Server.Entity;
 
 namespace ACE.Server.Factories
 {
     public class StarterGearFactory
     {
-        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static StarterGearConfiguration _config = LoadConfigFromResource();
 

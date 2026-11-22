@@ -1,15 +1,17 @@
 using System;
 using System.IO;
 
+using Microsoft.Extensions.Logging;
+
+using ACE.Common.Logging;
 using ACE.DatLoader.Entity.AnimationHooks;
 using ACE.Entity.Enum;
-using log4net;
 
 namespace ACE.DatLoader.Entity
 {
     public class AnimationHook : IUnpackable
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public AnimationHookType HookType { get; private set; }
         public AnimationHookDir Direction { get; private set; }
