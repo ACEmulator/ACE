@@ -764,11 +764,16 @@ namespace ACE.Server.Physics.Common
 
             //Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.AddKnownPlayer({obj.Name})");
 
-            // TryAdd for existing keys still modifies collection?
-            if (KnownPlayers.ContainsKey(obj.ID))
-                return false;
+            if (KnownPlayers.TryGetValue(obj.ID, out var existing))
+            {
+                if (ReferenceEquals(existing, obj))
+                    return false;
 
-            KnownPlayers.TryAdd(obj.ID, obj);
+                // Same guid, different PhysicsObj: the player logged out and back in, and the old entry was never removed.
+                // Replace it, otherwise this object keeps broadcasting to the old PhysicsObj instead of the current session.
+            }
+
+            KnownPlayers[obj.ID] = obj;
             return true;
         }
 
@@ -974,8 +979,14 @@ namespace ACE.Server.Physics.Common
             }
 
             // TryAdd for existing keys still modifies collection?
-            if (VisibleTargets.ContainsKey(obj.ID))
-                return false;
+            if (VisibleTargets.TryGetValue(obj.ID, out var existingTarget))
+            {
+                if (ReferenceEquals(existingTarget, obj))
+                    return false;
+
+                // Same guid, different PhysicsObj: replace the stale entry (see AddKnownPlayer)
+                VisibleTargets.Remove(obj.ID);
+            }
 
             //Console.WriteLine($"{PhysicsObj.Name} ({PhysicsObj.ID:X8}).ObjectMaint.AddVisibleTarget({obj.Name})");
 
@@ -1052,10 +1063,16 @@ namespace ACE.Server.Physics.Common
             rwLock.EnterWriteLock();
             try
             {
-                if (RetaliateTargets.ContainsKey(obj.ID))
+                if (RetaliateTargets.TryGetValue(obj.ID, out var existingRetaliate))
                 {
-                    //Console.WriteLine($"{PhysicsObj.Name}.AddRetaliateTarget({obj.Name}) - retaliate target already exists");
-                    return;
+                    if (ReferenceEquals(existingRetaliate, obj))
+                    {
+                        //Console.WriteLine($"{PhysicsObj.Name}.AddRetaliateTarget({obj.Name}) - retaliate target already exists");
+                        return;
+                    }
+
+                    // Same guid, different PhysicsObj: replace the stale entry (see AddKnownPlayer)
+                    RetaliateTargets.Remove(obj.ID);
                 }
                 //Console.WriteLine($"{PhysicsObj.Name}.AddRetaliateTarget({obj.Name})");
                 RetaliateTargets.Add(obj.ID, obj);
@@ -1063,12 +1080,43 @@ namespace ACE.Server.Physics.Common
                 // we're going to add retaliate targets to the list of visible targets as well,
                 // so that we don't have to traverse both VisibleTargets and RetaliateTargets
                 // in all of the logic based on VisibleTargets
-                if (VisibleTargets.ContainsKey(obj.ID))
+                if (VisibleTargets.TryGetValue(obj.ID, out var existingTarget))
                 {
-                    //Console.WriteLine($"{PhysicsObj.Name}.AddRetaliateTarget({obj.Name}) - visible target already exists");
-                    return;
+                    if (ReferenceEquals(existingTarget, obj))
+                    {
+                        //Console.WriteLine($"{PhysicsObj.Name}.AddRetaliateTarget({obj.Name}) - visible target already exists");
+                        return;
+                    }
+
+                    VisibleTargets.Remove(obj.ID);
                 }
                 VisibleTargets.Add(obj.ID, obj);
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+        /// <summary>
+        /// Removes a player that no longer exists from the tables a non-player object keeps about players.<para />
+        /// A monster can add a player to KnownPlayers and VisibleTargets without the player adding the monster to its KnownObjects,
+        /// and Player.DestroyObject only cleans up the objects in its own KnownObjects, so such entries can outlive the player.<para />
+        /// Entries are only removed if they still refer to this exact PhysicsObj, so a player who has since logged back in under the same guid is kept.
+        /// </summary>
+        public void RemoveStalePlayer(PhysicsObj obj)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                if (KnownPlayers.TryGetValue(obj.ID, out var knownPlayer) && ReferenceEquals(knownPlayer, obj))
+                    KnownPlayers.Remove(obj.ID);
+
+                if (VisibleTargets.TryGetValue(obj.ID, out var visibleTarget) && ReferenceEquals(visibleTarget, obj))
+                    VisibleTargets.Remove(obj.ID);
+
+                if (RetaliateTargets.TryGetValue(obj.ID, out var retaliateTarget) && ReferenceEquals(retaliateTarget, obj))
+                    RetaliateTargets.Remove(obj.ID);
             }
             finally
             {

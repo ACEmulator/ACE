@@ -2396,6 +2396,14 @@ namespace ACE.Server.Physics
             // handle known players
             foreach (var player in ObjMaint.GetKnownPlayersValues())
             {
+                // A player's PhysicsObj only holds a weak reference to its WorldObject. Once that has been collected the player is gone for good,
+                // so drop the entry rather than test its visibility. A live player's WorldObject is always strongly referenced, even mid-teleport.
+                if (player.WeenieObj.WorldObject == null)
+                {
+                    ObjMaint.RemoveStalePlayer(player);
+                    continue;
+                }
+
                 var added = player.handle_visible_obj(this);
 
                 if (added)
