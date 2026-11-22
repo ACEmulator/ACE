@@ -82,7 +82,7 @@ namespace ACE.Database.SQLFormatters
             if (input == null)
                 return null;
 
-            return "'" + input.Replace("'", "''") + "'";
+            return "'" + input.Replace("\\", "\\\\").Replace("'", "''") + "'";
         }
 
         /// <summary>
