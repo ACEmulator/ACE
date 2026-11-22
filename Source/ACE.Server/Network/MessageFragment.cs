@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 
 using ACE.Server.Network.GameMessages;
 
@@ -85,10 +84,11 @@ namespace ACE.Server.Network
             if (DataRemaining < dataToSend)
                 throw new InvalidOperationException("More data to send then data remaining!");
 
-            // Read data starting at position reading dataToSend bytes
-            Message.Data.Seek(position, SeekOrigin.Begin);
+            // Copy dataToSend bytes starting at position directly from the message's buffer.
+            // The same GameMessage is often queued to several sessions (see EnqueueBroadcast), and sessions send in parallel,
+            // so the shared MemoryStream's Position must not be used here: one session's Seek would move another session's Read.
             byte[] data = new byte[dataToSend];
-            Message.Data.Read(data, 0, dataToSend);
+            Buffer.BlockCopy(Message.Data.GetBuffer(), position, data, 0, dataToSend);
 
             // Build ServerPacketFragment structure
             ServerPacketFragment fragment = new ServerPacketFragment(data);
