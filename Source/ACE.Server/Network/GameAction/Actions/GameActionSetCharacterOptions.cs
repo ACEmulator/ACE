@@ -63,6 +63,10 @@ namespace ACE.Server.Network.GameAction.Actions
 
             if (numTab1Spells > 0)
             {
+                // each spell id is 4 bytes; a count larger than the remaining payload is malformed
+                if (numTab1Spells > (message.Payload.BaseStream.Length - message.Payload.BaseStream.Position) / 4)
+                    return;
+
                 var tab1Spells = new uint[numTab1Spells];
                 for (int i = 0; i < numTab1Spells; i++)
                     tab1Spells[i] = message.Payload.ReadUInt32();  // SpellID
