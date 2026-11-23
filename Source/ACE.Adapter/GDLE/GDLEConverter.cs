@@ -779,7 +779,7 @@ namespace ACE.Adapter.GDLE
                 result.DataId = input.DataId;
 
                 sbyte index = -1;
-                foreach (var value in input.Requirements)
+                foreach (var value in input.Requirements ?? Enumerable.Empty<Models.RecipeRequirements>())
                 {
                     index++;
                     if (value == null)
@@ -877,6 +877,9 @@ namespace ACE.Adapter.GDLE
 
                 for (int i = 0; i < 8; i++) // Must be 8
                 {
+                    if (input.Mods == null || i >= input.Mods.Count)
+                        continue;
+
                     var recipeMod = new RecipeMod();
 
                     var value = input.Mods[i];

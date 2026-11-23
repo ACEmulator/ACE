@@ -42,6 +42,9 @@ namespace ACE.Server.Entity
 
         public static int ItemTotalXPToLevel(ulong gainedXP, ulong baseXP, int maxLevel, ItemXpStyle xpScheme)
         {
+            if (baseXP == 0 || gainedXP < baseXP)
+                return 0;
+
             var level = 0;
 
             switch (xpScheme)
