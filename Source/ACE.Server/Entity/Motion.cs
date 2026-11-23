@@ -1,8 +1,10 @@
+using Microsoft.Extensions.Logging;
+
+using ACE.Common.Logging;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects;
-using log4net;
 
 namespace ACE.Server.Entity
 {
@@ -11,7 +13,7 @@ namespace ACE.Server.Entity
     /// </summary>
     public class Motion
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         // previously in MotionState base abstract class, only 1 reference
         // IsAutonomous TRUE would indicate a client-initiated movement

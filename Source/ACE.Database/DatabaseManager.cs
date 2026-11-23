@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Concurrent;
 
-using Microsoft.EntityFrameworkCore;
+using ACE.Common.Logging;
 
-using log4net;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace ACE.Database
 {
     public static class DatabaseManager
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public static AuthenticationDatabase Authentication { get; } = new AuthenticationDatabase();
 

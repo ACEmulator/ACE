@@ -1,17 +1,19 @@
 using System;
 using System.Collections.Generic;
+
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
+using ACE.Common.Logging;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
-
-using log4net;
 
 namespace ACE.Server.Managers
 {
     public static class EventManager
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public static Dictionary<string, Event> Events;
 

@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
-
-using log4net;
+using Microsoft.Extensions.Logging;
 
 using ACE.Common;
 using ACE.Common.Extensions;
+using ACE.Common.Logging;
 using ACE.Database.Entity;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
@@ -23,7 +23,7 @@ namespace ACE.Database
 {
     public class ShardDatabase
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public bool Exists(bool retryUntilFound)
         {

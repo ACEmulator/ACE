@@ -4,9 +4,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
-using log4net;
+using Microsoft.Extensions.Logging;
 
 using ACE.Common;
+using ACE.Common.Logging;
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
@@ -23,7 +24,7 @@ namespace ACE.Server.Factories
 {
     public static partial class LootGenerationFactory
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         // Used for cumulative ServerPerformanceMonitor event recording
         //private static readonly ThreadLocal<Stopwatch> stopwatch = new ThreadLocal<Stopwatch>(() => new Stopwatch());

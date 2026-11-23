@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using log4net;
+using Microsoft.Extensions.Logging;
 
+using ACE.Common.Logging;
 using ACE.Database.Models.World;
 using ACE.Server.Factories.Entity;
 using ACE.Server.Managers;
@@ -12,7 +13,7 @@ namespace ACE.Server.Factories.Tables
 {
     public static class CantripChance
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private static ChanceTable<int> T1_NumCantrips = new ChanceTable<int>()
         {

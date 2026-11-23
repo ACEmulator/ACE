@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>14</LangVersion>
     <Platforms>AnyCPU</Platforms>
     <Authors>ACEmulator Contributors</Authors>
     <RepositoryType>git</RepositoryType>
@@ -16,6 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.22" />
     <PackageReference Include="System.Text.Json" Version="10.0.14" />
   </ItemGroup>
 

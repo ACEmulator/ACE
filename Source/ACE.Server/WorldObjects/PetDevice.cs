@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 
-using log4net;
+using Microsoft.Extensions.Logging;
 
+using ACE.Common.Logging;
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -21,7 +22,7 @@ namespace ACE.Server.WorldObjects
     /// </summary>
     public class PetDevice : WorldObject
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public int? PetClass
         {

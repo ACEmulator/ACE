@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Common;
+using ACE.Common.Logging;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories

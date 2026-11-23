@@ -1,6 +1,8 @@
 using System;
 using System.Text.Json;
 
+using ACE.Common.Logging;
+
 namespace ACE.Server
 {
     partial class Program

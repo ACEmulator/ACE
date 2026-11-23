@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-using log4net;
+using Microsoft.Extensions.Logging;
 
+using ACE.Common.Logging;
 using ACE.Entity;
 
 namespace ACE.Server.Managers
@@ -13,7 +14,7 @@ namespace ACE.Server.Managers
     /// </summary>
     public static class GuidManager
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         // Running server is guid master - database only read as startup to get current max per range.
         // weenie class templates Max 65,535 - took Turbine 17 years to get to 10K

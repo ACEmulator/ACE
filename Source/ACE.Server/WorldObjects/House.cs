@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using log4net;
+using Microsoft.Extensions.Logging;
 
 using ACE.Common;
+using ACE.Common.Logging;
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -21,7 +22,7 @@ namespace ACE.Server.WorldObjects
 {
     public class House : WorldObject
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         // TODO now that the new biota model uses a dictionary for this, see if we can remove this duplicate dictionary
         public Dictionary<ObjectGuid, bool> Guests;

@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 
+using ACE.Common.Logging;
 using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;

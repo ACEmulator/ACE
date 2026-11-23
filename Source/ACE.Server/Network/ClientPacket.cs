@@ -1,15 +1,16 @@
 using System;
 using System.IO;
 
-using log4net;
+using Microsoft.Extensions.Logging;
 
 using ACE.Common.Cryptography;
+using ACE.Common.Logging;
 
 namespace ACE.Server.Network
 {
     public class ClientPacket : Packet
     {
-        private static readonly ILog packetLog = LogManager.GetLogger(System.Reflection.Assembly.GetEntryAssembly(), "Packets");
+        private static readonly ILogger packetLog = LogManager.GetLogger("Packets");
 
         public static int MaxPacketSize { get; } = 1024;
 

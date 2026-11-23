@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 
-using log4net;
+using Microsoft.Extensions.Logging;
 
 using ACE.Common;
+using ACE.Common.Logging;
 
 namespace ACE.Server.Network.Managers
 {
     public static class SocketManager
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private static ConnectionListener[] listeners;
 

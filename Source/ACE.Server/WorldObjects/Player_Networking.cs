@@ -2,6 +2,7 @@ using System;
 
 using ACE.Common;
 using ACE.Common.Extensions;
+using ACE.Common.Logging;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;

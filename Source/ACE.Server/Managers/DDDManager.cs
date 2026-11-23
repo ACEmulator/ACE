@@ -8,18 +8,19 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
+using ACE.Common.Logging;
 using ACE.DatLoader;
 using ACE.Server.Network;
 using ACE.Server.Network.Structure;
-
-using log4net;
 
 namespace ACE.Server.Managers
 {
     public static class DDDManager
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public static bool Debug = false;
 

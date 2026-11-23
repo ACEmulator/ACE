@@ -1,8 +1,9 @@
 using System;
 using System.Net;
 
-using log4net;
+using Microsoft.Extensions.Logging;
 
+using ACE.Common.Logging;
 using ACE.Database;
 using ACE.Database.Models.Auth;
 using ACE.Entity.Enum;
@@ -12,7 +13,7 @@ namespace ACE.Server.Command.Handlers
 {
     public static class AccountCommands
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         // accountcreate username password (accesslevel)
         [CommandHandler("accountcreate", AccessLevel.Admin, CommandHandlerFlag.None, 2,

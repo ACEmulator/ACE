@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 
 using ACE.Common;
+using ACE.Common.Logging;
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Models;

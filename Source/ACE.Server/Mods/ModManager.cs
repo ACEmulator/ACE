@@ -1,8 +1,9 @@
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
+using ACE.Common.Logging;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
-
-using log4net;
 
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ namespace ACE.Server.Mods
 {
     public static class ModManager
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public static string ModPath { get; } = ACE.Common.ConfigManager.Config.Server.ModsDirectory ??
                 Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "Mods");

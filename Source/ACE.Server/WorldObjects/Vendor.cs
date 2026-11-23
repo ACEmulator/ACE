@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using log4net;
+using Microsoft.Extensions.Logging;
 
 using ACE.Common;
+using ACE.Common.Logging;
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -26,7 +27,7 @@ namespace ACE.Server.WorldObjects
     /// </summary>
     public class Vendor : Creature
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public readonly Dictionary<ObjectGuid, WorldObject> DefaultItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
 

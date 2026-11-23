@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 
-using log4net;
+using Microsoft.Extensions.Logging;
 
 using ACE.Common;
 using ACE.Common.Extensions;
+using ACE.Common.Logging;
 using ACE.Database;
 using ACE.Database.Models.Auth;
 using ACE.DatLoader;
@@ -34,7 +35,7 @@ namespace ACE.Server.WorldObjects
 {
     public partial class Player : Creature, IPlayer
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public Account Account { get; }
 

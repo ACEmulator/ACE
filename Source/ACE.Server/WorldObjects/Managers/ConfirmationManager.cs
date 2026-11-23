@@ -1,11 +1,13 @@
 using System.Collections.Concurrent;
 
+using Microsoft.Extensions.Logging;
+
+using ACE.Common.Logging;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.Sequence;
-using log4net;
 
 namespace ACE.Server.WorldObjects.Managers
 {
@@ -15,7 +17,7 @@ namespace ACE.Server.WorldObjects.Managers
 
         private ConcurrentDictionary<ConfirmationType, Confirmation> confirmations = new ConcurrentDictionary<ConfirmationType, Confirmation>();
 
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private const double confirmationTimeout = 30;
 

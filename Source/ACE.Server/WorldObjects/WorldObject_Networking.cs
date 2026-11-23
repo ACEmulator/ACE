@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 
+using ACE.Common.Logging;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;

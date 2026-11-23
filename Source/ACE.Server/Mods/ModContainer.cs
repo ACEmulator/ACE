@@ -1,7 +1,8 @@
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
 using ACE.Common.Extensions;
-
-using log4net;
+using ACE.Common.Logging;
 
 using McMaster.NETCore.Plugins;
 
@@ -14,7 +15,7 @@ namespace ACE.Server.Mods
 {
     public class ModContainer
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private readonly TimeSpan RELOAD_TIMEOUT = TimeSpan.FromSeconds(3);
 
         public ModMetadata Meta { get; set; }

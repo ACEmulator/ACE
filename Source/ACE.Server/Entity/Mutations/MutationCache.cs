@@ -8,8 +8,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-using log4net;
+using Microsoft.Extensions.Logging;
 
+using ACE.Common.Logging;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
@@ -17,7 +18,7 @@ namespace ACE.Server.Entity.Mutations
 {
     public static class MutationCache
     {
-        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly ConcurrentDictionary<string, MutationFilter> tSysMutationFilters = new ConcurrentDictionary<string, MutationFilter>();
 

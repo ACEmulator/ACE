@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-using log4net;
-
 using ACE.Common;
 using ACE.Common.Extensions;
+using ACE.Common.Logging;
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
@@ -21,13 +20,15 @@ using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
+
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.Extensions.Logging;
 
 namespace ACE.Server.Managers
 {
     public partial class RecipeManager
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public static Recipe GetRecipe(Player player, WorldObject source, WorldObject target)
         {

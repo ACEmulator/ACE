@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
+using ACE.Common.Logging;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
@@ -12,13 +15,11 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects;
 
-using log4net;
-
 namespace ACE.Server.Entity
 {
     public class Fellowship
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// The maximum # of fellowship members

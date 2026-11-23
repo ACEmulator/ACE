@@ -1,15 +1,17 @@
+using Microsoft.Extensions.Logging;
+
 using ACE.Common.Extensions;
+using ACE.Common.Logging;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using log4net;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
     public static class GameActionTell
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         [GameAction(GameActionType.Tell)]
         public static void Handle(ClientMessage clientMessage, Session session)

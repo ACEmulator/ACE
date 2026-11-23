@@ -5,9 +5,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using log4net;
-
 using ACE.Common;
+using ACE.Common.Logging;
 using ACE.Database.Adapter;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
@@ -15,12 +14,13 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace ACE.Database.OfflineTools.Shard
 {
     public static class BiotaGuidConsolidator
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly HashSet<WeenieType> ConsolidatableBasicWeenieTypes = new HashSet<WeenieType>
         {

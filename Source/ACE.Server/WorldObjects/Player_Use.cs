@@ -1,5 +1,6 @@
 using System;
 
+using ACE.Common.Logging;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;

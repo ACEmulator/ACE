@@ -1,8 +1,9 @@
 using System;
 
-using log4net;
+using Microsoft.Extensions.Logging;
 
 using ACE.Common.Extensions;
+using ACE.Common.Logging;
 using ACE.Entity.Enum;
 using ACE.Server.Command;
 using ACE.Server.Network.GameMessages.Messages;
@@ -11,7 +12,7 @@ namespace ACE.Server.Network.GameAction.Actions
 {
     public static class GameActionTalk
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         [GameAction(GameActionType.Talk)]
         public static void Handle(ClientMessage clientMessage, Session session)

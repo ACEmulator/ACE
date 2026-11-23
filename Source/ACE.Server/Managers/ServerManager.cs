@@ -1,10 +1,11 @@
 using System;
 using System.Threading;
 
-using log4net;
+using Microsoft.Extensions.Logging;
 
 using ACE.Common;
 using ACE.Common.Extensions;
+using ACE.Common.Logging;
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
@@ -26,7 +27,7 @@ namespace ACE.Server.Managers
     /// </remarks>
     public static class ServerManager
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Indicates advanced warning if the applcation will unload.

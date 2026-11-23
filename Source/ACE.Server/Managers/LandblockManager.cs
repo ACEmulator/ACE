@@ -7,14 +7,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
+using ACE.Common.Logging;
 using ACE.Common.Performance;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects;
-
-using log4net;
 
 namespace ACE.Server.Managers
 {
@@ -23,7 +24,7 @@ namespace ACE.Server.Managers
     /// </summary>
     public static class LandblockManager
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Locking mechanism provides concurrent access to collections

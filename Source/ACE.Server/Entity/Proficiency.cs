@@ -1,6 +1,9 @@
 using System;
-using log4net;
+
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
+using ACE.Common.Logging;
 using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
@@ -9,7 +12,7 @@ namespace ACE.Server.Entity
 {
     public class Proficiency
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public static TimeSpan FullTime = TimeSpan.FromMinutes(15);
 

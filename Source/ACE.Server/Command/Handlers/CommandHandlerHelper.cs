@@ -1,6 +1,6 @@
+using Microsoft.Extensions.Logging;
 
-using log4net;
-
+using ACE.Common.Logging;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Network;
@@ -10,7 +10,7 @@ namespace ACE.Server.Command.Handlers
 {
     internal static class CommandHandlerHelper
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// This will determine where a command handler should output to, the console or a client session.<para />

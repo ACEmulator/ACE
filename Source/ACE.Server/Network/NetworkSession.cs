@@ -7,7 +7,10 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 
+using Microsoft.Extensions.Logging;
+
 using ACE.Common.Cryptography;
+using ACE.Common.Logging;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
@@ -18,14 +21,12 @@ using ACE.Server.Network.Handlers;
 using ACE.Server.Network.Managers;
 using ACE.Server.Network.Packets;
 
-using log4net;
-
 namespace ACE.Server.Network
 {
     public class NetworkSession
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private static readonly ILog packetLog = LogManager.GetLogger(System.Reflection.Assembly.GetEntryAssembly(), "Packets");
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger packetLog = LogManager.GetLogger("Packets");
 
         private const int minimumTimeBetweenBundles = 5; // 5ms
         private const int timeBetweenTimeSync = 20000; // 20s

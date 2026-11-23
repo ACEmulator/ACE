@@ -1,8 +1,9 @@
 using System;
 using System.Numerics;
 
-using log4net;
+using Microsoft.Extensions.Logging;
 
+using ACE.Common.Logging;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -14,7 +15,7 @@ namespace ACE.Server.WorldObjects
 {
     public sealed class HousePortal : Portal
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public House House => ParentLink as House;
 

@@ -2,9 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-using ACE.Common.Performance;
+using Microsoft.Extensions.Logging;
 
-using log4net;
+using ACE.Common.Logging;
+using ACE.Common.Performance;
 
 namespace ACE.Server.Entity
 {
@@ -31,7 +32,7 @@ namespace ACE.Server.Entity
     /// </summary>
     public class LandblockGroup : IEnumerable<Landblock>
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public const int LandblockGroupMinSpacing = 4;
 

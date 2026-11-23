@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
+using ACE.Common.Logging;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
@@ -16,8 +19,6 @@ using ACE.Server.Physics.Hooks;
 using ACE.Server.Physics.Managers;
 using ACE.Server.WorldObjects;
 
-using log4net;
-
 using Landblock = ACE.Server.Physics.Common.Landblock;
 using ObjectGuid = ACE.Entity.ObjectGuid;
 
@@ -28,7 +29,7 @@ namespace ACE.Server.Physics
     /// </summary>
     public class PhysicsObj
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public uint ID;
         public ObjectGuid ObjID;

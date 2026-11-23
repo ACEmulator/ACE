@@ -1,8 +1,9 @@
 using System;
 using System.Numerics;
 
-using log4net;
+using Microsoft.Extensions.Logging;
 
+using ACE.Common.Logging;
 using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum.Properties;
@@ -17,7 +18,7 @@ namespace ACE.Server.Entity
 {
     public static class PositionExtensions
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public static Vector3 ToGlobal(this Position p, bool skipIndoors = false)
         {

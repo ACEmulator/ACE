@@ -5,9 +5,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using log4net;
+using Microsoft.Extensions.Logging;
 
 using ACE.Common;
+using ACE.Common.Logging;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
@@ -26,7 +27,7 @@ namespace ACE.Server.Managers
 {
     public static class PlayerManager
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly ReaderWriterLockSlim playersLock = new ReaderWriterLockSlim();
         private static readonly Dictionary<uint, Player> onlinePlayers = new Dictionary<uint, Player>();

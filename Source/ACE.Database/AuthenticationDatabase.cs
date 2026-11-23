@@ -1,14 +1,16 @@
 using System.Linq;
 using System.Threading;
-using Microsoft.EntityFrameworkCore;
 
-using log4net;
+using Microsoft.EntityFrameworkCore;
 
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 
+using ACE.Common.Logging;
 using ACE.Database.Models.Auth;
 using ACE.Entity.Enum;
+
 using System.Collections.Generic;
 using System;
 using System.Net;
@@ -17,7 +19,7 @@ namespace ACE.Database
 {
     public class AuthenticationDatabase
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public bool Exists(bool retryUntilFound)
         {

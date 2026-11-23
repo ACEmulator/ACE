@@ -2,8 +2,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using log4net;
+using Microsoft.Extensions.Logging;
 
+using ACE.Common.Logging;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
@@ -14,7 +15,7 @@ namespace ACE.Server.Network.Structure
 {
     public class SquelchDB
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Account squelches

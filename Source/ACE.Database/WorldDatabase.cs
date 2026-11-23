@@ -6,9 +6,9 @@ using System.Threading;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 
-using log4net;
-
+using ACE.Common.Logging;
 using ACE.Database.Entity;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
@@ -18,7 +18,7 @@ namespace ACE.Database
 {
     public class WorldDatabase
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public bool Exists(bool retryUntilFound)
         {
