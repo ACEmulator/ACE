@@ -103,7 +103,11 @@ namespace ACE.Server.Factories
         /// </summary>
         private static Player Create275Base(CharacterCreateInfo characterCreateInfo, Weenie weenie, ObjectGuid guid, uint accountId)
         {
-            PlayerFactory.Create(characterCreateInfo, weenie, guid, accountId, WeenieType.Creature, out var player);
+            var result = PlayerFactory.Create(characterCreateInfo, weenie, guid, accountId, WeenieType.Creature, out var player);
+
+            // The randomized heritage can make a template's clothing styles invalid. These inputs used to throw from inside Create, so keep failing loudly rather than continue with a partially built player.
+            if (result == PlayerFactory.CreateResult.InvalidCharacterCreateData)
+                throw new InvalidOperationException($"PlayerFactory.Create rejected the character create data for {characterCreateInfo.Name} ({characterCreateInfo.Heritage})");
 
             // Remove junk inventory
             player.TryDequipObject(player.EquippedObjects.FirstOrDefault(k => k.Value.Name.Contains("Leather Boots")).Key, out var wo, out _);
