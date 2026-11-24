@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+
+    <Platforms>x64</Platforms>
+
+    <Authors>ACEmulator Contributors</Authors>
+
+    <Company>ACEmulator</Company>
+
+    <Description>Asheron's Call server emulator</Description>
+
+    <Copyright>© 2017-2026 ACEmulator Team and Contributors</Copyright>
+
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+
+    <RepositoryUrl>https://github.com/ACEmulator/ACE</RepositoryUrl>
+
+    <PackageProjectUrl>https://emulator.ac</PackageProjectUrl>
+
+    <RepositoryType>git</RepositoryType>
+
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Appveyor.TestLogger" Version="2.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.12.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="4.5.3" />
+    <PackageReference Include="MSTest.TestFramework" Version="4.5.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ACE.Adapter\ACE.Adapter.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-4f7c-pmjv-c25w" />
+  </ItemGroup>
+
+</Project>

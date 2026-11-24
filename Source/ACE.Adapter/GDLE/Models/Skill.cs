@@ -10,7 +10,7 @@ namespace ACE.Adapter.GDLE.Models
 
 
         [JsonPropertyName("last_used_time")]
-        public float? LastUsed { get; set; } = 0f;
+        public double? LastUsed { get; set; } = 0d;
 
 
         [JsonPropertyName("init_level")]
