@@ -401,6 +401,22 @@ namespace ACE.Adapter.GDLE
         }
 
         /// <summary>
+        /// Returns the first empty GDLE mod slot for a mod with no typed rows: 0-3 act on success, 4-7 on failure.
+        /// </summary>
+        private static int GetFreeModSlot(List<Models.Mod> mods, bool executesOnSuccess)
+        {
+            var first = executesOnSuccess ? 0 : 4;
+
+            for (var idx = first; idx < first + 4; idx++)
+            {
+                if (mods[idx] == null)
+                    return idx;
+            }
+
+            return -1;
+        }
+
+        /// <summary>
         /// Converts ACE recipe + cookbooks to GDLE recipe + precursors
         /// </summary>
         public static bool TryConvert(List<CookBook> cookbooks, out Models.RecipeCombined result)
@@ -593,6 +609,7 @@ namespace ACE.Adapter.GDLE
                         Stat = boolReq.Stat,
                         Value = boolReq.Value,
                         OperationType = boolReq.Enum,
+                        Message = boolReq.Message
                     });
                 }
 
@@ -601,10 +618,13 @@ namespace ACE.Adapter.GDLE
                 for (var idx = 0; idx < 8; idx++)
                     result.Mods.Add(null);
 
-                foreach (var recipeMod in input.RecipeMod)
+                // Mods with typed rows carry their slot; place them first so untyped mods only take free slots.
+                foreach (var recipeMod in input.RecipeMod.OrderBy(m => GetIndex(m) == -1))
                 {
                     // should index be on RecipeMod, or RecipeModType?
                     var idx = GetIndex(recipeMod);
+                    if (idx == -1)
+                        idx = GetFreeModSlot(result.Mods, recipeMod.ExecutesOnSuccess);
                     if (idx == -1)
                     {
                         Console.WriteLine($"Couldn't find recipe mod idx");

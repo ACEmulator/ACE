@@ -56,6 +56,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Database", "ACE.Databas
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Adapter", "ACE.Adapter\ACE.Adapter.csproj", "{3C925D75-B149-4898-8806-054D3E63A4BE}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Adapter.Tests", "ACE.Adapter.Tests\ACE.Adapter.Tests.csproj", "{8CD834CB-7B08-48FA-A698-785A4A5C9FFD}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{60DC64AE-6588-4FCA-955A-76F4512749BD}"
 	ProjectSection(SolutionItems) = preProject
 		..\docker-compose.arm64 = ..\docker-compose.arm64
@@ -107,6 +109,10 @@ Global
 		{3C925D75-B149-4898-8806-054D3E63A4BE}.Debug|x64.Build.0 = Debug|Any CPU
 		{3C925D75-B149-4898-8806-054D3E63A4BE}.Release|x64.ActiveCfg = Release|Any CPU
 		{3C925D75-B149-4898-8806-054D3E63A4BE}.Release|x64.Build.0 = Release|Any CPU
+		{8CD834CB-7B08-48FA-A698-785A4A5C9FFD}.Debug|x64.ActiveCfg = Debug|x64
+		{8CD834CB-7B08-48FA-A698-785A4A5C9FFD}.Debug|x64.Build.0 = Debug|x64
+		{8CD834CB-7B08-48FA-A698-785A4A5C9FFD}.Release|x64.ActiveCfg = Release|x64
+		{8CD834CB-7B08-48FA-A698-785A4A5C9FFD}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

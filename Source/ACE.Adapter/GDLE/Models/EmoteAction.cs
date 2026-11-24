@@ -183,7 +183,7 @@ namespace ACE.Adapter.GDLE.Models
         [EmoteType(EmoteType.SetFloatStat)]
         [EmoteType(EmoteType.AwardLevelProportionalXP)]
         [EmoteType(EmoteType.AwardLevelProportionalSkillXP)]
-        public float? Percent { get; set; }
+        public double? Percent { get; set; }
 
         [JsonPropertyName("display")]
         [EmoteType(EmoteType.AwardLevelProportionalXP)]
@@ -235,11 +235,11 @@ namespace ACE.Adapter.GDLE.Models
 
         [JsonPropertyName("fmax")]
         [EmoteType(EmoteType.InqFloatStat)]
-        public float? FMax { get; set; }
+        public double? FMax { get; set; }
 
         [JsonPropertyName("fmin")]
         [EmoteType(EmoteType.InqFloatStat)]
-        public float? FMin { get; set; }
+        public double? FMin { get; set; }
 
         [JsonPropertyName("stat")]
         [EmoteType(EmoteType.SetIntStat)]

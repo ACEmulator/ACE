@@ -166,7 +166,10 @@ namespace ACE.Adapter.Lifestoned
                     foreach (var value in input.DidStats)
                     {
                         if (!correctForEnumShift)
-                            result.WeeniePropertiesDID.Add(new WeeniePropertiesDID { Type = (ushort)value.Key, Value = value.Value });
+                        {
+                            if (result.WeeniePropertiesDID.FirstOrDefault(x => x.Type == (ushort)value.Key) == null)
+                                result.WeeniePropertiesDID.Add(new WeeniePropertiesDID { Type = (ushort)value.Key, Value = value.Value });
+                        }
                         else
                         {
                             var valCorrected = value.Value;
@@ -551,81 +554,22 @@ namespace ACE.Adapter.Lifestoned
 
                 // WeeniePropertiesAnimPart
 
-                if (input.WeeniePropertiesAttribute != null && input.WeeniePropertiesAttribute.Count > 0)
+                if ((input.WeeniePropertiesAttribute != null && input.WeeniePropertiesAttribute.Count > 0)
+                    || (input.WeeniePropertiesAttribute2nd != null && input.WeeniePropertiesAttribute2nd.Count > 0))
                 {
-                    if (result.Attributes == null)
-                        result.Attributes = new AttributeSet();
-
-                    result.Attributes.Strength = new GDLE.Models.Attribute
+                    // Absent entries stay null so that import, which skips nulls, recreates exactly the rows exported.
+                    result.Attributes = new AttributeSet
                     {
-                        Ranks = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Strength).InitLevel,
-                        LevelFromCp = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Strength).LevelFromCP,
-                        XpSpent = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Strength).CPSpent
-                    };
+                        Strength = ToAttribute(input, PropertyAttribute.Strength),
+                        Endurance = ToAttribute(input, PropertyAttribute.Endurance),
+                        Quickness = ToAttribute(input, PropertyAttribute.Quickness),
+                        Coordination = ToAttribute(input, PropertyAttribute.Coordination),
+                        Focus = ToAttribute(input, PropertyAttribute.Focus),
+                        Self = ToAttribute(input, PropertyAttribute.Self),
 
-                    result.Attributes.Endurance = new GDLE.Models.Attribute
-                    {
-                        Ranks = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Endurance).InitLevel,
-                        LevelFromCp = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Endurance).LevelFromCP,
-                        XpSpent = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Endurance).CPSpent
-                    };
-
-                    result.Attributes.Quickness = new GDLE.Models.Attribute
-                    {
-                        Ranks = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Quickness).InitLevel,
-                        LevelFromCp = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Quickness).LevelFromCP,
-                        XpSpent = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Quickness).CPSpent
-                    };
-
-                    result.Attributes.Coordination = new GDLE.Models.Attribute
-                    {
-                        Ranks = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Coordination).InitLevel,
-                        LevelFromCp = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Coordination).LevelFromCP,
-                        XpSpent = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Coordination).CPSpent
-                    };
-
-                    result.Attributes.Focus = new GDLE.Models.Attribute
-                    {
-                        Ranks = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Focus).InitLevel,
-                        LevelFromCp = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Focus).LevelFromCP,
-                        XpSpent = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Focus).CPSpent
-                    };
-
-                    result.Attributes.Self = new GDLE.Models.Attribute
-                    {
-                        Ranks = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Self).InitLevel,
-                        LevelFromCp = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Self).LevelFromCP,
-                        XpSpent = input.WeeniePropertiesAttribute.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute.Self).CPSpent
-                    };
-                }
-
-                if (input.WeeniePropertiesAttribute2nd != null && input.WeeniePropertiesAttribute2nd.Count > 0)
-                {
-                    if (result.Attributes == null)
-                        result.Attributes = new AttributeSet();
-
-                    result.Attributes.Health = new GDLE.Models.Vital
-                    {
-                        Ranks = input.WeeniePropertiesAttribute2nd.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute2nd.MaxHealth).InitLevel,
-                        LevelFromCp = input.WeeniePropertiesAttribute2nd.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute2nd.MaxHealth).LevelFromCP,
-                        XpSpent = input.WeeniePropertiesAttribute2nd.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute2nd.MaxHealth).CPSpent,
-                        Current = input.WeeniePropertiesAttribute2nd.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute2nd.MaxHealth).CurrentLevel
-                    };
-
-                    result.Attributes.Stamina = new GDLE.Models.Vital
-                    {
-                        Ranks = input.WeeniePropertiesAttribute2nd.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute2nd.MaxStamina).InitLevel,
-                        LevelFromCp = input.WeeniePropertiesAttribute2nd.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute2nd.MaxStamina).LevelFromCP,
-                        XpSpent = input.WeeniePropertiesAttribute2nd.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute2nd.MaxStamina).CPSpent,
-                        Current = input.WeeniePropertiesAttribute2nd.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute2nd.MaxStamina).CurrentLevel
-                    };
-
-                    result.Attributes.Mana = new GDLE.Models.Vital
-                    {
-                        Ranks = input.WeeniePropertiesAttribute2nd.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute2nd.MaxMana).InitLevel,
-                        LevelFromCp = input.WeeniePropertiesAttribute2nd.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute2nd.MaxMana).LevelFromCP,
-                        XpSpent = input.WeeniePropertiesAttribute2nd.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute2nd.MaxMana).CPSpent,
-                        Current = input.WeeniePropertiesAttribute2nd.FirstOrDefault(a => a.Type == (ushort)PropertyAttribute2nd.MaxMana).CurrentLevel
+                        Health = ToVital(input, PropertyAttribute2nd.MaxHealth),
+                        Stamina = ToVital(input, PropertyAttribute2nd.MaxStamina),
+                        Mana = ToVital(input, PropertyAttribute2nd.MaxMana),
                     };
                 }
 
@@ -759,8 +703,8 @@ namespace ACE.Adapter.Lifestoned
                                 Display = action.Display,
                                 EmoteActionType = action.Type,
                                 Extent = action.Extent,
-                                FMax = (float?)action.MaxDbl,
-                                FMin = (float?)action.MinDbl,
+                                FMax = action.MaxDbl,
+                                FMin = action.MinDbl,
                                 //Frame = new Frame
                                 //{
                                 //    Position = new XYZ
@@ -813,7 +757,7 @@ namespace ACE.Adapter.Lifestoned
                                 //        }
                                 //    }
                                 //},
-                                Percent = (float?)action.Percent,
+                                Percent = action.Percent,
                                 PScript = (uint?)action.PScript,
                                 Sound = (uint?)action.Sound,
                                 SpellId = (uint?)action.SpellId,
@@ -867,7 +811,7 @@ namespace ACE.Adapter.Lifestoned
                                 };
                             }
 
-                            if (action.DestinationType.HasValue)
+                            if (action.WeenieClassId.HasValue || action.DestinationType.HasValue)
                             {
                                 ea.Item = new CreateItem
                                 {
@@ -905,7 +849,7 @@ namespace ACE.Adapter.Lifestoned
                     foreach (var value in input.WeeniePropertiesFloat)
                     {
                         if (result.FloatStats.FirstOrDefault(x => x.Key == value.Type) == null)
-                            result.FloatStats.Add(new FloatStat { Key = value.Type, Value = (float)value.Value });
+                            result.FloatStats.Add(new FloatStat { Key = value.Type, Value = value.Value });
                     }
                 }
 
@@ -1041,7 +985,7 @@ namespace ACE.Adapter.Lifestoned
                                     XpInvested = value.PP,
                                     Ranks = value.InitLevel,
                                     ResistanceOfLastCheck = value.ResistanceAtLastCheck,
-                                    LastUsed = (float)value.LastUsedTime
+                                    LastUsed = value.LastUsedTime
                                 }
                             });
                     }
@@ -1093,6 +1037,35 @@ namespace ACE.Adapter.Lifestoned
                 result = null;
                 return false;
             }
+        }
+
+        private static GDLE.Models.Attribute ToAttribute(Weenie input, PropertyAttribute type)
+        {
+            var attribute = input.WeeniePropertiesAttribute?.FirstOrDefault(a => a.Type == (ushort)type);
+            if (attribute == null)
+                return null;
+
+            return new GDLE.Models.Attribute
+            {
+                Ranks = attribute.InitLevel,
+                LevelFromCp = attribute.LevelFromCP,
+                XpSpent = attribute.CPSpent
+            };
+        }
+
+        private static GDLE.Models.Vital ToVital(Weenie input, PropertyAttribute2nd type)
+        {
+            var vital = input.WeeniePropertiesAttribute2nd?.FirstOrDefault(a => a.Type == (ushort)type);
+            if (vital == null)
+                return null;
+
+            return new GDLE.Models.Vital
+            {
+                Ranks = vital.InitLevel,
+                LevelFromCp = vital.LevelFromCP,
+                XpSpent = vital.CPSpent,
+                Current = vital.CurrentLevel
+            };
         }
 
         public static bool TryConvertACEWeeniesToLSDJSON(List<Weenie> weenies, out List<string> results)

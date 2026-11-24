@@ -9,7 +9,7 @@ namespace ACE.Adapter.GDLE.Models
         public int Key { get; set; }
 
         [JsonPropertyName("value")]
-        public float Value { get; set; }
+        public double Value { get; set; }
 
         [JsonIgnore]
         public string PropertyIdBinder => ((DoublePropertyId)Key).GetName();
