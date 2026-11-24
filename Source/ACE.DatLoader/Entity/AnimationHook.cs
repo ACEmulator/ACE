@@ -149,7 +149,7 @@ namespace ACE.DatLoader.Entity
                     break;
 
                 default:
-                    log.Warn($"Not Implemented Hook type encountered: {hookType}");
+                    log.LogWarning("Not Implemented Hook type encountered: {HookType}", hookType);
                     hook = null;
                     break;
             }

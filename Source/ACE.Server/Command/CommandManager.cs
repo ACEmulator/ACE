@@ -72,17 +72,17 @@ namespace ACE.Server.Command
             if (!commandHandlers.ContainsKey(command))
             {
                 commandHandlers.Add(command, commandHandler);
-                log.Info($"Command created: {command}");
+                log.LogInformation("Command created: {Command}", command);
                 return true;
             }
             //Update if overriding and the command exists
             else if (overrides)
             {
-                log.Info($"Command updated: {command}");
+                log.LogInformation("Command updated: {Command}", command);
                 commandHandlers[command] = commandHandler;
                 return true;
             }
-            log.Warn($"Failed to add command: {command}");
+            log.LogWarning("Failed to add command: {Command}", command);
             return false;
         }
 
@@ -91,7 +91,7 @@ namespace ACE.Server.Command
             if (!commandHandlers.ContainsKey(command))
                 return false;
 
-            log.Info($"Removed command: {command}");
+            log.LogInformation("Removed command: {Command}", command);
             commandHandlers.Remove(command);
             return true;
         }
@@ -117,7 +117,7 @@ namespace ACE.Server.Command
 
             if (NonInteractiveConsole)
             {
-                log.Info("ACEmulator command prompt disabled - Environment.GetEnvironmentVariable(ACE_NONINTERACTIVE_CONSOLE) was true");
+                log.LogInformation("ACEmulator command prompt disabled - Environment.GetEnvironmentVariable(ACE_NONINTERACTIVE_CONSOLE) was true");
                 return;
             }
 
@@ -143,7 +143,7 @@ namespace ACE.Server.Command
 
                 if (commandLine == null)
                 {
-                    log.Info("ACEmulator command prompt disabled - console input stream was closed");
+                    log.LogInformation("ACEmulator command prompt disabled - console input stream was closed");
                     return;
                 }
 
@@ -158,7 +158,7 @@ namespace ACE.Server.Command
                 }
                 catch (Exception ex)
                 {
-                    log.Error($"Exception while parsing command: {commandLine}", ex);
+                    log.LogError(ex, "Exception while parsing command: {CommandLine}", commandLine);
                     return;
                 }
                 try
@@ -176,13 +176,13 @@ namespace ACE.Server.Command
                         }
                         catch (Exception ex)
                         {
-                            log.Error($"Exception while invoking command handler for: {commandLine}", ex);
+                            log.LogError(ex, "Exception while invoking command handler for: {CommandLine}", commandLine);
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    log.Error($"Exception while getting command handler for: {commandLine}", ex);
+                    log.LogError(ex, "Exception while getting command handler for: {CommandLine}", commandLine);
                 }
             }
         }

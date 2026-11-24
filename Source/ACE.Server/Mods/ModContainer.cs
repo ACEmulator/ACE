@@ -50,7 +50,7 @@ namespace ACE.Server.Mods
         {
             if (Meta is null)
             {
-                log.Warn($"Unable to initialize.  Check Meta.json...");
+                log.LogWarning("Unable to initialize.  Check Meta.json...");
                 return;
             }
 
@@ -67,7 +67,7 @@ namespace ACE.Server.Mods
             );
             Loader.Reloaded += Reload;
 
-            log.Info($"Set up {FolderName}");
+            log.LogInformation("Set up {FolderName}", FolderName);
         }
 
         /// <summary>
@@ -77,12 +77,12 @@ namespace ACE.Server.Mods
         {
             if (Status == ModStatus.Active)
             {
-                log.Info($"Mod is already enabled: {Meta.Name}");
+                log.LogInformation("Mod is already enabled: {Name}", Meta.Name);
                 return;
             }
             if (Status == ModStatus.LoadFailure)
             {
-                log.Info($"Unable to activate mod that failed to load: {Meta.Name}");
+                log.LogInformation("Unable to activate mod that failed to load: {Name}", Meta.Name);
                 return;
             }
 
@@ -100,7 +100,7 @@ namespace ACE.Server.Mods
             //Only mods with loaded assemblies that aren't active can be enabled
             if (Status != ModStatus.Inactive)
             {
-                log.Info($"{Meta.Name} is not inactive.");
+                log.LogInformation("{Name} is not inactive.", Meta.Name);
                 return;
             }
 
@@ -113,11 +113,11 @@ namespace ACE.Server.Mods
                 if (Meta.RegisterCommands)
                     this.RegisterUncategorizedCommands();
 
-                log.Info($"Enabled mod `{Meta.Name} (v{Meta.Version})`.");
+                log.LogInformation("Enabled mod `{Name} (v{Version})`.", Meta.Name, Meta.Version);
             }
             catch (Exception ex)
             {
-                log.Error($"Error enabling {Meta.Name}: {ex}");
+                log.LogError("Error enabling {Name}: {Ex}", Meta.Name, ex);
                 Status = ModStatus.Inactive;    //Todo: what status?  Something to prevent reload attempts?
             }
         }
@@ -137,7 +137,7 @@ namespace ACE.Server.Mods
             if (Status != ModStatus.Active)
                 return;
 
-            log.Info($"{FolderName} shutting down @ {DateTime.Now.ToCommonString()}");
+            log.LogInformation("{FolderName} shutting down @ {Now}", FolderName, DateTime.Now.ToCommonString());
 
             this.UnregisterAllCommands();
 
@@ -163,7 +163,7 @@ namespace ACE.Server.Mods
         {
             if (!File.Exists(DllPath))
             {
-                log.Warn($"Missing mod: {DllPath}");
+                log.LogWarning("Missing mod: {DllPath}", DllPath);
                 return false;
             }
 
@@ -180,14 +180,14 @@ namespace ACE.Server.Mods
                 if (ModType is null)
                 {
                     Status = ModStatus.LoadFailure;
-                    log.Warn($"Missing IHarmonyMod Type {TypeName} from {ModAssembly}");
+                    log.LogWarning("Missing IHarmonyMod Type {TypeName} from {ModAssembly}", TypeName, ModAssembly);
                     return false;
                 }
             }
             catch (Exception e)
             {
                 Status = ModStatus.LoadFailure;
-                log.Error($"Failed to load mod file `{DllPath}`: {e}");
+                log.LogError("Failed to load mod file `{DllPath}`: {E}", DllPath, e);
                 return false;
             }
 
@@ -200,12 +200,12 @@ namespace ACE.Server.Mods
             try
             {
                 Instance = Activator.CreateInstance(ModType) as IHarmonyMod;
-                log.Info($"Created instance of {Meta.Name}");
+                log.LogInformation("Created instance of {Name}", Meta.Name);
             }
             catch (Exception ex)
             {
                 Status = ModStatus.LoadFailure;
-                log.Error($"Failed to create Mod instance: {Meta.Name}: {ex}");
+                log.LogError("Failed to create Mod instance: {Name}: {Ex}", Meta.Name, ex);
                 return false;
             }
 
@@ -218,7 +218,7 @@ namespace ACE.Server.Mods
             var info = new FileInfo(MetadataPath);
 
             if (!info.RetryWrite(json))
-                log.Error($"Saving metadata failed: {MetadataPath}");
+                log.LogError("Saving metadata failed: {MetadataPath}", MetadataPath);
         }
 
         #region Events
@@ -228,13 +228,13 @@ namespace ACE.Server.Mods
             var lapsed = DateTime.Now - _lastChange;
             if (lapsed < RELOAD_TIMEOUT)
             {
-                log.Info($"Not reloading {FolderName}: {lapsed.TotalSeconds}/{RELOAD_TIMEOUT.TotalSeconds}");
+                log.LogInformation("Not reloading {FolderName}: {LapsedTotalSeconds}/{RELOAD_TIMEOUTTotalSeconds}", FolderName, lapsed.TotalSeconds, RELOAD_TIMEOUT.TotalSeconds);
                 return;
                 //Shutdown();
             }
 
             Restart();
-            log.Info($"Reloaded {FolderName} @ {DateTime.Now.ToCommonString()} after {lapsed.TotalSeconds}/{RELOAD_TIMEOUT.TotalSeconds} seconds");
+            log.LogInformation("Reloaded {FolderName} @ {Now} after {LapsedTotalSeconds}/{RELOAD_TIMEOUTTotalSeconds} seconds", FolderName, DateTime.Now.ToCommonString(), lapsed.TotalSeconds, RELOAD_TIMEOUT.TotalSeconds);
         }
 
 
@@ -248,7 +248,7 @@ namespace ACE.Server.Mods
                 return;
             }
 
-            log.Info($"{FolderName} changed @ {DateTime.Now.ToCommonString()} after {lapsed.TotalMilliseconds}ms");
+            log.LogInformation("{FolderName} changed @ {Now} after {TotalMilliseconds}ms", FolderName, DateTime.Now.ToCommonString(), lapsed.TotalMilliseconds);
             _lastChange = DateTime.Now;
 
             Disable();

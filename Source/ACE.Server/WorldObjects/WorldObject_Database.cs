@@ -1,8 +1,9 @@
 using System;
 using System.Threading;
 
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
-using ACE.Common.Logging;
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Entity.Models;
@@ -166,7 +167,7 @@ namespace ACE.Server.WorldObjects
             var missile = Missile;
             if (missile.HasValue && missile.Value)
             {
-                log.Warn($"Missile: WeenieClassId: {WeenieClassId}, Name: {Name}, WeenieType: {WeenieType}, detected in IsDynamicThatShouldPersistToShard() that wasn't caught by prior check.");
+                log.LogWarning("Missile: WeenieClassId: {WeenieClassId}, Name: {Name}, WeenieType: {WeenieType}, detected in IsDynamicThatShouldPersistToShard() that wasn't caught by prior check.", WeenieClassId, Name, WeenieType);
                 return false;
             }
 

@@ -41,13 +41,13 @@ namespace ACE.Server.WorldObjects
             {
                 if (House == null)
                 {
-                    log.Warn($"[HOUSE] HousePortal.SetLinkProperties({(wo != null ? $"{wo.Name}:0x{wo.Guid}:{wo.WeenieClassId}" : "null")}): House is null for HousePortal 0x{Guid} at {Location.ToLOCString()}");
+                    log.LogWarning("[HOUSE] HousePortal.SetLinkProperties({WorldObject}): House is null for HousePortal 0x{Guid} at {Location}", (wo != null ? $"{wo.Name}:0x{wo.Guid}:{wo.WeenieClassId}" : "null"), Guid, Location.ToLOCString());
                     return;
                 }
 
                 if (wo == null)
                 {
-                    log.Warn($"[HOUSE] HousePortal.SetLinkProperties(null): WorldObject is null for HousePortal 0x{Guid} at {Location.ToLOCString()} | {(House != null ? $"House = {House.Name}:0x{House.Guid}:{House.WeenieClassId}" : "House is null")}");
+                    log.LogWarning("[HOUSE] HousePortal.SetLinkProperties(null): WorldObject is null for HousePortal 0x{Guid} at {Location} | {House}", Guid, Location.ToLOCString(), (House != null ? $"House = {House.Name}:0x{House.Guid}:{House.WeenieClassId}" : "House is null"));
                     return;
                 }
 
@@ -96,7 +96,7 @@ namespace ACE.Server.WorldObjects
             }
             catch (Exception ex)
             {
-                log.Error($"[HOUSE] HousePortal.SetLinkProperties({(wo != null ? $"{wo.Name}:0x{wo.Guid}:{wo.WeenieClassId}" : "null")}): {(ParentLink != null ? $"ParentLink = {ParentLink.Name}:0x{ParentLink.Guid}:{ParentLink.WeenieClassId}" : "ParentLink is null")} {(House != null ? $"House = {House.Name}:0x{House.Guid}:{House.WeenieClassId}" : "House is null")} for HousePortal 0x{Guid} at {Location.ToLOCString()}\n Exception: {ex}");
+                log.LogError("[HOUSE] HousePortal.SetLinkProperties({WorldObject}): {ParentLink} {House} for HousePortal 0x{Guid} at {Location}\n Exception: {Ex}", (wo != null ? $"{wo.Name}:0x{wo.Guid}:{wo.WeenieClassId}" : "null"), (ParentLink != null ? $"ParentLink = {ParentLink.Name}:0x{ParentLink.Guid}:{ParentLink.WeenieClassId}" : "ParentLink is null"), (House != null ? $"House = {House.Name}:0x{House.Guid}:{House.WeenieClassId}" : "House is null"), Guid, Location.ToLOCString(), ex);
             }
         }
 
@@ -106,8 +106,8 @@ namespace ACE.Server.WorldObjects
 
             if (activator == null || rootHouse == null)
             {
-                log.Warn($"HousePortal.CheckUseRequirements: 0x{Guid} - {Location.ToLOCString()}");
-                log.Warn($"HousePortal.CheckUseRequirements: activator is null - {activator == null} | House is null - {House == null} | RootHouse is null - {rootHouse == null}");
+                log.LogWarning("HousePortal.CheckUseRequirements: 0x{Guid} - {Location}", Guid, Location.ToLOCString());
+                log.LogWarning("HousePortal.CheckUseRequirements: activator is null - {ActivatorIsNull} | House is null - {HouseIsNull} | RootHouse is null - {RootHouseIsNull}", activator == null, House == null, rootHouse == null);
                 return new ActivationResult(false);
             }
 

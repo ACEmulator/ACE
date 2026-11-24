@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 
-using ACE.Common.Logging;
+using Microsoft.Extensions.Logging;
+
 using ACE.DatLoader.Entity.AnimationHooks;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
@@ -55,7 +56,7 @@ namespace ACE.Server.WorldObjects
 
             if (CombatMode != CombatMode.Melee)
             {
-                log.Warn($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {attackHeight}, {powerLevel}) - CombatMode mismatch {CombatMode}, LastCombatMode {LastCombatMode}");
+                log.LogWarning("{Name}.HandleActionTargetedMeleeAttack({TargetGuid:X8}, {AttackHeight}, {PowerLevel}) - CombatMode mismatch {CombatMode}, LastCombatMode {LastCombatMode}", Name, targetGuid, attackHeight, powerLevel, CombatMode, LastCombatMode);
 
                 if (LastCombatMode == CombatMode.Melee)
                     CombatMode = CombatMode.Melee;
@@ -113,7 +114,7 @@ namespace ACE.Server.WorldObjects
             var creatureTarget = target as Creature;
             if (creatureTarget == null)
             {
-                log.Warn($"{Name}.HandleActionTargetedMeleeAttack({targetGuid:X8}, {AttackHeight}, {powerLevel}) - target guid not creature");
+                log.LogWarning("{Name}.HandleActionTargetedMeleeAttack({TargetGuid:X8}, {AttackHeight}, {PowerLevel}) - target guid not creature", Name, targetGuid, AttackHeight, powerLevel);
                 OnAttackDone();
                 return;
             }

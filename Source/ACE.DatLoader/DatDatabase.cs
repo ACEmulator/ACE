@@ -107,7 +107,7 @@ namespace ACE.DatLoader
                 //log.DebugFormat("Unable to find object_id {0:X8} in {1}", fileId, Enum.GetName(typeof(DatDatabaseType), Header.DataSet));
             }
             else
-                log.InfoFormat("Unable to find object_id {0:X8} in {1}", fileId, Enum.GetName(typeof(DatDatabaseType), Header.DataSet));
+                log.LogInformation("Unable to find object_id {FileId:X8} in {Name}", fileId, Enum.GetName(typeof(DatDatabaseType), Header.DataSet));
 
             return null;
         }
@@ -157,12 +157,12 @@ namespace ACE.DatLoader
             if (iteration.TotalIterations > 0)
             {
                 if (iteration.Ints.Count > 1)
-                    log.Error($"{FilePath} contains an incomplete dat file!");
+                    log.LogError("{FilePath} contains an incomplete dat file!", FilePath);
                 return iteration.TotalIterations;
             }
             else
             {
-                log.Error($"Unable to read iteration from {FilePath}");
+                log.LogError("Unable to read iteration from {FilePath}", FilePath);
                 return 0;
             }
         }

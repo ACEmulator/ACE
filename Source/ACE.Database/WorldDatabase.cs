@@ -30,12 +30,12 @@ namespace ACE.Database
                 {
                     if (((RelationalDatabaseCreator)context.Database.GetService<IDatabaseCreator>()).Exists())
                     {
-                        log.InfoFormat("[DATABASE] Successfully connected to {0} database on {1}:{2}.", config.Database, config.Host, config.Port);
+                        log.LogInformation("[DATABASE] Successfully connected to {Database} database on {Host}:{Port}.", config.Database, config.Host, config.Port);
                         return true;
                     }
                 }
 
-                log.Error($"[DATABASE] Attempting to reconnect to {config.Database} database on {config.Host}:{config.Port} in 5 seconds...");
+                log.LogError("[DATABASE] Attempting to reconnect to {Database} database on {Host}:{Port} in 5 seconds...", config.Database, config.Host, config.Port);
 
                 if (retryUntilFound)
                     Thread.Sleep(5000);

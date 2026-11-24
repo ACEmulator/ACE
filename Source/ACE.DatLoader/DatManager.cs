@@ -36,14 +36,14 @@ namespace ACE.DatLoader
                     datFile = Path.Combine(datDir, "client_cell_1.dat");
                     CellDat = new CellDatDatabase(datFile, keepOpen);
                     count = CellDat.AllFiles.Count;
-                    log.Info($"Successfully opened {datFile} file, containing {count} records, iteration {CellDat.Iteration}");
+                    log.LogInformation("Successfully opened {DatFile} file, containing {Count} records, iteration {Iteration}", datFile, count, CellDat.Iteration);
                     if (CellDat.Iteration != ITERATION_CELL)
-                        log.Warn($"{datFile} iteration does not match expected end-of-retail version of {ITERATION_CELL}.");
+                        log.LogWarning("{DatFile} iteration does not match expected end-of-retail version of {ITERATION_CELL}.", datFile, ITERATION_CELL);
                 }
                 catch (FileNotFoundException ex)
                 {
-                    log.Error($"An exception occured while attempting to open {datFile} file!  This needs to be corrected in order for Landblocks to load!");
-                    log.Error($"Exception: {ex.Message}");
+                    log.LogError("An exception occured while attempting to open {DatFile} file!  This needs to be corrected in order for Landblocks to load!", datFile);
+                    log.LogError("Exception: {Message}", ex.Message);
                 }
             }
 
@@ -53,14 +53,14 @@ namespace ACE.DatLoader
                 PortalDat = new PortalDatDatabase(datFile, keepOpen);
                 PortalDat.SkillTable.AddRetiredSkills();
                 count = PortalDat.AllFiles.Count;
-                log.Info($"Successfully opened {datFile} file, containing {count} records, iteration {PortalDat.Iteration}");
+                log.LogInformation("Successfully opened {DatFile} file, containing {Count} records, iteration {Iteration}", datFile, count, PortalDat.Iteration);
                 if (PortalDat.Iteration != ITERATION_PORTAL)
-                    log.Warn($"{datFile} iteration does not match expected end-of-retail version of {ITERATION_PORTAL}.");
+                    log.LogWarning("{DatFile} iteration does not match expected end-of-retail version of {ITERATION_PORTAL}.", datFile, ITERATION_PORTAL);
             }
             catch (FileNotFoundException ex)
             {
-                log.Error($"An exception occured while attempting to open {datFile} file!\n\n *** Please check your 'DatFilesDirectory' setting in the config.js file. ***\n *** ACE will not run properly without this properly configured! ***\n");
-                log.Error($"Exception: {ex.Message}");
+                log.LogError("An exception occured while attempting to open {DatFile} file!\n\n *** Please check your 'DatFilesDirectory' setting in the config.js file. ***\n *** ACE will not run properly without this properly configured! ***\n", datFile);
+                log.LogError("Exception: {Message}", ex.Message);
             }
 
             // Load the client_highres.dat file. This is not required for ACE operation, so no exception needs to be generated.
@@ -69,9 +69,9 @@ namespace ACE.DatLoader
             {
                 HighResDat = new DatDatabase(datFile, keepOpen);
                 count = HighResDat.AllFiles.Count;
-                log.Info($"Successfully opened {datFile} file, containing {count} records, iteration {HighResDat.Iteration}");
+                log.LogInformation("Successfully opened {DatFile} file, containing {Count} records, iteration {Iteration}", datFile, count, HighResDat.Iteration);
                 if (HighResDat.Iteration != ITERATION_HIRES)
-                    log.Warn($"{datFile} iteration does not match expected end-of-retail version of {ITERATION_HIRES}.");
+                    log.LogWarning("{DatFile} iteration does not match expected end-of-retail version of {ITERATION_HIRES}.", datFile, ITERATION_HIRES);
             }
 
             try
@@ -79,14 +79,14 @@ namespace ACE.DatLoader
                 datFile = Path.Combine(datDir, "client_local_English.dat");
                 LanguageDat = new LanguageDatDatabase(datFile, keepOpen);
                 count = LanguageDat.AllFiles.Count;
-                log.Info($"Successfully opened {datFile} file, containing {count} records, iteration {LanguageDat.Iteration}");
+                log.LogInformation("Successfully opened {DatFile} file, containing {Count} records, iteration {Iteration}", datFile, count, LanguageDat.Iteration);
                 if(LanguageDat.Iteration != ITERATION_LANGUAGE)
-                    log.Warn($"{datFile} iteration does not match expected end-of-retail version of {ITERATION_LANGUAGE}.");
+                    log.LogWarning("{DatFile} iteration does not match expected end-of-retail version of {ITERATION_LANGUAGE}.", datFile, ITERATION_LANGUAGE);
             }
             catch (FileNotFoundException ex)
             {
-                log.Error($"An exception occured while attempting to open {datFile} file!\n\n *** Please check your 'DatFilesDirectory' setting in the config.json file. ***\n *** ACE will not run properly without this properly configured! ***\n");
-                log.Error($"Exception: {ex.Message}");
+                log.LogError("An exception occured while attempting to open {DatFile} file!\n\n *** Please check your 'DatFilesDirectory' setting in the config.json file. ***\n *** ACE will not run properly without this properly configured! ***\n", datFile);
+                log.LogError("Exception: {Message}", ex.Message);
             }
         }
     }

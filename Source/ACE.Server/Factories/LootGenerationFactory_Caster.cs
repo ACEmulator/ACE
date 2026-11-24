@@ -1,5 +1,6 @@
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
-using ACE.Common.Logging;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Mutations;
@@ -110,13 +111,13 @@ namespace ACE.Server.Factories
 
             if (spellLevels == null)
             {
-                log.Error($"MutateCaster_SpellDID: couldn't find {firstSpell}");
+                log.LogError("MutateCaster_SpellDID: couldn't find {FirstSpell}", firstSpell);
                 return;
             }
 
             if (spellLevels.Count != 8)
             {
-                log.Error($"MutateCaster_SpellDID: found {spellLevels.Count} spell levels for {firstSpell}, expected 8");
+                log.LogError("MutateCaster_SpellDID: found {Count} spell levels for {FirstSpell}, expected 8", spellLevels.Count, firstSpell);
                 return;
             }
 

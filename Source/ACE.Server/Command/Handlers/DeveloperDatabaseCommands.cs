@@ -233,7 +233,7 @@ namespace ACE.Server.Command.Handlers
 
             var numberOfRecordsFixed = 0;
 
-            log.Info($"Starting FixSpellBarsPR2918 process. This could take a while...");
+            log.LogInformation("Starting FixSpellBarsPR2918 process. This could take a while...");
 
             using (var context = new ShardDbContext())
             {
@@ -241,8 +241,8 @@ namespace ACE.Server.Command.Handlers
 
                 if (characterSpellBarsNotFixed.Count > 0)
                 {
-                    log.Warn("2020-04-11-00-Update-Character-SpellBars.sql patch not yet applied. Please apply this patch ASAP! Skipping FixSpellBarsPR2918 for now...");
-                    log.Fatal("2020-04-11-00-Update-Character-SpellBars.sql patch not yet applied. You must apply this patch before proceeding further...");
+                    log.LogWarning("2020-04-11-00-Update-Character-SpellBars.sql patch not yet applied. Please apply this patch ASAP! Skipping FixSpellBarsPR2918 for now...");
+                    log.LogCritical("2020-04-11-00-Update-Character-SpellBars.sql patch not yet applied. You must apply this patch before proceeding further...");
                     return;
                 }
 
@@ -285,7 +285,7 @@ namespace ACE.Server.Command.Handlers
                 {
                     Console.WriteLine("Saving changes...");
                     context.SaveChanges();
-                    log.Info($"Fixed {numberOfRecordsFixed:N0} CharacterPropertiesSpellBar records.");
+                    log.LogInformation("Fixed {NumberOfRecordsFixed:N0} CharacterPropertiesSpellBar records.", numberOfRecordsFixed);
                 }
                 else
                 {

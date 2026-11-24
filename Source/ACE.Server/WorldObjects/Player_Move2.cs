@@ -1,6 +1,7 @@
 using System;
 
-using ACE.Common.Logging;
+using Microsoft.Extensions.Logging;
+
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Physics;
@@ -25,7 +26,7 @@ namespace ACE.Server.WorldObjects
 
             if (target.Location == null)
             {
-                log.Error($"{Name}.MoveTo({target.Name}): target.Location is null");
+                log.LogError("{Name}.MoveTo({TargetName}): target.Location is null", Name, target.Name);
                 callback(false);
                 return;
             }
@@ -78,7 +79,7 @@ namespace ACE.Server.WorldObjects
 
             if (rotateTarget.Location == null)
             {
-                log.Error($"{Name}.TurnTo({target.Name}): target.Location is null");
+                log.LogError("{Name}.TurnTo({TargetName}): target.Location is null", Name, target.Name);
                 callback(false);
                 return;
             }

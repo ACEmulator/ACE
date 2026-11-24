@@ -54,13 +54,13 @@ namespace ACE.Server.Factories.Tables
 
                 if (spellLevels == null)
                 {
-                    log.Error($"MeleeCantrips - couldn't find {spell}");
+                    log.LogError("MeleeCantrips - couldn't find {Spell}", spell);
                     continue;
                 }
 
                 if (spellLevels.Count != NumLevels)
                 {
-                    log.Error($"MeleeCantrips - expected {NumLevels} levels for {spell}, found {spellLevels.Count}");
+                    log.LogError("MeleeCantrips - expected {NumLevels} levels for {Spell}, found {Count}", NumLevels, spell, spellLevels.Count);
                     continue;
                 }
 

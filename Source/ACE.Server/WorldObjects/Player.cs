@@ -643,7 +643,7 @@ namespace ACE.Server.WorldObjects
         {
             if (!ForcedLogOffRequested) return;
 
-            log.WarnFormat("[LOGOUT] Executing ForcedLogoff for Account {0} with character {1} (0x{2}) at {3}.", Account.AccountName, Name, Guid, DateTime.Now.ToCommonString());
+            log.LogWarning("[LOGOUT] Executing ForcedLogoff for Account {AccountName} with character {Name} (0x{Guid}) at {Now}.", Account.AccountName, Name, Guid, DateTime.Now.ToCommonString());
 
             FinalizeLogout();
 
@@ -658,7 +658,7 @@ namespace ACE.Server.WorldObjects
             SavePlayerToDatabase();
             PlayerManager.SwitchPlayerFromOnlineToOffline(this);
 
-            log.DebugFormat("[LOGOUT] Account {0} exited the world with character {1} (0x{2}) at {3}.", Account.AccountName, Name, Guid, DateTime.Now.ToCommonString());
+            log.LogDebug("[LOGOUT] Account {AccountName} exited the world with character {Name} (0x{Guid}) at {Now}.", Account.AccountName, Name, Guid, DateTime.Now.ToCommonString());
         }
 
         public void HandleMRT()

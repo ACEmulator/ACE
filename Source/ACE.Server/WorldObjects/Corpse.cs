@@ -71,7 +71,7 @@ namespace ACE.Server.WorldObjects
                 var dtTimeToRot = DateTime.UtcNow.AddSeconds(TimeToRot ?? 0);
                 var tsDecay = dtTimeToRot - DateTime.UtcNow;
 
-                log.Info($"[CORPSE] {Name} (0x{Guid}) Reloaded from Database: Corpse Level: {Level ?? 0} | InventoryLoaded: {InventoryLoaded} | Inventory.Count: {Inventory.Count} | TimeToRot: {TimeToRot} | CreationTimestamp: {CreationTimestamp} ({Time.GetDateTimeFromTimestamp(CreationTimestamp ?? 0).ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")}) | Corpse should not decay before: {dtTimeToRot.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")}, {tsDecay.ToString("%d")} day(s), {tsDecay.ToString("%h")} hours, {tsDecay.ToString("%m")} minutes, and {tsDecay.ToString("%s")} seconds from now.");
+                log.LogInformation("[CORPSE] {Name} (0x{Guid}) Reloaded from Database: Corpse Level: {Level} | InventoryLoaded: {InventoryLoaded} | Inventory.Count: {Count} | TimeToRot: {TimeToRot} | CreationTimestamp: {CreationTimestamp} ({DateTimeFromTimestamp:yyyy-MM-dd HH:mm:ss}) | Corpse should not decay before: {DtTimeToRot:yyyy-MM-dd HH:mm:ss}, {TsDecay:%d} day(s), {TsDecay:%h} hours, {TsDecay:%m} minutes, and {TsDecay:%s} seconds from now.", Name, Guid, Level ?? 0, InventoryLoaded, Inventory.Count, TimeToRot, CreationTimestamp, Time.GetDateTimeFromTimestamp(CreationTimestamp ?? 0).ToLocalTime(), dtTimeToRot.ToLocalTime(), tsDecay, tsDecay, tsDecay, tsDecay);
             }
         }
 
@@ -115,7 +115,7 @@ namespace ACE.Server.WorldObjects
 
             Level = player.Level ?? 1;
 
-            log.Info($"[CORPSE] {Name}.RecalculateDecayTime({player.Name}) 0x{Guid}: Player Level: {player.Level} | Inventory.Count: {Inventory.Count} | TimeToRot: {TimeToRot} | CreationTimestamp: {CreationTimestamp} ({Time.GetDateTimeFromTimestamp(CreationTimestamp ?? 0).ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")}) | Corpse should not decay before: {dtTimeToRot.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")}, {tsDecay.ToString("%d")} day(s), {tsDecay.ToString("%h")} hours, {tsDecay.ToString("%m")} minutes, and {tsDecay.ToString("%s")} seconds from now.");
+            log.LogInformation("[CORPSE] {Name}.RecalculateDecayTime({PlayerName}) 0x{Guid}: Player Level: {Level} | Inventory.Count: {Count} | TimeToRot: {TimeToRot} | CreationTimestamp: {CreationTimestamp} ({DateTimeFromTimestamp:yyyy-MM-dd HH:mm:ss}) | Corpse should not decay before: {DtTimeToRot:yyyy-MM-dd HH:mm:ss}, {TsDecay:%d} day(s), {TsDecay:%h} hours, {TsDecay:%m} minutes, and {TsDecay:%s} seconds from now.", Name, player.Name, Guid, player.Level, Inventory.Count, TimeToRot, CreationTimestamp, Time.GetDateTimeFromTimestamp(CreationTimestamp ?? 0).ToLocalTime(), dtTimeToRot.ToLocalTime(), tsDecay, tsDecay, tsDecay, tsDecay);
         }
 
         /// <summary>
@@ -249,7 +249,7 @@ namespace ACE.Server.WorldObjects
             var success = base.EnterWorld();
             if (!success)
             {
-                log.Error($"{Name} ({Guid}) failed to spawn @ {Location?.ToLOCString()}");
+                log.LogError("{Name} ({Guid}) failed to spawn @ {Location}", Name, Guid, Location?.ToLOCString());
                 return false;
             }
 
@@ -345,8 +345,8 @@ namespace ACE.Server.WorldObjects
             var tier = LootGenerationFactory.GetRareTier(wo.WeenieClassId);
             LootGenerationFactory.RareChances.TryGetValue(tier, out var chance);
 
-            log.Info($"[LOOT][RARE] {Name} ({Guid}) generated rare {wo.Name} ({wo.Guid}) for {killer.Name} ({killer.Guid})");
-            log.Info($"[LOOT][RARE] Tier {tier} -- 1 / {chance:N0} chance -- {luck:N0} luck");
+            log.LogInformation("[LOOT][RARE] {Name} ({Guid}) generated rare {WoName} ({WoGuid}) for {KillerName} ({KillerGuid})", Name, Guid, wo.Name, wo.Guid, killer.Name, killer.Guid);
+            log.LogInformation("[LOOT][RARE] Tier {Tier} -- 1 / {Chance:N0} chance -- {Luck:N0} luck", tier, chance, luck);
 
             if (TryAddToInventory(wo))
             {
@@ -396,7 +396,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
             else
-                log.Error($"[RARE] failed to add to corpse inventory");
+                log.LogError("[RARE] failed to add to corpse inventory");
         }
 
         /// <summary>

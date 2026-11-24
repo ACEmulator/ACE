@@ -52,11 +52,11 @@ namespace ACE.Server.Mods
                 try
                 {
                     Directory.CreateDirectory(ModPath);
-                    log.Info($"Created mod folder at:\r\n{ModPath}");
+                    log.LogInformation("Created mod folder at:\r\n{ModPath}", ModPath);
                 }
                 catch (Exception ex)
                 {
-                    log.Error($"Failed to create mod folder:\r\n{ModPath}\n{ex}");
+                    log.LogError("Failed to create mod folder:\r\n{ModPath}\n{Ex}", ModPath, ex);
                     return;
                 }
             }
@@ -139,7 +139,7 @@ namespace ACE.Server.Mods
             if (!File.Exists(metadataPath))
             {
                 //Log missing metadata
-                log.WarnFormat("Metadata not found at: {0}", metadataPath);
+                log.LogWarning("Metadata not found at: {MetadataPath}", metadataPath);
                 return false;
             }
 
@@ -157,7 +157,7 @@ namespace ACE.Server.Mods
             }
             catch (Exception ex)
             {
-                log.Error($"Unable to deserialize mod metadata from: {metadataPath}\n{ex}");
+                log.LogError("Unable to deserialize mod metadata from: {MetadataPath}\n{Ex}", metadataPath, ex);
                 return false;
             }
         }
@@ -246,7 +246,7 @@ namespace ACE.Server.Mods
                 }
             }
 
-            log.Info(sb);
+            log.LogInformation("{Message:l}", sb);
             player?.SendMessage(sb.ToString());
         }
 
@@ -264,22 +264,22 @@ namespace ACE.Server.Mods
             switch (level)
             {
                 case LogLevel.Debug:
-                    log.Debug(message);
+                    log.LogDebug("{Message:l}", message);
                     break;
                 case LogLevel.Error:
-                    log.Error(message);
+                    log.LogError("{Message:l}", message);
                     break;
                 case LogLevel.Fatal:
-                    log.Fatal(message);
+                    log.LogCritical("{Message:l}", message);
                     break;
                 case LogLevel.Info:
-                    log.Info(message);
+                    log.LogInformation("{Message:l}", message);
                     break;
                 case LogLevel.Warn:
-                    log.Warn(message);
+                    log.LogWarning("{Message:l}", message);
                     break;
                 default:
-                    log.Info(message);
+                    log.LogInformation("{Message:l}", message);
                     break;
             };
         }

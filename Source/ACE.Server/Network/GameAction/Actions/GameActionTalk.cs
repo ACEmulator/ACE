@@ -33,7 +33,7 @@ namespace ACE.Server.Network.GameAction.Actions
                 }
                 catch (Exception ex)
                 {
-                    log.Error($"Exception while parsing command: {commandRaw}", ex);
+                    log.LogError(ex, "Exception while parsing command: {CommandRaw}", commandRaw);
                     return;
                 }
 
@@ -43,7 +43,7 @@ namespace ACE.Server.Network.GameAction.Actions
                 }
                 catch (Exception ex)
                 {
-                    log.Error($"Exception while getting command handler for: {commandRaw}", ex);
+                    log.LogError(ex, "Exception while getting command handler for: {CommandRaw}", commandRaw);
                 }
 
                 if (response == CommandHandlerResponse.Ok)
@@ -58,7 +58,7 @@ namespace ACE.Server.Network.GameAction.Actions
                     }
                     catch (Exception ex)
                     {
-                        log.Error($"Exception while invoking command handler for: {commandRaw}", ex);
+                        log.LogError(ex, "Exception while invoking command handler for: {CommandRaw}", commandRaw);
                     }
                 }
                 else if (response == CommandHandlerResponse.SudoOk)
@@ -76,7 +76,7 @@ namespace ACE.Server.Network.GameAction.Actions
                     }
                     catch (Exception ex)
                     {
-                        log.Error($"Exception while invoking command handler for: {commandRaw}", ex);
+                        log.LogError(ex, "Exception while invoking command handler for: {CommandRaw}", commandRaw);
                     }
                 }
                 else

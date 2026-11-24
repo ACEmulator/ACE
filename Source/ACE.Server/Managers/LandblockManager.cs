@@ -86,28 +86,28 @@ namespace ACE.Server.Managers
         {
             if (!ConfigManager.Config.Server.LandblockPreloading)
             {
-                log.Info("Preloading Landblocks Disabled...");
-                log.Warn("Events may not function correctly as Preloading of Landblocks has disabled.");
+                log.LogInformation("Preloading Landblocks Disabled...");
+                log.LogWarning("Events may not function correctly as Preloading of Landblocks has disabled.");
                 return;
             }
 
-            log.Info("Preloading Landblocks...");
+            log.LogInformation("Preloading Landblocks...");
 
             if (ConfigManager.Config.Server.PreloadedLandblocks == null)
             {
-                log.Info("No configuration found for PreloadedLandblocks, please refer to Config.js.example");
-                log.Warn("Initializing PreloadedLandblocks with single default for Hebian-To (Global Events)");
-                log.Warn("Add a PreloadedLandblocks section to your Config.js file and adjust to meet your needs");
+                log.LogInformation("No configuration found for PreloadedLandblocks, please refer to Config.js.example");
+                log.LogWarning("Initializing PreloadedLandblocks with single default for Hebian-To (Global Events)");
+                log.LogWarning("Add a PreloadedLandblocks section to your Config.js file and adjust to meet your needs");
                 ConfigManager.Config.Server.PreloadedLandblocks = new List<PreloadedLandblocks> { new PreloadedLandblocks { Id = "E74EFFFF", Description = "Hebian-To (Global Events)", Permaload = true, IncludeAdjacents = true, Enabled = true } };
             }
 
-            log.InfoFormat("Found {0} landblock entries in PreloadedLandblocks configuration, {1} are set to preload.", ConfigManager.Config.Server.PreloadedLandblocks.Count, ConfigManager.Config.Server.PreloadedLandblocks.Count(x => x.Enabled == true));
+            log.LogInformation("Found {Count} landblock entries in PreloadedLandblocks configuration, {EnabledCount} are set to preload.", ConfigManager.Config.Server.PreloadedLandblocks.Count, ConfigManager.Config.Server.PreloadedLandblocks.Count(x => x.Enabled == true));
 
             foreach (var preloadLandblock in ConfigManager.Config.Server.PreloadedLandblocks)
             {
                 if (!preloadLandblock.Enabled)
                 {
-                    log.DebugFormat("Landblock {0:X4} specified but not enabled in config, skipping", preloadLandblock.Id);
+                    log.LogDebug("Landblock {Id:X4} specified but not enabled in config, skipping", preloadLandblock.Id);
                     continue;
                 }
 
@@ -118,7 +118,7 @@ namespace ACE.Server.Managers
                         switch (preloadLandblock.Description)
                         {
                             case "Apartment Landblocks":
-                                log.InfoFormat("Preloading landblock group: {0}, IncludeAdjacents = {1}, Permaload = {2}", preloadLandblock.Description, preloadLandblock.IncludeAdjacents, preloadLandblock.Permaload);
+                                log.LogInformation("Preloading landblock group: {Description}, IncludeAdjacents = {IncludeAdjacents}, Permaload = {Permaload}", preloadLandblock.Description, preloadLandblock.IncludeAdjacents, preloadLandblock.Permaload);
                                 foreach (var apt in apartmentLandblocks)
                                     PreloadLandblock(apt, preloadLandblock);
                                 break;
@@ -134,7 +134,7 @@ namespace ACE.Server.Managers
         {
             var landblockID = new LandblockId(landblock);
             GetLandblock(landblockID, preloadLandblock.IncludeAdjacents, preloadLandblock.Permaload);
-            log.DebugFormat("Landblock {0:X4}, ({1}) preloaded. IncludeAdjacents = {2}, Permaload = {3}", landblockID.Landblock, preloadLandblock.Description, preloadLandblock.IncludeAdjacents, preloadLandblock.Permaload);
+            log.LogDebug("Landblock {Landblock:X4}, ({Description}) preloaded. IncludeAdjacents = {IncludeAdjacents}, Permaload = {Permaload}", landblockID.Landblock, preloadLandblock.Description, preloadLandblock.IncludeAdjacents, preloadLandblock.Permaload);
         }
 
         private static readonly uint[] apartmentLandblocks =
@@ -255,7 +255,7 @@ namespace ACE.Server.Managers
                 foreach (var group in landblockGroups)
                     count += group.Count;
                 if (count != loadedLandblocks.Count)
-                    log.Error($"[LANDBLOCK GROUP] ProcessPendingAdditions count ({count}) != loadedLandblocks.Count ({loadedLandblocks.Count})");
+                    log.LogError("[LANDBLOCK GROUP] ProcessPendingAdditions count ({Count}) != loadedLandblocks.Count ({LoadedLandblocksCount})", count, loadedLandblocks.Count);
             }
             finally
             {
@@ -496,7 +496,7 @@ namespace ACE.Server.Managers
 
                         if (!loadedLandblocks.Add(landblock))
                         {
-                            log.Error($"LandblockManager: failed to add {landblock.Id.Raw:X8} to active landblocks!");
+                            log.LogError("LandblockManager: failed to add {Id:X8} to active landblocks!", landblock.Id.Raw);
                             return landblock;
                         }
 
@@ -720,22 +720,22 @@ namespace ACE.Server.Managers
                                         swTrySplitEach.Stop();
 
                                         if (swTrySplitEach.Elapsed.TotalMilliseconds > 3)
-                                            log.WarnFormat("[LANDBLOCK GROUP] TrySplit for {0} took: {1:N2} ms", landblockGroups[i], swTrySplitEach.Elapsed.TotalMilliseconds);
+                                            log.LogWarning("[LANDBLOCK GROUP] TrySplit for {LandblockGroups} took: {TotalMilliseconds:N2} ms", landblockGroups[i], swTrySplitEach.Elapsed.TotalMilliseconds);
                                         else if (swTrySplitEach.Elapsed.TotalMilliseconds > 1)
-                                            log.DebugFormat("[LANDBLOCK GROUP] TrySplit for {0} took: {1:N2} ms", landblockGroups[i], swTrySplitEach.Elapsed.TotalMilliseconds);
+                                            log.LogDebug("[LANDBLOCK GROUP] TrySplit for {LandblockGroups} took: {TotalMilliseconds:N2} ms", landblockGroups[i], swTrySplitEach.Elapsed.TotalMilliseconds);
 
                                         if (splits != null)
                                         {
                                             if (splits.Count > 0)
                                             {
-                                                log.DebugFormat("[LANDBLOCK GROUP] TrySplit resulted in {0} split(s) and took: {1:N2} ms", splits.Count, swTrySplitEach.Elapsed.TotalMilliseconds);
-                                                log.DebugFormat("[LANDBLOCK GROUP] split for old: {0}", landblockGroups[i]);
+                                                log.LogDebug("[LANDBLOCK GROUP] TrySplit resulted in {Count} split(s) and took: {TotalMilliseconds:N2} ms", splits.Count, swTrySplitEach.Elapsed.TotalMilliseconds);
+                                                log.LogDebug("[LANDBLOCK GROUP] split for old: {LandblockGroups}", landblockGroups[i]);
                                             }
 
                                             foreach (var split in splits)
                                             {
                                                 landblockGroups.Add(split);
-                                                log.DebugFormat("[LANDBLOCK GROUP] split and new: {0}", split);
+                                                log.LogDebug("[LANDBLOCK GROUP] split and new: {Split}", split);
                                             }
                                         }
                                     }
@@ -755,7 +755,7 @@ namespace ACE.Server.Managers
                     }
 
                     if (unloadFailed)
-                        log.Error($"LandblockManager: failed to unload {landblock.Id.Raw:X8}");
+                        log.LogError("LandblockManager: failed to unload {Id:X8}", landblock.Id.Raw);
                 }
             }
         }

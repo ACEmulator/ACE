@@ -120,13 +120,13 @@ namespace ACE.Server.Factories.Tables
 
                 if (spellLevels == null)
                 {
-                    log.Error($"ArmorCantrips - couldn't find {spell}");
+                    log.LogError("ArmorCantrips - couldn't find {Spell}", spell);
                     continue;
                 }
 
                 if (spellLevels.Count != NumLevels)
                 {
-                    log.Error($"ArmorCantrips - expected {NumLevels} levels for {spell}, found {spellLevels.Count}");
+                    log.LogError("ArmorCantrips - expected {NumLevels} levels for {Spell}, found {Count}", NumLevels, spell, spellLevels.Count);
                     continue;
                 }
 

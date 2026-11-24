@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
-using ACE.Common.Logging;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
@@ -41,7 +42,7 @@ namespace ACE.Server.WorldObjects
                 // Boot the player as their Character object is not saving properly
                 if (!IsLoggingOut)
                 {
-                    log.Error($"{Session.Player.Name} | 0x{Guid} | Account: {Account.AccountName} - disconnected for CharacterSaveFailed");
+                    log.LogError("{Name} | 0x{Guid} | Account: {AccountName} - disconnected for CharacterSaveFailed", Session.Player.Name, Guid, Account.AccountName);
                     //Session.SendCharacterError(CharacterError.AccountLogin); // forces client to error screen
                     Session.Terminate(SessionTerminationReason.CharacterSaveFailed, new GameMessageCharacterError(CharacterError.AccountLogin));
                     //Session.LogOffPlayer(true);
@@ -55,7 +56,7 @@ namespace ACE.Server.WorldObjects
                 // Boot the player as their Biota object is not saving properly
                 if (!IsLoggingOut)
                 {
-                    log.Error($"{Session.Player.Name} | 0x{Guid} | Account: {Account.AccountName} - disconnected for BiotaSaveFailed");
+                    log.LogError("{Name} | 0x{Guid} | Account: {AccountName} - disconnected for BiotaSaveFailed", Session.Player.Name, Guid, Account.AccountName);
                     //Session.SendCharacterError(CharacterError.AccountLogin); // forces client to error screen
                     Session.Terminate(SessionTerminationReason.BiotaSaveFailed, new GameMessageCharacterError(CharacterError.AccountLogin));
                     //Session.LogOffPlayer(true);
@@ -324,9 +325,9 @@ namespace ACE.Server.WorldObjects
                 var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
                 ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Player_Tick_UpdateObjectPhysics, elapsedSeconds);
                 if (elapsedSeconds >= 1) // Yea, that ain't good....
-                    log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdateObjectPhysics() at loc: {Location}");
+                    log.LogWarning("[PERFORMANCE][PHYSICS] {Guid}:{Name} took {ElapsedMs:N1} ms to process UpdateObjectPhysics() at loc: {Location}", Guid, Name, (elapsedSeconds * 1000), Location);
                 else if (elapsedSeconds >= 0.010)
-                    log.DebugFormat("[PERFORMANCE][PHYSICS] {0}:{1} took {2:N1} ms to process UpdateObjectPhysics() at loc: {3}", Guid, Name, (elapsedSeconds * 1000), Location);
+                    log.LogDebug("[PERFORMANCE][PHYSICS] {Guid}:{Name} took {ElapsedMs:N1} ms to process UpdateObjectPhysics() at loc: {Location}", Guid, Name, (elapsedSeconds * 1000), Location);
             }
         }
 
@@ -420,7 +421,7 @@ namespace ACE.Server.WorldObjects
             // pre-validate movement
             if (!ValidateMovement(newPosition))
             {
-                log.Error($"{Name}.UpdatePlayerPosition() - movement pre-validation failed from {Location} to {newPosition}");
+                log.LogError("{Name}.UpdatePlayerPosition() - movement pre-validation failed from {Location} to {NewPosition}", Name, Location, newPosition);
                 return false;
             }
 
@@ -442,7 +443,7 @@ namespace ACE.Server.WorldObjects
                         Console.WriteLine($"Dist: {dist}");*/
 
                         if (newPosition.Landblock == 0x18A && Location.Landblock != 0x18A)
-                            log.Info($"{Name} is getting swanky");
+                            log.LogInformation("{Name} is getting swanky", Name);
 
                         if (!Teleporting)
                         {
@@ -452,7 +453,7 @@ namespace ACE.Server.WorldObjects
                             if (distSq > MaxSpeedSq && blockDist > 1)
                             {
                                 //Session.Network.EnqueueSend(new GameMessageSystemChat("Movement error", ChatMessageType.Broadcast));
-                                log.Warn($"MOVEMENT SPEED: {Name} trying to move from {Location} to {newPosition}, speed: {Math.Sqrt(distSq)}");
+                                log.LogWarning("MOVEMENT SPEED: {Name} trying to move from {Location} to {NewPosition}, speed: {Sqrt}", Name, Location, newPosition, Math.Sqrt(distSq));
                                 return false;
                             }
 
@@ -484,7 +485,7 @@ namespace ACE.Server.WorldObjects
 
                                 if (blockDist <= 1)
                                 {
-                                    log.Warn($"z-pos hacking detected for {Name}, lastGroundPos: {LastGroundPos.ToLOCString()} - requestPos: {newPosition.ToLOCString()}");
+                                    log.LogWarning("z-pos hacking detected for {Name}, lastGroundPos: {LastGroundPos} - requestPos: {NewPosition}", Name, LastGroundPos.ToLOCString(), newPosition.ToLOCString());
                                     Location = new ACE.Entity.Position(LastGroundPos);
                                     Sequences.GetNextSequence(SequenceType.ObjectForcePosition);
                                     SendUpdatePosition();
@@ -528,9 +529,9 @@ namespace ACE.Server.WorldObjects
                     var elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
                     ServerPerformanceMonitor.AddToCumulativeEvent(ServerPerformanceMonitor.CumulativeEventHistoryType.Player_Tick_UpdateObjectPhysics, elapsedSeconds);
                     if (elapsedSeconds >= 0.100) // Yea, that ain't good....
-                        log.Warn($"[PERFORMANCE][PHYSICS] {Guid}:{Name} took {(elapsedSeconds * 1000):N1} ms to process UpdatePlayerPosition() at loc: {Location}");
+                        log.LogWarning("[PERFORMANCE][PHYSICS] {Guid}:{Name} took {ElapsedMs:N1} ms to process UpdatePlayerPosition() at loc: {Location}", Guid, Name, (elapsedSeconds * 1000), Location);
                     else if (elapsedSeconds >= 0.010)
-                        log.DebugFormat("[PERFORMANCE][PHYSICS] {0}:{1} took {2:N1} ms to process UpdatePlayerPosition() at loc: {3}", Guid, Name, (elapsedSeconds * 1000), Location);
+                        log.LogDebug("[PERFORMANCE][PHYSICS] {Guid}:{Name} took {ElapsedMs:N1} ms to process UpdatePlayerPosition() at loc: {Location}", Guid, Name, (elapsedSeconds * 1000), Location);
                 }
             }
         }

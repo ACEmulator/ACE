@@ -113,7 +113,7 @@ namespace ACE.Server.Network.Handlers
             if (weenie == null) // If it is STILL null after the above catchall, the database is missing critical data and cannot continue with character creation.
             {
                 SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.DatabaseDown);
-                log.Error("Database does not contain the weenie for human (1). Characters cannot be created until the missing weenie is restored.");
+                log.LogError("Database does not contain the weenie for human (1). Characters cannot be created until the missing weenie is restored.");
                 return;
             }
 

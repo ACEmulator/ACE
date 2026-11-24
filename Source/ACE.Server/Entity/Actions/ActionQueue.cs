@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Concurrent;
 
+using Microsoft.Extensions.Logging;
+
 using ACE.Common.Logging;
 
 namespace ACE.Server.Entity.Actions
@@ -42,12 +44,12 @@ namespace ACE.Server.Entity.Actions
                         if (result is ActionEventDelegate actionEventDelegate)
                         {
                             if (actionEventDelegate.Action.Target is WorldObjects.WorldObject worldObject)
-                                log.Warn($"ActionQueue Act() took {sw.Elapsed.TotalSeconds:N0}s. Method.Name: {actionEventDelegate.Action.Method.Name}, Target: {actionEventDelegate.Action.Target} 0x{worldObject.Guid}:{worldObject.Name}");
+                                log.LogWarning("ActionQueue Act() took {TotalSeconds:N0}s. Method.Name: {MethodName}, Target: {Target} 0x{Guid}:{WorldObjectName}", sw.Elapsed.TotalSeconds, actionEventDelegate.Action.Method.Name, actionEventDelegate.Action.Target, worldObject.Guid, worldObject.Name);
                             else
-                                log.Warn($"ActionQueue Act() took {sw.Elapsed.TotalSeconds:N0}s. Method.Name: {actionEventDelegate.Action.Method.Name}, Target: {actionEventDelegate.Action.Target}");
+                                log.LogWarning("ActionQueue Act() took {TotalSeconds:N0}s. Method.Name: {Name}, Target: {Target}", sw.Elapsed.TotalSeconds, actionEventDelegate.Action.Method.Name, actionEventDelegate.Action.Target);
                         }
                         else
-                            log.Warn($"ActionQueue Act() took {sw.Elapsed.TotalSeconds:N0}s.");
+                            log.LogWarning("ActionQueue Act() took {TotalSeconds:N0}s.", sw.Elapsed.TotalSeconds);
                     }
                     #endif
 

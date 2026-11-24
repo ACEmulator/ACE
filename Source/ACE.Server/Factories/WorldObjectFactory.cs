@@ -35,7 +35,7 @@ namespace ACE.Server.Factories
             switch (objWeenieType)
             {
                 case WeenieType.Undef:
-                    log.Warn($"CreateWorldObject: {weenie.GetName()} (0x{guid}:{weenie.WeenieClassId}) - WeenieType is Undef, Object cannot be created.");
+                    log.LogWarning("CreateWorldObject: {Name} (0x{Guid}:{WeenieClassId}) - WeenieType is Undef, Object cannot be created.", weenie.GetName(), guid, weenie.WeenieClassId);
                     return null;
                 case WeenieType.LifeStone:
                     return new Lifestone(weenie, guid);
@@ -284,7 +284,7 @@ namespace ACE.Server.Factories
 
                 if (weenie == null)
                 {
-                    log.Warn($"CreateNewWorldObjects: Database does not contain weenie {instance.WeenieClassId} for instance 0x{instance.Guid:X8} at {new Position(instance.ObjCellId, instance.OriginX, instance.OriginY, instance.OriginZ, instance.AnglesX, instance.AnglesY, instance.AnglesZ, instance.AnglesW).ToLOCString()}");
+                    log.LogWarning("CreateNewWorldObjects: Database does not contain weenie {WeenieClassId} for instance 0x{Guid:X8} at {ToLOCString}", instance.WeenieClassId, instance.Guid, new Position(instance.ObjCellId, instance.OriginX, instance.OriginY, instance.OriginZ, instance.AnglesX, instance.AnglesY, instance.AnglesZ, instance.AnglesW).ToLOCString());
                     continue;
                 }
 
@@ -308,7 +308,7 @@ namespace ACE.Server.Factories
 
                     if (worldObject.Location == null)
                     {
-                        log.Warn($"CreateNewWorldObjects: {worldObject.Name} (0x{worldObject.Guid}) Location was null. CreationTimestamp = {worldObject.CreationTimestamp} ({Common.Time.GetDateTimeFromTimestamp(worldObject.CreationTimestamp ?? 0).ToLocalTime().ToCommonString()}) | Location restored from world db instance.");
+                        log.LogWarning("CreateNewWorldObjects: {Name} (0x{Guid}) Location was null. CreationTimestamp = {CreationTimestamp} ({DateTimeFromTimestamp}) | Location restored from world db instance.", worldObject.Name, worldObject.Guid, worldObject.CreationTimestamp, Common.Time.GetDateTimeFromTimestamp(worldObject.CreationTimestamp ?? 0).ToLocalTime().ToCommonString());
                         worldObject.Location = new Position(instance.ObjCellId, instance.OriginX, instance.OriginY, instance.OriginZ, instance.AnglesX, instance.AnglesY, instance.AnglesZ, instance.AnglesW);
                     }
                 }

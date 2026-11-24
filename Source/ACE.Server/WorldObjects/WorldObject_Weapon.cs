@@ -1,7 +1,8 @@
 using System;
 
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
-using ACE.Common.Logging;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -474,7 +475,7 @@ namespace ACE.Server.WorldObjects
             var rendDamageType = GetRendDamageType(damageType);
 
             if (rendDamageType == ImbuedEffectType.Undef)
-                log.DebugFormat("{0}.GetRendDamageType({1}) unexpected damage type for {2} ({3})", wielder.Name, damageType, weapon.Name, weapon.Guid);
+                log.LogDebug("{WielderName}.GetRendDamageType({DamageType}) unexpected damage type for {WeaponName} ({Guid})", wielder.Name, damageType, weapon.Name, weapon.Guid);
 
             if (rendDamageType != ImbuedEffectType.Undef && weapon.HasImbuedEffect(rendDamageType) && skill != null)
             {
@@ -871,7 +872,7 @@ namespace ACE.Server.WorldObjects
                     return ImbuedSkillType.Magic;
 
                 default:
-                    log.DebugFormat("WorldObject_Weapon.GetImbuedSkillType({0}): unexpected skill", skill?.Skill);
+                    log.LogDebug("WorldObject_Weapon.GetImbuedSkillType({Skill}): unexpected skill", skill?.Skill);
                     return ImbuedSkillType.Undef;
             }
         }
@@ -1057,7 +1058,7 @@ namespace ACE.Server.WorldObjects
 
             if ((attackType & AttackType.Offhand) != 0)
             {
-                log.Warn($"{Name} ({Guid}, {WeenieClassId}).GetAttackType(): {attackType}");
+                log.LogWarning("{Name} ({Guid}, {WeenieClassId}).GetAttackType(): {AttackType}", Name, Guid, WeenieClassId, attackType);
                 attackType &= ~AttackType.Offhand;
             }
 
@@ -1169,7 +1170,7 @@ namespace ACE.Server.WorldObjects
 
             if ((attackType & AttackType.Offhand) != 0)
             {
-                log.Warn($"{Name} ({Guid}, {WeenieClassId}).GetOffhandAttackType(): {attackType}");
+                log.LogWarning("{Name} ({Guid}, {WeenieClassId}).GetOffhandAttackType(): {AttackType}", Name, Guid, WeenieClassId, attackType);
                 attackType &= ~AttackType.Offhand;
             }
 

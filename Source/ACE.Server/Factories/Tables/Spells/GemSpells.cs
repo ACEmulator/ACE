@@ -114,13 +114,13 @@ namespace ACE.Server.Factories.Tables
 
                 if (spellLevels == null)
                 {
-                    log.Error($"GemSpells - couldn't find {spell}");
+                    log.LogError("GemSpells - couldn't find {Spell}", spell);
                     continue;
                 }
 
                 if (spellLevels.Count != NumTiers)
                 {
-                    log.Error($"GemSpells - expected {NumTiers} levels for {spell}, found {spellLevels.Count}");
+                    log.LogError("GemSpells - expected {NumTiers} levels for {Spell}, found {Count}", NumTiers, spell, spellLevels.Count);
                     continue;
                 }
 

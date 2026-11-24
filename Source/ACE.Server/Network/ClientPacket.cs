@@ -46,7 +46,7 @@ namespace ACE.Server.Network
             }
             catch (Exception ex)
             {
-                packetLog.Error("Invalid packet data", ex);
+                packetLog.LogError(ex, "Invalid packet data");
 
                 return false;
             }
@@ -151,13 +151,13 @@ namespace ACE.Server.Network
             {
                 if (headerChecksum + payloadChecksum == Header.Checksum)
                 {
-                    if (packetLog.IsDebugEnabled)
-                        packetLog.DebugFormat("{0}", this);
+                    if (packetLog.IsEnabled(LogLevel.Debug))
+                        packetLog.LogDebug("{Value}", this);
                     return true;
                 }
 
-                if (packetLog.IsDebugEnabled)
-                    packetLog.DebugFormat("{0}, Checksum Failed", this);
+                if (packetLog.IsEnabled(LogLevel.Debug))
+                    packetLog.LogDebug("{Value}, Checksum Failed", this);
             }
 
             NetworkStatistics.C2S_CRCErrors_Aggregate_Increment();

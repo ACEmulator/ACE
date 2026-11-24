@@ -35,12 +35,12 @@ namespace ACE.Database
                 {
                     if (((RelationalDatabaseCreator)context.Database.GetService<IDatabaseCreator>()).Exists())
                     {
-                        log.InfoFormat("[DATABASE] Successfully connected to {0} database on {1}:{2}.", config.Database, config.Host, config.Port);
+                        log.LogInformation("[DATABASE] Successfully connected to {Database} database on {Host}:{Port}.", config.Database, config.Host, config.Port);
                         return true;
                     }
                 }
 
-                log.Error($"[DATABASE] Attempting to reconnect to {config.Database} database on {config.Host}:{config.Port} in 5 seconds...");
+                log.LogError("[DATABASE] Attempting to reconnect to {Database} database on {Host}:{Port} in 5 seconds...", config.Database, config.Host, config.Port);
 
                 if (retryUntilFound)
                     Thread.Sleep(5000);
@@ -320,7 +320,7 @@ namespace ACE.Database
                 context.SaveChanges();
 
                 if (firstException != null)
-                    log.InfoFormat("[DATABASE] DoSaveBiota 0x{0:X8}:{1} retry succeeded after initial exception of: {2}", biota.Id, biota.GetProperty(PropertyString.Name), firstException.GetFullMessage());
+                    log.LogInformation("[DATABASE] DoSaveBiota 0x{Id:X8}:{Property} retry succeeded after initial exception of: {FullMessage}", biota.Id, biota.GetProperty(PropertyString.Name), firstException.GetFullMessage());
 
                 return true;
             }
@@ -333,8 +333,8 @@ namespace ACE.Database
                 }
 
                 // Character name might be in use or some other fault
-                log.Error($"[DATABASE] DoSaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed first attempt with exception: {firstException.GetFullMessage()}");
-                log.Error($"[DATABASE] DoSaveBiota 0x{biota.Id:X8}:{biota.GetProperty(PropertyString.Name)} failed second attempt with exception: {ex.GetFullMessage()}");
+                log.LogError("[DATABASE] DoSaveBiota 0x{Id:X8}:{Property} failed first attempt with exception: {FullMessage}", biota.Id, biota.GetProperty(PropertyString.Name), firstException.GetFullMessage());
+                log.LogError("[DATABASE] DoSaveBiota 0x{Id:X8}:{Property} failed second attempt with exception: {FullMessage}", biota.Id, biota.GetProperty(PropertyString.Name), ex.GetFullMessage());
                 return false;
             }
         }
@@ -402,7 +402,7 @@ namespace ACE.Database
                     context.SaveChanges();
 
                     if (firstException != null)
-                        log.InfoFormat("[DATABASE] RemoveBiota 0x{0:X8} retry succeeded after initial exception of: {1}", id, firstException.GetFullMessage());
+                        log.LogInformation("[DATABASE] RemoveBiota 0x{Id:X8} retry succeeded after initial exception of: {FullMessage}", id, firstException.GetFullMessage());
 
                     return true;
                 }
@@ -415,8 +415,8 @@ namespace ACE.Database
                     }
 
                     // Character name might be in use or some other fault
-                    log.Error($"[DATABASE] RemoveBiota 0x{id:X8} failed first attempt with exception: {firstException.GetFullMessage()}");
-                    log.Error($"[DATABASE] RemoveBiota 0x{id:X8} failed second attempt with exception: {ex.GetFullMessage()}");
+                    log.LogError("[DATABASE] RemoveBiota 0x{Id:X8} failed first attempt with exception: {FullMessage}", id, firstException.GetFullMessage());
+                    log.LogError("[DATABASE] RemoveBiota 0x{Id:X8} failed second attempt with exception: {FullMessage}", id, ex.GetFullMessage());
                     return false;
                 }
             }
@@ -680,7 +680,7 @@ namespace ACE.Database
                         cachedContext.SaveChanges();
 
                         if (firstException != null)
-                            log.InfoFormat("[DATABASE] SaveCharacter-1 0x{0:X8}:{1} retry succeeded after initial exception of: {2}", character.Id, character.Name, firstException.GetFullMessage());
+                            log.LogInformation("[DATABASE] SaveCharacter-1 0x{Id:X8}:{Name} retry succeeded after initial exception of: {FullMessage}", character.Id, character.Name, firstException.GetFullMessage());
 
                         return true;
                     }
@@ -693,8 +693,8 @@ namespace ACE.Database
                         }
 
                         // Character name might be in use or some other fault
-                        log.Error($"[DATABASE] SaveCharacter-1 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException.GetFullMessage()}");
-                        log.Error($"[DATABASE] SaveCharacter-1 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex.GetFullMessage()}");
+                        log.LogError("[DATABASE] SaveCharacter-1 0x{Id:X8}:{Name} failed first attempt with exception: {FullMessage}", character.Id, character.Name, firstException.GetFullMessage());
+                        log.LogError("[DATABASE] SaveCharacter-1 0x{Id:X8}:{Name} failed second attempt with exception: {FullMessage}", character.Id, character.Name, ex.GetFullMessage());
                         return false;
                     }
                 }
@@ -721,7 +721,7 @@ namespace ACE.Database
                     context.SaveChanges();
 
                     if (firstException != null)
-                        log.InfoFormat("[DATABASE] SaveCharacter-2 0x{0:X8}:{1} retry succeeded after initial exception of: {2}", character.Id, character.Name, firstException.GetFullMessage());
+                        log.LogInformation("[DATABASE] SaveCharacter-2 0x{Id:X8}:{Name} retry succeeded after initial exception of: {FullMessage}", character.Id, character.Name, firstException.GetFullMessage());
 
                     return true;
                 }
@@ -734,8 +734,8 @@ namespace ACE.Database
                     }
 
                     // Character name might be in use or some other fault
-                    log.Error($"[DATABASE] SaveCharacter-2 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException.GetFullMessage()}");
-                    log.Error($"[DATABASE] SaveCharacter-2 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex.GetFullMessage()}");
+                    log.LogError("[DATABASE] SaveCharacter-2 0x{Id:X8}:{Name} failed first attempt with exception: {FullMessage}", character.Id, character.Name, firstException.GetFullMessage());
+                    log.LogError("[DATABASE] SaveCharacter-2 0x{Id:X8}:{Name} failed second attempt with exception: {FullMessage}", character.Id, character.Name, ex.GetFullMessage());
                     return false;
                 }
             }
@@ -786,7 +786,7 @@ namespace ACE.Database
                         biotas.Add(convertedBiota);
                     }
                     else
-                        log.Error($"ShardDatabase.GetAllPlayerBiotasInParallel() - couldn't find biota for character 0x{result.Id:X8}");
+                        log.LogError("ShardDatabase.GetAllPlayerBiotasInParallel() - couldn't find biota for character 0x{Id:X8}", result.Id);
                 });
             }
 
@@ -822,7 +822,7 @@ namespace ACE.Database
                         cachedContext.SaveChanges();
 
                         if (firstException != null)
-                            log.InfoFormat("[DATABASE] RenameCharacter 0x{0:X8}:{1} retry succeeded after initial exception of: {2}", character.Id, character.Name, firstException.GetFullMessage());
+                            log.LogInformation("[DATABASE] RenameCharacter 0x{Id:X8}:{Name} retry succeeded after initial exception of: {FullMessage}", character.Id, character.Name, firstException.GetFullMessage());
 
                         return true;
                     }
@@ -835,8 +835,8 @@ namespace ACE.Database
                         }
 
                         // Character name might be in use or some other fault
-                        log.Error($"[DATABASE] RenameCharacter 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException.GetFullMessage()}");
-                        log.Error($"[DATABASE] RenameCharacter 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex.GetFullMessage()}");
+                        log.LogError("[DATABASE] RenameCharacter 0x{Id:X8}:{Name} failed first attempt with exception: {FullMessage}", character.Id, character.Name, firstException.GetFullMessage());
+                        log.LogError("[DATABASE] RenameCharacter 0x{Id:X8}:{Name} failed second attempt with exception: {FullMessage}", character.Id, character.Name, ex.GetFullMessage());
                         return false;
                     }
                 }
@@ -865,7 +865,7 @@ namespace ACE.Database
                     context.SaveChanges();
 
                     if (firstException != null)
-                        log.InfoFormat("[DATABASE] RenameCharacter 0x{0:X8}:{1} retry succeeded after initial exception of: {2}", character.Id, character.Name, firstException.GetFullMessage());
+                        log.LogInformation("[DATABASE] RenameCharacter 0x{Id:X8}:{Name} retry succeeded after initial exception of: {FullMessage}", character.Id, character.Name, firstException.GetFullMessage());
 
                     return true;
                 }
@@ -878,8 +878,8 @@ namespace ACE.Database
                     }
 
                     // Character name might be in use or some other fault
-                    log.Error($"[DATABASE] RenameCharacter 0x{character.Id:X8}:{character.Name} failed first attempt with exception: {firstException.GetFullMessage()}");
-                    log.Error($"[DATABASE] RenameCharacter 0x{character.Id:X8}:{character.Name} failed second attempt with exception: {ex.GetFullMessage()}");
+                    log.LogError("[DATABASE] RenameCharacter 0x{Id:X8}:{Name} failed first attempt with exception: {FullMessage}", character.Id, character.Name, firstException.GetFullMessage());
+                    log.LogError("[DATABASE] RenameCharacter 0x{Id:X8}:{Name} failed second attempt with exception: {FullMessage}", character.Id, character.Name, ex.GetFullMessage());
                     return false;
                 }
             }

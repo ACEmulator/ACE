@@ -1,6 +1,7 @@
 using System;
 
-using ACE.Common.Logging;
+using Microsoft.Extensions.Logging;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
@@ -42,7 +43,7 @@ namespace ACE.Server.WorldObjects
 
             if (sourceItem == null)
             {
-                log.Warn($"{Name}.HandleActionUseWithTarget({sourceObjectGuid:X8}, {targetObjectGuid:X8}): couldn't find {sourceObjectGuid:X8}");
+                log.LogWarning("{Name}.HandleActionUseWithTarget({SourceObjectGuid:X8}, {TargetObjectGuid:X8}): couldn't find {SourceObjectGuid:X8}", Name, sourceObjectGuid, targetObjectGuid, sourceObjectGuid);
                 SendUseDoneEvent();
                 return;
             }
@@ -52,7 +53,7 @@ namespace ACE.Server.WorldObjects
 
             if (target == null)
             {
-                log.Warn($"{Name}.HandleActionUseWithTarget({sourceObjectGuid:X8}, {targetObjectGuid:X8}): couldn't find {targetObjectGuid:X8}");
+                log.LogWarning("{Name}.HandleActionUseWithTarget({SourceObjectGuid:X8}, {TargetObjectGuid:X8}): couldn't find {TargetObjectGuid:X8}", Name, sourceObjectGuid, targetObjectGuid, targetObjectGuid);
                 SendUseDoneEvent();
                 return;
             }
@@ -210,7 +211,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                log.DebugFormat("{0}.HandleActionUseItem({1:X8}): couldn't find object", Name, itemGuid);
+                log.LogDebug("{Name}.HandleActionUseItem({ItemGuid:X8}): couldn't find object", Name, itemGuid);
                 SendUseDoneEvent();
             }
         }

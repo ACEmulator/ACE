@@ -1,8 +1,9 @@
 using System;
 using System.Linq;
 
+using Microsoft.Extensions.Logging;
+
 using ACE.Common.Extensions;
-using ACE.Common.Logging;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -37,8 +38,8 @@ namespace ACE.Server.WorldObjects
 
             if (m_amount < 0)
             {
-                log.Warn($"{Name}.EarnXP({amount}, {shareType})");
-                log.Warn($"modifier: {modifier}, enchantment: {enchantment}, m_amount: {m_amount}");
+                log.LogWarning("{Name}.EarnXP({Amount}, {ShareType})", Name, amount, shareType);
+                log.LogWarning("modifier: {Modifier}, enchantment: {Enchantment}, m_amount: {M_amount}", modifier, enchantment, m_amount);
                 return;
             }
 
@@ -138,8 +139,8 @@ namespace ACE.Server.WorldObjects
 
             if (vitae == null)
             {
-                log.Error($"{Name}.UpdateXpVitae({amount}) vitae null, likely due to cross-thread operation or corrupt EnchantmentManager cache. Please report this.");
-                log.Error(Environment.StackTrace);
+                log.LogError("{Name}.UpdateXpVitae({Amount}) vitae null, likely due to cross-thread operation or corrupt EnchantmentManager cache. Please report this.", Name, amount);
+                log.LogError("{Message:l}", Environment.StackTrace);
                 return;
             }
 

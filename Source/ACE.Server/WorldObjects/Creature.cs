@@ -174,7 +174,7 @@ namespace ACE.Server.WorldObjects
             if (!cg.HeritageGroups.TryGetValue((uint)Heritage, out var heritageGroup) || !heritageGroup.Genders.TryGetValue((int)Gender, out var sex))
             {
 #if DEBUG
-                log.DebugFormat("Creature.GenerateNewFace: {0} (0x{1}) - wcid {2} - Heritage: {3} | HeritageGroupName: {4} | Gender: {5} | Sex: {6} - Data invalid, Cannot randomize face.", Name, Guid, WeenieClassId, Heritage, HeritageGroupName, Gender, Sex);
+                log.LogDebug("Creature.GenerateNewFace: {Name} (0x{Guid}) - wcid {WeenieClassId} - Heritage: {Heritage} | HeritageGroupName: {HeritageGroupName} | Gender: {Gender} | Sex: {Sex} - Data invalid, Cannot randomize face.", Name, Guid, WeenieClassId, Heritage, HeritageGroupName, Gender, Sex);
 #endif
                 return;
             }
@@ -209,7 +209,7 @@ namespace ACE.Server.WorldObjects
 
             if (sex.HairStyleList.Count < appearance.HairStyle)
             {
-                log.Warn($"Creature.GenerateNewFace: {Name} (0x{Guid}) - wcid {WeenieClassId} - HairStyle = {appearance.HairStyle} | HairStyleList.Count = {sex.HairStyleList.Count} - Data invalid, Cannot randomize face.");
+                log.LogWarning("Creature.GenerateNewFace: {Name} (0x{Guid}) - wcid {WeenieClassId} - HairStyle = {HairStyle} | HairStyleList.Count = {Count} - Data invalid, Cannot randomize face.", Name, Guid, WeenieClassId, appearance.HairStyle, sex.HairStyleList.Count);
                 return;
             }
 

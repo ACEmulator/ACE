@@ -59,7 +59,7 @@ namespace ACE.Database
                     }
                     catch (Exception ex)
                     {
-                        log.Error($"[DATABASE] DoWork task failed with exception: {ex}");
+                        log.LogError("[DATABASE] DoWork task failed with exception: {Ex}", ex);
                         // perhaps add failure callbacks?
                         // swallow for now.  can't block other db work because 1 fails.
                     }

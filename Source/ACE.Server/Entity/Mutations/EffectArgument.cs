@@ -1,7 +1,8 @@
 using System;
 
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
-using ACE.Common.Logging;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Factories.Enum;
@@ -113,7 +114,7 @@ namespace ACE.Server.Entity.Mutations
                 case EffectArgumentType.Double:
                     return DoubleVal;
             }
-            log.Error($"EffectArgument.ToDouble() - invalid type {Type}");
+            log.LogError("EffectArgument.ToDouble() - invalid type {Type}", Type);
             return 0.0;
         }
 
@@ -128,7 +129,7 @@ namespace ACE.Server.Entity.Mutations
                 case EffectArgumentType.Double:
                     return (int)DoubleVal;
             }
-            log.Error($"EffectArgument.ToInt() - invalid type {Type}");
+            log.LogError("EffectArgument.ToInt() - invalid type {Type}", Type);
             return 0;
         }
 
@@ -143,7 +144,7 @@ namespace ACE.Server.Entity.Mutations
                 case EffectArgumentType.Double:
                     return (long)DoubleVal;
             }
-            log.Error($"EffectArgument.ToLong() - invalid type {Type}");
+            log.LogError("EffectArgument.ToLong() - invalid type {Type}", Type);
             return 0;
         }
 
@@ -231,7 +232,7 @@ namespace ACE.Server.Entity.Mutations
 
                     this = GTVariables[IntVal];
                     IsValid = true;*/
-                    log.Error($"TODO: EffectArgumentType.Variable");
+                    log.LogError("TODO: EffectArgumentType.Variable");
                     break;
             }
 

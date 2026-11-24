@@ -3,8 +3,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
-using ACE.Common.Logging;
 using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
@@ -432,7 +433,7 @@ namespace ACE.Server.WorldObjects
                 if (weenie == null)
                 {
                     // should never happen?
-                    log.Error($"Monster_Combat.GetBodyParts({wcid}) - unknown wcid");
+                    log.LogError("Monster_Combat.GetBodyParts({Wcid}) - unknown wcid", wcid);
                     return null;
                 }
 
@@ -442,8 +443,8 @@ namespace ACE.Server.WorldObjects
                 }
                 catch (Exception e)
                 {
-                    log.Error(e);
-                    log.Error($"Monster_Combat.GetBodyParts({wcid}) - bad data for wcid {wcid}");
+                    log.LogError(e, "{Message:l}", e.Message);
+                    log.LogError("Monster_Combat.GetBodyParts({Wcid}) - bad data for wcid {Wcid}", wcid, wcid);
                     return null;
                 }
 		        BPTableCache[wcid] = bpTable;

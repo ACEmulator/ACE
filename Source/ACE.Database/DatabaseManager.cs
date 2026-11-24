@@ -30,7 +30,7 @@ namespace ACE.Database
 
             if (Authentication.GetListofAccountsByAccessLevel(ACE.Entity.Enum.AccessLevel.Admin).Count == 0)
             {
-                log.Warn("Authentication Database does not contain any admin accounts. The next account to be created will automatically be promoted to an Admin account.");
+                log.LogWarning("Authentication Database does not contain any admin accounts. The next account to be created will automatically be promoted to an Admin account.");
                 AutoPromoteNextAccountToAdmin = true;
             }
             else
@@ -40,7 +40,7 @@ namespace ACE.Database
 
             if (!World.IsWorldDatabaseGuidRangeValid())
             {
-                log.Fatal("World Database contains instance GUIDs outside of static range which will prevent GuidManager from properly assigning GUIDs and can result in GUID exhaustion prematurely.");
+                log.LogCritical("World Database contains instance GUIDs outside of static range which will prevent GuidManager from properly assigning GUIDs and can result in GUID exhaustion prematurely.");
                 InitializationFailure = true;
                 return;
             }
@@ -48,7 +48,7 @@ namespace ACE.Database
             var playerWeenieLoadTest = World.GetCachedWeenie("human");
             if (playerWeenieLoadTest == null)
             {
-                log.Fatal("World Database does not contain the weenie for human (1). Characters cannot be created or logged into until the missing weenie is restored.");
+                log.LogCritical("World Database does not contain the weenie for human (1). Characters cannot be created or logged into until the missing weenie is restored.");
                 InitializationFailure = true;
                 return;
             }

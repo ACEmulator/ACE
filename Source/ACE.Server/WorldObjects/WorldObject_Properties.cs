@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
-using ACE.Common.Logging;
 using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
@@ -1163,7 +1164,7 @@ namespace ACE.Server.WorldObjects
                     return DatabaseManager.World.GetCachedWeenie(WeenieClassId).ClassName;
                 else
                 {
-                    log.Warn($"WorldObject.WeenieClassName -- No cached weenie found for WCID {WeenieClassId}");
+                    log.LogWarning("WorldObject.WeenieClassName -- No cached weenie found for WCID {WeenieClassId}", WeenieClassId);
                     return "WeenieClassName_NOT_FOUND";
                 }
             }
@@ -1172,7 +1173,7 @@ namespace ACE.Server.WorldObjects
                 if (DatabaseManager.World.GetCachedWeenie(WeenieClassId) is not null)
                     DatabaseManager.World.GetCachedWeenie(WeenieClassId).ClassName = value;
                 else
-                    log.Error($"WorldObject.WeenieClassName setter -- No cached weenie found for WCID {WeenieClassId}");
+                    log.LogError("WorldObject.WeenieClassName setter -- No cached weenie found for WCID {WeenieClassId}", WeenieClassId);
             }
         }
 

@@ -1,7 +1,8 @@
 using System;
 using System.Numerics;
 
-using ACE.Common.Logging;
+using Microsoft.Extensions.Logging;
+
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
@@ -44,7 +45,7 @@ namespace ACE.Server.WorldObjects
 
             if (CombatMode != CombatMode.Missile)
             {
-                log.Warn($"{Name}.HandleActionTargetedMissileAttack({targetGuid:X8}, {attackHeight}, {accuracyLevel}) - CombatMode mismatch {CombatMode}, LastCombatMode: {LastCombatMode}");
+                log.LogWarning("{Name}.HandleActionTargetedMissileAttack({TargetGuid:X8}, {AttackHeight}, {AccuracyLevel}) - CombatMode mismatch {CombatMode}, LastCombatMode: {LastCombatMode}", Name, targetGuid, attackHeight, accuracyLevel, CombatMode, LastCombatMode);
 
                 if (LastCombatMode == CombatMode.Missile)
                     CombatMode = CombatMode.Missile;

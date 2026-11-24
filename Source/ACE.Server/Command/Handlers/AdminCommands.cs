@@ -2884,7 +2884,7 @@ namespace ACE.Server.Command.Handlers
                         item.SaveBiotaToDatabase();
                     }
                     else
-                        log.Warn($"0x{item.Guid}:{item.Name} for player {player.Name} lost from fumble failure.");
+                        log.LogWarning("0x{Guid}:{ItemName} for player {PlayerName} lost from fumble failure.", item.Guid, item.Name, player.Name);
                 }
             }
             else

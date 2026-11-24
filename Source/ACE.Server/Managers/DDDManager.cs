@@ -59,7 +59,7 @@ namespace ACE.Server.Managers
             if (DatManager.HighResDat != null)
                 InitIterations(DatDatabaseType.HighRes, DatManager.HighResDat);
 
-            log.DebugFormat("DDDManager Initialized.");
+            log.LogDebug("DDDManager Initialized.");
         }
 
         private static void InitIterations(DatDatabaseType datDatabaseType, DatDatabase datDatabase)
@@ -95,7 +95,7 @@ namespace ACE.Server.Managers
                 if (useCompressedFile && precacheCompressedDATFiles)
                     CompressedDatFilesCache[datDatabaseType].TryAdd(fileName, PrependUncompressedFileSize(compressedDatFile, (uint)uncompressedFileSize));
             });
-            log.Info($"Iterations for {datDatabaseType} initialized. Iterations.Count={Iterations[datDatabaseType].Count} | FileCount={fileCount} | DatFileSizes.Count={DatFileSizes[datDatabaseType].Count}{(precacheCompressedDATFiles ? " | precached Compressed files" : "")}");
+            log.LogInformation("Iterations for {DatDatabaseType} initialized. Iterations.Count={IterationsCount} | FileCount={FileCount} | DatFileSizes.Count={DatFileSizesCount}{PrecacheNote}", datDatabaseType, Iterations[datDatabaseType].Count, fileCount, DatFileSizes[datDatabaseType].Count, (precacheCompressedDATFiles ? " | precached Compressed files" : ""));
         }
 
         /// <summary>

@@ -105,10 +105,10 @@ namespace ACE.Server.Network.Handlers
                 }
 
                 if (channelID != adjustedChannelID)
-                    log.DebugFormat("[CHAT] ChannelID ({0}) was adjusted to {1} | ChatNetworkBlobDispatchType: {2}", channelID, adjustedChannelID, chatBlobDispatchType);
+                    log.LogDebug("[CHAT] ChannelID ({ChannelID}) was adjusted to {AdjustedChannelID} | ChatNetworkBlobDispatchType: {ChatBlobDispatchType}", channelID, adjustedChannelID, chatBlobDispatchType);
 
                 if (chatType != adjustedchatType)
-                    log.DebugFormat("[CHAT] ChatType ({0}) was adjusted to {1} | ChatNetworkBlobDispatchType: {2}", chatType, adjustedchatType, chatBlobDispatchType);
+                    log.LogDebug("[CHAT] ChatType ({ChatType}) was adjusted to {AdjustedchatType} | ChatNetworkBlobDispatchType: {ChatBlobDispatchType}", chatType, adjustedchatType, chatBlobDispatchType);
 
                 var gameMessageTurbineChat = new GameMessageTurbineChat(ChatNetworkBlobType.NETBLOB_EVENT_BINARY, ChatNetworkBlobDispatchType.ASYNCMETHOD_SENDTOROOMBYNAME, adjustedChannelID, session.Player.Name, message, senderID, adjustedchatType);
 
@@ -382,7 +382,7 @@ namespace ACE.Server.Network.Handlers
                     return;
             }
 
-            log.Info($"[CHAT][{chatType}]{(chatType == ChatType.Allegiance ? $"[{channelID}]" : "")} {name} says, \"{message}\"");
+            log.LogInformation("[CHAT][{ChatType}]{Channel} {Name} says, \"{Message}\"", chatType, (chatType == ChatType.Allegiance ? $"[{channelID}]" : ""), name, message);
         }
     }
 }

@@ -146,7 +146,7 @@ namespace ACE.Server.WorldObjects
             SortWorldObjectsIntoInventory(worldObjects);
 
             if (worldObjects.Count > 0)
-                log.Error("Inventory detected without a container to put it in to.");
+                log.LogError("Inventory detected without a container to put it in to.");
         }
 
         /// <summary>

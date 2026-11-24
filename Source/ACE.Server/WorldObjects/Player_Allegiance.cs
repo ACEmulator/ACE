@@ -1,7 +1,8 @@
 using System;
 using System.Linq;
 
-using ACE.Common.Logging;
+using Microsoft.Extensions.Logging;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -95,7 +96,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            log.InfoFormat("[ALLEGIANCE] {0} ({1}) swearing allegiance to {2} ({3})", Name, Level, patron.Name, patron.Level);
+            log.LogInformation("[ALLEGIANCE] {Name} ({Level}) swearing allegiance to {PatronName} ({PatronLevel})", Name, Level, patron.Name, patron.Level);
 
             PatronId = targetGuid;
 
@@ -176,7 +177,7 @@ namespace ACE.Server.WorldObjects
 
             if (target == null) return;
 
-            log.InfoFormat("[ALLEGIANCE] {0} breaking allegiance to {1}", Name, target.Name);
+            log.LogInformation("[ALLEGIANCE] {Name} breaking allegiance to {TargetName}", Name, target.Name);
 
             // target can be either patron or vassal
             var isPatron = PatronId == target.Guid.Full;
@@ -982,7 +983,7 @@ namespace ACE.Server.WorldObjects
                     if (approvedVassal == null)
                     {
                         // automatically remove?
-                        log.Warn($"{Name}.HandleActionDoAllegianceLockAction({action}): couldn't find approved vassal {entity.Key:X8}");
+                        log.LogWarning("{Name}.HandleActionDoAllegianceLockAction({Action}): couldn't find approved vassal {Key:X8}", Name, action, entity.Key);
                         continue;
                     }
 
@@ -1300,7 +1301,7 @@ namespace ACE.Server.WorldObjects
                 if (player == null)
                 {
                     // automatically remove?
-                    log.Warn($"{Name}.HandleActionListAllegianceBans(): couldn't find banned player {entity.Key:X8}");
+                    log.LogWarning("{Name}.HandleActionListAllegianceBans(): couldn't find banned player {Key:X8}", Name, entity.Key);
                     continue;
                 }
 
@@ -1395,7 +1396,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionBreakAllegianceBoot(string playerName, bool accountBoot)
         {
-            log.InfoFormat("[ALLEGIANCE] {0}.HandleActionBreakAllegianceBoot({1}, {2})", Name, playerName, accountBoot);
+            log.LogInformation("[ALLEGIANCE] {Name}.HandleActionBreakAllegianceBoot({PlayerName}, {AccountBoot})", Name, playerName, accountBoot);
 
             // TODO: handle account boot
 

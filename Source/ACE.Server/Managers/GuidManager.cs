@@ -65,10 +65,10 @@ namespace ACE.Server.Managers
                         // Need to start allocating at current value in db +1
                         current++;
 
-                    log.DebugFormat("{0} GUID Allocator current is now {1:X8} of {2:X8}", name, current, max);
+                    log.LogDebug("{Name} GUID Allocator current is now {Current:X8} of {Max:X8}", name, current, max);
 
                     if ((max - current) < LowIdLimit)
-                        log.WarnFormat("Dangerously low on {0} GUIDs: {1:X8} of {2:X8}", name, current, max);
+                        log.LogWarning("Dangerously low on {Name} GUIDs: {Current:X8} of {Max:X8}", name, current, max);
                 }
 
                 this.name = name;
@@ -80,12 +80,12 @@ namespace ACE.Server.Managers
                 {
                     if (current == max)
                     {
-                        log.FatalFormat("Out of {0} GUIDs!", name);
+                        log.LogCritical("Out of {Name} GUIDs!", name);
                         return InvalidGuid;
                     }
 
                     if (current == max - LowIdLimit)
-                        log.WarnFormat("Running dangerously low on {0} GUIDs, need to defrag", name);
+                        log.LogWarning("Running dangerously low on {Name} GUIDs, need to defrag", name);
 
                     uint ret = current;
                     current += 1;
@@ -169,10 +169,10 @@ namespace ACE.Server.Managers
                         // Need to start allocating at current value in db +1
                         current++;
 
-                    log.DebugFormat("{0} GUID Allocator current is now {1:X8} of {2:X8}", name, current, max);
+                    log.LogDebug("{Name} GUID Allocator current is now {Current:X8} of {Max:X8}", name, current, max);
 
                     if ((max - current) < LowIdLimit)
-                        log.WarnFormat("Dangerously low on {0} GUIDs: {1:X8} of {2:X8}", name, current, max);
+                        log.LogWarning("Dangerously low on {Name} GUIDs: {Current:X8} of {Max:X8}", name, current, max);
                 }
 
                 // Get available ids in the form of sequence gaps
@@ -187,7 +187,7 @@ namespace ACE.Server.Managers
                             uint total = 0;
                             foreach (var pair in availableIDs)
                                 total += (pair.end - pair.start) + 1;
-                            log.DebugFormat("{0} GUID Sequence gaps initialized with total availableIDs of {1:N0}", name, total);
+                            log.LogDebug("{Name} GUID Sequence gaps initialized with total availableIDs of {Total:N0}", name, total);
                             done = true;
                             Monitor.Pulse(this);
                         }
@@ -232,7 +232,7 @@ namespace ACE.Server.Managers
                     {
                         if (!useSequenceGapExhaustedMessageDisplayed)
                         {
-                            log.DebugFormat("{0} GUID Sequence gaps exhausted. Any new, non-recycled GUID will be current + 1. current is now {1:X8}", name, current);
+                            log.LogDebug("{Name} GUID Sequence gaps exhausted. Any new, non-recycled GUID will be current + 1. current is now {Current:X8}", name, current);
                             useSequenceGapExhaustedMessageDisplayed = true;
                         }
                     }
@@ -240,12 +240,12 @@ namespace ACE.Server.Managers
                     // Lastly, use an id that increments our max
                     if (current == max)
                     {
-                        log.FatalFormat("Out of {0} GUIDs!", name);
+                        log.LogCritical("Out of {Name} GUIDs!", name);
                         return InvalidGuid;
                     }
 
                     if (current == max - LowIdLimit)
-                        log.WarnFormat("Running dangerously low on {0} GUIDs, need to defrag", name);
+                        log.LogWarning("Running dangerously low on {Name} GUIDs, need to defrag", name);
 
                     uint ret = current;
                     current += 1;

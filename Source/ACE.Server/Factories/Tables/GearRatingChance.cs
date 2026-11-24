@@ -50,7 +50,7 @@ namespace ACE.Server.Factories.Tables
             }
             else
             {
-                log.Error($"GearRatingChance.Roll({wo.Name}, {profile.TreasureType}, {roll.ItemType}): unknown item type");
+                log.LogError("GearRatingChance.Roll({Name}, {TreasureType}, {ItemType}): unknown item type", wo.Name, profile.TreasureType, roll.ItemType);
                 return 0;
             }
 

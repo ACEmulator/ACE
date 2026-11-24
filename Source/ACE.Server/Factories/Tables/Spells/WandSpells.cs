@@ -60,13 +60,13 @@ namespace ACE.Server.Factories.Tables
 
                 if (spellLevels == null)
                 {
-                    log.Error($"WandSpells - couldn't find {spell}");
+                    log.LogError("WandSpells - couldn't find {Spell}", spell);
                     continue;
                 }
 
                 if (spellLevels.Count != NumTiers)
                 {
-                    log.Error($"WandSpells - expected {NumTiers} levels for {spell}, found {spellLevels.Count}");
+                    log.LogError("WandSpells - expected {NumTiers} levels for {Spell}, found {Count}", NumTiers, spell, spellLevels.Count);
                     continue;
                 }
 

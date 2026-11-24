@@ -1,7 +1,8 @@
 using System;
 
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
-using ACE.Common.Logging;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -122,7 +123,7 @@ namespace ACE.Server.Factories
 
             if (scriptName == null)
             {
-                log.Error($"AssignArmorLevel({wo.Name}, {profile.TreasureType}, {roll.ItemType}) - unknown item type");
+                log.LogError("AssignArmorLevel({Name}, {TreasureType}, {ItemType}) - unknown item type", wo.Name, profile.TreasureType, roll.ItemType);
                 return false;
             }
 
@@ -285,7 +286,7 @@ namespace ACE.Server.Factories
             }
             else
             {
-                log.Error($"TryMutateGearRating({wo.Name}, {profile.TreasureType}, {roll.ItemType}): unknown item type");
+                log.LogError("TryMutateGearRating({Name}, {TreasureType}, {ItemType}): unknown item type", wo.Name, profile.TreasureType, roll.ItemType);
                 return false;
             }
 

@@ -7,15 +7,15 @@ using log4net.Config;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using ACE.Common.Logging;
 using ACE.Server.Logging;
 
 namespace ACE.Server.Tests.Logging
 {
     /// <summary>
-    /// Proves the log4net-shaped shim over ILogger, routed back into log4net by the bridge, behaves like
-    /// the ILog calls it replaces: literal text, correct levels, exception idiom, format tolerance, and
-    /// level checks that follow configuration. Each test uses an isolated log4net repository.
+    /// Proves standard ILogger calls, routed into log4net by the bridge, render the same text the log4net
+    /// calls they replaced did: template values, escaped and literal braces, correct levels, exceptions,
+    /// no formatting at a disabled level, and level checks that follow configuration. Each test uses an
+    /// isolated log4net repository.
     /// </summary>
     [TestClass]
     public class LogBridgeTests
@@ -34,17 +34,28 @@ namespace ACE.Server.Tests.Logging
         }
 
         [TestMethod]
-        public void Message_is_rendered_literally_with_braces_and_quotes_intact()
+        public void Template_values_are_rendered_and_escaped_braces_survive()
         {
             var (factory, appender, _) = Setup(log4net.Core.Level.All);
             var log = factory.CreateLogger(typeof(LogBridgeTests));
 
-            log.Info("hello {world} {0} \"quoted\" }{");
+            log.LogInformation("hello {World} {{literal}} \"quoted\" 0x{Guid:X8}", "earth", 0xABCu);
 
             var e = appender.GetEvents().Single();
-            Assert.AreEqual("hello {world} {0} \"quoted\" }{", e.RenderedMessage);
+            Assert.AreEqual("hello earth {literal} \"quoted\" 0x00000ABC", e.RenderedMessage);
             Assert.AreEqual(log4net.Core.Level.Info, e.Level);
             Assert.AreEqual(typeof(LogBridgeTests).FullName, e.LoggerName, "category must match log4net's logger naming so config entries still apply");
+        }
+
+        [TestMethod]
+        public void Prebuilt_text_passed_as_a_value_is_rendered_literally()
+        {
+            var (factory, appender, _) = Setup(log4net.Core.Level.All);
+            var log = factory.CreateLogger("literal");
+
+            log.LogInformation("{Message:l}", "hello {world} {0} }{");
+
+            Assert.AreEqual("hello {world} {0} }{", appender.GetEvents().Single().RenderedMessage);
         }
 
         [TestMethod]
@@ -53,21 +64,21 @@ namespace ACE.Server.Tests.Logging
             var (factory, appender, _) = Setup(log4net.Core.Level.All);
             var log = factory.CreateLogger("levels");
 
-            log.Debug("d"); log.Info("i"); log.Warn("w"); log.Error("e"); log.Fatal("f");
+            log.LogDebug("d"); log.LogInformation("i"); log.LogWarning("w"); log.LogError("e"); log.LogCritical("f");
 
             var levels = appender.GetEvents().Select(e => e.Level).ToArray();
             CollectionAssert.AreEqual(new[] { log4net.Core.Level.Debug, log4net.Core.Level.Info, log4net.Core.Level.Warn, log4net.Core.Level.Error, log4net.Core.Level.Fatal }, levels);
         }
 
         [TestMethod]
-        public void Exception_passed_as_the_message_is_carried_as_the_exception()
+        public void Exception_is_carried_as_the_exception()
         {
             var (factory, appender, _) = Setup(log4net.Core.Level.All);
             var log = factory.CreateLogger("ex");
             var ex = new InvalidOperationException("boom");
 
-            log.Error(ex);                 // log4net idiom: the exception IS the message
-            log.Warn("context", ex);       // explicit (message, exception) overload
+            log.LogError(ex, "{Message:l}", ex.Message);
+            log.LogWarning(ex, "context");
 
             var events = appender.GetEvents();
             Assert.AreSame(ex, events[0].ExceptionObject); Assert.AreEqual("boom", events[0].RenderedMessage);
@@ -75,29 +86,27 @@ namespace ACE.Server.Tests.Logging
         }
 
         [TestMethod]
-        public void Format_calls_are_deferred_when_disabled_and_never_throw_on_a_bad_format()
+        public void Values_are_not_formatted_when_the_level_is_disabled()
         {
             var (factory, appender, _) = Setup(log4net.Core.Level.Info);
-            var log = factory.CreateLogger("fmt");
+            var log = factory.CreateLogger("disabled");
 
-            log.DebugFormat("{0}", new ThrowsOnToString());   // disabled level: argument must never be formatted
-            log.InfoFormat("{0} and {1}", "only-one-arg");    // bad format: must not throw
+            log.LogDebug("{Value}", new ThrowsOnToString());
 
-            var e = appender.GetEvents().Single();
-            Assert.AreEqual("{0} and {1}", e.RenderedMessage, "a bad format string surfaces raw rather than crashing");
+            Assert.AreEqual(0, appender.GetEvents().Length);
         }
 
         [TestMethod]
-        public void IsDebugEnabled_follows_the_configured_level()
+        public void IsEnabled_follows_the_configured_level()
         {
             var (factory, _, repo) = Setup(log4net.Core.Level.All);
             var log = factory.CreateLogger("enabled");
-            Assert.IsTrue(log.IsDebugEnabled);
+            Assert.IsTrue(log.IsEnabled(LogLevel.Debug));
 
             repo.Root.Level = log4net.Core.Level.Info;
             repo.RaiseConfigurationChanged(EventArgs.Empty);
-            Assert.IsFalse(log.IsDebugEnabled);
-            Assert.IsTrue(log.IsInfoEnabled);
+            Assert.IsFalse(log.IsEnabled(LogLevel.Debug));
+            Assert.IsTrue(log.IsEnabled(LogLevel.Information));
         }
 
         [TestMethod]
@@ -111,11 +120,11 @@ namespace ACE.Server.Tests.Logging
 
             var factory = new LoggerFactory();
             var early = factory.CreateLogger("early");
-            early.Info("dropped - no provider yet");
+            early.LogInformation("dropped - no provider yet");
             Assert.AreEqual(0, appender.GetEvents().Length);
 
             factory.AddProvider(new Log4NetBridgeProvider(repo));
-            early.Info("delivered");
+            early.LogInformation("delivered");
             Assert.AreEqual("delivered", appender.GetEvents().Single().RenderedMessage);
         }
 

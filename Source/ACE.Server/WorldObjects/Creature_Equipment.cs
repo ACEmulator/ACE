@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
-using ACE.Common.Logging;
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -272,7 +273,7 @@ namespace ACE.Server.WorldObjects
             if (equippedItemsRatingCache.TryGetValue(rating, out var value))
                 return value;
 
-            log.Error($"Creature_Equipment.GetEquippedItemsRatingsSum() does not support {rating}");
+            log.LogError("Creature_Equipment.GetEquippedItemsRatingsSum() does not support {Rating}", rating);
             return 0;
         }
 

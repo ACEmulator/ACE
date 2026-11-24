@@ -62,7 +62,7 @@ namespace ACE.Server.Entity
             else
             {
                 Stance = new Motion(MotionStance.NonCombat).Stance;
-                log.Warn($"{wo.Name} (0x{wo.Guid}) has a null CurrentMotionState, subbing in new Motion(MotionStance.NonCombat) for it.");
+                log.LogWarning("{Name} (0x{Guid}) has a null CurrentMotionState, subbing in new Motion(MotionStance.NonCombat) for it.", wo.Name, wo.Guid);
             }
             MovementType = type;
             Position = new Position(target.Location);
@@ -79,7 +79,7 @@ namespace ACE.Server.Entity
             else
             {
                 Stance = new Motion(MotionStance.NonCombat).Stance;
-                log.Warn($"{wo.Name} (0x{wo.Guid}) has a null CurrentMotionState, subbing in new Motion(MotionStance.NonCombat) for it.");
+                log.LogWarning("{Name} (0x{Guid}) has a null CurrentMotionState, subbing in new Motion(MotionStance.NonCombat) for it.", wo.Name, wo.Guid);
             }
             MovementType = MovementType.MoveToPosition;
             Position = new Position(position);
@@ -95,7 +95,7 @@ namespace ACE.Server.Entity
             else
             {
                 Stance = new Motion(MotionStance.NonCombat).Stance;
-                log.Warn($"{wo.Name} (0x{wo.Guid}) has a null CurrentMotionState, subbing in new Motion(MotionStance.NonCombat) for it.");
+                log.LogWarning("{Name} (0x{Guid}) has a null CurrentMotionState, subbing in new Motion(MotionStance.NonCombat) for it.", wo.Name, wo.Guid);
             }
             MovementType = MovementType.TurnToHeading;
             Position = new Position(position);
@@ -115,7 +115,7 @@ namespace ACE.Server.Entity
             else
             {
                 Stance = new Motion(MotionStance.NonCombat).Stance;
-                log.Warn($"{wo.Name} (0x{wo.Guid}) has a null CurrentMotionState, subbing in new Motion(MotionStance.NonCombat) for it.");
+                log.LogWarning("{Name} (0x{Guid}) has a null CurrentMotionState, subbing in new Motion(MotionStance.NonCombat) for it.", wo.Name, wo.Guid);
             }
             SetForwardCommand(motion, speed);
         }
