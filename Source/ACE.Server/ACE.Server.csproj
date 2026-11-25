@@ -236,9 +236,15 @@
 
   <ItemGroup>
     <PackageReference Include="Lib.Harmony" Version="2.4.3" />
-    <PackageReference Include="log4net" Version="2.0.17" />
-    <PackageReference Include="Log4Net.Async.Standard" Version="3.1.0" />
     <PackageReference Include="McMaster.NETCore.Plugins" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.15" />
+    <PackageReference Include="Serilog" Version="4.4.0" />
+    <PackageReference Include="Serilog.Expressions" Version="5.0.0" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="10.0.1" />
+    <PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -266,10 +272,10 @@
     <None Update="Config.js.example">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="log4net.config.docker">
+    <None Update="serilog.json.docker">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="log4net.config.example">
+    <None Update="serilog.json.example">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="starterGear.json">
@@ -291,12 +297,8 @@
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="if exist &quot;$(ProjectDir)Config.js&quot; copy &quot;$(ProjectDir)Config.js&quot; &quot;$(TargetDir)Config.js&quot;&#xD;&#xA;if not exist &quot;$(ProjectDir)log4net.config&quot; if exist &quot;$(TargetDir)log4net.config&quot; copy &quot;$(TargetDir)log4net.config&quot; &quot;$(ProjectDir)log4net.config&quot;&#xD;&#xA;if exist &quot;$(ProjectDir)log4net.config&quot; copy &quot;$(ProjectDir)log4net.config&quot; &quot;$(TargetDir)log4net.config&quot;" Condition="'$(OS)' == 'Windows_NT'" />
-    <Exec Command="if [ -f &quot;$(ProjectDir)Config.js&quot; ] ; then cp &quot;$(ProjectDir)Config.js&quot; &quot;$(TargetDir)Config.js&quot; ; fi&#xD;&#xA;if [ ! -f &quot;$(ProjectDir)log4net.config&quot; ] &amp;&amp; [ -f &quot;$(TargetDir)log4net.config&quot; ] ; then cp &quot;$(TargetDir)log4net.config&quot; &quot;$(ProjectDir)log4net.config&quot; ; fi&#xD;&#xA;if [ -f &quot;$(ProjectDir)log4net.config&quot; ] ; then cp &quot;$(ProjectDir)log4net.config&quot; &quot;$(TargetDir)log4net.config&quot; ; fi" Condition="'$(OS)' != 'Windows_NT'" />
+    <Exec Command="if exist &quot;$(ProjectDir)Config.js&quot; copy &quot;$(ProjectDir)Config.js&quot; &quot;$(TargetDir)Config.js&quot;&#xD;&#xA;if not exist &quot;$(ProjectDir)log4net.config&quot; if exist &quot;$(TargetDir)log4net.config&quot; copy &quot;$(TargetDir)log4net.config&quot; &quot;$(ProjectDir)log4net.config&quot;&#xD;&#xA;if exist &quot;$(ProjectDir)log4net.config&quot; copy &quot;$(ProjectDir)log4net.config&quot; &quot;$(TargetDir)log4net.config&quot;&#xD;&#xA;if not exist &quot;$(ProjectDir)serilog.json&quot; if exist &quot;$(TargetDir)serilog.json&quot; copy &quot;$(TargetDir)serilog.json&quot; &quot;$(ProjectDir)serilog.json&quot;&#xD;&#xA;if exist &quot;$(ProjectDir)serilog.json&quot; copy &quot;$(ProjectDir)serilog.json&quot; &quot;$(TargetDir)serilog.json&quot;" Condition="'$(OS)' == 'Windows_NT'" />
+    <Exec Command="if [ -f &quot;$(ProjectDir)Config.js&quot; ] ; then cp &quot;$(ProjectDir)Config.js&quot; &quot;$(TargetDir)Config.js&quot; ; fi&#xD;&#xA;if [ ! -f &quot;$(ProjectDir)log4net.config&quot; ] &amp;&amp; [ -f &quot;$(TargetDir)log4net.config&quot; ] ; then cp &quot;$(TargetDir)log4net.config&quot; &quot;$(ProjectDir)log4net.config&quot; ; fi&#xD;&#xA;if [ -f &quot;$(ProjectDir)log4net.config&quot; ] ; then cp &quot;$(ProjectDir)log4net.config&quot; &quot;$(TargetDir)log4net.config&quot; ; fi&#xD;&#xA;if [ ! -f &quot;$(ProjectDir)serilog.json&quot; ] &amp;&amp; [ -f &quot;$(TargetDir)serilog.json&quot; ] ; then cp &quot;$(TargetDir)serilog.json&quot; &quot;$(ProjectDir)serilog.json&quot; ; fi&#xD;&#xA;if [ -f &quot;$(ProjectDir)serilog.json&quot; ] ; then cp &quot;$(ProjectDir)serilog.json&quot; &quot;$(TargetDir)serilog.json&quot; ; fi" Condition="'$(OS)' != 'Windows_NT'" />
   </Target>
-
-  <ItemGroup>
-    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-4f7c-pmjv-c25w" />
-  </ItemGroup>
 
 </Project>
