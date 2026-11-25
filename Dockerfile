@@ -5,6 +5,7 @@ WORKDIR /Source
 # copy csproj and restore as distinct layers
 COPY ./Source/*.sln ./
 COPY ./Source/ACE.Adapter/*.csproj ./ACE.Adapter/
+COPY ./Source/ACE.Adapter.Tests/*.csproj ./ACE.Adapter.Tests/
 COPY ./Source/ACE.Common/*.csproj ./ACE.Common/
 COPY ./Source/ACE.Database/*.csproj ./ACE.Database/
 COPY ./Source/ACE.Database.Tests/*.csproj ./ACE.Database.Tests/
