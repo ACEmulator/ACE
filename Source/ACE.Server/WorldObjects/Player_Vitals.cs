@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 
-using ACE.Common.Logging;
+using Microsoft.Extensions.Logging;
+
 using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -22,7 +23,7 @@ namespace ACE.Server.WorldObjects
         {
             if (!Vitals.TryGetValue(vital, out var creatureVital))
             {
-                log.Warn($"{Name}.HandleActionRaiseVital({vital}, {amount}) - invalid vital");
+                log.LogWarning("{Name}.HandleActionRaiseVital({Vital}, {Amount}) - invalid vital", Name, vital, amount);
                 return false;
             }
 
@@ -35,7 +36,7 @@ namespace ACE.Server.WorldObjects
 
                 ChatPacket.SendServerMessage(Session, $"Your attempt to raise {vital.ToSentence()} has failed.", ChatMessageType.Broadcast);
 
-                log.Warn($"{Name}.HandleActionRaiseVital({vital}, {amount}) - amount > AvailableExperience ({AvailableExperience})");
+                log.LogWarning("{Name}.HandleActionRaiseVital({Vital}, {Amount}) - amount > AvailableExperience ({AvailableExperience})", Name, vital, amount, AvailableExperience);
                 return false;
             }
 
@@ -70,7 +71,7 @@ namespace ACE.Server.WorldObjects
             // ensure vital is not already max rank
             if (creatureVital.IsMaxRank)
             {
-                log.Warn($"{Name}.SpendVitalXp({creatureVital.Vital}, {amount}) - player tried to raise vital beyond max rank");
+                log.LogWarning("{Name}.SpendVitalXp({Vital}, {Amount}) - player tried to raise vital beyond max rank", Name, creatureVital.Vital, amount);
                 return false;
             }
 
@@ -80,7 +81,7 @@ namespace ACE.Server.WorldObjects
 
             if (amount > amountToEnd)
             {
-                log.Warn($"{Name}.SpendVitalXp({creatureVital.Vital}, {amount}) - player tried to raise vital beyond {amountToEnd} experience");
+                log.LogWarning("{Name}.SpendVitalXp({Vital}, {Amount}) - player tried to raise vital beyond {AmountToEnd} experience", Name, creatureVital.Vital, amount, amountToEnd);
                 return false;   // returning error here, instead of setting amount to amountToEnd
             }
 
@@ -88,7 +89,7 @@ namespace ACE.Server.WorldObjects
             // spend xp on vital
             if (!SpendXP(amount, sendNetworkUpdate))
             {
-                log.Warn($"{Name}.SpendVitalXp({creatureVital.Vital}, {amount}) - SpendXP failed");
+                log.LogWarning("{Name}.SpendVitalXp({Vital}, {Amount}) - SpendXP failed", Name, creatureVital.Vital, amount);
                 return false;
             }
 

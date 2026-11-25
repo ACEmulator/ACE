@@ -1,5 +1,6 @@
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
-using ACE.Common.Logging;
 using ACE.Database.Models.World;
 using ACE.Database;
 using ACE.Entity.Enum;
@@ -29,7 +30,7 @@ namespace ACE.Server.Factories
 
             if (weenie == null)
             {
-                log.DebugFormat("CreateRandomScroll for tier {0} and spellID of {1} returned null from the database.", profile.Tier, spellId);
+                log.LogDebug("CreateRandomScroll for tier {Tier} and spellID of {SpellId} returned null from the database.", profile.Tier, spellId);
                 return null;
             }
 

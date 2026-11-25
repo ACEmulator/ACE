@@ -1,4 +1,5 @@
-using ACE.Common.Logging;
+using Microsoft.Extensions.Logging;
+
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
@@ -117,7 +118,7 @@ namespace ACE.Server.WorldObjects
 
             if (Guid.Full != Fellowship.FellowshipLeaderGuid)
             {
-                log.Warn($"{Name} tried to assign new fellowship leader from {Fellowship.FellowshipLeaderGuid:X8} to {newLeaderGuid:X8}");
+                log.LogWarning("{Name} tried to assign new fellowship leader from {FellowshipLeaderGuid:X8} to {NewLeaderGuid:X8}", Name, Fellowship.FellowshipLeaderGuid, newLeaderGuid);
                 return;
             }
 

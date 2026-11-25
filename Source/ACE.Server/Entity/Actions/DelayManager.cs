@@ -62,7 +62,7 @@ namespace ACE.Server.Entity.Actions
 
             if (delayAction == null)
             {
-                log.Error("Non DelayAction IAction added to DelayManager");
+                log.LogError("Non DelayAction IAction added to DelayManager");
                 return;
             }
 

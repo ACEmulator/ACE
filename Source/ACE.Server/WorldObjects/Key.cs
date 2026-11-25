@@ -68,7 +68,7 @@ namespace ACE.Server.WorldObjects
 
             if (Structure == 0 || Structure > MaxStructure)
             {
-                log.Warn($"Key.HandleActionUseOnTarget: Structure / MaxStructure is {Structure:N0} / {MaxStructure:N0} for {Name} (0x{Guid}:{WeenieClassId}), used on {target.Name} (0x{target.Guid}:{target.WeenieClassId}) and used by {player.Name} (0x{player.Guid})");
+                log.LogWarning("Key.HandleActionUseOnTarget: Structure / MaxStructure is {Structure:N0} / {MaxStructure:N0} for {Name} (0x{Guid}:{WeenieClassId}), used on {TargetName} (0x{TargetGuid}:{TargetWeenieClassId}) and used by {PlayerName} (0x{PlayerGuid})", Structure, MaxStructure, Name, Guid, WeenieClassId, target.Name, target.Guid, target.WeenieClassId, player.Name, player.Guid);
 
                 var wo = player.FindObject(Guid.Full, Player.SearchLocations.Everywhere, out _, out Container rootOwner, out bool wasEquipped);
                 DeleteObject(rootOwner);

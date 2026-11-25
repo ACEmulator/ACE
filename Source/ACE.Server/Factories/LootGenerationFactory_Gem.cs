@@ -1,6 +1,7 @@
 using System;
 
-using ACE.Common.Logging;
+using Microsoft.Extensions.Logging;
+
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
@@ -82,7 +83,7 @@ namespace ACE.Server.Factories
 
             if (spellLevels == null || spellLevels.Count != 8)
             {
-                log.Error($"AssignMagic_Gem({wo.Name}, {profile.TreasureType}, {roll.ItemType}) - unknown spell {spell}");
+                log.LogError("AssignMagic_Gem({Name}, {TreasureType}, {ItemType}) - unknown spell {Spell}", wo.Name, profile.TreasureType, roll.ItemType, spell);
                 return false;
             }
 

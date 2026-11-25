@@ -53,13 +53,13 @@ namespace ACE.Server.Factories.Tables
 
                 if (spellLevels == null)
                 {
-                    log.Error($"MissileCantrips - couldn't find {spell}");
+                    log.LogError("MissileCantrips - couldn't find {Spell}", spell);
                     continue;
                 }
 
                 if (spellLevels.Count != NumLevels)
                 {
-                    log.Error($"MissileCantrips - expected {NumLevels} levels for {spell}, found {spellLevels.Count}");
+                    log.LogError("MissileCantrips - expected {NumLevels} levels for {Spell}, found {Count}", NumLevels, spell, spellLevels.Count);
                     continue;
                 }
 

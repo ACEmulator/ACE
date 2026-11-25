@@ -88,7 +88,7 @@ namespace ACE.Server.WorldObjects
                 if (unlocker.Structure == 0)
                 {
                     if (!player.TryConsumeFromInventoryWithNetworking(unlocker, 1))
-                        log.Warn($"UnlockerHelper.ConsumeUnlocker: TryConsumeFromInventoryWithNetworking failed for {unlocker.Name} (0x{unlocker.Guid}:{unlocker.WeenieClassId}), used on {target.Name} (0x{target.Guid}:{target.WeenieClassId}) and used by {player.Name} (0x{player.Guid})");
+                        log.LogWarning("UnlockerHelper.ConsumeUnlocker: TryConsumeFromInventoryWithNetworking failed for {UnlockerName} (0x{UnlockerGuid}:{UnlockerWeenieClassId}), used on {TargetName} (0x{TargetGuid}:{TargetWeenieClassId}) and used by {PlayerName} (0x{PlayerGuid})", unlocker.Name, unlocker.Guid, unlocker.WeenieClassId, target.Name, target.Guid, target.WeenieClassId, player.Name, player.Guid);
                 }
                 else
                 {

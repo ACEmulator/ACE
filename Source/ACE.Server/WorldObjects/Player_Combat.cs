@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
-using ACE.Common.Logging;
 using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -486,7 +487,7 @@ namespace ACE.Server.WorldObjects
 
             if (_amount < 0)
             {
-                log.Error($"{Name}.TakeDamage({source?.Name} ({source?.Guid}), {damageType}, {_amount}) - negative damage, this shouldn't happen");
+                log.LogError("{Name}.TakeDamage({SourceName} ({Guid}), {DamageType}, {Amount}) - negative damage, this shouldn't happen", Name, source?.Name, source?.Guid, damageType, _amount);
                 return 0;
             }
 
@@ -531,7 +532,7 @@ namespace ACE.Server.WorldObjects
 
             if (!BodyParts.Indices.TryGetValue(bodyPart, out var iDamageLocation))
             {
-                log.Warn($"{Name}.TakeDamage({source.Name}, {damageType}, {amount}, {bodyPart}, {crit}): avoided crash for bad damage location");
+                log.LogWarning("{Name}.TakeDamage({SourceName}, {DamageType}, {Amount}, {BodyPart}, {Crit}): avoided crash for bad damage location", Name, source.Name, damageType, amount, bodyPart, crit);
                 return 0;
             }
             var damageLocation = (DamageLocation)iDamageLocation;
@@ -1077,7 +1078,7 @@ namespace ACE.Server.WorldObjects
                 houses.Add(rootHouse);
             }
             else
-                log.Error($"{Name}.CheckHouseRestrictions_GetHouse({houseGuid:X8}): couldn't find house from {CurrentLandblock.Id.Raw:X8}");
+                log.LogError("{Name}.CheckHouseRestrictions_GetHouse({HouseGuid:X8}): couldn't find house from {Id:X8}", Name, houseGuid, CurrentLandblock.Id.Raw);
         }
 
         /// <summary>
@@ -1102,7 +1103,7 @@ namespace ACE.Server.WorldObjects
                     weapon = FootArmor;
                 else
                 {
-                    log.Warn($"{Name}.GetDamageType(): no weapon, AttackType={AttackType}");
+                    log.LogWarning("{Name}.GetDamageType(): no weapon, AttackType={AttackType}", Name, AttackType);
                     return DamageType.Undef;
                 }
 
@@ -1119,7 +1120,7 @@ namespace ACE.Server.WorldObjects
 
             if (damageType == DamageType.Undef)
             {
-                log.Warn($"{Name}.GetDamageType(): {damageSource} ({damageSource.Guid}, {damageSource.WeenieClassId}): no DamageType");
+                log.LogWarning("{Name}.GetDamageType(): {DamageSource} ({Guid}, {WeenieClassId}): no DamageType", Name, damageSource, damageSource.Guid, damageSource.WeenieClassId);
                 return DamageType.Bludgeon;
             }
 

@@ -217,7 +217,7 @@ namespace ACE.Server.Entity
             {
                 if ((attacker?.Guid.IsPlayer() ?? false) || (damageSource?.Guid.IsPlayer() ?? false))
                 {
-                    log.Error($"DamageEvent.DoCalculateDamage({attacker?.Name} ({attacker?.Guid}), {defender?.Name} ({defender?.Guid}), {damageSource?.Name} ({damageSource?.Guid})) - DamageType == DamageType.Undef");
+                    log.LogError("DamageEvent.DoCalculateDamage({AttackerName} ({AttackerGuid}), {DefenderName} ({DefenderGuid}), {DamageSourceName} ({DamageSourceGuid})) - DamageType == DamageType.Undef", attacker?.Name, attacker?.Guid, defender?.Name, defender?.Guid, damageSource?.Name, damageSource?.Guid);
                     GeneralFailure = true;
                 }
             }
@@ -481,7 +481,7 @@ namespace ACE.Server.Entity
 
             if (bodyPart == CombatBodyPart.Undefined)
             {
-                log.DebugFormat("DamageEvent.GetBodyPart({0} ({1}) ) - couldn't find body part for wcid {2}, Quadrant {3}", defender?.Name, defender?.Guid, defender.WeenieClassId, quadrant);
+                log.LogDebug("DamageEvent.GetBodyPart({Name} ({Guid}) ) - couldn't find body part for wcid {WeenieClassId}, Quadrant {Quadrant}", defender?.Name, defender?.Guid, defender.WeenieClassId, quadrant);
                 Evaded = true;
                 return;
             }

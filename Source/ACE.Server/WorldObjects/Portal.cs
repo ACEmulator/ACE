@@ -51,7 +51,7 @@ namespace ACE.Server.WorldObjects
 
             if (!success)
             {
-                log.Error($"{Name} ({Guid}) failed to spawn @ {Location?.ToLOCString()}");
+                log.LogError("{Name} ({Guid}) failed to spawn @ {Location}", Name, Guid, Location?.ToLOCString());
                 return false;
             }
 

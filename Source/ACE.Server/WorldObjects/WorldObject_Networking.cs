@@ -4,7 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 
-using ACE.Common.Logging;
+using Microsoft.Extensions.Logging;
+
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
@@ -449,7 +450,7 @@ namespace ACE.Server.WorldObjects
                             targetSession.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(targetSession.Player, (PropertyInt)property.PropertyId, value.Value));
                         break;
                     default:
-                        log.DebugFormat("Unsupported property in SendPartialUpdates: id {0}, type {1}.", property.PropertyId, property.PropertyType);
+                        log.LogDebug("Unsupported property in SendPartialUpdates: id {PropertyId}, type {PropertyType}.", property.PropertyId, property.PropertyType);
                         break;
                 }
             }

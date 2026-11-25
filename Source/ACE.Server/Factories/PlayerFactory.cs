@@ -211,7 +211,7 @@ namespace ACE.Server.Factories
 
                     if (!DatManager.PortalDat.SkillTable.SkillBaseHash.ContainsKey((uint)i))
                     {
-                        log.ErrorFormat("Character {0} tried to create with skill {1} that was not found in Portal dat.", characterCreateInfo.Name, i);
+                        log.LogError("Character {Name} tried to create with skill {I} that was not found in Portal dat.", characterCreateInfo.Name, i);
                         return CreateResult.InvalidSkillRequested;
                     }
 
@@ -462,7 +462,7 @@ namespace ACE.Server.Factories
         /// </summary>
         private static CreateResult InvalidCharacterCreateData(CharacterCreateInfo characterCreateInfo, uint accountId, string field, long value)
         {
-            log.Warn($"Character creation of {characterCreateInfo.Name} for account {accountId} rejected: {field} {value} is not valid for heritage {characterCreateInfo.Heritage}, gender {characterCreateInfo.Gender}");
+            log.LogWarning("Character creation of {Name} for account {AccountId} rejected: {Field} {Value} is not valid for heritage {Heritage}, gender {Gender}", characterCreateInfo.Name, accountId, field, value, characterCreateInfo.Heritage, characterCreateInfo.Gender);
 
             return CreateResult.InvalidCharacterCreateData;
         }
@@ -632,7 +632,7 @@ namespace ACE.Server.Factories
         {
             if (!PropertyManager.GetBool("iou_trades").Item)
             {
-                log.Warn($"CreateIOU: Skipping creation of IOU for missing weenie {missingWeenieId} because IOU system is disabled.");
+                log.LogWarning("CreateIOU: Skipping creation of IOU for missing weenie {MissingWeenieId} because IOU system is disabled.", missingWeenieId);
 
                 return null;
             }

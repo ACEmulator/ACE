@@ -1,7 +1,8 @@
 using System;
 using System.Threading;
 
-using ACE.Common.Logging;
+using Microsoft.Extensions.Logging;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
@@ -49,7 +50,7 @@ namespace ACE.Server.WorldObjects
             if (target.Location == null)
             {
                 StopExistingMoveToChains();
-                log.Error($"{Name}.CreateMoveToChain({target.Name}): target.Location is null");
+                log.LogError("{Name}.CreateMoveToChain({TargetName}): target.Location is null", Name, target.Name);
 
                 callback(false);
                 return;

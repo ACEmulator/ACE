@@ -172,8 +172,8 @@ namespace ACE.Server.Factories.Tables
 
             if (showResults)
             {
-                log.Info($"ApplyNumCantripsMod({cantrip_drop_rate})");
-                log.Info("");
+                log.LogInformation("ApplyNumCantripsMod({Cantrip_drop_rate})", cantrip_drop_rate);
+                log.LogInformation("");
 
                 ShowTables(numCantrips);
             }
@@ -230,8 +230,8 @@ namespace ACE.Server.Factories.Tables
 
             if (showResults)
             {
-                log.Info($"ApplyCantripLevelsMod({minor_cantrip_drop_rate}, {major_cantrip_drop_rate}, {epic_cantrip_drop_rate}, {legendary_cantrip_drop_rate})");
-                log.Info("");
+                log.LogInformation("ApplyCantripLevelsMod({Minor_cantrip_drop_rate}, {Major_cantrip_drop_rate}, {Epic_cantrip_drop_rate}, {Legendary_cantrip_drop_rate})", minor_cantrip_drop_rate, major_cantrip_drop_rate, epic_cantrip_drop_rate, legendary_cantrip_drop_rate);
+                log.LogInformation("");
 
                 ShowTables(cantripLevels);
             }
@@ -296,13 +296,13 @@ namespace ACE.Server.Factories.Tables
             {
                 var table = tables[i];
 
-                log.Info($"Tier {i + 1}:");
-                log.Info("");
+                log.LogInformation("Tier {Number}:", i + 1);
+                log.LogInformation("");
 
                 foreach (var entry in table)
-                    log.Info($"{entry.result}: {GetPercent(entry.chance)}");
+                    log.LogInformation("{Result}: {Percent}", entry.result, GetPercent(entry.chance));
 
-                log.Info("");
+                log.LogInformation("");
             }
         }
 

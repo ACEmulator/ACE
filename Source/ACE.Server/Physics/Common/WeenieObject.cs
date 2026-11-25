@@ -281,19 +281,19 @@ namespace ACE.Server.Physics.Common
             var house = WorldObject as House;
             if (house == null)
             {
-                log.Error($"{WorldObject?.Name} ({WorldObject?.Guid}).CanMoveInto({mover.WorldObject?.Name} ({mover.WorldObject?.Guid}) - couldn't find house");
+                log.LogError("{WorldObjectName} ({WorldObjectGuid}).CanMoveInto({WorldObjectName2} ({WorldObjectGuid2}) - couldn't find house", WorldObject?.Name, WorldObject?.Guid, mover.WorldObject?.Name, mover.WorldObject?.Guid);
                 return true;
             }
             var rootHouse = house.RootHouse;
             if (rootHouse == null)
             {
-                log.Error($"{WorldObject?.Name} ({WorldObject?.Guid}).CanMoveInto({mover.WorldObject?.Name} ({mover.WorldObject?.Guid}) - couldn't find root house");
+                log.LogError("{WorldObjectName} ({WorldObjectGuid}).CanMoveInto({WorldObjectName2} ({WorldObjectGuid2}) - couldn't find root house", WorldObject?.Name, WorldObject?.Guid, mover.WorldObject?.Name, mover.WorldObject?.Guid);
                 return true;
             }
             var player = mover?.WorldObject as Player;
             if (player == null)
             {
-                log.Error($"{WorldObject?.Name} ({WorldObject?.Guid}).CanMoveInto({mover.WorldObject?.Name} ({mover.WorldObject?.Guid}) - couldn't find player");
+                log.LogError("{WorldObjectName} ({WorldObjectGuid}).CanMoveInto({WorldObjectName2} ({WorldObjectGuid2}) - couldn't find player", WorldObject?.Name, WorldObject?.Guid, mover.WorldObject?.Name, mover.WorldObject?.Guid);
                 return true;
             }
             var result = rootHouse.HouseOwner == null || rootHouse.OpenStatus || rootHouse.HasPermission(player);

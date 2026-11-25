@@ -43,7 +43,7 @@ namespace ACE.Server.Factories
             }
             catch (Exception ex)
             {
-                log.Error($"StarterGearFactory.LoadConfigFromResource() - {ex}: {ex.Message}; {ex.InnerException}: {ex.InnerException.Message}");
+                log.LogError("StarterGearFactory.LoadConfigFromResource() - {Ex}: {ExMessage}; {InnerException}: {InnerExceptionMessage}", ex, ex.Message, ex.InnerException, ex.InnerException.Message);
             }
 
             return null;

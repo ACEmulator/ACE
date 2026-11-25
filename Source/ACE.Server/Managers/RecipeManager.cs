@@ -82,7 +82,7 @@ namespace ACE.Server.Managers
             }
 
             if (recipe.IsTinkering())
-                log.InfoFormat("[TINKERING] {0}.UseObjectOnTarget({1}, {2}) | Status: {3}confirmed", player.Name, source.NameWithMaterial, target.NameWithMaterial, (confirmed ? "" : "un"));
+                log.LogInformation("[TINKERING] {Name}.UseObjectOnTarget({SourceNameWithMaterial}, {TargetNameWithMaterial}) | Status: {ConfirmedPrefix}confirmed", player.Name, source.NameWithMaterial, target.NameWithMaterial, (confirmed ? "" : "un"));
 
             var percentSuccess = GetRecipeChance(player, source, target, recipe);
 
@@ -170,7 +170,7 @@ namespace ACE.Server.Managers
             if (playerSkill == null)
             {
                 // this shouldn't happen, but sanity check for unexpected nulls
-                log.Warn($"RecipeManager.GetRecipeChance({player.Name}, {source.Name}, {target.Name}): recipe {recipe.Id} missing skill");
+                log.LogWarning("RecipeManager.GetRecipeChance({PlayerName}, {SourceName}, {TargetName}): recipe {Id} missing skill", player.Name, source.Name, target.Name, recipe.Id);
                 return null;
             }
 
@@ -667,7 +667,7 @@ namespace ACE.Server.Managers
                     break;
 
                 default:
-                    log.Error($"{player.Name}.RecipeManager.Tinkering_ModifyItem({source.Name} ({source.Guid}), {target.Name} ({target.Guid})) - unknown mutation id: {dataId:X8}");
+                    log.LogError("{PlayerName}.RecipeManager.Tinkering_ModifyItem({SourceName} ({SourceGuid}), {TargetName} ({TargetGuid})) - unknown mutation id: {DataId:X8}", player.Name, source.Name, source.Guid, target.Name, target.Guid, dataId);
                     return false;
             }
 
@@ -787,7 +787,7 @@ namespace ACE.Server.Managers
 
             if (usable == Usable.Undef)
             {
-                log.Warn($"{player.Name}.RecipeManager.VerifyUse({source.Name} ({source.Guid}), {target.Name} ({target.Guid})) - source not usable, falling back on defaults");
+                log.LogWarning("{PlayerName}.RecipeManager.VerifyUse({SourceName} ({SourceGuid}), {TargetName} ({TargetGuid})) - source not usable, falling back on defaults", player.Name, source.Name, source.Guid, target.Name, target.Guid);
 
                 // re-verify
                 if (player.FindObject(source.Guid.Full, Player.SearchLocations.MyInventory) == null)
@@ -1034,7 +1034,7 @@ namespace ACE.Server.Managers
 
             if (createItem > 0 && DatabaseManager.World.GetCachedWeenie(createItem) == null)
             {
-                log.Error($"RecipeManager.CreateDestroyItems: Recipe.Id({recipe.Id}) couldn't find {(success ? "Success" : "Fail")}WCID {createItem} in database.");
+                log.LogError("RecipeManager.CreateDestroyItems: Recipe.Id({Id}) couldn't find {Result}WCID {CreateItem} in database.", recipe.Id, (success ? "Success" : "Fail"), createItem);
                 player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.CraftGeneralErrorUiMsg));
                 return null;
             }
@@ -1069,7 +1069,7 @@ namespace ACE.Server.Managers
 
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Craft));
 
-                log.Info($"[CRAFTING] {player.Name} used {source.NameWithMaterial} on {target.NameWithMaterial} {(success ? "" : "un")}successfully. {(destroySource ? $"| {source.NameWithMaterial} was destroyed " : "")}{(destroyTarget ? $"| {target.NameWithMaterial} was destroyed " : "")}| {message}");
+                log.LogInformation("[CRAFTING] {Name} used {SourceNameWithMaterial} on {TargetNameWithMaterial} {SuccessPrefix}successfully. {SourceDestroyed}{TargetDestroyed}| {Message}", player.Name, source.NameWithMaterial, target.NameWithMaterial, (success ? "" : "un"), (destroySource ? $"| {source.NameWithMaterial} was destroyed " : ""), (destroyTarget ? $"| {target.NameWithMaterial} was destroyed " : ""), message);
             }
             else
                 BroadcastTinkering(player, source, target, successChance, success);
@@ -1098,7 +1098,7 @@ namespace ACE.Server.Managers
             // send local broadcast
             player.EnqueueBroadcast(new GameMessageSystemChat(msg, ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);
 
-            log.Info($"[TINKERING] {msg} | Chance: {chance}");
+            log.LogInformation("[TINKERING] {Msg} | Chance: {Chance}", msg, chance);
         }
 
         public static WorldObject CreateItem(Player player, uint wcid, uint amount)
@@ -1107,7 +1107,7 @@ namespace ACE.Server.Managers
 
             if (wo == null)
             {
-                log.Warn($"RecipeManager.CreateItem({player.Name}, {wcid}, {amount}): failed to create {wcid}");
+                log.LogWarning("RecipeManager.CreateItem({Name}, {Wcid}, {Amount}): failed to create {Wcid}", player.Name, wcid, amount, wcid);
                 return null;
             }
 
@@ -1123,12 +1123,12 @@ namespace ACE.Server.Managers
             if (item.OwnerId == player.Guid.Full || player.GetInventoryItem(item.Guid) != null)
             {
                 if (!player.TryConsumeFromInventoryWithNetworking(item, (int)amount))
-                    log.Warn($"RecipeManager.DestroyItem({player.Name}, {item.Name}, {amount}, {msg}): failed to remove {item.Name}");
+                    log.LogWarning("RecipeManager.DestroyItem({PlayerName}, {ItemName}, {Amount}, {Msg}): failed to remove {ItemName}", player.Name, item.Name, amount, msg, item.Name);
             }
             else if (item.WielderId == player.Guid.Full)
             {
                 if (!player.TryDequipObjectWithNetworking(item.Guid, out _, Player.DequipObjectAction.ConsumeItem))
-                    log.Warn($"RecipeManager.DestroyItem({player.Name}, {item.Name}, {amount}, {msg}): failed to remove {item.Name}");
+                    log.LogWarning("RecipeManager.DestroyItem({PlayerName}, {ItemName}, {Amount}, {Msg}): failed to remove {ItemName}", player.Name, item.Name, amount, msg, item.Name);
             }
             else
             {
@@ -1150,7 +1150,7 @@ namespace ACE.Server.Managers
                 case RecipeSourceType.Source:
                     return source;
             }
-            log.Warn($"RecipeManager.GetSourceMod({sourceType}, {player.Name}, {source.Name}) - unknown source type");
+            log.LogWarning("RecipeManager.GetSourceMod({SourceType}, {PlayerName}, {SourceName}) - unknown source type", sourceType, player.Name, source.Name);
             return null;
         }
 
@@ -1260,7 +1260,7 @@ namespace ACE.Server.Managers
             // always SetValue?
             if (op != ModificationOperation.SetValue)
             {
-                log.Warn($"RecipeManager.ModifyBool({source.Name}, {target.Name}): unhandled operation {op}");
+                log.LogWarning("RecipeManager.ModifyBool({SourceName}, {TargetName}): unhandled operation {Op}", source.Name, target.Name, op);
                 return;
             }
             player.UpdateProperty(targetMod, prop, value);
@@ -1323,7 +1323,7 @@ namespace ACE.Server.Managers
                     if (Debug) Console.WriteLine($"{targetMod.Name}.SetProperty({prop}, 0x{bits:X}) - {op}");
                     break;
                 default:
-                    log.Warn($"RecipeManager.ModifyInt({source.Name}, {target.Name}): unhandled operation {op}");
+                    log.LogWarning("RecipeManager.ModifyInt({SourceName}, {TargetName}): unhandled operation {Op}", source.Name, target.Name, op);
                     break;
             }
         }
@@ -1360,7 +1360,7 @@ namespace ACE.Server.Managers
                     if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 default:
-                    log.Warn($"RecipeManager.ModifyFloat({source.Name}, {target.Name}): unhandled operation {op}");
+                    log.LogWarning("RecipeManager.ModifyFloat({SourceName}, {TargetName}): unhandled operation {Op}", source.Name, target.Name, op);
                     break;
             }
         }
@@ -1392,7 +1392,7 @@ namespace ACE.Server.Managers
                     if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? player.Name}) - {op}");
                     break;
                 default:
-                    log.Warn($"RecipeManager.ModifyString({source.Name}, {target.Name}): unhandled operation {op}");
+                    log.LogWarning("RecipeManager.ModifyString({SourceName}, {TargetName}): unhandled operation {Op}", source.Name, target.Name, op);
                     break;
             }
         }
@@ -1424,7 +1424,7 @@ namespace ACE.Server.Managers
                     if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {ModifyInstanceIDRuleSet(prop, player, targetMod)}) - {op}");
                     break;
                 default:
-                    log.Warn($"RecipeManager.ModifyInstanceID({source.Name}, {target.Name}): unhandled operation {op}");
+                    log.LogWarning("RecipeManager.ModifyInstanceID({SourceName}, {TargetName}): unhandled operation {Op}", source.Name, target.Name, op);
                     break;
             }
         }
@@ -1470,7 +1470,7 @@ namespace ACE.Server.Managers
                     if (Debug) Console.WriteLine($"{result.Name}.SetProperty({prop}, {player.GetProperty(prop) ?? 0}) - {op}");
                     break;
                 default:
-                    log.Warn($"RecipeManager.ModifyDataID({source.Name}, {target.Name}): unhandled operation {op}");
+                    log.LogWarning("RecipeManager.ModifyDataID({SourceName}, {TargetName}): unhandled operation {Op}", source.Name, target.Name, op);
                     break;
             }
         }
@@ -1491,7 +1491,7 @@ namespace ACE.Server.Managers
 
             if (mutationScript == null)
             {
-                log.Error($"RecipeManager.TryApplyMutation({dataId:X8}, {target.Name}) - couldn't find mutation script");
+                log.LogError("RecipeManager.TryApplyMutation({DataId:X8}, {Name}) - couldn't find mutation script", dataId, target.Name);
                 return false;
             }
 
@@ -1521,7 +1521,7 @@ namespace ACE.Server.Managers
 
             if (!dualDIDs.ClientEnumToName.TryGetValue((uint)materialType, out var materialName))
             {
-                log.Error($"RecipeManager.GetMaterialName({materialType}): couldn't find material name");
+                log.LogError("RecipeManager.GetMaterialName({MaterialType}): couldn't find material name", materialType);
                 return materialType.ToString();
             }
             return materialName.Replace("_", " ");

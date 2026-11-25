@@ -52,7 +52,7 @@ namespace ACE.Server.Managers
         /// <param name="interval">postive value representing seconds</param>
         public static void SetShutdownInterval(uint interval)
         {
-            log.Info($"Server shutdown interval reset: {interval}");
+            log.LogInformation("Server shutdown interval reset: {Interval}", interval);
             ShutdownInterval = interval;
         }
 
@@ -111,7 +111,7 @@ namespace ACE.Server.Managers
                 {
                     // reset shutdown details
                     string shutdownText = $"The server shut down has been cancelled @ {DateTime.Now.ToCommonString()} ({DateTime.UtcNow.ToCommonString()} UTC)";
-                    log.Info(shutdownText);
+                    log.LogInformation("{Message:l}", shutdownText);
 
                     // special text
                     foreach (var player in PlayerManager.GetAllOnline())
@@ -133,7 +133,7 @@ namespace ACE.Server.Managers
 
             WorldManager.EnqueueAction(new ActionEventDelegate(() =>
             {
-                log.Debug("Logging off all players...");
+                log.LogDebug("Logging off all players...");
 
                 // logout each player
                 foreach (var player in PlayerManager.GetAllOnline())
@@ -151,10 +151,10 @@ namespace ACE.Server.Managers
                 if (playerCount > 0 && DateTime.UtcNow - playerLogoffStart > TimeSpan.FromMinutes(5))
                 {
                     playerLogoffStart = DateTime.UtcNow;
-                    log.WarnFormat("5 minute log off failsafe reached and there are {0} player{1} still online.", playerCount, (playerCount > 1 ? "s" : ""));
+                    log.LogWarning("5 minute log off failsafe reached and there are {PlayerCount} player{PlayerPlural} still online.", playerCount, (playerCount > 1 ? "s" : ""));
                     foreach (var player in PlayerManager.GetAllOnline())
                     {
-                        log.WarnFormat("Player {0} (0x{1}) appears to be stuck in world and unable to log off normally. Requesting Forced Logoff...", player.Name, player.Guid);
+                        log.LogWarning("Player {Name} (0x{Guid}) appears to be stuck in world and unable to log off normally. Requesting Forced Logoff...", player.Name, player.Guid);
                         player.ForcedLogOffRequested = true;
                         player.ForceLogoff();
                     }    
@@ -163,7 +163,7 @@ namespace ACE.Server.Managers
 
             WorldManager.EnqueueAction(new ActionEventDelegate(() =>
             {
-                log.Debug("Disconnecting all sessions...");
+                log.LogDebug("Disconnecting all sessions...");
 
                 // disconnect each session
                 NetworkManager.DisconnectAllSessionsForShutdown();
@@ -178,7 +178,7 @@ namespace ACE.Server.Managers
                 Thread.Sleep(10);
             }
 
-            log.Debug("Adding all landblocks to destruction queue...");
+            log.LogDebug("Adding all landblocks to destruction queue...");
 
             // Queue unloading of all the landblocks
             // The actual unloading will happen in WorldManager.UpdateGameWorld
@@ -193,7 +193,7 @@ namespace ACE.Server.Managers
                 Thread.Sleep(10);
             }
 
-            log.Debug("Stopping world...");
+            log.LogDebug("Stopping world...");
 
             // Disabled thread update loop
             WorldManager.StopWorld();
@@ -209,7 +209,7 @@ namespace ACE.Server.Managers
                 Thread.Sleep(10);
             }
 
-            log.Info("Saving OfflinePlayers that have unsaved changes...");
+            log.LogInformation("Saving OfflinePlayers that have unsaved changes...");
             PlayerManager.SaveOfflinePlayersWithChanges();
 
             // Wait for the database queue to empty
@@ -222,7 +222,7 @@ namespace ACE.Server.Managers
             }
 
             // Write exit to console/log
-            log.Info($"Exiting at {DateTime.UtcNow.ToCommonString()}");
+            log.LogInformation("Exiting at {UtcNow}", DateTime.UtcNow.ToCommonString());
 
             // System exit
             Environment.Exit(Environment.ExitCode);
@@ -232,7 +232,7 @@ namespace ACE.Server.Managers
         {
             if (logUpdateTS == DateTime.MinValue || DateTime.UtcNow > logUpdateTS.ToUniversalTime())
             {
-                log.Info(logMessage);
+                log.LogInformation("{Message:l}", logMessage);
                 logUpdateTS = DateTime.UtcNow.AddSeconds(10);
             }
 

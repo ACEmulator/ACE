@@ -220,7 +220,7 @@ namespace ACE.Server.Entity
                 else
                 {
                     // this shouldn't happen (hopefully)
-                    log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} ProcessQueue(): {LinkId}:{Biota.WeenieClassId} object(s) enqueued for {Generator.Name}, but MaxCreate({MaxCreate}) already reached!");
+                    log.LogWarning("[GENERATOR] 0x{Guid}:{GeneratorWeenieClassId} ProcessQueue(): {LinkId}:{BiotaWeenieClassId} object(s) enqueued for {Name}, but MaxCreate({MaxCreate}) already reached!", Generator.Guid, Generator.WeenieClassId, LinkId, Biota.WeenieClassId, Generator.Name, MaxCreate);
                 }
 
                 SpawnQueue.RemoveAt(index);
@@ -253,7 +253,7 @@ namespace ACE.Server.Entity
                 var wo = WorldObjectFactory.CreateNewWorldObject(Biota.WeenieClassId);
                 if (wo == null)
                 {
-                    log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} {Generator.Name}.Spawn(): failed to create wcid {Biota.WeenieClassId}");
+                    log.LogWarning("[GENERATOR] 0x{Guid}:{GeneratorWeenieClassId} {Name}.Spawn(): failed to create wcid {BiotaWeenieClassId}", Generator.Guid, Generator.WeenieClassId, Generator.Name, Biota.WeenieClassId);
                     return null;
                 }
 
@@ -306,8 +306,8 @@ namespace ACE.Server.Entity
                 // This object still may be returned in the spawned collection if FirstSpawn is true. This is to prevent retry spam.
                 if (!success)
                 {
-                    if (log.IsDebugEnabled)
-                        log.Debug($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} {Generator.Name}.Spawn(): failed to spawn {obj.Name} (0x{obj.Guid}:{obj.WeenieClassId}) from profile {LinkId} at {RegenLocationType}{(obj.Location != null ? $"\n Gen LOC: {Generator.Location?.ToLOCString()}\n Obj LOC: {obj.Location.ToLOCString()}" : "")}");
+                    if (log.IsEnabled(LogLevel.Debug))
+                        log.LogDebug("[GENERATOR] 0x{GeneratorGuid}:{GeneratorWeenieClassId} {GeneratorName}.Spawn(): failed to spawn {ObjName} (0x{ObjGuid}:{ObjWeenieClassId}) from profile {LinkId} at {RegenLocationType}{Locations}", Generator.Guid, Generator.WeenieClassId, Generator.Name, obj.Name, obj.Guid, obj.WeenieClassId, LinkId, RegenLocationType, (obj.Location != null ? $"\n Gen LOC: {Generator.Location?.ToLOCString()}\n Obj LOC: {obj.Location.ToLOCString()}" : ""));
                     obj.Destroy();
                 }
             }
@@ -398,7 +398,7 @@ namespace ACE.Server.Entity
             var success = Generator is Container container && container.TryAddToInventory(obj);
 
             if (!success)
-                log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} {Generator.Name}.Spawn_Container({obj.Name}) - failed to add to container inventory");
+                log.LogWarning("[GENERATOR] 0x{Guid}:{WeenieClassId} {GeneratorName}.Spawn_Container({ObjName}) - failed to add to container inventory", Generator.Guid, Generator.WeenieClassId, Generator.Name, obj.Name);
 
             return success;
         }
@@ -408,7 +408,7 @@ namespace ACE.Server.Entity
             // spawn item in vendor shop inventory
             if (!(Generator is Vendor vendor))
             {
-                log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.WeenieClassId} {Generator.Name}.Spawn_Shop({obj.Name}) - generator is not a vendor type");
+                log.LogWarning("[GENERATOR] 0x{Guid}:{WeenieClassId} {GeneratorName}.Spawn_Shop({ObjName}) - generator is not a vendor type", Generator.Guid, Generator.WeenieClassId, Generator.Name, obj.Name);
                 return false;
             }
 
@@ -488,7 +488,7 @@ namespace ACE.Server.Entity
                 }
                 else
                 {
-                    log.DebugFormat("[GENERATOR] 0x{0}:{1} {2}.TreasureGenerator(): couldn't find death treasure or wielded treasure for ID {3}", Generator.Guid, Generator.WeenieClassId, Generator.Name, Biota.WeenieClassId);
+                    log.LogDebug("[GENERATOR] 0x{Guid}:{GeneratorWeenieClassId} {Name}.TreasureGenerator(): couldn't find death treasure or wielded treasure for ID {BiotaWeenieClassId}", Generator.Guid, Generator.WeenieClassId, Generator.Name, Biota.WeenieClassId);
                     return null;
                 }
             }
@@ -502,7 +502,7 @@ namespace ACE.Server.Entity
             var container = Generator as Container;
             if (container == null)
             {
-                log.WarnFormat("[GENERATOR] 0x{0}:{1} {2}.RemoveTreasure(): container not found", Generator.Guid, Generator.WeenieClassId, Generator.Name);
+                log.LogWarning("[GENERATOR] 0x{Guid}:{WeenieClassId} {Name}.RemoveTreasure(): container not found", Generator.Guid, Generator.WeenieClassId, Generator.Name);
                 return;
             }
             foreach (var spawned in Spawned.Keys)
@@ -510,7 +510,7 @@ namespace ACE.Server.Entity
                 var inventoryObjGuid = new ObjectGuid(spawned);
                 if (!container.Inventory.TryGetValue(inventoryObjGuid, out var inventoryObj))
                 {
-                    log.WarnFormat("[GENERATOR] 0x{0}:{1} {2}.RemoveTreasure(): couldn't find {3}", Generator.Guid, Generator.WeenieClassId, Generator.Name, inventoryObjGuid);
+                    log.LogWarning("[GENERATOR] 0x{Guid}:{WeenieClassId} {Name}.RemoveTreasure(): couldn't find {InventoryObjGuid}", Generator.Guid, Generator.WeenieClassId, Generator.Name, inventoryObjGuid);
                     continue;
                 }
                 container.TryRemoveFromInventory(inventoryObjGuid);
@@ -554,7 +554,7 @@ namespace ACE.Server.Entity
             //    log.Warn($"0x{Generator.Guid}:{Generator.Name}({Generator.WeenieClassId}).GeneratorProfile[{LinkId}].NotifyGenerator: RegenerationType = {eventType.ToString()}, WhenCreate = {whenCreate.ToString()}, Using {adjEventType.ToString()} as RegenerationType instead");
 
             if (whenCreate != adjWhenCreate)
-                log.Warn($"[GENERATOR] 0x{Generator.Guid}:{Generator.Name}({Generator.WeenieClassId}).GeneratorProfile[{LinkId}].NotifyGenerator: RegenerationType = {eventType.ToString()}, WhenCreate = {whenCreate.ToString()}, Using {adjWhenCreate.ToString()} as WhenCreate instead");
+                log.LogWarning("[GENERATOR] 0x{Guid}:{Name}({WeenieClassId}).GeneratorProfile[{LinkId}].NotifyGenerator: RegenerationType = {EventType}, WhenCreate = {WhenCreate}, Using {AdjWhenCreate} as WhenCreate instead", Generator.Guid, Generator.Name, Generator.WeenieClassId, LinkId, eventType.ToString(), whenCreate.ToString(), adjWhenCreate.ToString());
 
             if (adjWhenCreate != adjEventType)
                 return;

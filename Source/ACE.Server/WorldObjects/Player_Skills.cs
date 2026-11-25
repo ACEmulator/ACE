@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using ACE.Common.Logging;
+using Microsoft.Extensions.Logging;
+
 using ACE.Database;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
@@ -25,13 +26,13 @@ namespace ACE.Server.WorldObjects
 
             if (creatureSkill == null || creatureSkill.AdvancementClass < SkillAdvancementClass.Trained)
             {
-                log.Warn($"{Name}.HandleActionRaiseSkill({skill}, {amount}) - trained or specialized skill not found");
+                log.LogWarning("{Name}.HandleActionRaiseSkill({Skill}, {Amount}) - trained or specialized skill not found", Name, skill, amount);
                 return false;
             }
 
             if (amount > AvailableExperience)
             {
-                log.Warn($"{Name}.HandleActionRaiseSkill({skill}, {amount}) - amount > AvailableExperience ({AvailableExperience})");
+                log.LogWarning("{Name}.HandleActionRaiseSkill({Skill}, {Amount}) - amount > AvailableExperience ({AvailableExperience})", Name, skill, amount, AvailableExperience);
                 return false;
             }
 
@@ -72,14 +73,14 @@ namespace ACE.Server.WorldObjects
             var skillXPTable = GetSkillXPTable(creatureSkill.AdvancementClass);
             if (skillXPTable == null)
             {
-                log.Warn($"{Name}.SpendSkillXp({creatureSkill.Skill}, {amount}) - player tried to raise {creatureSkill.AdvancementClass} skill");
+                log.LogWarning("{Name}.SpendSkillXp({Skill}, {Amount}) - player tried to raise {AdvancementClass} skill", Name, creatureSkill.Skill, amount, creatureSkill.AdvancementClass);
                 return false;
             }
 
             // ensure skill is not already max rank
             if (creatureSkill.IsMaxRank)
             {
-                log.Warn($"{Name}.SpendSkillXp({creatureSkill.Skill}, {amount}) - player tried to raise skill beyond max rank");
+                log.LogWarning("{Name}.SpendSkillXp({Skill}, {Amount}) - player tried to raise skill beyond max rank", Name, creatureSkill.Skill, amount);
                 return false;
             }
 
@@ -97,7 +98,7 @@ namespace ACE.Server.WorldObjects
             // spend xp on skill
             if (!SpendXP(amount, sendNetworkUpdate))
             {
-                log.Warn($"{Name}.SpendSkillXp({creatureSkill.Skill}, {amount}) - SpendXP failed");
+                log.LogWarning("{Name}.SpendSkillXp({Skill}, {Amount}) - SpendXP failed", Name, creatureSkill.Skill, amount);
                 return false;
             }
 
@@ -116,20 +117,20 @@ namespace ACE.Server.WorldObjects
         {
             if (creditsSpent > AvailableSkillCredits)
             {
-                log.Warn($"{Name}.HandleActionTrainSkill({skill}, {creditsSpent}) - not enough skill credits ({AvailableSkillCredits})");
+                log.LogWarning("{Name}.HandleActionTrainSkill({Skill}, {CreditsSpent}) - not enough skill credits ({AvailableSkillCredits})", Name, skill, creditsSpent, AvailableSkillCredits);
                 return false;
             }
 
             // get the actual cost to train the skill.
             if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue((uint)skill, out var skillBase))
             {
-                log.Warn($"{Name}.HandleActionTrainSkill({skill}, {creditsSpent}) - couldn't find skill base");
+                log.LogWarning("{Name}.HandleActionTrainSkill({Skill}, {CreditsSpent}) - couldn't find skill base", Name, skill, creditsSpent);
                 return false;
             }
 
             if (creditsSpent != skillBase.TrainedCost)
             {
-                log.Warn($"{Name}.HandleActionTrainSkill({skill}, {creditsSpent}) - client value differs from skillBase.TrainedCost({skillBase.TrainedCost})");
+                log.LogWarning("{Name}.HandleActionTrainSkill({Skill}, {CreditsSpent}) - client value differs from skillBase.TrainedCost({TrainedCost})", Name, skill, creditsSpent, skillBase.TrainedCost);
                 return false;
             }
 
@@ -158,7 +159,7 @@ namespace ACE.Server.WorldObjects
             // get the amount of skill credits required to train this skill
             if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue((uint)skill, out var skillBase))
             {
-                log.Error($"{Name}.TrainSkill({skill}) - couldn't find skill base");
+                log.LogError("{Name}.TrainSkill({Skill}) - couldn't find skill base", Name, skill);
                 return false;
             }
 
@@ -203,7 +204,7 @@ namespace ACE.Server.WorldObjects
             // from trained -> specialized
             if (!DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue((uint)skill, out var skillBase))
             {
-                log.Error($"{Name}.SpecializeSkill({skill}, {resetSkill}) - couldn't find skill base");
+                log.LogError("{Name}.SpecializeSkill({Skill}, {ResetSkill}) - couldn't find skill base", Name, skill, resetSkill);
                 return false;
             }
 

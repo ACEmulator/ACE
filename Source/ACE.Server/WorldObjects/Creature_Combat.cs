@@ -1,8 +1,9 @@
 using System;
 using System.Linq;
 
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
-using ACE.Common.Logging;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -94,7 +95,7 @@ namespace ACE.Server.WorldObjects
                     animLength = HandleSwitchToMissileCombatMode();
                     break;
                 default:
-                    log.InfoFormat("Unknown combat mode {0} for {1}", CombatMode, Name);
+                    log.LogInformation("Unknown combat mode {CombatMode} for {Name}", CombatMode, Name);
                     break;
             }
 

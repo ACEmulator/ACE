@@ -95,7 +95,7 @@ namespace ACE.Server.WorldObjects
             if (SlumLord == null)
             {
                 //Console.WriteLine($"No slumlord found for {Name} ({Guid})");
-                log.Warn($"[HOUSE] No slumlord found for {Name} ({Guid})");
+                log.LogWarning("[HOUSE] No slumlord found for {Name} ({Guid})", Name, Guid);
             }
             else
             {
@@ -345,7 +345,7 @@ namespace ACE.Server.WorldObjects
                 if (player == null)
                 {
                     //Console.WriteLine($"{Name}.BuildGuests(): couldn't find guest {kvp.Key:X8}");
-                    log.Warn($"[HOUSE] {Name}.BuildGuests(): couldn't find guest {kvp.Key:X8}");
+                    log.LogWarning("[HOUSE] {Name}.BuildGuests(): couldn't find guest {Key:X8}", Name, kvp.Key);
 
                     // character has been deleted -- automatically remove?
                     deleted.Add(kvp.Key);
@@ -384,7 +384,7 @@ namespace ACE.Server.WorldObjects
             if (existingStorage == null)
             {
                 //Console.WriteLine($"{Name}.FindGuest({guest.Guid}): couldn't find {guest.Name}");
-                log.Warn($"[HOUSE] {Name}.FindGuest({guest.Guid}): couldn't find {guest.Name}");
+                log.LogWarning("[HOUSE] {Name}.FindGuest({Guid}): couldn't find {GuestName}", Name, guest.Guid, guest.Name);
 
                 return;
             }
@@ -424,7 +424,7 @@ namespace ACE.Server.WorldObjects
                 if (player == null)
                 {
                     //Console.WriteLine($"{Name}.ClearPermissions(): couldn't find {guest}");
-                    log.Warn($"[HOUSE] {Name}.ClearPermissions(): couldn't find {guest}");
+                    log.LogWarning("[HOUSE] {Name}.ClearPermissions(): couldn't find {Guest}", Name, guest);
                     continue;
                 }
                 RemoveGuest(player);
@@ -539,7 +539,7 @@ namespace ACE.Server.WorldObjects
                         _rootGuid = new ObjectGuid(rootGuid);
                     else
                     {
-                        log.Error($"House.RootGuid - couldn't find root guid for house guid {Guid}");
+                        log.LogError("House.RootGuid - couldn't find root guid for house guid {Guid}", Guid);
                         _rootGuid = Guid;
                     }
                 }

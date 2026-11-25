@@ -590,7 +590,7 @@ namespace ACE.Server.Managers
 
             if (killedCreature == null)
             {
-                log.ErrorFormat("{0}.QuestManager.HandleKillTask({1}): input object is null!", Name, killQuestName);
+                log.LogError("{Name}.QuestManager.HandleKillTask({KillQuestName}): input object is null!", Name, killQuestName);
                 return;
             }
 
@@ -599,7 +599,7 @@ namespace ACE.Server.Managers
 
             if (quest == null)
             {
-                log.ErrorFormat("{0}.QuestManager.HandleKillTask({1}): couldn't find kill task {2} in database", Name, killQuestName, questName);
+                log.LogError("{Name}.QuestManager.HandleKillTask({KillQuestName}): couldn't find kill task {QuestName} in database", Name, killQuestName, questName);
                 return;
             }
 
@@ -613,7 +613,7 @@ namespace ACE.Server.Managers
             if (playerQuest == null)
             {
                 // this should be impossible
-                log.ErrorFormat("{0}.QuestManager.HandleKillTask({1}): couldn't find kill task {2} in player quests", Name, killQuestName, questName);
+                log.LogError("{Name}.QuestManager.HandleKillTask({KillQuestName}): couldn't find kill task {QuestName} in player quests", Name, killQuestName, questName);
                 return;
             }
 

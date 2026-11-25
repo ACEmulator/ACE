@@ -209,7 +209,7 @@ namespace ACE.Server.WorldObjects
 
             if (P_PetOwner?.PhysicsObj == null)
             {
-                log.Error($"{Name} ({Guid}).SlowTick() - P_PetOwner: {P_PetOwner}, P_PetOwner.PhysicsObj: {P_PetOwner?.PhysicsObj}");
+                log.LogError("{Name} ({Guid}).SlowTick() - P_PetOwner: {P_PetOwner}, P_PetOwner.PhysicsObj: {PhysicsObj}", Name, Guid, P_PetOwner, P_PetOwner?.PhysicsObj);
                 Destroy();
                 return;
             }

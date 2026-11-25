@@ -29,8 +29,8 @@ namespace ACE.Server.Network.Managers
             }
             catch (Exception ex)
             {
-                log.Error($"Unable to use {ConfigManager.Config.Server.Network.Host} as host due to: {ex}");
-                log.Error("Using IPAddress.Any as host instead.");
+                log.LogError("Unable to use {Host} as host due to: {Ex}", ConfigManager.Config.Server.Network.Host, ex);
+                log.LogError("Using IPAddress.Any as host instead.");
                 hosts.Clear();
                 hosts.Add(IPAddress.Any);
             }
@@ -40,10 +40,10 @@ namespace ACE.Server.Network.Managers
             for (int i = 0; i < hosts.Count; i++)
             {
                 listeners[(i * 2) + 0] = new ConnectionListener(hosts[i], ConfigManager.Config.Server.Network.Port);
-                log.Info($"Binding ConnectionListener to {hosts[i]}:{ConfigManager.Config.Server.Network.Port}");
+                log.LogInformation("Binding ConnectionListener to {Hosts}:{Port}", hosts[i], ConfigManager.Config.Server.Network.Port);
 
                 listeners[(i * 2) + 1] = new ConnectionListener(hosts[i], ConfigManager.Config.Server.Network.Port + 1);
-                log.Info($"Binding ConnectionListener to {hosts[i]}:{ConfigManager.Config.Server.Network.Port + 1}");
+                log.LogInformation("Binding ConnectionListener to {Hosts}:{Port}", hosts[i], ConfigManager.Config.Server.Network.Port + 1);
                 
                 listeners[(i * 2) + 1].Start();
                 listeners[(i * 2) + 0].Start();

@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using ACE.Common.Logging;
+using Microsoft.Extensions.Logging;
+
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -76,7 +77,7 @@ namespace ACE.Server.WorldObjects
                     // errors shouldn't be possible here, since the items were pre-validated, but just in case...
                     if (!TryCreateInInventoryWithNetworking(item))
                     {
-                        log.Error($"[VENDOR] {Name}.FinalizeBuyTransaction({vendor.Name}) - couldn't add {item.Name} ({item.Guid}) to player inventory after validation, this shouldn't happen!");
+                        log.LogError("[VENDOR] {Name}.FinalizeBuyTransaction({VendorName}) - couldn't add {ItemName} ({Guid}) to player inventory after validation, this shouldn't happen!", Name, vendor.Name, item.Name, item.Guid);
 
                         item.Destroy();  // cleanup for guid manager
                     }
@@ -100,7 +101,7 @@ namespace ACE.Server.WorldObjects
                     vendor.NumItemsSold++;
                 }
                 else
-                    log.Error($"[VENDOR] {Name}.FinalizeBuyTransaction({vendor.Name}) - couldn't add {item.Name} ({item.Guid}) to player inventory after validation, this shouldn't happen!");
+                    log.LogError("[VENDOR] {Name}.FinalizeBuyTransaction({VendorName}) - couldn't add {ItemName} ({Guid}) to player inventory after validation, this shouldn't happen!", Name, vendor.Name, item.Name, item.Guid);
             }
 
             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
@@ -165,7 +166,7 @@ namespace ACE.Server.WorldObjects
 
             if (payoutCoinAmount < 0)
             {
-                log.Warn($"[VENDOR] {Name} (0x({Guid}) tried to sell something to {vendor.Name} (0x{vendor.Guid}) resulting in a payout of {payoutCoinAmount} pyreals.");
+                log.LogWarning("[VENDOR] {Name} (0x({Guid}) tried to sell something to {VendorName} (0x{VendorGuid}) resulting in a payout of {PayoutCoinAmount} pyreals.", Name, Guid, vendor.Name, vendor.Guid, payoutCoinAmount);
 
                 SendTransientError("Transaction failed.");
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, Guid.Full));
@@ -202,7 +203,7 @@ namespace ACE.Server.WorldObjects
                 if (TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.SellItem) || TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.SellItem))
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, vendor));
                 else
-                    log.WarnFormat("[VENDOR] Item 0x{0:X8}:{1} for player {2} not found in HandleActionSellItem.", item.Guid.Full, item.Name, Name); // This shouldn't happen
+                    log.LogWarning("[VENDOR] Item 0x{Guid:X8}:{ItemName} for player {Name} not found in HandleActionSellItem.", item.Guid.Full, item.Name, Name); // This shouldn't happen
             }
 
             // send the list of items to the vendor
@@ -214,7 +215,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (!TryCreateInInventoryWithNetworking(item))  // this shouldn't happen because of pre-validations in itemsToReceive
                 {
-                    log.WarnFormat("[VENDOR] Payout 0x{0:X8}:{1} for player {2} failed to add to inventory HandleActionSellItem.", item.Guid.Full, item.Name, Name);
+                    log.LogWarning("[VENDOR] Payout 0x{Guid:X8}:{ItemName} for player {Name} failed to add to inventory HandleActionSellItem.", item.Guid.Full, item.Name, Name);
                     item.Destroy();
                 }
             }
@@ -242,26 +243,26 @@ namespace ACE.Server.WorldObjects
             {
                 if (!allPossessions.TryGetValue(sellItem.ObjectGuid, out var wo))
                 {
-                    log.Warn($"[VENDOR] {Name} tried to sell item {sellItem.ObjectGuid:X8} not in their inventory to {vendor.Name}");
+                    log.LogWarning("[VENDOR] {Name} tried to sell item {ObjectGuid:X8} not in their inventory to {VendorName}", Name, sellItem.ObjectGuid, vendor.Name);
                     continue;
                 }
 
                 // verify item profile (unique guids, amount)
                 if (verified.ContainsKey(wo.Guid.Full))
                 {
-                    log.Warn($"[VENDOR] {Name} tried to sell duplicate item {wo.Name} ({wo.Guid}) to {vendor.Name}");
+                    log.LogWarning("[VENDOR] {Name} tried to sell duplicate item {WoName} ({Guid}) to {VendorName}", Name, wo.Name, wo.Guid, vendor.Name);
                     continue;
                 }
 
                 if (!sellItem.IsValidAmount)
                 {
-                    log.Warn($"[VENDOR] {Name} tried to sell {sellItem.Amount}x {wo.Name} ({wo.Guid}) to {vendor.Name}");
+                    log.LogWarning("[VENDOR] {Name} tried to sell {Amount}x {WoName} ({Guid}) to {VendorName}", Name, sellItem.Amount, wo.Name, wo.Guid, vendor.Name);
                     continue;
                 }
 
                 if (sellItem.Amount > (wo.StackSize ?? 1))
                 {
-                    log.Warn($"[VENDOR] {Name} tried to sell {sellItem.Amount}x {wo.Name} ({wo.Guid}) to {vendor.Name}, but they only have {wo.StackSize ?? 1}x");
+                    log.LogWarning("[VENDOR] {Name} tried to sell {Amount}x {WoName} ({Guid}) to {VendorName}, but they only have {StackSize}x", Name, sellItem.Amount, wo.Name, wo.Guid, vendor.Name, wo.StackSize ?? 1);
                     continue;
                 }
 

@@ -138,7 +138,7 @@ namespace ACE.Server.Managers
             if (CachedBooleanSettings.ContainsKey(key))
                 CachedBooleanSettings[key].ModifyDescription(description);
             else
-                log.Warn($"Attempted to modify {key} which did not exist in the BOOL cache.");
+                log.LogWarning("Attempted to modify {Key} which did not exist in the BOOL cache.", key);
         }
 
         /// <summary>
@@ -188,7 +188,7 @@ namespace ACE.Server.Managers
             if (CachedLongSettings.ContainsKey(key))
                 CachedLongSettings[key].ModifyDescription(description);
             else
-                log.Warn($"Attempted to modify {key} which did not exist in the LONG cache.");
+                log.LogWarning("Attempted to modify {Key} which did not exist in the LONG cache.", key);
         }
 
         /// <summary>
@@ -252,7 +252,7 @@ namespace ACE.Server.Managers
             if (CachedDoubleSettings.ContainsKey(key))
                 CachedDoubleSettings[key].ModifyDescription(description);
             else
-                log.Warn($"Attempted to modify the description of {key} which did not exist in the DOUBLE cache.");
+                log.LogWarning("Attempted to modify the description of {Key} which did not exist in the DOUBLE cache.", key);
         }
 
         /// <summary>
@@ -302,7 +302,7 @@ namespace ACE.Server.Managers
             if (CachedStringSettings.ContainsKey(key))
                 CachedStringSettings[key].ModifyDescription(description);
             else
-                log.Warn($"Attempted to modify {key} which did not exist in the STRING cache.");
+                log.LogWarning("Attempted to modify {Key} which did not exist in the STRING cache.", key);
         }
 
 
@@ -382,7 +382,7 @@ namespace ACE.Server.Managers
             // next, we need to fetch all of the variables from the DB and compare them quickly.
             LoadPropertiesFromDB();
 
-            log.DebugFormat("PropertyManager DoWork took {0:N0} ms", (DateTime.UtcNow - startTime).TotalMilliseconds);
+            log.LogDebug("PropertyManager DoWork took {TotalMilliseconds:N0} ms", (DateTime.UtcNow - startTime).TotalMilliseconds);
         }
         public static string ListProperties()
         {

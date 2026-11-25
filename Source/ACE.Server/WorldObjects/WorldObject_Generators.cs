@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
-using ACE.Common.Logging;
 using ACE.Entity.Enum;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
@@ -61,7 +62,7 @@ namespace ACE.Server.WorldObjects
             // defaulting to Max == Init for our purposes.
             if ((MaxGeneratedObjects <= 0 || MaxGeneratedObjects < InitGeneratedObjects) && InitGeneratedObjects > 0)
             {
-                log.Warn($"[GENERATOR] 0x{Guid.Full} {Name}.InitializeGenerator: {WeenieClassName} ({WeenieClassId}) MaxGeneratedObjects = {MaxGeneratedObjects} | InitGeneratedObjects = {InitGeneratedObjects}. Setting MaxGeneratedObjects = InitGeneratedObjects");
+                log.LogWarning("[GENERATOR] 0x{Guid} {Name}.InitializeGenerator: {WeenieClassName} ({WeenieClassId}) MaxGeneratedObjects = {MaxGeneratedObjects} | InitGeneratedObjects = {InitGeneratedObjects}. Setting MaxGeneratedObjects = InitGeneratedObjects", Guid.Full, Name, WeenieClassName, WeenieClassId, MaxGeneratedObjects, InitGeneratedObjects);
                 MaxGeneratedObjects = InitGeneratedObjects;
             }
 
@@ -140,13 +141,13 @@ namespace ACE.Server.WorldObjects
                 {
                     if (profile.Biota.InitCreate > 1)
                     {
-                        log.Warn($"[GENERATOR] 0x{Guid} {Name}.SelectAProfile(): profile[{i}].RegenLocationType({profile.RegenLocationType}), profile.Biota.WCID({profile.Biota.WeenieClassId}), profile.Biota.InitCreate({profile.Biota.InitCreate}) > 1, set to 1. WCID: {WeenieClassId} - LOC: {Location.ToLOCString()}");
+                        log.LogWarning("[GENERATOR] 0x{Guid} {Name}.SelectAProfile(): profile[{I}].RegenLocationType({RegenLocationType}), profile.Biota.WCID({BiotaWeenieClassId}), profile.Biota.InitCreate({InitCreate}) > 1, set to 1. WCID: {WeenieClassId} - LOC: {Location}", Guid, Name, i, profile.RegenLocationType, profile.Biota.WeenieClassId, profile.Biota.InitCreate, WeenieClassId, Location.ToLOCString());
                         profile.Biota.InitCreate = 1;
                     }
 
                     if (profile.Biota.MaxCreate > 1)
                     {
-                        log.Warn($"[GENERATOR] 0x{Guid} {Name}.SelectAProfile(): profile[{i}].RegenLocationType({profile.RegenLocationType}), profile.Biota.WCID({profile.Biota.WeenieClassId}), profile.Biota.MaxCreate({profile.Biota.MaxCreate}) > 1, set to 1. WCID: {WeenieClassId} - LOC: {Location.ToLOCString()}");
+                        log.LogWarning("[GENERATOR] 0x{Guid} {Name}.SelectAProfile(): profile[{I}].RegenLocationType({RegenLocationType}), profile.Biota.WCID({BiotaWeenieClassId}), profile.Biota.MaxCreate({MaxCreate}) > 1, set to 1. WCID: {WeenieClassId} - LOC: {Location}", Guid, Name, i, profile.RegenLocationType, profile.Biota.WeenieClassId, profile.Biota.MaxCreate, WeenieClassId, Location.ToLOCString());
                         profile.Biota.MaxCreate = 1;
                     }
                 }
@@ -307,9 +308,9 @@ namespace ACE.Server.WorldObjects
                 numObjects = profileSlotsAvailable;
 
             if (numObjects == 0 && initCreate == 0)
-                log.Warn($"[GENERATOR] 0x{Guid}:{WeenieClassId} {Name}.GetSpawnObjectsForProfile(profile[{profile.LinkId}]): profile.InitCreate = {profile.InitCreate} | profile.MaxCreate = {profile.MaxCreate} | profile.WeenieClassId = {profile.WeenieClassId} | Profile Init invalid, cannot spawn.");
+                log.LogWarning("[GENERATOR] 0x{Guid}:{WeenieClassId} {Name}.GetSpawnObjectsForProfile(profile[{LinkId}]): profile.InitCreate = {InitCreate} | profile.MaxCreate = {MaxCreate} | profile.WeenieClassId = {ProfileWeenieClassId} | Profile Init invalid, cannot spawn.", Guid, WeenieClassId, Name, profile.LinkId, profile.InitCreate, profile.MaxCreate, profile.WeenieClassId);
             else if (numObjects == 0)
-               log.Warn($"[GENERATOR] 0x{Guid}:{WeenieClassId} {Name}.GetSpawnObjectsForProfile(profile[{profile.LinkId}]): profile.InitCreate = {profile.InitCreate} | profile.MaxCreate = {profile.MaxCreate} | profile.WeenieClassId = {profile.WeenieClassId} | genSlotsAvailable = {genSlotsAvailable} | profileSlotsAvailable = {profileSlotsAvailable} | numObjects = {numObjects}, cannot spawn.");
+               log.LogWarning("[GENERATOR] 0x{Guid}:{WeenieClassId} {Name}.GetSpawnObjectsForProfile(profile[{LinkId}]): profile.InitCreate = {InitCreate} | profile.MaxCreate = {MaxCreate} | profile.WeenieClassId = {ProfileWeenieClassId} | genSlotsAvailable = {GenSlotsAvailable} | profileSlotsAvailable = {ProfileSlotsAvailable} | numObjects = {NumObjects}, cannot spawn.", Guid, WeenieClassId, Name, profile.LinkId, profile.InitCreate, profile.MaxCreate, profile.WeenieClassId, genSlotsAvailable, profileSlotsAvailable, numObjects);
 
             return numObjects;
         }
@@ -670,7 +671,7 @@ namespace ACE.Server.WorldObjects
 
                         if (genLoopCount > 1000)
                         {
-                            log.Error($"[GENERATOR] 0x{Guid} {Name}.Generator_Generate(): genLoopCount > 1000, aborted init spawn. GenStopSelectProfileConditions: {GenStopSelectProfileConditions} | InitCreate: {InitCreate} | CurrentCreate: {CurrentCreate} | WCID: {WeenieClassId} - LOC: {Location.ToLOCString()}");
+                            log.LogError("[GENERATOR] 0x{Guid} {Name}.Generator_Generate(): genLoopCount > 1000, aborted init spawn. GenStopSelectProfileConditions: {GenStopSelectProfileConditions} | InitCreate: {InitCreate} | CurrentCreate: {CurrentCreate} | WCID: {WeenieClassId} - LOC: {Location}", Guid, Name, GenStopSelectProfileConditions, InitCreate, CurrentCreate, WeenieClassId, Location.ToLOCString());
                             break;
                         }
                     }

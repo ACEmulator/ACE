@@ -25,7 +25,7 @@ namespace ACE.Server.Command.Handlers
                     ChatPacket.SendServerMessage(session, output, chatMessageType);
             }
             else
-                log.Info(output);
+                log.LogInformation("{Message:l}", output);
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace ACE.Server.Command.Handlers
                     ChatPacket.SendServerMessage(session, output, chatMessageType);
             }
             else
-                log.Debug(output);
+                log.LogDebug("{Message:l}", output);
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace ACE.Server.Command.Handlers
                     ChatPacket.SendServerMessage(session, output, chatMessageType);
             }
             else
-                log.Error(output);
+                log.LogError("{Message:l}", output);
         }
 
         /// <summary>

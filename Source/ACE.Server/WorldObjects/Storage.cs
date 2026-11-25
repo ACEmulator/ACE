@@ -62,7 +62,7 @@ namespace ACE.Server.WorldObjects
 
             if (rootHouse == null)
             {
-                log.Error($"[HOUSE] {player.Name} tried to use Storage chest @ {Location}, couldn't find RootHouse (this shouldn't happen)");
+                log.LogError("[HOUSE] {Name} tried to use Storage chest @ {Location}, couldn't find RootHouse (this shouldn't happen)", player.Name, Location);
                 return new ActivationResult(false);
             }
 

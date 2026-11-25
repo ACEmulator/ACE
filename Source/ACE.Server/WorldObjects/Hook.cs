@@ -145,7 +145,7 @@ namespace ACE.Server.WorldObjects
 
             if (item == null)
             {
-                log.Error("OnAddItem() raised for Hook but Inventory collection has no values.");
+                log.LogError("OnAddItem() raised for Hook but Inventory collection has no values.");
                 return;
             }
 

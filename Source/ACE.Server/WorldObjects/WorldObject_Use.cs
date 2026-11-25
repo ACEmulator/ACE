@@ -1,6 +1,7 @@
 using System;
 
-using ACE.Common.Logging;
+using Microsoft.Extensions.Logging;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -137,7 +138,7 @@ namespace ACE.Server.WorldObjects
                     activationTarget.OnActivate(activator);
                 else
                 {
-                    log.Warn($"{Name}.OnActivate({activator.Name}): couldn't find activation target {ActivationTarget:X8}");
+                    log.LogWarning("{Name}.OnActivate({ActivatorName}): couldn't find activation target {ActivationTarget:X8}", Name, activator.Name, ActivationTarget);
                 }
             }
         }
@@ -147,7 +148,7 @@ namespace ACE.Server.WorldObjects
             // empty base - individual WorldObject types should override
 
             var msg = $"{Name}.ActOnUse({activator.Name}) - undefined for wcid {WeenieClassId} type {WeenieType}";
-            log.Error(msg);
+            log.LogError("{Message:l}", msg);
 
             if (activator is Player _player)
                 _player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
@@ -196,7 +197,7 @@ namespace ACE.Server.WorldObjects
 
             if (activator == null)
             {
-                log.Error($"0x{Guid}:{Name}.CheckUseRequirements() (wcid: {WeenieClassId}): activator is null");
+                log.LogError("0x{Guid}:{Name}.CheckUseRequirements() (wcid: {WeenieClassId}): activator is null", Guid, Name, WeenieClassId);
                 return new ActivationResult(false);
             }
 

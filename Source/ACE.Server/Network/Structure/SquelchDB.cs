@@ -55,7 +55,7 @@ namespace ACE.Server.Network.Structure
                 var squelchPlayer = PlayerManager.FindByGuid(squelch.SquelchCharacterId);
                 if (squelchPlayer == null && squelch.SquelchAccountId == 0)
                 {
-                    log.Warn($"BuildSquelchDB(): couldn't find character 0x{squelch.SquelchCharacterId:X8}");
+                    log.LogWarning("BuildSquelchDB(): couldn't find character 0x{SquelchCharacterId:X8}", squelch.SquelchCharacterId);
                     continue;
                 }
 
@@ -77,7 +77,7 @@ namespace ACE.Server.Network.Structure
 
                         if (mostRecentLoggedInCharacterForSquelchedAccount == null)
                         {
-                            log.Warn($"BuildSquelchDB(): couldn't find character 0x{squelch.SquelchCharacterId:X8} and account {squelch.SquelchAccountId} has no other characters");
+                            log.LogWarning("BuildSquelchDB(): couldn't find character 0x{SquelchCharacterId:X8} and account {SquelchAccountId} has no other characters", squelch.SquelchCharacterId, squelch.SquelchAccountId);
                             continue;
                         }
 

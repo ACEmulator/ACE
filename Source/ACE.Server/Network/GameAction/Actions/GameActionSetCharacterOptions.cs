@@ -31,7 +31,7 @@ namespace ACE.Server.Network.GameAction.Actions
                 // and their client will send the default character options upon clicking the logout button,
                 // overwriting their custom options on the server with the defaults. this code avoids that situation
 
-                log.Warn($"{session.Player.Name} sent GameAction 0x1A1 - SetCharacterOptions before FirstEnterWorldDone, ignoring...");
+                log.LogWarning("{Name} sent GameAction 0x1A1 - SetCharacterOptions before FirstEnterWorldDone, ignoring...", session.Player.Name);
                 return;
             }
 

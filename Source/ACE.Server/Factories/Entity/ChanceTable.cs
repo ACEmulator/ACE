@@ -24,7 +24,7 @@ namespace ACE.Server.Factories.Entity
                 total += (decimal)entry.chance;
 
             if (Math.Abs(1.0M - total) > threshold)
-                log.Error($"Chance table adds up to {total}, expected 1.0: {string.Join(", ", this)}");
+                log.LogError("Chance table adds up to {Total}, expected 1.0: {Join}", total, string.Join(", ", this));
 
             verified = true;
         }

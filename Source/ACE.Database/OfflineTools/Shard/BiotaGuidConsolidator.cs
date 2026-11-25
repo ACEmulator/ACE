@@ -96,7 +96,7 @@ namespace ACE.Database.OfflineTools.Shard
 
         public static void ConsolidateBiotaGuids(uint startingGuid, bool tryNotToBreakPlugins, bool skipUserInputAfterWarning, out int numberOfBiotasConsolidated, out int numberOfBiotasSkipped, out int numberOfErrors)
         {
-            log.Info($"Consolidating biotas, starting at guid 0x{startingGuid:X8}, tryNotToBreakPlugins: {tryNotToBreakPlugins}...");
+            log.LogInformation("Consolidating biotas, starting at guid 0x{StartingGuid:X8}, tryNotToBreakPlugins: {TryNotToBreakPlugins}...", startingGuid, tryNotToBreakPlugins);
 
             Thread.Sleep(1000); // Give the logger type to flush to the client so that our output lines up in order
 
@@ -152,7 +152,7 @@ namespace ACE.Database.OfflineTools.Shard
                     if (fullBiota == null)
                     {
                         Interlocked.Increment(ref numOfErrors);
-                        log.WarnFormat("Failed to get biota with id 0x{0:X8} from the database. This shouldn't happen. It also shouldn't require a rollback.", partialBiota.Id);
+                        log.LogWarning("Failed to get biota with id 0x{Id:X8} from the database. This shouldn't happen. It also shouldn't require a rollback.", partialBiota.Id);
                         return;
                     }
 
@@ -183,7 +183,7 @@ namespace ACE.Database.OfflineTools.Shard
                     if (newId == 0)
                     {
                         Interlocked.Increment(ref numOfErrors);
-                        log.Fatal("Failed to generate new id. No more id's available for consolidation. This shouldn't require a rollback.");
+                        log.LogCritical("Failed to generate new id. No more id's available for consolidation. This shouldn't require a rollback.");
                         return;
                     }
 
@@ -197,7 +197,7 @@ namespace ACE.Database.OfflineTools.Shard
                     if (!shardDatabase.SaveBiota(converted, new ReaderWriterLockSlim()))
                     {
                         Interlocked.Increment(ref numOfErrors);
-                        log.FatalFormat("Failed to save new biota with id 0x{0:X8} to the database. Please rollback your shard.", fullBiota.Id);
+                        log.LogCritical("Failed to save new biota with id 0x{Id:X8} to the database. Please rollback your shard.", fullBiota.Id);
                         return;
                     }
 
@@ -205,7 +205,7 @@ namespace ACE.Database.OfflineTools.Shard
                     if (!shardDatabase.RemoveBiota(fullBiota.Id))
                     {
                         Interlocked.Increment(ref numOfErrors);
-                        log.FatalFormat("Failed to remove original biota with id 0x{0:X8} from database. Please rollback your shard.", fullBiota.Id);
+                        log.LogCritical("Failed to remove original biota with id 0x{Id:X8} from database. Please rollback your shard.", fullBiota.Id);
                         return;
                     }
 
@@ -240,7 +240,7 @@ namespace ACE.Database.OfflineTools.Shard
                     if (fullBiota == null)
                     {
                         Interlocked.Increment(ref numOfErrors);
-                        log.WarnFormat("Failed to get biota with id 0x{0:X8} from the database. This shouldn't happen. It also shouldn't require a rollback.", partialBiota.Id);
+                        log.LogWarning("Failed to get biota with id 0x{Id:X8} from the database. This shouldn't happen. It also shouldn't require a rollback.", partialBiota.Id);
                         break;
                     }
 
@@ -271,7 +271,7 @@ namespace ACE.Database.OfflineTools.Shard
                     if (newId == 0)
                     {
                         Interlocked.Increment(ref numOfErrors);
-                        log.Fatal("Failed to generate new id. No more id's available for consolidation. This shouldn't require a rollback.");
+                        log.LogCritical("Failed to generate new id. No more id's available for consolidation. This shouldn't require a rollback.");
                         break;
                     }
 
@@ -285,7 +285,7 @@ namespace ACE.Database.OfflineTools.Shard
                     if (!shardDatabase.SaveBiota(converted, new ReaderWriterLockSlim()))
                     {
                         Interlocked.Increment(ref numOfErrors);
-                        log.FatalFormat("Failed to save new biota with id 0x{0:X8} to the database. Please rollback your shard.", fullBiota.Id);
+                        log.LogCritical("Failed to save new biota with id 0x{Id:X8} to the database. Please rollback your shard.", fullBiota.Id);
                         break;
                     }
 
@@ -309,7 +309,7 @@ namespace ACE.Database.OfflineTools.Shard
                     if (!shardDatabase.RemoveBiota(fullBiota.Id))
                     {
                         Interlocked.Increment(ref numOfErrors);
-                        log.FatalFormat("Failed to remove original biota with id 0x{0:X8} from database. Please rollback your shard.", fullBiota.Id);
+                        log.LogCritical("Failed to remove original biota with id 0x{Id:X8} from database. Please rollback your shard.", fullBiota.Id);
                         break;
                     }
 
@@ -367,7 +367,7 @@ namespace ACE.Database.OfflineTools.Shard
             numberOfBiotasSkipped = numOfBiotasSkipped;
             numberOfErrors = numOfErrors;
 
-            log.Info($"Consolidated {numberOfBiotasConsolidated:N0} biotas, {numberOfBiotasSkipped:N0} skipped, with {numberOfErrors:N0} errors out of {partialBiotas.Count:N0} total.");
+            log.LogInformation("Consolidated {NumberOfBiotasConsolidated:N0} biotas, {NumberOfBiotasSkipped:N0} skipped, with {NumberOfErrors:N0} errors out of {Count:N0} total.", numberOfBiotasConsolidated, numberOfBiotasSkipped, numberOfErrors, partialBiotas.Count);
         }
     }
 }

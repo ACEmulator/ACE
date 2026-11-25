@@ -103,7 +103,7 @@ namespace ACE.Server.WorldObjects.Managers
                         break;
 
                     default:
-                        log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirmType}, {contextId}, {response}, {timeout}) - confirmType not found");
+                        log.LogError("{Name}.ConfirmationManager.HandleResponse({ConfirmType}, {ContextId}, {Response}, {Timeout}) - confirmType not found", Player.Name, confirmType, contextId, response, timeout);
                         break;
                 }
 
@@ -116,17 +116,17 @@ namespace ACE.Server.WorldObjects.Managers
                 {
                     // dialog box does not dismiss on ConfirmationDone, unlike on all other types, so we must let the player know when they click either yes or no, nothing occured because the offer has already expired.
                     if (!confirmations.TryAdd(confirm.ConfirmationType, confirm))
-                        log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirm.ConfirmationType}, {confirm.ContextId}) - Unable to re-add confirmation, duplicate confirmation type");
+                        log.LogError("{Name}.ConfirmationManager.HandleResponse({ConfirmationType}, {ContextId}) - Unable to re-add confirmation, duplicate confirmation type", Player.Name, confirm.ConfirmationType, confirm.ContextId);
 
                     Player.SendMessage("That offer of fellowship has expired."); // still looking for pcap accurate response
 
                     return false;
                 }    
 
-                log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirmType}, {contextId}, {response}, {timeout}) - contextId != confirm.ContextId");
+                log.LogError("{Name}.ConfirmationManager.HandleResponse({ConfirmType}, {ContextId}, {Response}, {Timeout}) - contextId != confirm.ContextId", Player.Name, confirmType, contextId, response, timeout);
 
                 if (!confirmations.TryAdd(confirm.ConfirmationType, confirm))
-                    log.Error($"{Player.Name}.ConfirmationManager.HandleResponse({confirm.ConfirmationType}, {confirm.ContextId}) - Unable to re-add confirmation, duplicate confirmation type");
+                    log.LogError("{Name}.ConfirmationManager.HandleResponse({ConfirmationType}, {ContextId}) - Unable to re-add confirmation, duplicate confirmation type", Player.Name, confirm.ConfirmationType, confirm.ContextId);
 
                 return false;
             }

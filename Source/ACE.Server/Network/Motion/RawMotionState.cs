@@ -92,7 +92,7 @@ namespace ACE.Server.Network.Structure
                     if (SoulEmote.SoulEmotes.Contains(motionItem.MotionCommand) && motionItem.Speed == 1.0f)
                         Commands.Add(motionItem);
                     else
-                        log.Error($"RawMotionState reader - received non-standard action {motionItem.MotionCommand}, Speed: {motionItem.Speed} for {moveToState.WorldObject?.Name}");
+                        log.LogError("RawMotionState reader - received non-standard action {MotionCommand}, Speed: {Speed} for {Name}", motionItem.MotionCommand, motionItem.Speed, moveToState.WorldObject?.Name);
                 }
             }
         }

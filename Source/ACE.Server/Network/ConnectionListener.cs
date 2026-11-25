@@ -30,7 +30,7 @@ namespace ACE.Server.Network
 
         public ConnectionListener(IPAddress host, uint port)
         {
-            log.DebugFormat("ConnectionListener ctor, host {0} port {1}", host, port);
+            log.LogDebug("ConnectionListener ctor, host {Host} port {Port}", host, port);
 
             listeningHost = host;
             listeningPort = port;
@@ -38,7 +38,7 @@ namespace ACE.Server.Network
 
         public void Start()
         {
-            log.DebugFormat("Starting ConnectionListener, host {0} port {1}", listeningHost, listeningPort);
+            log.LogDebug("Starting ConnectionListener, host {ListeningHost} port {ListeningPort}", listeningHost, listeningPort);
 
             try
             {
@@ -59,13 +59,13 @@ namespace ACE.Server.Network
             }
             catch (Exception exception)
             {
-                log.FatalFormat("Network Socket has thrown: {0}", exception.Message);
+                log.LogCritical("Network Socket has thrown: {Message}", exception.Message);
             }
         }
 
         public void Shutdown()
         {
-            log.DebugFormat("Shutting down ConnectionListener, host {0} port {1}", listeningHost, listeningPort);
+            log.LogDebug("Shutting down ConnectionListener, host {ListeningHost} port {ListeningPort}", listeningHost, listeningPort);
 
             if (Socket != null && Socket.IsBound)
                 Socket.Close();
@@ -80,12 +80,12 @@ namespace ACE.Server.Network
             }
             catch (SocketException socketException)
             {
-                log.DebugFormat("ConnectionListener({2}, {3}).Listen() has thrown {0}: {1}", socketException.SocketErrorCode, socketException.Message, listeningHost, listeningPort);
+                log.LogDebug("ConnectionListener({ListeningHost}, {ListeningPort}).Listen() has thrown {SocketErrorCode}: {Message}", listeningHost, listeningPort, socketException.SocketErrorCode, socketException.Message);
                 Listen();
             }
             catch (Exception exception)
             {
-                log.FatalFormat("ConnectionListener({1}, {2}).Listen() has thrown: {0}", exception.Message, listeningHost, listeningPort);
+                log.LogCritical("ConnectionListener({ListeningHost}, {ListeningPort}).Listen() has thrown: {Message}", listeningHost, listeningPort, exception.Message);
             }
         }
 
@@ -102,7 +102,7 @@ namespace ACE.Server.Network
 
                 // TO-DO: generate ban entries here based on packet rates of endPoint, IP Address, and IP Address Range
 
-                if (packetLog.IsDebugEnabled)
+                if (packetLog.IsEnabled(LogLevel.Debug))
                 {
                     byte[] data = new byte[dataSize];
                     Buffer.BlockCopy(buffer, 0, data, 0, dataSize);
@@ -110,7 +110,7 @@ namespace ACE.Server.Network
                     StringBuilder sb = new StringBuilder();
                     sb.AppendLine($"Received Packet (Len: {data.Length}) [{ipEndpoint.Address}:{ipEndpoint.Port}=>{ListenerEndpoint.Address}:{ListenerEndpoint.Port}]");
                     sb.AppendLine(data.BuildPacketString());
-                    packetLog.DebugFormat("{0}", sb);
+                    packetLog.LogDebug("{Sb}", sb);
                 }
 
                 var packet = new ClientPacket();
@@ -129,11 +129,11 @@ namespace ACE.Server.Network
                     socketException.SocketErrorCode == SocketError.NetworkReset ||
                     socketException.SocketErrorCode == SocketError.ConnectionReset)
                 {
-                    log.DebugFormat("ConnectionListener({3}, {4}).OnDataReceieve() has thrown {0}: {1} from client {2}", socketException.SocketErrorCode, socketException.Message, clientEndPoint != null ? clientEndPoint.ToString() : "Unknown", listeningHost, listeningPort);
+                    log.LogDebug("ConnectionListener({ListeningHost}, {ListeningPort}).OnDataReceieve() has thrown {SocketErrorCode}: {Message} from client {ClientEndPoint}", listeningHost, listeningPort, socketException.SocketErrorCode, socketException.Message, (clientEndPoint != null ? clientEndPoint.ToString() : "Unknown"));
                 }
                 else
                 {
-                    log.FatalFormat("ConnectionListener({3}, {4}).OnDataReceieve() has thrown {0}: {1} from client {2}", socketException.SocketErrorCode, socketException.Message, clientEndPoint != null ? clientEndPoint.ToString() : "Unknown", listeningHost, listeningPort);
+                    log.LogCritical("ConnectionListener({ListeningHost}, {ListeningPort}).OnDataReceieve() has thrown {SocketErrorCode}: {Message} from client {ClientEndPoint}", listeningHost, listeningPort, socketException.SocketErrorCode, socketException.Message, (clientEndPoint != null ? clientEndPoint.ToString() : "Unknown"));
                     return;
                 }
             }

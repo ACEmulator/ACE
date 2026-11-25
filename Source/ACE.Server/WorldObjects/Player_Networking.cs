@@ -1,8 +1,9 @@
 using System;
 
+using Microsoft.Extensions.Logging;
+
 using ACE.Common;
 using ACE.Common.Extensions;
-using ACE.Common.Logging;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -142,7 +143,7 @@ namespace ACE.Server.WorldObjects
                 actionChain.EnqueueChain();
             }
 
-            log.DebugFormat("[LOGIN] Account {0} entered the world with character {1} (0x{2}) at {3}.", Account.AccountName, Name, Guid, DateTime.Now.ToCommonString());
+            log.LogDebug("[LOGIN] Account {AccountName} entered the world with character {Name} (0x{Guid}) at {Now}.", Account.AccountName, Name, Guid, DateTime.Now.ToCommonString());
         }
 
         public void SendTurbineChatChannels(bool breakAllegiance = false)

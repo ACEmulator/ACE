@@ -333,7 +333,7 @@ namespace ACE.Server.Entity
             // errors shouldn't be possible here, since the items were pre-validated, but just in case...
             if (!player.TryCreateInInventoryWithNetworking(result))
             {
-                log.Error($"[TAILORING] Tailoring.Finalize({player.Name} (0x{player.Guid}), {source.Name} (0x{source.Guid}), {target.Name} (0x{target.Guid}), {result.Name}) - couldn't add {result.Name} ({result.Guid}) to player inventory after validation, this shouldn't happen!");
+                log.LogError("[TAILORING] Tailoring.Finalize({PlayerName} (0x{PlayerGuid}), {SourceName} (0x{SourceGuid}), {TargetName} (0x{TargetGuid}), {ResultName}) - couldn't add {ResultName} ({ResultGuid}) to player inventory after validation, this shouldn't happen!", player.Name, player.Guid, source.Name, source.Guid, target.Name, target.Guid, result.Name, result.Name, result.Guid);
                 result.Destroy();  // cleanup for guid manager
             }
 

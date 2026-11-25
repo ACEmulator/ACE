@@ -126,7 +126,7 @@ namespace ACE.Server.Entity.Mutations
 
             if (!arg1.IsValid)
             {
-                log.Error($"{wo.Name} ({wo.Guid}).TryMutate({type}) - argument 1 invalid");
+                log.LogError("{Name} ({Guid}).TryMutate({Type}) - argument 1 invalid", wo.Name, wo.Guid, type);
                 return false;
             }
 
@@ -145,7 +145,7 @@ namespace ACE.Server.Entity.Mutations
 
                     if (!arg2.IsValid)
                     {
-                        log.Error($"{wo.Name} ({wo.Guid}).TryMutate({type}) - argument 2 invalid");
+                        log.LogError("{Name} ({Guid}).TryMutate({Type}) - argument 2 invalid", wo.Name, wo.Guid, type);
                         return false;
                     }
                     break;
