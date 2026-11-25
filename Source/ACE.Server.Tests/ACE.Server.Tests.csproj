@@ -45,7 +45,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-4f7c-pmjv-c25w" />
+      <None Update="Logging\TestData\**" CopyToOutputDirectory="PreserveNewest" />
+      <None Include="..\ACE.Server\serilog.json.*" Link="Logging\TestData\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
 </Project>
