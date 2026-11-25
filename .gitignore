@@ -302,6 +302,7 @@ AppVeyor/
 # ACEmulator specific files
 [Cc]onfig.js
 log4net.config
+serilog.json
 Database/tools/password.txt
 docker.env
 docker-compose.yml

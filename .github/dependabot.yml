@@ -24,8 +24,6 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "Microsoft.EntityFrameworkCore"
         update-types: ["version-update:semver-major"]
-      - dependency-name: "log4net"
-        update-types: ["version-update:semver-major"]
       - dependency-name: "Microting.EntityFrameworkCore.MySql"
         update-types: ["version-update:semver-major"]  
 

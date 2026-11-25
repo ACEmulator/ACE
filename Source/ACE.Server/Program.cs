@@ -6,8 +6,6 @@ using System.Runtime;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-using log4net.Config;
-
 using Microsoft.Extensions.Logging;
 
 using ACE.Common;
@@ -60,59 +58,12 @@ namespace ACE.Server
             // Init our text encoding options. This will allow us to use more than standard ANSI text, which the client also supports.
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
-            // Look for the log4net.config first in the current environment directory, then in the ExecutingAssembly location
+            // Look for serilog.json first in the current environment directory, then in the ExecutingAssembly location.
+            // An existing log4net.config is converted to serilog.json the first time.
             var exeLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             var containerConfigDirectory = "/ace/Config";
-            var log4netConfig = Path.Combine(exeLocation, "log4net.config");
-            var log4netConfigExample = Path.Combine(exeLocation, "log4net.config.example");
-            var log4netConfigContainer = Path.Combine(containerConfigDirectory, "log4net.config");
 
-            if (IsRunningInContainer && File.Exists(log4netConfigContainer))
-                File.Copy(log4netConfigContainer, log4netConfig, true);
-
-            var log4netFileInfo = new FileInfo("log4net.config");
-            if (!log4netFileInfo.Exists)
-                log4netFileInfo = new FileInfo(log4netConfig);
-
-            if (!log4netFileInfo.Exists)
-            {
-                var exampleFile = new FileInfo(log4netConfigExample);
-                if (!exampleFile.Exists)
-                {
-                    Console.WriteLine("log4net Configuration file is missing.  Please copy the file log4net.config.example to log4net.config and edit it to match your needs before running ACE.");
-                    throw new Exception("missing log4net configuration file");
-                }
-                else
-                {
-                    if (!IsRunningInContainer)
-                    {
-                        Console.WriteLine("log4net Configuration file is missing,  cloning from example file.");
-                        File.Copy(log4netConfigExample, log4netConfig);
-                    }
-                    else
-                    {
-                        if (!File.Exists(log4netConfigContainer))
-                        {
-                            Console.WriteLine("log4net Configuration file is missing, ACEmulator is running in a container,  cloning from docker file.");
-                            var log4netConfigDocker = Path.Combine(exeLocation, "log4net.config.docker");
-                            File.Copy(log4netConfigDocker, log4netConfig);
-                            File.Copy(log4netConfigDocker, log4netConfigContainer);
-                        }
-                        else
-                        {
-                            File.Copy(log4netConfigContainer, log4netConfig);
-                        }
-
-                    }
-                }
-            }
-
-            var logRepository = log4net.LogManager.GetRepository(Assembly.GetEntryAssembly());
-            XmlConfigurator.ConfigureAndWatch(logRepository, log4netFileInfo);
-
-            // Route Microsoft.Extensions.Logging into log4net. Every logger created so far (static fields
-            // initialised before Main) picks this provider up retroactively; log4net.config still governs output.
-            LogManager.Factory.AddProvider(new Log4NetBridgeProvider(logRepository));
+            SerilogSetup.Initialize(exeLocation, IsRunningInContainer, containerConfigDirectory);
 
             if (Environment.ProcessorCount < 2)
                 log.LogWarning("Only one vCPU was detected. ACE may run with limited performance. You should increase your vCPU count for anything more than a single player server.");
@@ -354,6 +305,10 @@ namespace ACE.Server
         {
             var exception = e.ExceptionObject as Exception;
             log.LogError(exception, "{Message:l}", exception?.Message ?? e.ExceptionObject);
+
+            // the process is about to end, so write out what the async sink still holds
+            if (e.IsTerminating)
+                SerilogSetup.CloseAndFlush();
         }
 
         private static void OnProcessExit(object sender, EventArgs e)
@@ -384,6 +339,9 @@ namespace ACE.Server
                 ServerManager.DoShutdownNow();
                 DatabaseManager.Stop();
             }
+
+            // last, so the shutdown messages above are written out too
+            SerilogSetup.CloseAndFlush();
         }
     }
 }

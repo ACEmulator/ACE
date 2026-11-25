@@ -1,0 +1,39 @@
+{
+  "Serilog": {
+    "Using": [ "Serilog.Sinks.Async", "Serilog.Sinks.Console", "Serilog.Sinks.File", "ACE.Server" ],
+    "MinimumLevel": {
+      "Default": "Verbose",
+      "Override": {
+        "Packets": "Information"
+      }
+    },
+    "Enrich": [ "WithThread" ],
+    "WriteTo": [
+      {
+        "Name": "Async",
+        "Args": {
+          "configure": [
+            {
+              "Name": "Console",
+              "Args": {
+                "theme": "Serilog.Sinks.SystemConsole.Themes.AnsiConsoleTheme::Sixteen, Serilog.Sinks.Console",
+                "restrictedToMinimumLevel": "Information",
+                "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss,fff} {Level:u3}: {Message:lj}{NewLine}{Exception}"
+              }
+            },
+            {
+              "Name": "File",
+              "Args": {
+                "path": "ACE_Log.txt",
+                "rollOnFileSizeLimit": true,
+                "fileSizeLimitBytes": 20971520,
+                "retainedFileCountLimit": 11,
+                "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss,fff} [{Thread}] {Level:u3} ({SourceContext}) {Message:lj}{NewLine}{Exception}"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

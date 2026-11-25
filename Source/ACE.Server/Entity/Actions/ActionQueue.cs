@@ -15,7 +15,7 @@ namespace ACE.Server.Entity.Actions
         protected ConcurrentQueue<IAction> Queue { get; } = new ConcurrentQueue<IAction>();
 
         #if WRAP_AND_MEASURE_ACT_WITH_STOPWATCH
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILogger log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private readonly System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
         #endif
 
