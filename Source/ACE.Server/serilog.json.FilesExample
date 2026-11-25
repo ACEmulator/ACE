@@ -10,94 +10,108 @@
 //
 // Filters are Serilog.Expressions: @l is the level, @m the rendered message, SourceContext the logger name.
 // IsMatch is a case-sensitive regular expression match. For a case-insensitive match use (?i), e.g. '(?i)corpse'.
+//
+// Everything is wrapped in "Async", so filtering and writing happen on a background thread, not the thread that logged.
+// Keep it that way: a filter on @m has to build the message text for every message it checks.
 {
   "Serilog": {
-    "Using": [ "Serilog.Sinks.File", "Serilog.Expressions", "Serilog.Enrichers.Thread" ],
+    "Using": [ "Serilog.Sinks.Async", "Serilog.Sinks.File", "Serilog.Expressions", "ACE.Server" ],
     "MinimumLevel": {
       "Default": "Verbose"
     },
-    "Enrich": [ "WithThreadId" ],
+    "Enrich": [ "WithThread" ],
     "WriteTo": [
       {
-        "Name": "File",
+        "Name": "Async",
         "Args": {
-          "path": "ACE_Log.txt",
-          "rollOnFileSizeLimit": true,
-          "fileSizeLimitBytes": 20971520,
-          "retainedFileCountLimit": 11,
-          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss,fff} [{ThreadId}] {Level:u3} ({SourceContext}) {Message:lj}{NewLine}{Exception}"
-        }
-      },
-      {
-        "Name": "File",
-        "Args": {
-          "path": "ACE_Log-INFO.txt",
-          "restrictedToMinimumLevel": "Information",
-          "rollOnFileSizeLimit": true,
-          "fileSizeLimitBytes": 20971520,
-          "retainedFileCountLimit": 11,
-          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss,fff} [{ThreadId}] {Level:u3} ({SourceContext}) {Message:lj}{NewLine}{Exception}"
-        }
-      },
-      {
-        "Name": "File",
-        "Args": {
-          "path": "ACE_Log-WARN.txt",
-          "restrictedToMinimumLevel": "Warning",
-          "rollOnFileSizeLimit": true,
-          "fileSizeLimitBytes": 20971520,
-          "retainedFileCountLimit": 11,
-          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss,fff} [{ThreadId}] {Level:u3} ({SourceContext}) {Message:lj}{NewLine}{Exception}"
-        }
-      },
-      {
-        "Name": "Logger",
-        "Args": {
-          "configureLogger": {
-            "Filter": [
-              {
-                "Name": "ByIncludingOnly",
-                "Args": { "expression": "IsMatch(@m, '\\[CORPSE\\]')" }
+          "configure": [
+            {
+              "Name": "File",
+              "Args": {
+                "path": "ACE_Log.txt",
+                "rollOnFileSizeLimit": true,
+                "fileSizeLimitBytes": 20971520,
+                "retainedFileCountLimit": 11,
+                "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss,fff} [{Thread}] {Level:u3} ({SourceContext}) {Message:lj}{NewLine}{Exception}"
               }
-            ],
-            "WriteTo": [
-              {
-                "Name": "File",
-                "Args": {
-                  "path": "ACE_Log-CORPSE.txt",
-                  "rollOnFileSizeLimit": true,
-                  "fileSizeLimitBytes": 20971520,
-                  "retainedFileCountLimit": 11,
-                  "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss,fff} [{ThreadId}] {Level:u3} ({SourceContext}) {Message:lj}{NewLine}{Exception}"
+            },
+            {
+              "Name": "File",
+              "Args": {
+                "path": "ACE_Log-INFO.txt",
+                "restrictedToMinimumLevel": "Information",
+                "rollOnFileSizeLimit": true,
+                "fileSizeLimitBytes": 20971520,
+                "retainedFileCountLimit": 11,
+                "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss,fff} [{Thread}] {Level:u3} ({SourceContext}) {Message:lj}{NewLine}{Exception}"
+              }
+            },
+            {
+              "Name": "File",
+              "Args": {
+                "path": "ACE_Log-WARN.txt",
+                "restrictedToMinimumLevel": "Warning",
+                "rollOnFileSizeLimit": true,
+                "fileSizeLimitBytes": 20971520,
+                "retainedFileCountLimit": 11,
+                "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss,fff} [{Thread}] {Level:u3} ({SourceContext}) {Message:lj}{NewLine}{Exception}"
+              }
+            },
+            {
+              "Name": "Logger",
+              "Args": {
+                "configureLogger": {
+                  "Filter": [
+                    {
+                      "Name": "ByIncludingOnly",
+                      "Args": {
+                        "expression": "IsMatch(@m, '\\[CORPSE\\]')"
+                      }
+                    }
+                  ],
+                  "WriteTo": [
+                    {
+                      "Name": "File",
+                      "Args": {
+                        "path": "ACE_Log-CORPSE.txt",
+                        "rollOnFileSizeLimit": true,
+                        "fileSizeLimitBytes": 20971520,
+                        "retainedFileCountLimit": 11,
+                        "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss,fff} [{Thread}] {Level:u3} ({SourceContext}) {Message:lj}{NewLine}{Exception}"
+                      }
+                    }
+                  ]
                 }
               }
-            ]
-          }
-        }
-      },
-      {
-        "Name": "Logger",
-        "Args": {
-          "configureLogger": {
-            "Filter": [
-              {
-                "Name": "ByIncludingOnly",
-                "Args": { "expression": "IsMatch(@m, '\\[DATABASE\\]')" }
-              }
-            ],
-            "WriteTo": [
-              {
-                "Name": "File",
-                "Args": {
-                  "path": "ACE_Log-DATABASE.txt",
-                  "rollOnFileSizeLimit": true,
-                  "fileSizeLimitBytes": 20971520,
-                  "retainedFileCountLimit": 11,
-                  "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss,fff} [{ThreadId}] {Level:u3} ({SourceContext}) {Message:lj}{NewLine}{Exception}"
+            },
+            {
+              "Name": "Logger",
+              "Args": {
+                "configureLogger": {
+                  "Filter": [
+                    {
+                      "Name": "ByIncludingOnly",
+                      "Args": {
+                        "expression": "IsMatch(@m, '\\[DATABASE\\]')"
+                      }
+                    }
+                  ],
+                  "WriteTo": [
+                    {
+                      "Name": "File",
+                      "Args": {
+                        "path": "ACE_Log-DATABASE.txt",
+                        "rollOnFileSizeLimit": true,
+                        "fileSizeLimitBytes": 20971520,
+                        "retainedFileCountLimit": 11,
+                        "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss,fff} [{Thread}] {Level:u3} ({SourceContext}) {Message:lj}{NewLine}{Exception}"
+                      }
+                    }
+                  ]
                 }
               }
-            ]
-          }
+            }
+          ]
         }
       }
     ]

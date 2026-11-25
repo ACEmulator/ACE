@@ -161,6 +161,79 @@ namespace ACE.Server.Tests.Logging
         }
 
         [TestMethod]
+        public void Relative_file_paths_are_resolved_against_the_executable_folder_like_log4net_did()
+        {
+            var json = @"{ ""Serilog"": { ""WriteTo"": [
+                { ""Name"": ""Async"", ""Args"": { ""configure"": [
+                    { ""Name"": ""Console"", ""Args"": { } },
+                    { ""Name"": ""File"", ""Args"": { ""path"": ""ACE_Log.txt"" } },
+                    { ""Name"": ""Logger"", ""Args"": { ""configureLogger"": { ""WriteTo"": [ { ""Name"": ""File"", ""Args"": { ""path"": ""logs/chat.txt"" } } ] } } } ] } },
+                { ""Name"": ""File"", ""Args"": { ""path"": ""/var/log/ace/abs.txt"" } },
+                { ""Name"": ""File"", ""Args"": { ""path"": ""c:\\ACE\\logs\\win.txt"" } } ] } }";
+
+            var configuration = new ConfigurationBuilder().AddJsonStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(json))).Build();
+
+            SerilogSetup.MakeFilePathsAbsolute(configuration, exe);
+
+            Assert.AreEqual(Path.Combine(exe, "ACE_Log.txt"), configuration["Serilog:WriteTo:0:Args:configure:1:Args:path"]);
+            Assert.AreEqual(Path.Combine(exe, "logs/chat.txt"), configuration["Serilog:WriteTo:0:Args:configure:2:Args:configureLogger:WriteTo:0:Args:path"]);
+            Assert.AreEqual("/var/log/ace/abs.txt", configuration["Serilog:WriteTo:1:Args:path"]);
+            Assert.AreEqual(@"c:\ACE\logs\win.txt", configuration["Serilog:WriteTo:2:Args:path"]);
+        }
+
+        [TestMethod]
+        public void The_thread_enricher_writes_the_thread_name_or_its_id_like_log4net_did()
+        {
+            // loaded from JSON, the way serilog.json does it
+            var file = Path.Combine(exe, "thread.txt");
+            var json = @"{ ""Serilog"": { ""Using"": [ ""Serilog.Sinks.File"", ""ACE.Server"" ], ""Enrich"": [ ""WithThread"" ],
+                ""WriteTo"": [ { ""Name"": ""File"", ""Args"": { ""path"": """ + file.Replace("\\", "\\\\") + @""", ""outputTemplate"": ""[{Thread}] {Message:lj}{NewLine}"" } } ] } }";
+
+            var configuration = new ConfigurationBuilder().AddJsonStream(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(json))).Build();
+
+            int unnamedId = 0;
+            using (var logger = new LoggerConfiguration().ReadFrom.Configuration(configuration).CreateLogger())
+            {
+                var named = new Thread(() => logger.Information("named")) { Name = "World Manager" };
+                named.Start();
+                named.Join();
+
+                var unnamed = new Thread(() => { unnamedId = Environment.CurrentManagedThreadId; logger.Information("unnamed"); });
+                unnamed.Start();
+                unnamed.Join();
+            }
+
+            CollectionAssert.AreEqual(new[] { "[World Manager] named", $"[{unnamedId}] unnamed" }, File.ReadAllLines(file));
+        }
+
+        [TestMethod]
+        public void SelfLog_prints_one_report_and_then_goes_quiet()
+        {
+            var originalError = Console.Error;
+            var captured = new StringWriter();
+
+            try
+            {
+                Console.SetError(captured);
+                SerilogSetup.EnableSelfLog();
+
+                // what a sink does for every message it loses
+                for (var i = 0; i < 1000; i++)
+                    Serilog.Debugging.SelfLog.WriteLine("unable to enqueue, capacity {0}", 10000);
+            }
+            finally
+            {
+                Serilog.Debugging.SelfLog.Disable();
+                Console.SetError(originalError);
+            }
+
+            var lines = captured.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+
+            Assert.AreEqual(1, lines.Length, captured.ToString());
+            StringAssert.Contains(lines[0], "unable to enqueue");
+        }
+
+        [TestMethod]
         public void Level_changes_in_serilog_json_apply_without_a_restart()
         {
             var file = Path.Combine(exe, "serilog.json");

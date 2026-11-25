@@ -1,13 +1,13 @@
 {
   "Serilog": {
-    "Using": [ "Serilog.Sinks.Async", "Serilog.Sinks.Console", "Serilog.Sinks.File", "Serilog.Enrichers.Thread" ],
+    "Using": [ "Serilog.Sinks.Async", "Serilog.Sinks.Console", "Serilog.Sinks.File", "ACE.Server" ],
     "MinimumLevel": {
       "Default": "Verbose",
       "Override": {
         "Packets": "Information"
       }
     },
-    "Enrich": [ "WithThreadId" ],
+    "Enrich": [ "WithThread" ],
     "WriteTo": [
       {
         "Name": "Async",
@@ -16,6 +16,7 @@
             {
               "Name": "Console",
               "Args": {
+                "theme": "Serilog.Sinks.SystemConsole.Themes.AnsiConsoleTheme::Sixteen, Serilog.Sinks.Console",
                 "restrictedToMinimumLevel": "Information",
                 "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss,fff} {Level:u3}: {Message:lj}{NewLine}{Exception}"
               }
@@ -27,7 +28,7 @@
                 "rollOnFileSizeLimit": true,
                 "fileSizeLimitBytes": 20971520,
                 "retainedFileCountLimit": 11,
-                "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss,fff} [{ThreadId}] {Level:u3} ({SourceContext}) {Message:lj}{NewLine}{Exception}"
+                "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss,fff} [{Thread}] {Level:u3} ({SourceContext}) {Message:lj}{NewLine}{Exception}"
               }
             }
           ]

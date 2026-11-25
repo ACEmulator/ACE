@@ -32,7 +32,7 @@ namespace ACE.Server.Tests.Logging
         {
             var template = Log4NetConfigConverter.ConvertPattern("%date [%thread] %-5level (%logger) %message%newline", out var warnings);
 
-            Assert.AreEqual("{Timestamp:yyyy-MM-dd HH:mm:ss,fff} [{ThreadId}] {Level:u3} ({SourceContext}) {Message:lj}{NewLine}{Exception}", template);
+            Assert.AreEqual("{Timestamp:yyyy-MM-dd HH:mm:ss,fff} [{Thread}] {Level:u3} ({SourceContext}) {Message:lj}{NewLine}{Exception}", template);
             Assert.AreEqual(0, warnings.Count);
         }
 
@@ -206,6 +206,100 @@ namespace ACE.Server.Tests.Logging
             });
 
             AssertFiles(new Dictionary<string, string[]> { ["f.txt"] = new[] { "INF|i", "WRN|w" } }, files);
+        }
+
+        [TestMethod]
+        public void LevelRangeFilter_accepts_by_default_so_later_filters_do_not_run()
+        {
+            // Checked against log4net 2.0.17: in range is accepted outright unless acceptOnMatch is false
+            var xml = $@"<log4net>
+                <appender name=""Default"" type=""log4net.Appender.FileAppender"">
+                    <file value=""default.txt"" />
+                    <filter type=""log4net.Filter.LevelRangeFilter""><levelMin value=""INFO"" /><levelMax value=""WARN"" /></filter>
+                    <filter type=""log4net.Filter.DenyAllFilter"" />
+                    {Layout}
+                </appender>
+                <appender name=""PassOn"" type=""log4net.Appender.FileAppender"">
+                    <file value=""passon.txt"" />
+                    <filter type=""log4net.Filter.LevelRangeFilter""><levelMin value=""INFO"" /><levelMax value=""WARN"" /><acceptOnMatch value=""false"" /></filter>
+                    <filter type=""log4net.Filter.StringMatchFilter""><stringToMatch value=""secret"" /><acceptOnMatch value=""false"" /></filter>
+                    {Layout}
+                </appender>
+                <root><level value=""ALL"" /><appender-ref ref=""Default"" /><appender-ref ref=""PassOn"" /></root>
+            </log4net>";
+
+            var files = Run(Log4NetConfigConverter.Convert(xml).Json, factory =>
+            {
+                var log = factory.CreateLogger("Test");
+                log.LogDebug("d");
+                log.LogInformation("i");
+                log.LogInformation("has a secret");
+                log.LogWarning("w");
+                log.LogError("e");
+            });
+
+            AssertFiles(new Dictionary<string, string[]>
+            {
+                ["default.txt"] = new[] { "INF|i", "INF|has a secret", "WRN|w" },
+                ["passon.txt"] = new[] { "INF|i", "WRN|w" },
+            }, files);
+        }
+
+        [TestMethod]
+        public void A_non_additive_logger_also_hides_its_events_from_its_ancestors_appenders()
+        {
+            var xml = $@"<log4net>
+                <appender name=""Root"" type=""log4net.Appender.FileAppender""><file value=""root.txt"" />{Layout}</appender>
+                <appender name=""Server"" type=""log4net.Appender.FileAppender""><file value=""server.txt"" />{Layout}</appender>
+                <appender name=""Net"" type=""log4net.Appender.FileAppender""><file value=""net.txt"" />{Layout}</appender>
+                <logger name=""ACE.Server""><appender-ref ref=""Server"" /></logger>
+                <logger name=""ACE.Server.Network"" additivity=""false""><appender-ref ref=""Net"" /></logger>
+                <root><level value=""ALL"" /><appender-ref ref=""Root"" /></root>
+            </log4net>";
+
+            var files = Run(Log4NetConfigConverter.Convert(xml).Json, factory =>
+            {
+                factory.CreateLogger("ACE.Server.Network.ClientPacket").LogInformation("net");
+                factory.CreateLogger("ACE.Server.Managers.HouseManager").LogInformation("house");
+                factory.CreateLogger("ACE.Database").LogInformation("database");
+            });
+
+            AssertFiles(new Dictionary<string, string[]>
+            {
+                ["net.txt"] = new[] { "INF|net" },
+                ["server.txt"] = new[] { "INF|house" },
+                ["root.txt"] = new[] { "INF|house", "INF|database" },
+            }, files);
+        }
+
+        [TestMethod]
+        public void Console_appenders_get_a_theme_that_writes_each_line_once()
+        {
+            var xml = $@"<log4net>
+                <appender name=""Coloured"" type=""log4net.Appender.ManagedColoredConsoleAppender"">{Layout}</appender>
+                <appender name=""Plain"" type=""log4net.Appender.ConsoleAppender"">{Layout}</appender>
+                <root><appender-ref ref=""Coloured"" /><appender-ref ref=""Plain"" /></root>
+            </log4net>";
+
+            var sinks = JsonNode.Parse(Log4NetConfigConverter.Convert(xml).Json)["Serilog"]["WriteTo"].AsArray().Select(s => s["Args"].AsObject()).ToList();
+
+            Assert.AreEqual(Log4NetConfigConverter.ColouredConsoleTheme, (string)sinks[0]["theme"]);
+            Assert.AreEqual(Log4NetConfigConverter.PlainConsoleTheme, (string)sinks[1]["theme"]);
+        }
+
+        [TestMethod]
+        public void A_date_pattern_that_ends_with_the_extension_moves_it_to_the_path()
+        {
+            // log4net wrote logs/ace-2026-11-25.txt; Serilog writes logs/ace-20261125.txt
+            var xml = $@"<log4net>
+                <appender name=""D"" type=""log4net.Appender.RollingFileAppender""><file value=""logs/ace-"" /><rollingStyle value=""Date"" /><datePattern value=""yyyy-MM-dd'.txt'"" /><staticLogFileName value=""false"" />{Layout}</appender>
+                <root><appender-ref ref=""D"" /></root>
+            </log4net>";
+
+            var args = JsonNode.Parse(Log4NetConfigConverter.Convert(xml).Json)["Serilog"]["WriteTo"][0]["Args"];
+
+            Assert.AreEqual("logs/ace-.txt", (string)args["path"]);
+            Assert.AreEqual("Day", (string)args["rollingInterval"]);
         }
 
         [TestMethod]

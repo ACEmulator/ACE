@@ -7,41 +7,53 @@
 // The second Console entry is a sub-logger ("Logger") with its own filter.
 // Filters are Serilog.Expressions: @l is the level, @m the rendered message, SourceContext the logger name.
 // IsMatch is a case-sensitive regular expression match; add "ci" after a comparison to ignore case.
+//
+// Everything is wrapped in "Async", so filtering and writing happen on a background thread, not the thread that logged.
+// Keep it that way: a filter on @m has to build the message text for every message it checks.
 {
   "Serilog": {
-    "Using": [ "Serilog.Sinks.Console", "Serilog.Expressions" ],
+    "Using": [ "Serilog.Sinks.Async", "Serilog.Sinks.Console", "Serilog.Expressions" ],
     "MinimumLevel": {
       "Default": "Verbose"
     },
     "WriteTo": [
       {
-        "Name": "Console",
+        "Name": "Async",
         "Args": {
-          "restrictedToMinimumLevel": "Information",
-          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss,fff} {Level:u3}: {Message:lj}{NewLine}{Exception}"
-        }
-      },
-      {
-        "Name": "Logger",
-        "Args": {
-          "configureLogger": {
-            "Filter": [
-              {
-                "Name": "ByIncludingOnly",
-                "Args": {
-                  "expression": "@l in ['Verbose', 'Debug'] and (IsMatch(@m, '\\[(CORPSE|LOOT)\\]') or StartsWith(SourceContext, 'ACE.Server.Managers.HouseManager'))"
+          "configure": [
+            {
+              "Name": "Console",
+              "Args": {
+                "theme": "Serilog.Sinks.SystemConsole.Themes.ConsoleTheme::None, Serilog.Sinks.Console",
+                "restrictedToMinimumLevel": "Information",
+                "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss,fff} {Level:u3}: {Message:lj}{NewLine}{Exception}"
+              }
+            },
+            {
+              "Name": "Logger",
+              "Args": {
+                "configureLogger": {
+                  "Filter": [
+                    {
+                      "Name": "ByIncludingOnly",
+                      "Args": {
+                        "expression": "@l in ['Verbose', 'Debug'] and (IsMatch(@m, '\\[(CORPSE|LOOT)\\]') or StartsWith(SourceContext, 'ACE.Server.Managers.HouseManager'))"
+                      }
+                    }
+                  ],
+                  "WriteTo": [
+                    {
+                      "Name": "Console",
+                      "Args": {
+                        "theme": "Serilog.Sinks.SystemConsole.Themes.ConsoleTheme::None, Serilog.Sinks.Console",
+                        "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss,fff} {Level:u3}: {Message:lj}{NewLine}{Exception}"
+                      }
+                    }
+                  ]
                 }
               }
-            ],
-            "WriteTo": [
-              {
-                "Name": "Console",
-                "Args": {
-                  "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss,fff} {Level:u3}: {Message:lj}{NewLine}{Exception}"
-                }
-              }
-            ]
-          }
+            }
+          ]
         }
       }
     ]

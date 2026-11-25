@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Debugging;
 using Serilog.Extensions.Logging;
 
 using ACE.Common.Logging;
@@ -15,7 +17,8 @@ namespace ACE.Server.Logging
     /// Configures Serilog from serilog.json and plugs it into <see cref="LogManager.Factory"/>.<para />
     /// serilog.json follows the same lifecycle log4net.config did: it is looked for in the working directory, then next to the
     /// executable, and in a container it is kept in the config volume. When it is missing, an existing log4net.config is
-    /// converted into it; failing that, serilog.json.example (or serilog.json.docker in a container) is copied.
+    /// converted into it; failing that, serilog.json.example (or serilog.json.docker in a container) is copied.<para />
+    /// A relative File sink path is relative to the executable's folder, as it was with log4net.
     /// </summary>
     public static class SerilogSetup
     {
@@ -33,8 +36,7 @@ namespace ACE.Server.Logging
         {
             var notes = new List<StartupNote>();
 
-            // Serilog reports its own problems, such as a log file it cannot open, here rather than throwing
-            Serilog.Debugging.SelfLog.Enable(Console.Error);
+            EnableSelfLog();
 
             var configFile = ResolveConfigFile(Directory.GetCurrentDirectory(), exeLocation, isRunningInContainer, containerConfigDirectory, notes);
 
@@ -43,6 +45,8 @@ namespace ACE.Server.Logging
                 var configuration = new ConfigurationBuilder()
                     .AddJsonFile(configFile, optional: false, reloadOnChange: true)
                     .Build();
+
+                MakeFilePathsAbsolute(configuration, exeLocation);
 
                 logger = new LoggerConfiguration()
                     .ReadFrom.Configuration(configuration)
@@ -68,6 +72,58 @@ namespace ACE.Server.Logging
 
             foreach (var note in notes)
                 log.Log(note.Level, "{Message:l}", note.Message);
+        }
+
+        /// <summary>
+        /// Resolves the relative path of every File sink against the executable's folder.<para />
+        /// log4net did this, so "ACE_Log.txt" has always meant the file next to ACE.Server. Serilog would resolve it against the
+        /// working directory instead, which moves the logs of a server that is started from another folder.
+        /// </summary>
+        public static void MakeFilePathsAbsolute(IConfiguration configuration, string exeLocation)
+        {
+            foreach (var section in configuration.GetChildren())
+            {
+                if (string.Equals(section["Name"], "File", StringComparison.OrdinalIgnoreCase))
+                {
+                    var args = section.GetSection("Args");
+                    var path = args["path"];
+
+                    if (!string.IsNullOrEmpty(path) && !IsRooted(path))
+                        args["path"] = Path.Combine(exeLocation, path);
+                }
+
+                MakeFilePathsAbsolute(section, exeLocation);
+            }
+        }
+
+        private static bool IsRooted(string path)
+        {
+            // also recognise a Windows drive or UNC path when checking a config on another platform
+            return Path.IsPathRooted(path) || path.StartsWith('\\') || (path.Length > 1 && path[1] == ':');
+        }
+
+        private static readonly TimeSpan SelfLogQuietPeriod = TimeSpan.FromMinutes(1);
+
+        private static Timer selfLogTimer;
+
+        /// <summary>
+        /// Serilog reports its own problems to SelfLog rather than throwing: a log file it cannot open, a full disk, a full
+        /// async queue.<para />
+        /// A failing sink reports every message it loses, on the thread that logged it. So one report is printed and SelfLog is
+        /// then switched off for a minute. While it is off a lost message costs nothing, and a flood of them cannot turn into a
+        /// console write each.
+        /// </summary>
+        public static void EnableSelfLog()
+        {
+            SelfLog.Enable(message =>
+            {
+                SelfLog.Disable();
+
+                Console.Error.WriteLine($"Serilog: {message} (further reports are suppressed for {SelfLogQuietPeriod.TotalSeconds:N0} seconds)");
+
+                var timer = new Timer(_ => EnableSelfLog(), null, SelfLogQuietPeriod, Timeout.InfiniteTimeSpan);
+                Interlocked.Exchange(ref selfLogTimer, timer)?.Dispose();
+            });
         }
 
         /// <summary>

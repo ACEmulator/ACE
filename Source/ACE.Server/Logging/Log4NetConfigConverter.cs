@@ -9,6 +9,8 @@ using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
+using Serilog.Expressions;
+
 namespace ACE.Server.Logging
 {
     /// <summary>
@@ -19,6 +21,12 @@ namespace ACE.Server.Logging
     /// </summary>
     public static class Log4NetConfigConverter
     {
+        /// <summary>
+        /// Console themes that render a line into a buffer and write it once
+        /// </summary>
+        public const string ColouredConsoleTheme = "Serilog.Sinks.SystemConsole.Themes.AnsiConsoleTheme::Sixteen, Serilog.Sinks.Console";
+        public const string PlainConsoleTheme = "Serilog.Sinks.SystemConsole.Themes.ConsoleTheme::None, Serilog.Sinks.Console";
+
         private static readonly string[] SerilogLevels = { "Verbose", "Debug", "Information", "Warning", "Error", "Fatal" };
 
         private const string DefaultLog4NetDateFormat = "yyyy-MM-dd HH:mm:ss,fff";
@@ -64,7 +72,14 @@ namespace ACE.Server.Logging
 
             // Appender paths: every route from <root> or a <logger> to a console or file appender
 
-            var nonAdditiveLoggers = new List<string>();
+            // An event climbs from its logger towards the root, visiting each ancestor's appenders, and stops after a logger
+            // with additivity="false". So a logger's appenders see its own events and its descendants', except those from
+            // below a non-additive logger that sits between them.
+            var nonAdditiveLoggers = loggers
+                .Where(l => string.Equals(Attribute(l, "additivity"), "false", StringComparison.OrdinalIgnoreCase))
+                .Select(l => Attribute(l, "name"))
+                .Where(n => !string.IsNullOrEmpty(n))
+                .ToList();
 
             foreach (var logger in loggers)
             {
@@ -72,18 +87,16 @@ namespace ACE.Server.Logging
                 if (string.IsNullOrEmpty(name))
                     continue;
 
-                var loggerCondition = LoggerCondition(name);
+                var conditions = new List<string> { LoggerCondition(name) };
+                conditions.AddRange(nonAdditiveLoggers.Where(n => n.StartsWith(name + ".", StringComparison.Ordinal)).Select(n => Not(LoggerCondition(n))));
 
                 foreach (var appenderRef in AppenderRefs(logger))
-                    Walk(appenderRef, new PathState(loggerCondition), context, new HashSet<string>());
-
-                if (string.Equals(Attribute(logger, "additivity"), "false", StringComparison.OrdinalIgnoreCase))
-                    nonAdditiveLoggers.Add(loggerCondition);
+                    Walk(appenderRef, new PathState(And(conditions)), context, new HashSet<string>());
             }
 
             if (rootElement != null)
             {
-                var rootCondition = nonAdditiveLoggers.Count == 0 ? null : And(nonAdditiveLoggers.Select(Not));
+                var rootCondition = nonAdditiveLoggers.Count == 0 ? null : And(nonAdditiveLoggers.Select(n => Not(LoggerCondition(n))));
 
                 foreach (var appenderRef in AppenderRefs(rootElement))
                     Walk(appenderRef, new PathState(rootCondition), context, new HashSet<string>());
@@ -111,8 +124,8 @@ namespace ACE.Server.Logging
             foreach (var sink in syncSinks)
                 writeTo.Add(sink);
 
-            if (context.UsesThreadId)
-                context.Using.Add("Serilog.Enrichers.Thread");
+            if (context.UsesThread)
+                context.Using.Add(typeof(ThreadEnricher).Assembly.GetName().Name);
 
             var minimumLevel = new JsonObject { ["Default"] = rootLevel.Name };
             if (overrides.Count > 0)
@@ -124,8 +137,8 @@ namespace ACE.Server.Logging
                 ["MinimumLevel"] = minimumLevel,
             };
 
-            if (context.UsesThreadId)
-                serilog["Enrich"] = new JsonArray("WithThreadId");
+            if (context.UsesThread)
+                serilog["Enrich"] = new JsonArray(nameof(ThreadEnricherExtensions.WithThread));
 
             serilog["WriteTo"] = writeTo;
 
@@ -320,7 +333,13 @@ namespace ACE.Server.Logging
                 if (filter == null)
                     return sink;
 
+                if (!SerilogExpression.TryCompile(filter, out _, out var error))
+                    throw new FormatException($"The filters of appender \"{name}\" produced an expression Serilog cannot read ({error}): {filter}");
+
                 context.Using.Add("Serilog.Expressions");
+
+                if (!IsAsync && filter.Contains("@m", StringComparison.Ordinal))
+                    context.Warn($"Appender \"{name}\" filters on message text and is not behind an async appender. Serilog builds the message text for every message such a filter checks, on the thread that logged it. Moving it inside the \"Async\" sink in serilog.json takes that work off the game threads.");
 
                 return new JsonObject
                 {
@@ -348,8 +367,15 @@ namespace ACE.Server.Logging
                 if (target != null && target.Contains("Error", StringComparison.OrdinalIgnoreCase))
                     args["standardErrorFromLevel"] = "Verbose";
 
+                // Both themes are written as one buffered write per line. Serilog's default theme instead writes every part of
+                // the line separately with a colour change each time, which is several times slower than log4net was.
+                var type = ShortTypeName(Attribute(appender, "type"));
+                var coloured = !type.Equals("ConsoleAppender", StringComparison.OrdinalIgnoreCase);
+
+                args["theme"] = coloured ? ColouredConsoleTheme : PlainConsoleTheme;
+
                 if (appender.Elements().Any(e => Is(e, "mapping")))
-                    context.Warn($"Appender \"{name}\": per-level console colours are not converted; Serilog's console theme colours the level and values instead.");
+                    context.Warn($"Appender \"{name}\": per-level console colours are not converted. log4net coloured the whole line by level; Serilog's console theme colours the level and the values.");
 
                 return args;
             }
@@ -402,7 +428,19 @@ namespace ACE.Server.Logging
                     context.Warn($"Appender \"{name}\": rollingStyle Once (a new file per start) has no Serilog equivalent; rolling by size instead.");
 
                 if (byDate)
-                    args["rollingInterval"] = RollingInterval(Param(appender, "datePattern") ?? ".yyyy-MM-dd");
+                {
+                    var datePattern = Param(appender, "datePattern") ?? ".yyyy-MM-dd";
+
+                    args["rollingInterval"] = RollingInterval(datePattern);
+
+                    // log4net put the date after the file name, so a pattern such as yyyy-MM-dd'.txt' also supplied the extension.
+                    // Serilog puts the date before the extension, so the extension has to be on the path.
+                    var extension = Regex.Match(datePattern, @"'(\.[A-Za-z0-9]+)'\s*$");
+                    var fileName = path.Substring(path.LastIndexOfAny(new[] { '/', '\\' }) + 1);
+
+                    if (extension.Success && !fileName.Contains('.'))
+                        args["path"] = path + extension.Groups[1].Value;
+                }
 
                 if (bySize)
                 {
@@ -580,8 +618,8 @@ namespace ACE.Server.Logging
 
                     case "t":
                     case "thread":
-                        result.Append("{ThreadId").Append(align).Append('}');
-                        context.UsesThreadId = true;
+                        result.Append('{').Append(ThreadEnricher.PropertyName).Append(align).Append('}');
+                        context.UsesThread = true;
                         break;
 
                     case "c":
@@ -675,8 +713,7 @@ namespace ACE.Server.Logging
 
                     case "levelrangefilter":
                     {
-                        // outside the range is denied; inside is accepted, or passed on when acceptOnMatch is false (its default)
-                        acceptOnMatch = string.Equals(Param(filter, "acceptOnMatch"), "true", StringComparison.OrdinalIgnoreCase);
+                        // outside the range is denied; inside is accepted (the default), or passed on when acceptOnMatch is false
                         var min = ParseLevel(Param(filter, "levelMin"), context, $"appender \"{appenderName}\" LevelRangeFilter") ?? new Level(0);
                         var max = ParseLevel(Param(filter, "levelMax"), context, $"appender \"{appenderName}\" LevelRangeFilter") ?? new Level(SerilogLevels.Length - 1);
                         var inRange = LevelIn(min.Index, max.Index);
@@ -744,8 +781,8 @@ namespace ACE.Server.Logging
 
         private static string LevelIn(int min, int max)
         {
-            var levels = SerilogLevels.Skip(min).Take(max - min + 1).Select(l => $"'{l}'");
-            return $"@l in [{string.Join(", ", levels)}]";
+            var levels = SerilogLevels.Skip(min).Take(max - min + 1).Select(l => $"'{l}'").ToList();
+            return levels.Count == 0 ? "false" : $"@l in [{string.Join(", ", levels)}]";
         }
 
         private static string And(IEnumerable<string> parts)
@@ -874,7 +911,7 @@ namespace ACE.Server.Logging
             internal readonly Dictionary<string, SinkDefinition> Sinks = new Dictionary<string, SinkDefinition>(StringComparer.Ordinal);
             internal readonly HashSet<string> Using = new HashSet<string>(StringComparer.Ordinal);
             internal readonly List<string> Warnings = new List<string>();
-            internal bool UsesThreadId;
+            internal bool UsesThread;
 
             internal void Warn(string warning)
             {
