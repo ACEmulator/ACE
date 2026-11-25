@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Debugging;
 using Serilog.Extensions.Logging;
+using Serilog.Sinks.SystemConsole.Themes;
 
 using ACE.Common.Logging;
 
@@ -36,7 +37,9 @@ namespace ACE.Server.Logging
         {
             var notes = new List<StartupNote>();
 
-            EnableSelfLog();
+            // Unthrottled while serilog.json loads: a misspelled sink or enricher is skipped with only a SelfLog report to show
+            // for it, and every such report matters. Throttled once logging is running, when the reports are lost messages.
+            SelfLog.Enable(Console.Error);
 
             var configFile = ResolveConfigFile(Directory.GetCurrentDirectory(), exeLocation, isRunningInContainer, containerConfigDirectory, notes);
 
@@ -59,11 +62,13 @@ namespace ACE.Server.Logging
 
                 logger = new LoggerConfiguration()
                     .MinimumLevel.Information()
-                    .WriteTo.Console(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss,fff} {Level:u3}: {Message:lj}{NewLine}{Exception}")
+                    .WriteTo.Console(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss,fff} {Level:u3}: {Message:lj}{NewLine}{Exception}", theme: AnsiConsoleTheme.Sixteen)
                     .CreateLogger();
 
                 notes.Add(new StartupNote(LogLevel.Error, $"{configFile} could not be loaded, so only the console is being logged to: {ex.Message}"));
             }
+
+            EnableSelfLog();
 
             // Every logger created so far (static fields initialised before Main) picks this provider up retroactively.
             LogManager.Factory.AddProvider(new SerilogLoggerProvider(logger, dispose: true));
@@ -108,7 +113,7 @@ namespace ACE.Server.Logging
 
         /// <summary>
         /// Serilog reports its own problems to SelfLog rather than throwing: a log file it cannot open, a full disk, a full
-        /// async queue.<para />
+        /// async queue. Used once logging is running; while serilog.json loads every report is printed.<para />
         /// A failing sink reports every message it loses, on the thread that logged it. So one report is printed and SelfLog is
         /// then switched off for a minute. While it is off a lost message costs nothing, and a flood of them cannot turn into a
         /// console write each.
